@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Details — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .expiry-ok{color:var(--ok-fg);font-weight:600;}
+  .expiry-warn{color:#b45309;font-weight:600;}
+  .expiry-bad{color:var(--bad-fg);font-weight:600;}
+  .profile-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .profile-name-block h2 { margin: 0 0 4px; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+    padding: 20px;
+  }
+  .detail-item .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    margin-bottom: 4px;
+  }
+  .detail-item .value { font-size: 14px; color: var(--text, #1a1a1a); }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted, #666);
+    text-decoration: none;
+    margin-bottom: 6px;
+  }
+  .back-link:hover { color: var(--text, #1a1a1a); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Employee Details</h1>
+    </div>
+    <div class="content">
+      <a href="employees.html" class="back-link">&larr; Back to Employees</a>
+      <div id="alertBox"></div>
+
+      <div class="card" id="profileCard" style="display:none;">
+        <div class="card-head profile-head">
+          <div class="profile-name-block">
+            <h2 id="profName">—</h2>
+            <span class="badge" id="profCode"></span>
+          </div>
+          <button class="btn" id="btnEditEmployee" style="width:auto;">Edit Employee</button>
+        </div>
+        <div class="detail-grid" id="detailGrid"></div>
+      </div>
+
+      <div class="card" id="loadingCard">
+        <div style="padding:20px;" class="loading">Loading employee...</div>
+      </div>
+
+      <div class="card" id="docsCard" style="display:none;">
+        <div class="card-head">
+          <h2 id="docsTitle">Documents</h2>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Document</th><th>Number</th><th>Issue Date</th><th>Expiry</th><th>Remarks</th><th style="width:100px;">Actions</th></tr>
+          </thead>
+          <tbody id="docsTableBody">
+            <tr><td colspan="6" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+  renderSidebar('employees');
+
+  const alertBox = document.getElementById('alertBox');
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function expiryClass(dateStr) {
+    if (!dateStr) return '';
+    const days = (new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24);
+    if (days < 0) return 'expiry-bad';
+    if (days <= 30) return 'expiry-warn';
+    return 'expiry-ok';
+  }
+
+  function fmtDate(dateStr) {
+    return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const employeeId = params.get('id');
+
+  if (!employeeId) {
+    document.getElementById('loadingCard').innerHTML = '<div style="padding:20px;"><div class="alert error">No employee id specified.</div></div>';
+  } else {
+    loadEmployee();
+    loadDocuments();
+  }
+
+  async function loadEmployee() {
+    try {
+      const data = await api.get('employees.get', { id: employeeId });
+      const e = data.employee;
+
+      document.getElementById('pageTitle').textContent = e.full_name;
+      document.getElementById('profName').textContent = e.full_name;
+      document.getElementById('profCode').textContent = e.employee_code;
+
+      const items = [
+        ['Department', e.department_name || '—'],
+        ['Reporting Manager', e.manager_name || '—'],
+        ['Mobile', e.mobile || '—'],
+        ['Email', e.email || '—'],
+        ['Joining Date', fmtDate(e.joining_date)],
+        ['Date of Birth', fmtDate(e.date_of_birth)],
+        ['Employment Type', e.employment_type || '—'],
+        ['Basic Salary', e.basic_salary ? Number(e.basic_salary).toLocaleString('en-IN') : '—'],
+        ['Address', e.address || '—'],
+        ['Emergency Contact', e.emergency_contact_name || '—'],
+        ['Emergency Mobile', e.emergency_contact_mobile || '—'],
+        ['Emergency Relation', e.emergency_contact_relation || '—'],
+      ];
+
+      document.getElementById('detailGrid').innerHTML = items.map(([label, value]) => `
+        <div class="detail-item">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('btnEditEmployee').addEventListener('click', () => {
+        window.location.href = 'employees.html?edit=' + employeeId;
+      });
+
+      document.getElementById('loadingCard').style.display = 'none';
+      document.getElementById('profileCard').style.display = 'block';
+    } catch (err) {
+      document.getElementById('loadingCard').innerHTML = `<div style="padding:20px;"><div class="alert error">${err.message}</div></div>`;
+    }
+  }
+
+  async function loadDocuments() {
+    const tbody = document.getElementById('docsTableBody');
+    try {
+      const data = await api.get('employee_documents.list', { employee_id: employeeId });
+      const rows = data.documents;
+      document.getElementById('docsTitle').textContent = `Documents (${rows.length})`;
+      document.getElementById('docsCard').style.display = 'block';
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No documents uploaded for this employee yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(d => `
+        <tr>
+          <td>${d.document_name}</td>
+          <td>${d.document_number || '—'}</td>
+          <td>${fmtDate(d.issue_date)}</td>
+          <td class="${expiryClass(d.expiry_date)}">${fmtDate(d.expiry_date)}</td>
+          <td>${d.remarks || '—'}</td>
+          <td>
+            <div class="row-actions">
+              <a href="${API_BASE_URL.replace('/api.php', '')}/${d.document_file}" target="_blank">View</a>
+              <button class="danger-link" onclick="deleteDoc(${d.employee_document_id})">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.deleteDoc = async function (id) {
+    if (!confirm('Delete this document? This cannot be undone.')) return;
+    try {
+      await api.post('employee_documents.delete', { employee_document_id: id });
+      showAlert('Document deleted.');
+      loadDocuments();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+</script>
+</body>
+</html>

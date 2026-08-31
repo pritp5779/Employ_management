@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documents — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .expiry-ok{color:var(--ok-fg);font-weight:600;}
+  .expiry-warn{color:#b45309;font-weight:600;}
+  .expiry-bad{color:var(--bad-fg);font-weight:600;}
+  .doc-row {
+    border: 1px solid var(--line, #e5e5e5);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+    position: relative;
+  }
+  .doc-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .doc-row-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+  }
+  .remove-row-btn {
+    background: none;
+    border: none;
+    color: var(--bad-fg, #c0392b);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .remove-row-btn:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Employee Documents</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Upload documents</h2>
+        </div>
+        <div style="padding:20px;">
+          <div class="field" style="max-width:420px;">
+            <label for="employeeSelect">Employee *</label>
+            <select id="employeeSelect" required><option value="">— Select —</option></select>
+          </div>
+
+          <div id="docRows"></div>
+
+          <button type="button" class="btn secondary" id="addRowBtn" style="width:auto; margin:6px 0 18px;">+ Add another document</button>
+
+          <div style="display:flex; align-items:center; gap:16px;">
+            <button type="button" class="btn" id="uploadBtn" style="width:auto;">Upload All Documents</button>
+            <div id="uploadProgress" style="font-size:13px; color:var(--muted, #666);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 id="listTitle">All Documents</h2>
+          <select id="filterEmployee" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+            <option value="">All Employees</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Document</th><th>Number</th><th>Expiry</th><th style="width:140px;">Actions</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="5" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Document</h3>
+    <div id="editModalAlert"></div>
+    <form id="editDocForm">
+      <input type="hidden" id="editDocId">
+      <div class="field">
+        <label for="editDocType">Document Type *</label>
+        <select id="editDocType" required></select>
+      </div>
+      <div class="field">
+        <label for="editDocNumber">Document Number</label>
+        <input type="text" id="editDocNumber" maxlength="100">
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="editIssueDate">Issue Date</label>
+          <input type="date" id="editIssueDate">
+        </div>
+        <div class="field">
+          <label for="editExpiryDate">Expiry Date</label>
+          <input type="date" id="editExpiryDate">
+        </div>
+      </div>
+      <div class="field">
+        <label for="editRemarks">Remarks</label>
+        <input type="text" id="editRemarks" maxlength="255">
+      </div>
+      <div class="field">
+        <label for="editDocFile">Replace File (optional — PDF, JPG, PNG, max 5MB)</label>
+        <input type="file" id="editDocFile" accept=".pdf,.jpg,.jpeg,.png">
+      </div>
+      <div class="actions">
+        <button type="button" class="btn secondary" id="btnEditCancel">Cancel</button>
+        <button type="submit" class="btn" id="btnEditSave">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+  renderSidebar('documents');
+
+  const alertBox = document.getElementById('alertBox');
+  const tableBody = document.getElementById('tableBody');
+  let currentDocs = [];
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function expiryClass(dateStr) {
+    if (!dateStr) return '';
+    const days = (new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24);
+    if (days < 0) return 'expiry-bad';
+    if (days <= 30) return 'expiry-warn';
+    return 'expiry-ok';
+  }
+
+  let docTypeOptionsHtml = '<option value="">— Select —</option>';
+  let rowCounter = 0;
+
+  async function loadDropdowns() {
+    const [empData, typeData] = await Promise.all([
+      api.get('employees.list'),
+      api.get('document_types.list'),
+    ]);
+
+    const empOptions = empData.employees.map(e =>
+      `<option value="${e.employee_id}">${e.full_name} (${e.employee_code})</option>`
+    ).join('');
+    document.getElementById('employeeSelect').innerHTML = '<option value="">— Select —</option>' + empOptions;
+    document.getElementById('filterEmployee').innerHTML = '<option value="">All Employees</option>' + empOptions;
+
+    docTypeOptionsHtml = '<option value="">— Select —</option>' +
+      typeData.document_types.map(t => `<option value="${t.document_type_id}">${t.document_name}</option>`).join('');
+  }
+
+  /*
+   * One row = one document to upload. Each row is independent — its own
+   * type, number, file, dates, and remarks — but all rows share the single
+   * Employee dropdown above, since batch upload is for one employee at a time.
+   */
+  function addDocRow() {
+    rowCounter++;
+    const rowId = 'docRow' + rowCounter;
+    const row = document.createElement('div');
+    row.className = 'doc-row';
+    row.id = rowId;
+    row.innerHTML = `
+      <div class="doc-row-head">
+        <span class="doc-row-label">Document</span>
+        <button type="button" class="remove-row-btn" data-remove>Remove</button>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Document Type *</label>
+          <select class="row-doctype" required>${docTypeOptionsHtml}</select>
+        </div>
+        <div class="field">
+          <label>Document Number</label>
+          <input type="text" class="row-docnumber" maxlength="100" placeholder="e.g. Aadhaar number">
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>File * (PDF, JPG, PNG — max 5MB)</label>
+          <input type="file" class="row-file" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <div class="field">
+          <label>Remarks</label>
+          <input type="text" class="row-remarks" maxlength="255">
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Issue Date</label>
+          <input type="date" class="row-issue">
+        </div>
+        <div class="field">
+          <label>Expiry Date</label>
+          <input type="date" class="row-expiry">
+        </div>
+      </div>
+    `;
+    document.getElementById('docRows').appendChild(row);
+
+    row.querySelector('[data-remove]').addEventListener('click', () => {
+      const allRows = document.querySelectorAll('.doc-row');
+      if (allRows.length <= 1) {
+        showAlert('At least one document row is required.', 'error');
+        return;
+      }
+      row.remove();
+    });
+  }
+
+  function resetDocRows() {
+    document.getElementById('docRows').innerHTML = '';
+    addDocRow();
+  }
+
+  document.getElementById('addRowBtn').addEventListener('click', addDocRow);
+
+  // ---- Edit Document modal ----
+  const editModal = document.getElementById('editModal');
+  const editModalAlert = document.getElementById('editModalAlert');
+
+  window.editDoc = function (id) {
+    const doc = currentDocs.find(d => d.employee_document_id == id);
+    if (!doc) return;
+
+    document.getElementById('editDocType').innerHTML = docTypeOptionsHtml;
+    document.getElementById('editDocId').value = doc.employee_document_id;
+    document.getElementById('editDocType').value = doc.document_type_id || '';
+    document.getElementById('editDocNumber').value = doc.document_number || '';
+    document.getElementById('editIssueDate').value = doc.issue_date || '';
+    document.getElementById('editExpiryDate').value = doc.expiry_date || '';
+    document.getElementById('editRemarks').value = doc.remarks || '';
+    document.getElementById('editDocFile').value = '';
+    editModalAlert.innerHTML = '';
+    editModal.classList.add('open');
+  };
+
+  function closeEditModal() { editModal.classList.remove('open'); }
+  document.getElementById('btnEditCancel').addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+
+  document.getElementById('editDocForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnEditSave');
+    btn.disabled = true;
+
+    const id = document.getElementById('editDocId').value;
+    const newFile = document.getElementById('editDocFile').files[0];
+
+    try {
+      if (newFile) {
+        const formData = new FormData();
+        formData.append('employee_document_id', id);
+        formData.append('document_type_id', document.getElementById('editDocType').value);
+        formData.append('document_number', document.getElementById('editDocNumber').value);
+        formData.append('issue_date', document.getElementById('editIssueDate').value);
+        formData.append('expiry_date', document.getElementById('editExpiryDate').value);
+        formData.append('remarks', document.getElementById('editRemarks').value);
+        formData.append('document_file', newFile);
+
+        const headers = {};
+        const token = api.token();
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(API_BASE_URL + '?action=employee_documents.update', {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Update failed.');
+      } else {
+        await api.post('employee_documents.update', {
+          employee_document_id: id,
+          document_type_id: document.getElementById('editDocType').value,
+          document_number: document.getElementById('editDocNumber').value,
+          issue_date: document.getElementById('editIssueDate').value,
+          expiry_date: document.getElementById('editExpiryDate').value,
+          remarks: document.getElementById('editRemarks').value,
+        });
+      }
+
+      closeEditModal();
+      showAlert('Document updated.');
+      loadDocuments();
+    } catch (err) {
+      editModalAlert.innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function loadDocuments() {
+    const employeeId = document.getElementById('filterEmployee').value;
+    const params = {};
+    if (employeeId) params.employee_id = employeeId;
+
+    try {
+      const data = await api.get('employee_documents.list', params);
+      const rows = data.documents;
+      currentDocs = rows;
+      document.getElementById('listTitle').textContent = `Documents (${rows.length})`;
+
+      if (rows.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No documents uploaded yet.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = rows.map(d => `
+        <tr>
+          <td>${d.full_name} <span class="badge">${d.employee_code}</span></td>
+          <td>${d.document_name}</td>
+          <td>${d.document_number || '—'}</td>
+          <td class="${expiryClass(d.expiry_date)}">${d.expiry_date ? new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+          <td>
+            <div class="row-actions">
+              <a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank">View</a>
+              <button onclick="editDoc(${d.employee_document_id})">Edit</button>
+              <button class="danger-link" onclick="deleteDoc(${d.employee_document_id})">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    } catch (err) {
+      tableBody.innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.deleteDoc = async function (id) {
+    if (!confirm('Delete this document? This cannot be undone.')) return;
+    try {
+      await api.post('employee_documents.delete', { employee_document_id: id });
+      showAlert('Document deleted.');
+      loadDocuments();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('filterEmployee').addEventListener('change', loadDocuments);
+
+  async function uploadOneDocument(employeeId, row) {
+    const docTypeId = row.querySelector('.row-doctype').value;
+    const file = row.querySelector('.row-file').files[0];
+
+    const formData = new FormData();
+    formData.append('employee_id', employeeId);
+    formData.append('document_type_id', docTypeId);
+    formData.append('document_number', row.querySelector('.row-docnumber').value);
+    formData.append('issue_date', row.querySelector('.row-issue').value);
+    formData.append('expiry_date', row.querySelector('.row-expiry').value);
+    formData.append('remarks', row.querySelector('.row-remarks').value);
+    formData.append('document_file', file);
+
+    const headers = {};
+    const token = api.token();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    const res = await fetch(API_BASE_URL + '?action=employee_documents.upload', {
+      method: 'POST',
+      headers,
+      body: formData, // no Content-Type header — browser sets multipart boundary automatically
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const employeeId = document.getElementById('employeeSelect').value;
+    if (!employeeId) {
+      showAlert('Select an employee first.', 'error');
+      return;
+    }
+
+    const rows = Array.from(document.querySelectorAll('.doc-row'));
+    const invalidRow = rows.find(r => !r.querySelector('.row-doctype').value || !r.querySelector('.row-file').files[0]);
+    if (invalidRow) {
+      showAlert('Every row needs a document type and a file selected.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('uploadBtn');
+    const progress = document.getElementById('uploadProgress');
+    btn.disabled = true;
+
+    let successCount = 0;
+    const failures = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      progress.textContent = `Uploading ${i + 1} of ${rows.length}...`;
+      try {
+        await uploadOneDocument(employeeId, rows[i]);
+        successCount++;
+      } catch (err) {
+        failures.push(`Document ${i + 1}: ${err.message}`);
+      }
+    }
+
+    progress.textContent = '';
+    btn.disabled = false;
+
+    if (failures.length === 0) {
+      showAlert(`${successCount} document${successCount === 1 ? '' : 's'} uploaded.`);
+      document.getElementById('employeeSelect').value = '';
+      resetDocRows();
+    } else if (successCount === 0) {
+      showAlert(`All uploads failed. ${failures[0]}`, 'error');
+    } else {
+      showAlert(`${successCount} uploaded, ${failures.length} failed. ${failures[0]}`, 'error');
+    }
+
+    loadDocuments();
+  });
+
+  (async function init() {
+    await loadDropdowns();
+    addDocRow();
+    await loadDocuments();
+  })();
+</script>
+</body>
+</html>

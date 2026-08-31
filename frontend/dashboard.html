@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar" style="display:flex; align-items:center; justify-content:space-between;">
+      <h1>Dashboard</h1>
+      <button class="btn" id="btnExportAll" style="width:auto;">Export Employees (Excel)</button>
+    </div>
+    <div class="content">
+      <div id="statsArea" class="loading">Loading...</div>
+      <div class="card" id="alertsCard" style="display:none;">
+        <div class="card-head"><h2 id="alertsTitle">Expiring / Expired Documents</h2></div>
+        <table>
+          <thead><tr><th>Employee</th><th>Document</th><th>Expiry Date</th><th>Status</th></tr></thead>
+          <tbody id="alertsTableBody"></tbody>
+        </table>
+      </div>
+      <div class="card" id="deptCard" style="display:none;">
+        <div class="card-head"><h2>Employees by Department</h2></div>
+        <table>
+          <thead><tr><th>Department</th><th>Employees</th></tr></thead>
+          <tbody id="deptTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+  renderSidebar('dashboard');
+
+  (async function load() {
+    const statsArea = document.getElementById('statsArea');
+    try {
+      const data = await api.get('dashboard.stats');
+      statsArea.outerHTML = `
+        <div class="stat-grid" id="statsArea">
+          <div class="stat-card"><div class="label">Active Employees</div><div class="value">${data.total_employees}</div></div>
+          <div class="stat-card"><div class="label">Departments</div><div class="value">${data.total_departments}</div></div>
+          <div class="stat-card"><div class="label">Expiring/Expired Docs</div><div class="value">${data.expiring_documents.length}</div></div>
+        </div>`;
+
+      const alertsBody = document.getElementById('alertsTableBody');
+      if (data.expiring_documents.length === 0) {
+        alertsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No documents expiring in the next 30 days.</td></tr>';
+      } else {
+        alertsBody.innerHTML = data.expiring_documents.map(d => {
+          const isExpired = d.days_left < 0;
+          const statusClass = isExpired ? 'badge inactive' : 'badge';
+          const statusText = isExpired ? `Expired ${Math.abs(d.days_left)}d ago` : `${d.days_left}d left`;
+          return `<tr>
+            <td>${d.full_name} <span class="badge">${d.employee_code}</span></td>
+            <td>${d.document_name}</td>
+            <td>${new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
+            <td><span class="${statusClass}">${statusText}</span></td>
+          </tr>`;
+        }).join('');
+      }
+      document.getElementById('alertsCard').style.display = 'block';
+
+      const tbody = document.getElementById('deptTableBody');
+      if (data.by_department.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No departments yet.</td></tr>';
+      } else {
+        tbody.innerHTML = data.by_department.map(d =>
+          `<tr><td>${d.department_name}</td><td>${d.total}</td></tr>`
+        ).join('');
+      }
+      document.getElementById('deptCard').style.display = 'block';
+    } catch (err) {
+      statsArea.innerHTML = '<div class="alert error">' + err.message + '</div>';
+    }
+  })();
+
+  /*
+   * Export ALL active employees to an .xlsx file — full data, unfiltered.
+   * For filtered/sorted exports, use the "Export to Excel" button on the
+   * Employees page instead, which respects whatever search/department/sort
+   * is currently applied there.
+   */
+  document.getElementById('btnExportAll').addEventListener('click', async () => {
+    const btn = document.getElementById('btnExportAll');
+    btn.disabled = true;
+    btn.textContent = 'Preparing...';
+
+    try {
+      const data = await api.get('employees.list');
+      const rows = data.employees.map(e => ({
+        'Code': e.employee_code,
+        'Full Name': e.full_name,
+        'Department': e.department_name || '',
+        'Mobile': e.mobile || '',
+        'Email': e.email || '',
+        'Joining Date': e.joining_date || '',
+        'Date of Birth': e.date_of_birth || '',
+        'Employment Type': e.employment_type || '',
+        'Basic Salary': e.basic_salary || '',
+        'Address': e.address || '',
+        'Emergency Contact Name': e.emergency_contact_name || '',
+        'Emergency Contact Mobile': e.emergency_contact_mobile || '',
+        'Emergency Contact Relation': e.emergency_contact_relation || '',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
+
+      const today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `employees_full_${today}.xlsx`);
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Export Employees (Excel)';
+    }
+  });
+</script>
+</body>
+</html>

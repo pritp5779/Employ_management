@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employees — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Employees</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+      <div class="card">
+        <div class="card-head">
+          <h2 id="cardTitle">Employees</h2>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <select id="deptFilter" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+              <option value="">All Departments</option>
+            </select>
+            <select id="sortFilter" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+              <option value="">Sort by</option>
+              <option value="joining_desc">Joining date: New to Old</option>
+              <option value="joining_asc">Joining date: Old to New</option>
+              <option value="name_asc">Name: A to Z</option>
+              <option value="name_desc">Name: Z to A</option>
+            </select>
+            <div class="search-box"><input type="text" id="tableSearch" placeholder="Search name, code, email, mobile..."></div>
+            <button class="btn secondary" id="btnExport" style="width:auto;">Export to Excel</button>
+            <button class="btn" id="btnAddNew">+ Add Employee</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Code</th><th>Name</th><th>Department</th><th>Mobile</th><th>Joining Date</th><th style="width:140px;">Actions</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="6" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="formModal">
+  <div class="modal wide">
+    <h3 id="modalTitle">Add Employee</h3>
+    <div id="modalAlert"></div>
+    <form id="empForm">
+      <input type="hidden" id="recordId">
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="fullName">Full Name *</label>
+          <input type="text" id="fullName" required maxlength="150">
+        </div>
+        <div class="field">
+          <label for="department">Department</label>
+          <select id="department"><option value="">— Select —</option></select>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field" style="position:relative;">
+          <label for="managerSearchInput">Reporting Manager</label>
+          <input type="text" id="managerSearchInput" placeholder="Search employee..." autocomplete="off">
+          <input type="hidden" id="reportingManager">
+          <div id="managerDropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid var(--line,#ddd); border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12); max-height:220px; overflow-y:auto; z-index:50;"></div>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="mobile">Mobile</label>
+          <input type="text" id="mobile" maxlength="20">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" maxlength="150">
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="joiningDate">Joining Date *</label>
+          <input type="date" id="joiningDate" required>
+        </div>
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob">
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="employmentType">Employment Type</label>
+          <input type="text" id="employmentType" placeholder="Full-time / Part-time / Contract" maxlength="50">
+        </div>
+        <div class="field">
+          <label for="basicSalary">Basic Salary</label>
+          <input type="number" id="basicSalary" step="0.01" min="0">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="address">Address</label>
+        <textarea id="address" rows="2"></textarea>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="emName">Emergency Contact Name</label>
+          <input type="text" id="emName" maxlength="150">
+        </div>
+        <div class="field">
+          <label for="emMobile">Emergency Contact Mobile</label>
+          <input type="text" id="emMobile" maxlength="20">
+        </div>
+      </div>
+      <div class="field">
+        <label for="emRelation">Emergency Contact Relation</label>
+        <input type="text" id="emRelation" maxlength="50">
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn secondary" id="btnCancel">Cancel</button>
+        <button type="submit" class="btn" id="btnSave">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+  renderSidebar('employees');
+
+  const tableBody = document.getElementById('tableBody');
+  const alertBox = document.getElementById('alertBox');
+  const overlay = document.getElementById('formModal');
+  const modalAlert = document.getElementById('modalAlert');
+  let departments = [];
+  let searchTimer = null;
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  async function loadDepartmentsIntoSelects() {
+    const data = await api.get('departments.list');
+    departments = data.departments;
+    const options = departments.map(d => `<option value="${d.department_id}">${d.department_name}</option>`).join('');
+    document.getElementById('department').innerHTML = '<option value="">— Select —</option>' + options;
+    document.getElementById('deptFilter').innerHTML = '<option value="">All Departments</option>' + options;
+  }
+
+  let allEmployeesForManager = [];
+
+  async function loadManagerOptions() {
+    const data = await api.get('employees.list');
+    allEmployeesForManager = data.employees;
+  }
+
+  const managerSearchInput = document.getElementById('managerSearchInput');
+  const managerHidden = document.getElementById('reportingManager');
+  const managerDropdown = document.getElementById('managerDropdown');
+  let managerExcludeId = null;
+
+  function renderManagerDropdown(filterText) {
+    const q = (filterText || '').trim().toLowerCase();
+    const matches = allEmployeesForManager.filter(e => {
+      if (managerExcludeId && String(e.employee_id) === String(managerExcludeId)) return false;
+      if (!q) return true;
+      return e.full_name.toLowerCase().includes(q) || e.employee_code.toLowerCase().includes(q);
+    });
+
+    const noneRow = `<div class="manager-option" data-id="" data-name="" style="padding:9px 12px; cursor:pointer; color:#888;">— None —</div>`;
+    const rows = matches.map(e => `
+      <div class="manager-option" data-id="${e.employee_id}" data-name="${e.full_name.replace(/"/g, '&quot;')}" style="padding:9px 12px; cursor:pointer;">
+        ${e.full_name} <span class="badge">${e.employee_code}</span>
+      </div>
+    `).join('');
+
+    managerDropdown.innerHTML = noneRow + (rows || '<div style="padding:9px 12px; color:#888;">No matches.</div>');
+    managerDropdown.querySelectorAll('.manager-option').forEach(row => {
+      row.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // keep focus so click registers before blur closes the dropdown
+        managerHidden.value = row.dataset.id;
+        managerSearchInput.value = row.dataset.name;
+        managerDropdown.style.display = 'none';
+      });
+      row.addEventListener('mouseenter', () => { row.style.background = '#f5f5f5'; });
+      row.addEventListener('mouseleave', () => { row.style.background = ''; });
+    });
+  }
+
+  managerSearchInput.addEventListener('focus', () => {
+    renderManagerDropdown(managerSearchInput.value);
+    managerDropdown.style.display = 'block';
+  });
+  managerSearchInput.addEventListener('input', () => {
+    managerHidden.value = ''; // typing invalidates any prior selection until they pick again
+    renderManagerDropdown(managerSearchInput.value);
+    managerDropdown.style.display = 'block';
+  });
+  managerSearchInput.addEventListener('blur', () => {
+    setTimeout(() => { managerDropdown.style.display = 'none'; }, 100);
+  });
+
+  function setManagerField(employeeId, excludeId) {
+    managerExcludeId = excludeId || null;
+    if (employeeId) {
+      const match = allEmployeesForManager.find(e => String(e.employee_id) === String(employeeId));
+      managerSearchInput.value = match ? match.full_name : '';
+      managerHidden.value = employeeId;
+    } else {
+      managerSearchInput.value = '';
+      managerHidden.value = '';
+    }
+  }
+
+  function openModal(emp = null) {
+    document.getElementById('empForm').reset();
+    modalAlert.innerHTML = '';
+    document.getElementById('recordId').value = '';
+    setManagerField(emp ? emp.reporting_manager_id : null, emp ? emp.employee_id : null);
+    if (emp) {
+      document.getElementById('modalTitle').textContent = `Edit Employee (${emp.employee_code})`;
+      document.getElementById('recordId').value = emp.employee_id;
+      document.getElementById('fullName').value = emp.full_name || '';
+      document.getElementById('department').value = emp.department_id || '';
+      document.getElementById('mobile').value = emp.mobile || '';
+      document.getElementById('email').value = emp.email || '';
+      document.getElementById('joiningDate').value = emp.joining_date || '';
+      document.getElementById('dob').value = emp.date_of_birth || '';
+      document.getElementById('employmentType').value = emp.employment_type || '';
+      document.getElementById('basicSalary').value = emp.basic_salary || '';
+      document.getElementById('address').value = emp.address || '';
+      document.getElementById('emName').value = emp.emergency_contact_name || '';
+      document.getElementById('emMobile').value = emp.emergency_contact_mobile || '';
+      document.getElementById('emRelation').value = emp.emergency_contact_relation || '';
+    } else {
+      document.getElementById('modalTitle').textContent = 'Add Employee';
+    }
+    overlay.classList.add('open');
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  document.getElementById('btnAddNew').addEventListener('click', () => openModal());
+  document.getElementById('btnCancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+  function sortRows(rows) {
+    const sortBy = document.getElementById('sortFilter').value;
+    const sorted = rows.slice();
+
+    if (sortBy === 'joining_desc') {
+      sorted.sort((a, b) => new Date(b.joining_date || 0) - new Date(a.joining_date || 0));
+    } else if (sortBy === 'joining_asc') {
+      sorted.sort((a, b) => new Date(a.joining_date || 0) - new Date(b.joining_date || 0));
+    } else if (sortBy === 'name_asc') {
+      sorted.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+    } else if (sortBy === 'name_desc') {
+      sorted.sort((a, b) => (b.full_name || '').localeCompare(a.full_name || ''));
+    }
+
+    return sorted;
+  }
+
+  function renderTable(rows) {
+    rows = sortRows(rows);
+    document.getElementById('cardTitle').textContent = `Employees (${rows.length})`;
+    if (rows.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No employees found.</td></tr>';
+      return;
+    }
+    tableBody.innerHTML = rows.map(r => `
+      <tr>
+        <td><a href="employee_detail.html?id=${r.employee_id}"><span class="badge">${r.employee_code}</span></a></td>
+        <td><a href="employee_detail.html?id=${r.employee_id}" style="color:inherit; text-decoration:none;">${r.full_name}</a></td>
+        <td>${r.department_name || '—'}</td>
+        <td>${r.mobile || '—'}</td>
+        <td>${r.joining_date ? new Date(r.joining_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+        <td>
+          <div class="row-actions">
+            <button onclick='editEmployee(${r.employee_id})'>Edit</button>
+            <button class="danger-link" onclick="deleteEmployee(${r.employee_id}, '${(r.full_name||'').replace(/'/g,"\\'")}')">Delete</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  let currentRows = [];
+
+  async function loadEmployees() {
+    const search = document.getElementById('tableSearch').value.trim();
+    const deptId = document.getElementById('deptFilter').value;
+    const params = {};
+    if (search) params.search = search;
+    if (deptId) params.department_id = deptId;
+
+    try {
+      const data = await api.get('employees.list', params);
+      currentRows = data.employees;
+      renderTable(currentRows);
+    } catch (err) {
+      tableBody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.editEmployee = async function (id) {
+    try {
+      const data = await api.get('employees.get', { id });
+      openModal(data.employee);
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.deleteEmployee = async function (id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      await api.post('employees.delete', { employee_id: id });
+      showAlert('Employee deleted.');
+      loadEmployees();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('empForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('recordId').value;
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true;
+
+    const payload = {
+      full_name: document.getElementById('fullName').value.trim(),
+      department_id: document.getElementById('department').value || null,
+      reporting_manager_id: document.getElementById('reportingManager').value || null,
+      mobile: document.getElementById('mobile').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      joining_date: document.getElementById('joiningDate').value,
+      date_of_birth: document.getElementById('dob').value || null,
+      employment_type: document.getElementById('employmentType').value.trim(),
+      basic_salary: document.getElementById('basicSalary').value || 0,
+      address: document.getElementById('address').value.trim(),
+      emergency_contact_name: document.getElementById('emName').value.trim(),
+      emergency_contact_mobile: document.getElementById('emMobile').value.trim(),
+      emergency_contact_relation: document.getElementById('emRelation').value.trim(),
+    };
+    if (id) payload.employee_id = id;
+
+    try {
+      const res = await api.post('employees.save', payload);
+      closeModal();
+      showAlert(id ? 'Employee updated.' : `Employee added (code: ${res.employee_code}).`);
+      loadEmployees();
+    } catch (err) {
+      modalAlert.innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('tableSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadEmployees, 350);
+  });
+  document.getElementById('deptFilter').addEventListener('change', loadEmployees);
+  document.getElementById('sortFilter').addEventListener('change', () => renderTable(currentRows));
+
+  /*
+   * Export the currently filtered + sorted rows (whatever's on screen right
+   * now — search term, department filter, and sort order all apply) to an
+   * .xlsx file. For a full unfiltered export, use the Dashboard's export button.
+   */
+  document.getElementById('btnExport').addEventListener('click', () => {
+    const btn = document.getElementById('btnExport');
+    const rows = sortRows(currentRows);
+
+    if (rows.length === 0) {
+      showAlert('No rows to export — adjust your filters first.', 'error');
+      return;
+    }
+
+    const exportRows = rows.map(r => ({
+      'Code': r.employee_code,
+      'Full Name': r.full_name,
+      'Department': r.department_name || '',
+      'Mobile': r.mobile || '',
+      'Email': r.email || '',
+      'Joining Date': r.joining_date || '',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `employees_filtered_${today}.xlsx`);
+  });
+
+  (async function init() {
+    await loadDepartmentsIntoSelects();
+    await loadManagerOptions();
+    await loadEmployees();
+
+    const editId = new URLSearchParams(window.location.search).get('edit');
+    if (editId) {
+      window.editEmployee(editId);
+      history.replaceState(null, '', 'employees.html');
+    }
+  })();
+</script>
+</body>
+</html>

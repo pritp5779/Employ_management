@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>HRMS Login</h1>
+      <p class="sub">Sign in to continue to your dashboard</p>
+      <div id="alertBox"></div>
+      <form id="loginForm">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="btn block" id="loginBtn">Sign in</button>
+      </form>
+    </div>
+  </div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+  // Already logged in? Skip straight to dashboard.
+  if (api.token()) window.location.href = 'dashboard.html';
+
+  const form = document.getElementById('loginForm');
+  const alertBox = document.getElementById('alertBox');
+  const loginBtn = document.getElementById('loginBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    alertBox.innerHTML = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in...';
+
+    try {
+      const data = await api.post('login', {
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+      });
+      api.setToken(data.token);
+      api.setUser(data.user);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      alertBox.innerHTML = '<div class="alert error">' + err.message + '</div>';
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign in';
+    }
+  });
+</script>
+</body>
+</html>
