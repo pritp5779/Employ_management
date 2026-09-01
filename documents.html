@@ -52,16 +52,25 @@
       <div class="card">
         <div class="card-head">
           <h2>Upload documents</h2>
-          <button type="button" class="btn secondary" id="btnAddDocType" style="width:auto;">+ New document type</button>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn secondary" id="btnManageDocTypes" style="width:auto;">Manage types</button>
+            <button type="button" class="btn secondary" id="btnAddDocType" style="width:auto;">+ New document type</button>
+          </div>
         </div>
-        <div id="addDocTypeRow" style="display:none; padding:14px 20px 0; align-items:center; gap:10px;">
+        <div id="addDocTypeRow" style="display:none; padding:14px 20px 0; align-items:center; gap:10px; flex-wrap:wrap;">
           <input type="text" id="newDocTypeName" placeholder="e.g. Passbook" maxlength="100" style="max-width:260px;">
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400;">
             <input type="checkbox" id="newDocTypeHasExpiry" checked style="width:auto;"> Has an expiry date
           </label>
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400;">
+            <input type="checkbox" id="newDocTypeRequired" style="width:auto;"> Required for every employee
+          </label>
           <button type="button" class="btn" id="btnSaveDocType" style="width:auto;">Add</button>
           <button type="button" class="btn secondary" id="btnCancelDocType" style="width:auto;">Cancel</button>
           <span id="docTypeMsg" style="font-size:12px;"></span>
+        </div>
+        <div id="manageDocTypesPanel" style="display:none; padding:14px 20px 0;">
+          <div id="manageDocTypesList"></div>
         </div>
         <div style="padding:20px;">
           <div class="field" style="max-width:420px;">
@@ -82,7 +91,7 @@
 
       <div class="card">
         <div class="card-head">
-          <h2 id="listTitle">All Documents</h2>
+          <h2 id="listTitle">Pending Documents</h2>
           <select id="filterEmployee" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
             <option value="">All Employees</option>
           </select>
@@ -170,6 +179,51 @@
   let digitalSignatureTypeId = null;
   let docTypeExpiryMap = {}; // document_type_id -> has_expiry (1/0)
 
+  let allDocTypes = [];            // full list, used by the edit modal
+  let uploadedTypeIds = new Set(); // document_type_ids already uploaded for the selected employee
+
+  /*
+   * Options for the upload-row Document Type dropdowns.
+   * With no employee selected: full list. With an employee selected: only the
+   * types they have NOT uploaded yet, each labelled "(Pending)". Once a type
+   * is uploaded (pending or approved), it disappears from this list.
+   */
+  function buildRowOptionsHtml() {
+    const employeeSelected = !!document.getElementById('employeeSelect').value;
+    const types = employeeSelected
+      ? allDocTypes.filter(t => !uploadedTypeIds.has(String(t.document_type_id)))
+      : allDocTypes;
+
+    if (employeeSelected && types.length === 0) {
+      return '<option value="">All document types uploaded ✓</option>';
+    }
+    return '<option value="">— Select —</option>' +
+      types.map(t => `<option value="${t.document_type_id}">${t.document_name}${employeeSelected ? ' (Pending)' : ''}</option>`).join('');
+  }
+
+  /*
+   * Recompute which document types the selected employee has already uploaded
+   * (pending-approval AND approved both count as uploaded), then rebuild every
+   * upload row's dropdown so only the still-pending types remain.
+   */
+  async function refreshPendingTypes() {
+    const employeeId = document.getElementById('employeeSelect').value;
+    uploadedTypeIds = new Set();
+    if (employeeId) {
+      try {
+        const [p, a] = await Promise.all([
+          api.get('employee_documents.list', { employee_id: employeeId, status: 'pending' }),
+          api.get('employee_documents.list', { employee_id: employeeId, status: 'approved' }),
+        ]);
+        [...(p.documents || []), ...(a.documents || [])]
+          .forEach(d => uploadedTypeIds.add(String(d.document_type_id)));
+      } catch (e) {
+        // If the lookup fails, fall back to showing the full list.
+      }
+    }
+    refreshDocTypeSelects();
+  }
+
   async function loadDropdowns() {
     const [empData, typeData] = await Promise.all([
       api.get('employees.list'),
@@ -182,6 +236,7 @@
     document.getElementById('employeeSelect').innerHTML = '<option value="">— Select —</option>' + empOptions;
     document.getElementById('filterEmployee').innerHTML = '<option value="">All Employees</option>' + empOptions;
 
+    allDocTypes = typeData.document_types;
     docTypeOptionsHtml = '<option value="">— Select —</option>' +
       typeData.document_types.map(t => `<option value="${t.document_type_id}">${t.document_name}</option>`).join('');
 
@@ -192,7 +247,7 @@
       docTypeExpiryMap[t.document_type_id] = t.has_expiry === undefined ? 1 : Number(t.has_expiry);
     });
 
-    const sigType = typeData.document_types.find(t => t.document_name.trim().toLowerCase() === 'digital auto signature');
+    const sigType = typeData.document_types.find(t => t.document_name.trim().toLowerCase() === 'digital signature');
     digitalSignatureTypeId = sigType ? sigType.document_type_id : null;
 
     document.querySelectorAll('.doc-row').forEach(updateRowMode);
@@ -204,10 +259,12 @@
    * selected in each one.
    */
   function refreshDocTypeSelects() {
+    const html = buildRowOptionsHtml();
     document.querySelectorAll('.row-doctype').forEach(sel => {
       const current = sel.value;
-      sel.innerHTML = docTypeOptionsHtml;
-      sel.value = current;
+      sel.innerHTML = html;
+      sel.value = current; // becomes '' automatically if the type is no longer in the list
+      if (sel.value !== current) updateRowMode(sel.closest('.doc-row'));
     });
   }
 
@@ -218,6 +275,8 @@
   document.getElementById('btnAddDocType').addEventListener('click', () => {
     addDocTypeRow.style.display = 'flex';
     newDocTypeName.value = '';
+    document.getElementById('newDocTypeHasExpiry').checked = true;
+    document.getElementById('newDocTypeRequired').checked = false;
     docTypeMsg.textContent = '';
     newDocTypeName.focus();
   });
@@ -225,6 +284,63 @@
   document.getElementById('btnCancelDocType').addEventListener('click', () => {
     addDocTypeRow.style.display = 'none';
   });
+
+  const manageDocTypesPanel = document.getElementById('manageDocTypesPanel');
+  const manageDocTypesList = document.getElementById('manageDocTypesList');
+
+  document.getElementById('btnManageDocTypes').addEventListener('click', () => {
+    const opening = manageDocTypesPanel.style.display === 'none';
+    manageDocTypesPanel.style.display = opening ? 'block' : 'none';
+    if (opening) renderManageDocTypesList();
+  });
+
+  async function renderManageDocTypesList() {
+    manageDocTypesList.innerHTML = '<p style="font-size:13px;color:#888;">Loading...</p>';
+    try {
+      const data = await api.get('document_types.list');
+      if (!data.document_types.length) {
+        manageDocTypesList.innerHTML = '<p style="font-size:13px;color:#888;">No document types yet.</p>';
+        return;
+      }
+      manageDocTypesList.innerHTML = data.document_types.map(t => `
+        <div class="delete-row">
+          <div class="delete-row-info">
+            <div class="delete-row-name">
+              ${t.document_name}
+              ${Number(t.is_required) ? '<span class="badge">Required</span>' : ''}
+              ${Number(t.has_expiry) === 0 ? '<span class="badge inactive">No expiry</span>' : ''}
+            </div>
+          </div>
+          <div class="delete-row-actions">
+            <button class="btn-pill btn-delete" data-delete-type="${t.document_type_id}" data-name="${t.document_name.replace(/"/g, '&quot;')}">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      manageDocTypesList.querySelectorAll('[data-delete-type]').forEach(btn => {
+        btn.addEventListener('click', () => deleteDocType(btn.dataset.deleteType, btn.dataset.name, btn));
+      });
+    } catch (err) {
+      manageDocTypesList.innerHTML = `<p style="font-size:13px;color:#c0392b;">${err.message}</p>`;
+    }
+  }
+
+  async function deleteDocType(id, name, btn) {
+    if (!confirm(`Delete document type "${name}"? This only works if no documents are using it.`)) return;
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+    try {
+      await api.post('document_types.delete', { document_type_id: id });
+      showAlert(`"${name}" deleted.`);
+      await loadDropdowns();
+      refreshDocTypeSelects();
+      renderManageDocTypesList();
+    } catch (err) {
+      showAlert(err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }
+  }
 
   document.getElementById('btnSaveDocType').addEventListener('click', async () => {
     const name = newDocTypeName.value.trim();
@@ -235,7 +351,8 @@
     }
     try {
       const hasExpiry = document.getElementById('newDocTypeHasExpiry').checked;
-      await api.post('document_types.save', { document_name: name, has_expiry: hasExpiry ? 1 : 0 });
+      const isRequired = document.getElementById('newDocTypeRequired').checked;
+      await api.post('document_types.save', { document_name: name, has_expiry: hasExpiry ? 1 : 0, is_required: isRequired ? 1 : 0 });
       await loadDropdowns();
       refreshDocTypeSelects();
       addDocTypeRow.style.display = 'none';
@@ -265,7 +382,7 @@
       <div class="field-grid">
         <div class="field">
           <label>Document Type *</label>
-          <select class="row-doctype" required>${docTypeOptionsHtml}</select>
+          <select class="row-doctype" required>${buildRowOptionsHtml()}</select>
         </div>
         <div class="field">
           <label>Document Number</label>
@@ -335,6 +452,10 @@
 
   document.getElementById('addRowBtn').addEventListener('click', addDocRow);
 
+  // Whenever the employee changes, filter the Document Type dropdowns down
+  // to that employee's still-pending (not yet uploaded) types.
+  document.getElementById('employeeSelect').addEventListener('change', refreshPendingTypes);
+
   // ---- Edit Document modal ----
   const editModal = document.getElementById('editModal');
   const editModalAlert = document.getElementById('editModalAlert');
@@ -402,6 +523,7 @@
 
       closeEditModal();
       showAlert('Document updated.');
+      refreshPendingTypes();
       loadDocuments();
     } catch (err) {
       editModalAlert.innerHTML = `<div class="alert error">${err.message}</div>`;
@@ -450,18 +572,18 @@
 
   async function loadDocuments() {
     const employeeId = document.getElementById('filterEmployee').value;
-    const params = {};
+    const params = { status: 'pending' };
     if (employeeId) params.employee_id = employeeId;
 
     try {
       const data = await api.get('employee_documents.list', params);
       const rows = data.documents;
       currentDocs = rows;
-      document.getElementById('listTitle').textContent = `Documents (${rows.length})`;
+      document.getElementById('listTitle').textContent = `Pending Documents (${rows.length})`;
       showAllDocs = false;
 
       if (rows.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No documents uploaded yet.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No documents pending approval.</td></tr>';
         return;
       }
 
@@ -476,6 +598,7 @@
     try {
       await api.post('employee_documents.delete', { employee_document_id: id });
       showAlert('Document deleted.');
+      refreshPendingTypes(); // that type may be pending again for the selected employee
       loadDocuments();
     } catch (err) {
       showAlert(err.message, 'error');
@@ -577,6 +700,8 @@
       showAlert(`${successCount} uploaded, ${failures.length} failed. ${failures[0]}`, 'error');
     }
 
+    // Uploaded types are no longer pending — refresh the dropdowns.
+    refreshPendingTypes();
     loadDocuments();
   });
 
@@ -672,6 +797,34 @@
     await loadDropdowns();
     addDocRow();
     await loadDocuments();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('resubmit')) {
+      const raw = sessionStorage.getItem('resubmitDocument');
+      sessionStorage.removeItem('resubmitDocument');
+      history.replaceState(null, '', 'documents.html');
+      if (raw) {
+        try {
+          const payload = JSON.parse(raw);
+          const firstRow = document.querySelector('.doc-row');
+          if (payload.employee_id) {
+            document.getElementById('employeeSelect').value = payload.employee_id;
+            await refreshPendingTypes(); // filter dropdowns to this employee's pending types
+          }
+          if (firstRow) {
+            firstRow.querySelector('.row-doctype').value = payload.document_type_id || '';
+            firstRow.querySelector('.row-doctype').dispatchEvent(new Event('change'));
+            firstRow.querySelector('.row-docnumber').value = payload.document_number || '';
+            firstRow.querySelector('.row-remarks').value = payload.remarks || '';
+            firstRow.querySelector('.row-issue').value = payload.issue_date || '';
+            firstRow.querySelector('.row-expiry').value = payload.expiry_date || '';
+          }
+          showAlert('Fields pre-filled from the declined submission — choose the file again and click Upload All Documents.');
+        } catch (e) {
+          showAlert('Could not load the declined submission data.', 'error');
+        }
+      }
+    }
   })();
 </script>
 </body>

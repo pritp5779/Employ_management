@@ -394,12 +394,15 @@
       const pendingHtml = pending > 0
         ? `<span class="badge inactive">${pending} missing</span>`
         : `<span class="badge">All complete</span>`;
+      const nameSuffix = r.status === 'pending'
+        ? ' <span class="badge inactive" title="Added by HR, waiting for Admin approval">Pending Approval</span>'
+        : '';
 
       return `
       <tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${photoHtml}</a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}"><span class="badge">${r.employee_code}</span></a></td>
-        <td><a href="employee_detail.html?id=${r.employee_id}" style="color:inherit; text-decoration:none;">${r.full_name}</a></td>
+        <td><a href="employee_detail.html?id=${r.employee_id}" style="color:inherit; text-decoration:none;">${r.full_name}</a>${nameSuffix}</td>
         <td>${r.department_name || '—'}</td>
         <td>${r.mobile || '—'}</td>
         <td>${r.joining_date ? new Date(r.joining_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
@@ -569,6 +572,34 @@
     const editId = urlParams.get('edit');
     if (editId) {
       window.editEmployee(editId);
+    }
+
+    if (urlParams.get('resubmit')) {
+      const raw = sessionStorage.getItem('resubmitEmployee');
+      sessionStorage.removeItem('resubmitEmployee');
+      history.replaceState(null, '', 'employees.html');
+      if (raw) {
+        try {
+          const payload = JSON.parse(raw);
+          openModal(); // fresh "Add Employee" mode
+          document.getElementById('fullName').value = payload.full_name || '';
+          document.getElementById('mobile').value = payload.mobile || '';
+          document.getElementById('email').value = payload.email || '';
+          document.getElementById('address').value = payload.address || '';
+          document.getElementById('dob').value = payload.date_of_birth || '';
+          document.getElementById('joiningDate').value = payload.joining_date || '';
+          document.getElementById('department').value = payload.department_id || '';
+          document.getElementById('basicSalary').value = payload.basic_salary || '';
+          document.getElementById('employmentType').value = payload.employment_type || '';
+          document.getElementById('emName').value = payload.emergency_contact_name || '';
+          document.getElementById('emMobile').value = payload.emergency_contact_mobile || '';
+          document.getElementById('emRelation').value = payload.emergency_contact_relation || '';
+          setManagerField(payload.reporting_manager_id || null, null);
+          showAlert('Form pre-filled from the declined submission — review and Save to resubmit.');
+        } catch (e) {
+          showAlert('Could not load the declined submission data.', 'error');
+        }
+      }
     }
   })();
 </script>

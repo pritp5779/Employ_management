@@ -1,10 +1,18 @@
 /**
  * Injects the sidebar shell into any page with a <div id="sidebar"></div>.
- * Call renderSidebar('dashboard' | 'departments' | 'employees') after guardPage().
+ * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
+ *                     | 'history' | 'approvals' | 'users') after guardPage().
  */
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
   const linkClass = (key) => (active === key ? 'active' : '');
+  const isAdmin = user.role === 'Admin';
+
+  const adminLinks = isAdmin ? `
+    <div class="nav-label">Admin</div>
+    <a href="approvals.html" class="${linkClass('approvals')}">Approvals</a>
+    <a href="users.html" class="${linkClass('users')}">Users</a>
+  ` : '';
 
   document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
@@ -17,6 +25,8 @@ function renderSidebar(active) {
         <div class="nav-label">People</div>
         <a href="employees.html" class="${linkClass('employees')}">Employees</a>
         <a href="documents.html" class="${linkClass('documents')}">Documents</a>
+        <a href="history.html" class="${linkClass('history')}">Decline History</a>
+        ${adminLinks}
       </nav>
       <div class="user-box">
         <span class="name">${user.username}</span>

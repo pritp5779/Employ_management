@@ -16,6 +16,12 @@
     </div>
     <div class="content">
       <div id="statsArea" class="loading">Loading...</div>
+      <div class="card" id="approvalBanner" style="display:none; background:#fffbeb;">
+        <div style="padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <span id="approvalBannerText" style="font-weight:600; color:#92400e;"></span>
+          <a href="approvals.html" class="btn" style="width:auto;">Review &rarr;</a>
+        </div>
+      </div>
       <div class="card" id="alertsCard" style="display:none;">
         <div class="card-head"><h2 id="alertsTitle">Expiring / Expired Documents</h2></div>
         <table>
@@ -52,9 +58,44 @@
   (async function load() {
     const statsArea = document.getElementById('statsArea');
     try {
-      const data = await api.get('dashboard.stats');
+      const [data, empData, typeData, pendUp, apprUp] = await Promise.all([
+        api.get('dashboard.stats'),
+        api.get('employees.list'),
+        api.get('document_types.list'),
+        api.get('employee_documents.list', { status: 'pending' }),
+        api.get('employee_documents.list', { status: 'approved' }),
+      ]);
       const expiringTotal = data.expiring_documents_total ?? data.expiring_documents.length;
-      const pendingTotal = data.pending_documents_total ?? (data.pending_documents ? data.pending_documents.length : 0);
+
+      /*
+       * Pending documents, computed the same way as the Documents page and
+       * Employee Details page: for every employee, every document type they
+       * have NOT uploaded yet counts as pending. Uploaded = pending approval
+       * OR approved. This replaces the server's required-types-only list.
+       */
+      const uploadedByEmp = {};
+      [...(pendUp.documents || []), ...(apprUp.documents || [])].forEach(d => {
+        (uploadedByEmp[d.employee_id] = uploadedByEmp[d.employee_id] || new Set())
+          .add(String(d.document_type_id));
+      });
+      const allTypes = typeData.document_types || [];
+      const missingByEmp = (empData.employees || []).map(e => {
+        const up = uploadedByEmp[e.employee_id] || new Set();
+        return {
+          employee_id: e.employee_id,
+          full_name: e.full_name,
+          employee_code: e.employee_code,
+          missing: allTypes.filter(t => !up.has(String(t.document_type_id))).map(t => t.document_name),
+        };
+      }).filter(e => e.missing.length > 0);
+      const pendingTotal = missingByEmp.reduce((sum, e) => sum + e.missing.length, 0);
+
+      const pendingApprovalCount = (data.pending_approval_employees || []).length + (data.pending_approval_documents || []).length;
+      if (pendingApprovalCount > 0) {
+        document.getElementById('approvalBannerText').textContent =
+          `${pendingApprovalCount} item${pendingApprovalCount === 1 ? '' : 's'} waiting for your approval.`;
+        document.getElementById('approvalBanner').style.display = 'block';
+      }
 
       statsArea.outerHTML = `
         <div class="stat-grid" id="statsArea">
@@ -117,41 +158,19 @@
       document.getElementById('alertsCard').style.display = 'block';
 
       const pendingBody = document.getElementById('pendingTableBody');
-      const pendingDocs = data.pending_documents || [];
       const pendingTitle = document.getElementById('pendingTitle');
-      pendingTitle.textContent = pendingTotal > pendingDocs.length
-        ? `Pending Documents (showing ${pendingDocs.length} of ${pendingTotal})`
-        : 'Pending Documents';
+      pendingTitle.textContent = `Pending Documents (${pendingTotal})`;
 
-      if (pendingDocs.length === 0) {
-        pendingBody.innerHTML = '<tr><td colspan="2" class="empty-state">No pending required documents.</td></tr>';
+      if (missingByEmp.length === 0) {
+        pendingBody.innerHTML = '<tr><td colspan="2" class="empty-state">No pending documents — every employee has uploaded all document types.</td></tr>';
       } else {
-        const byEmployeePending = {};
-        const pendingOrder = [];
-        pendingDocs.forEach(p => {
-          if (!byEmployeePending[p.employee_id]) {
-            byEmployeePending[p.employee_id] = { employee_id: p.employee_id, full_name: p.full_name, employee_code: p.employee_code, types: [] };
-            pendingOrder.push(p.employee_id);
-          }
-          byEmployeePending[p.employee_id].types.push(p.document_name);
-        });
-
-        pendingBody.innerHTML = pendingOrder.map(empId => {
-          const group = byEmployeePending[empId];
-          const typeBadges = group.types.map(name => `<span class="badge inactive" style="margin:2px;">${name}</span>`).join('');
+        pendingBody.innerHTML = missingByEmp.map(e => {
+          const typeBadges = e.missing.map(name => `<span class="badge inactive" style="margin:2px;">${name}</span>`).join('');
           return `<tr>
-            <td style="vertical-align:top;"><a href="employee_detail.html?id=${group.employee_id}">${group.full_name} <span class="badge">${group.employee_code}</span></a></td>
+            <td style="vertical-align:top;"><a href="employee_detail.html?id=${e.employee_id}">${e.full_name} <span class="badge">${e.employee_code}</span></a></td>
             <td style="vertical-align:top;">${typeBadges}</td>
           </tr>`;
         }).join('');
-
-        if (pendingTotal > pendingDocs.length) {
-          pendingBody.insertAdjacentHTML('beforeend', `
-            <tr><td colspan="2" style="text-align:center; padding:14px;">
-              <a href="employees.html" style="color:#1d4ed8; font-weight:600;">View all employees &rarr;</a>
-            </td></tr>
-          `);
-        }
       }
       document.getElementById('pendingCard').style.display = 'block';
 

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Users</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Add a login</h2>
+        </div>
+        <div style="padding:20px; max-width:420px;">
+          <div class="field">
+            <label for="newUsername">Username</label>
+            <input type="text" id="newUsername" maxlength="100">
+          </div>
+          <div class="field">
+            <label for="newPassword">Password (min 6 characters)</label>
+            <input type="password" id="newPassword" maxlength="100">
+          </div>
+          <div class="field">
+            <label for="newRole">Role</label>
+            <select id="newRole">
+              <option value="HR">HR</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <button type="button" class="btn" id="btnCreateUser" style="width:auto; margin-top:10px;">Create User</button>
+          <div id="createUserMsg" style="font-size:13px; margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 id="usersTitle">All Users</h2>
+        </div>
+        <table>
+          <thead><tr><th>Username</th><th>Role</th><th style="width:100px;">Actions</th></tr></thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="3" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+
+  const currentUser = api.currentUser() || {};
+  if (currentUser.role !== 'Admin') {
+    document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">This page is only available to Admin users.</div>';
+    throw new Error('Not authorized');
+  }
+
+  renderSidebar('users');
+
+  const alertBox = document.getElementById('alertBox');
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    try {
+      const data = await api.get('users.list');
+      document.getElementById('usersTitle').textContent = `All Users (${data.users.length})`;
+
+      if (data.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No users yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.users.map(u => `
+        <tr>
+          <td>${u.username}</td>
+          <td><span class="badge">${u.role}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="danger-link" onclick="deleteUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="3"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.deleteUser = async function (id, username) {
+    if (!confirm(`Delete login "${username}"? This cannot be undone.`)) return;
+    try {
+      await api.post('users.delete', { user_id: id });
+      showAlert('User deleted.');
+      loadUsers();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('btnCreateUser').addEventListener('click', async () => {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const role = document.getElementById('newRole').value;
+    const msg = document.getElementById('createUserMsg');
+    const btn = document.getElementById('btnCreateUser');
+
+    msg.textContent = '';
+    if (!username || !password) {
+      msg.style.color = '#c0392b';
+      msg.textContent = 'Username and password are required.';
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      await api.post('users.create', { username, password, role });
+      msg.style.color = '#1a7a3c';
+      msg.textContent = `"${username}" created as ${role}.`;
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newPassword').value = '';
+      loadUsers();
+    } catch (err) {
+      msg.style.color = '#c0392b';
+      msg.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  loadUsers();
+</script>
+</body>
+</html>

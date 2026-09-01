@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Approvals — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Approvals</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card" id="pendingEmpCard" style="display:none;">
+        <div class="card-head"><h2 id="pendingEmpTitle">Pending Employees</h2></div>
+        <table>
+          <thead><tr><th>Code</th><th>Name</th><th>Added</th><th style="width:140px;">Actions</th></tr></thead>
+          <tbody id="pendingEmpBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="pendingDocCard" style="display:none;">
+        <div class="card-head"><h2 id="pendingDocTitle">Pending Documents</h2></div>
+        <table>
+          <thead><tr><th>Employee</th><th>Document</th><th>Uploaded</th><th style="width:140px;">Actions</th></tr></thead>
+          <tbody id="pendingDocBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="emptyCard" style="display:none;">
+        <div style="padding:30px; text-align:center; color:#888;">Nothing waiting for approval right now.</div>
+      </div>
+
+      <div class="card" id="loadingCard">
+        <div style="padding:20px;" class="loading">Loading...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+
+  const currentUser = api.currentUser() || {};
+  if (currentUser.role !== 'Admin') {
+    document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">This page is only available to Admin users.</div>';
+    throw new Error('Not authorized');
+  }
+
+  renderSidebar('approvals');
+
+  const alertBox = document.getElementById('alertBox');
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function fmtDate(dateStr) {
+    return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  }
+
+  async function load() {
+    try {
+      const data = await api.get('dashboard.stats');
+      const pendingEmps = data.pending_approval_employees || [];
+      const pendingDocs = data.pending_approval_documents || [];
+
+      document.getElementById('loadingCard').style.display = 'none';
+
+      if (pendingEmps.length === 0 && pendingDocs.length === 0) {
+        document.getElementById('emptyCard').style.display = 'block';
+        return;
+      }
+
+      if (pendingEmps.length > 0) {
+        document.getElementById('pendingEmpTitle').textContent = `Pending Employees (${pendingEmps.length})`;
+        document.getElementById('pendingEmpBody').innerHTML = pendingEmps.map(e => `
+          <tr>
+            <td><span class="badge">${e.employee_code}</span></td>
+            <td><a href="employee_detail.html?id=${e.employee_id}">${e.full_name}</a></td>
+            <td>${fmtDate(e.created_at)}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="approveEmployee(${e.employee_id})">Approve</button>
+                <button class="danger-link" onclick="declineEmployee(${e.employee_id}, '${(e.full_name||'').replace(/'/g,"\\'")}')">Decline</button>
+              </div>
+            </td>
+          </tr>`).join('');
+        document.getElementById('pendingEmpCard').style.display = 'block';
+      }
+
+      if (pendingDocs.length > 0) {
+        document.getElementById('pendingDocTitle').textContent = `Pending Documents (${pendingDocs.length})`;
+        document.getElementById('pendingDocBody').innerHTML = pendingDocs.map(d => `
+          <tr>
+            <td><a href="employee_detail.html?id=${d.employee_id}">${d.full_name} <span class="badge">${d.employee_code}</span></a></td>
+            <td>${d.document_name}</td>
+            <td>${fmtDate(d.uploaded_at)}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="approveDocument(${d.employee_document_id})">Approve</button>
+                <button class="danger-link" onclick="declineDocument(${d.employee_document_id}, '${(d.document_name||'').replace(/'/g,"\\'")}')">Decline</button>
+              </div>
+            </td>
+          </tr>`).join('');
+        document.getElementById('pendingDocCard').style.display = 'block';
+      }
+    } catch (err) {
+      document.getElementById('loadingCard').innerHTML = `<div style="padding:20px;"><div class="alert error">${err.message}</div></div>`;
+    }
+  }
+
+  window.approveEmployee = async function (id) {
+    try {
+      await api.post('employees.approve', { employee_id: id });
+      showAlert('Employee approved.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.approveDocument = async function (id) {
+    try {
+      await api.post('employee_documents.approve', { employee_document_id: id });
+      showAlert('Document approved.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.declineEmployee = async function (id, name) {
+    const reason = prompt(`Decline "${name}"? This removes them entirely — enter a reason (optional, shown in history):`);
+    if (reason === null) return; // cancelled
+    try {
+      await api.post('employees.decline', { employee_id: id, reason });
+      showAlert('Employee declined.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.declineDocument = async function (id, name) {
+    const reason = prompt(`Decline "${name}"? This removes the uploaded file entirely — enter a reason (optional, shown in history):`);
+    if (reason === null) return; // cancelled
+    try {
+      await api.post('employee_documents.decline', { employee_document_id: id, reason });
+      showAlert('Document declined.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  load();
+</script>
+</body>
+</html>

@@ -86,10 +86,10 @@
         </div>
         <table>
           <thead>
-            <tr><th>Document</th><th>Number</th><th>Issue Date</th><th>Expiry</th><th>Remarks</th><th style="width:100px;">Actions</th></tr>
+            <tr><th>Document</th><th>Number</th><th>Issue Date</th><th>Expiry</th><th>Status</th><th>Remarks</th><th style="width:100px;">Actions</th></tr>
           </thead>
           <tbody id="docsTableBody">
-            <tr><td colspan="6" class="loading">Loading...</td></tr>
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -172,15 +172,6 @@
         window.location.href = 'employees.html?edit=' + employeeId;
       });
 
-      const pendingDocsCard = document.getElementById('pendingDocsCard');
-      const pendingDocsBody = document.getElementById('pendingDocsBody');
-      const pending = e.pending_documents || [];
-      if (pending.length > 0) {
-        document.getElementById('pendingDocsTitle').textContent = `Pending Documents (${pending.length})`;
-        pendingDocsBody.innerHTML = pending.map(p => `<span class="badge inactive" style="margin:3px;">${p.document_name}</span>`).join('');
-        pendingDocsCard.style.display = 'block';
-      }
-
       document.getElementById('loadingCard').style.display = 'none';
       document.getElementById('profileCard').style.display = 'block';
     } catch (err) {
@@ -191,13 +182,38 @@
   async function loadDocuments() {
     const tbody = document.getElementById('docsTableBody');
     try {
-      const data = await api.get('employee_documents.list', { employee_id: employeeId });
-      const rows = data.documents;
+      const [pendingData, approvedData, typesData] = await Promise.all([
+        api.get('employee_documents.list', { employee_id: employeeId, status: 'pending' }),
+        api.get('employee_documents.list', { employee_id: employeeId, status: 'approved' }),
+        api.get('document_types.list'),
+      ]);
+
+      const pendingDocs = (pendingData.documents || []).map(d => ({ ...d, _status: 'pending' }));
+      const approvedDocs = (approvedData.documents || []).map(d => ({ ...d, _status: 'approved' }));
+      const rows = [...pendingDocs, ...approvedDocs];
+
+      // ---- Pending Documents card: every document type this employee has
+      // not uploaded yet (uploaded = pending approval OR approved). As soon
+      // as a type is uploaded it disappears from this list.
+      const uploadedTypeIds = new Set(rows.map(d => String(d.document_type_id)));
+      const notUploaded = (typesData.document_types || []).filter(t => !uploadedTypeIds.has(String(t.document_type_id)));
+
+      const pendingDocsCard = document.getElementById('pendingDocsCard');
+      if (notUploaded.length > 0) {
+        document.getElementById('pendingDocsTitle').textContent = `Pending Documents (${notUploaded.length})`;
+        document.getElementById('pendingDocsBody').innerHTML =
+          notUploaded.map(t => `<span class="badge inactive" style="margin:3px;">${t.document_name}</span>`).join('');
+        pendingDocsCard.style.display = 'block';
+      } else {
+        pendingDocsCard.style.display = 'none';
+      }
+
+      // ---- Uploaded documents table (pending approval first, then approved)
       document.getElementById('docsTitle').textContent = `Documents (${rows.length})`;
       document.getElementById('docsCard').style.display = 'block';
 
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No documents uploaded for this employee yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No documents uploaded for this employee yet.</td></tr>';
         return;
       }
 
@@ -207,6 +223,7 @@
           <td>${d.document_number || '—'}</td>
           <td>${fmtDate(d.issue_date)}</td>
           <td class="${expiryClass(d.expiry_date)}">${fmtDate(d.expiry_date)}</td>
+          <td><span class="badge ${d._status === 'approved' ? '' : 'inactive'}">${d._status === 'approved' ? 'Approved' : 'Pending approval'}</span></td>
           <td>${d.remarks || '—'}</td>
           <td>
             <div class="row-actions">
@@ -216,7 +233,7 @@
           </td>
         </tr>`).join('');
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
