@@ -52,6 +52,16 @@
       <div class="card">
         <div class="card-head">
           <h2>Upload documents</h2>
+          <button type="button" class="btn secondary" id="btnAddDocType" style="width:auto;">+ New document type</button>
+        </div>
+        <div id="addDocTypeRow" style="display:none; padding:14px 20px 0; align-items:center; gap:10px;">
+          <input type="text" id="newDocTypeName" placeholder="e.g. Passbook" maxlength="100" style="max-width:260px;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400;">
+            <input type="checkbox" id="newDocTypeHasExpiry" checked style="width:auto;"> Has an expiry date
+          </label>
+          <button type="button" class="btn" id="btnSaveDocType" style="width:auto;">Add</button>
+          <button type="button" class="btn secondary" id="btnCancelDocType" style="width:auto;">Cancel</button>
+          <span id="docTypeMsg" style="font-size:12px;"></span>
         </div>
         <div style="padding:20px;">
           <div class="field" style="max-width:420px;">
@@ -157,6 +167,9 @@
   let docTypeOptionsHtml = '<option value="">— Select —</option>';
   let rowCounter = 0;
 
+  let digitalSignatureTypeId = null;
+  let docTypeExpiryMap = {}; // document_type_id -> has_expiry (1/0)
+
   async function loadDropdowns() {
     const [empData, typeData] = await Promise.all([
       api.get('employees.list'),
@@ -171,7 +184,67 @@
 
     docTypeOptionsHtml = '<option value="">— Select —</option>' +
       typeData.document_types.map(t => `<option value="${t.document_type_id}">${t.document_name}</option>`).join('');
+
+    docTypeExpiryMap = {};
+    typeData.document_types.forEach(t => {
+      // Defaults to "has expiry" when the column doesn't exist yet on your
+      // server — run add_has_expiry_column.sql to enable per-type control.
+      docTypeExpiryMap[t.document_type_id] = t.has_expiry === undefined ? 1 : Number(t.has_expiry);
+    });
+
+    const sigType = typeData.document_types.find(t => t.document_name.trim().toLowerCase() === 'digital auto signature');
+    digitalSignatureTypeId = sigType ? sigType.document_type_id : null;
+
+    document.querySelectorAll('.doc-row').forEach(updateRowMode);
   }
+
+  /*
+   * Refresh every existing document-type <select> (each upload row, plus the
+   * edit modal) to include a newly added type, keeping whatever was already
+   * selected in each one.
+   */
+  function refreshDocTypeSelects() {
+    document.querySelectorAll('.row-doctype').forEach(sel => {
+      const current = sel.value;
+      sel.innerHTML = docTypeOptionsHtml;
+      sel.value = current;
+    });
+  }
+
+  const addDocTypeRow = document.getElementById('addDocTypeRow');
+  const newDocTypeName = document.getElementById('newDocTypeName');
+  const docTypeMsg = document.getElementById('docTypeMsg');
+
+  document.getElementById('btnAddDocType').addEventListener('click', () => {
+    addDocTypeRow.style.display = 'flex';
+    newDocTypeName.value = '';
+    docTypeMsg.textContent = '';
+    newDocTypeName.focus();
+  });
+
+  document.getElementById('btnCancelDocType').addEventListener('click', () => {
+    addDocTypeRow.style.display = 'none';
+  });
+
+  document.getElementById('btnSaveDocType').addEventListener('click', async () => {
+    const name = newDocTypeName.value.trim();
+    if (!name) {
+      docTypeMsg.textContent = 'Enter a name first.';
+      docTypeMsg.style.color = '#c0392b';
+      return;
+    }
+    try {
+      const hasExpiry = document.getElementById('newDocTypeHasExpiry').checked;
+      await api.post('document_types.save', { document_name: name, has_expiry: hasExpiry ? 1 : 0 });
+      await loadDropdowns();
+      refreshDocTypeSelects();
+      addDocTypeRow.style.display = 'none';
+      showAlert(`"${name}" added as a document type.`);
+    } catch (err) {
+      docTypeMsg.textContent = err.message;
+      docTypeMsg.style.color = '#c0392b';
+    }
+  });
 
   /*
    * One row = one document to upload. Each row is independent — its own
@@ -199,28 +272,51 @@
           <input type="text" class="row-docnumber" maxlength="100" placeholder="e.g. Aadhaar number">
         </div>
       </div>
-      <div class="field-grid">
+
+      <div class="field-grid row-file-wrap">
         <div class="field">
-          <label>File * (PDF, JPG, PNG — max 5MB)</label>
-          <input type="file" class="row-file" accept=".pdf,.jpg,.jpeg,.png" required>
+          <label>File(s) * (PDF, JPG, PNG — max 5MB each. Select multiple pages/photos if needed.)</label>
+          <input type="file" class="row-file" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+          <div class="row-file-count" style="font-size:12px; color:#888; margin-top:4px;"></div>
         </div>
         <div class="field">
           <label>Remarks</label>
           <input type="text" class="row-remarks" maxlength="255">
         </div>
       </div>
-      <div class="field-grid">
-        <div class="field">
+
+      <div class="row-sig-wrap" style="display:none;">
+        <label style="display:block; font-size:13px; font-weight:600; margin:0 0 6px;">Sign below</label>
+        <div style="border:1px solid var(--line,#ddd); border-radius:8px; overflow:hidden; touch-action:none; max-width:600px;">
+          <canvas class="row-sig-canvas" style="display:block; width:100%; height:200px; background:#fff; cursor:crosshair;"></canvas>
+        </div>
+        <button type="button" class="btn secondary row-sig-clear" style="width:auto; margin-top:10px;">Clear signature</button>
+        <div class="row-sig-hint" style="font-size:12px; color:#888; margin-top:6px;"></div>
+      </div>
+
+      <div class="field-grid row-dates-wrap">
+        <div class="field row-issue-wrap">
           <label>Issue Date</label>
           <input type="date" class="row-issue">
         </div>
-        <div class="field">
+        <div class="field row-expiry-wrap">
           <label>Expiry Date</label>
           <input type="date" class="row-expiry">
         </div>
       </div>
     `;
     document.getElementById('docRows').appendChild(row);
+
+    row.querySelector('.row-file').addEventListener('change', (e) => {
+      const count = e.target.files.length;
+      row.querySelector('.row-file-count').textContent = count > 1
+        ? `${count} files selected — each will be saved as a separate entry under this document type.`
+        : '';
+    });
+
+    row.querySelector('.row-doctype').addEventListener('change', () => updateRowMode(row));
+    initRowSignature(row);
+    updateRowMode(row);
 
     row.querySelector('[data-remove]').addEventListener('click', () => {
       const allRows = document.querySelectorAll('.doc-row');
@@ -314,6 +410,44 @@
     }
   });
 
+  const DOCS_PAGE_SIZE = 10;
+  let showAllDocs = false;
+
+  function renderDocTable(rows) {
+    const visibleRows = showAllDocs ? rows : rows.slice(0, DOCS_PAGE_SIZE);
+
+    tableBody.innerHTML = visibleRows.map(d => `
+      <tr>
+        <td><a href="employee_detail.html?id=${d.employee_id}">${d.full_name} <span class="badge">${d.employee_code}</span></a></td>
+        <td>${d.document_name}</td>
+        <td>${d.document_number || '—'}</td>
+        <td class="${expiryClass(d.expiry_date)}">${d.expiry_date ? new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+        <td>
+          <div class="row-actions">
+            <a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank">View</a>
+            <button onclick="editDoc(${d.employee_document_id})">Edit</button>
+            <button class="danger-link" onclick="deleteDoc(${d.employee_document_id})">Delete</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    const toggleRow = rows.length > DOCS_PAGE_SIZE
+      ? `<tr><td colspan="5" style="text-align:center; padding:14px;">
+          <button type="button" id="btnToggleDocs" style="background:none; border:none; color:#1d4ed8; font-weight:600; cursor:pointer;">
+            ${showAllDocs ? 'Show less' : `View all ${rows.length} documents`}
+          </button>
+        </td></tr>`
+      : '';
+    tableBody.insertAdjacentHTML('beforeend', toggleRow);
+
+    if (rows.length > DOCS_PAGE_SIZE) {
+      document.getElementById('btnToggleDocs').addEventListener('click', () => {
+        showAllDocs = !showAllDocs;
+        renderDocTable(rows);
+      });
+    }
+  }
+
   async function loadDocuments() {
     const employeeId = document.getElementById('filterEmployee').value;
     const params = {};
@@ -324,26 +458,14 @@
       const rows = data.documents;
       currentDocs = rows;
       document.getElementById('listTitle').textContent = `Documents (${rows.length})`;
+      showAllDocs = false;
 
       if (rows.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No documents uploaded yet.</td></tr>';
         return;
       }
 
-      tableBody.innerHTML = rows.map(d => `
-        <tr>
-          <td>${d.full_name} <span class="badge">${d.employee_code}</span></td>
-          <td>${d.document_name}</td>
-          <td>${d.document_number || '—'}</td>
-          <td class="${expiryClass(d.expiry_date)}">${d.expiry_date ? new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
-          <td>
-            <div class="row-actions">
-              <a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank">View</a>
-              <button onclick="editDoc(${d.employee_document_id})">Edit</button>
-              <button class="danger-link" onclick="deleteDoc(${d.employee_document_id})">Delete</button>
-            </div>
-          </td>
-        </tr>`).join('');
+      renderDocTable(rows);
     } catch (err) {
       tableBody.innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;
     }
@@ -362,9 +484,8 @@
 
   document.getElementById('filterEmployee').addEventListener('change', loadDocuments);
 
-  async function uploadOneDocument(employeeId, row) {
+  async function uploadOneFile(employeeId, row, file) {
     const docTypeId = row.querySelector('.row-doctype').value;
-    const file = row.querySelector('.row-file').files[0];
 
     const formData = new FormData();
     formData.append('employee_id', employeeId);
@@ -388,6 +509,11 @@
     if (!res.ok) throw new Error(data.error || 'Upload failed.');
   }
 
+  function isSigRow(row) {
+    const docType = row.querySelector('.row-doctype').value;
+    return !!digitalSignatureTypeId && docType == digitalSignatureTypeId;
+  }
+
   document.getElementById('uploadBtn').addEventListener('click', async () => {
     const employeeId = document.getElementById('employeeSelect').value;
     if (!employeeId) {
@@ -396,10 +522,29 @@
     }
 
     const rows = Array.from(document.querySelectorAll('.doc-row'));
-    const invalidRow = rows.find(r => !r.querySelector('.row-doctype').value || !r.querySelector('.row-file').files[0]);
+    const invalidRow = rows.find(r => {
+      if (!r.querySelector('.row-doctype').value) return true;
+      if (isSigRow(r)) return !r._sigHasStroke;
+      return r.querySelector('.row-file').files.length === 0;
+    });
     if (invalidRow) {
-      showAlert('Every row needs a document type and a file selected.', 'error');
+      showAlert('Every row needs a document type, and either a file selected or a signature drawn.', 'error');
       return;
+    }
+
+    // Flatten rows into individual (row, file) uploads — a row with 3 selected
+    // files (e.g. 3 pages of an Agreement) becomes 3 separate uploads, all
+    // sharing that row's document type, number, dates, and remarks. A row set
+    // to "Digital Auto Signature" contributes its one drawn signature instead.
+    const tasks = [];
+    for (const row of rows) {
+      if (isSigRow(row)) {
+        const sigFile = await row._getSignatureFile();
+        if (sigFile) tasks.push({ row, file: sigFile });
+      } else {
+        const files = Array.from(row.querySelector('.row-file').files);
+        files.forEach(file => tasks.push({ row, file }));
+      }
     }
 
     const btn = document.getElementById('uploadBtn');
@@ -409,13 +554,13 @@
     let successCount = 0;
     const failures = [];
 
-    for (let i = 0; i < rows.length; i++) {
-      progress.textContent = `Uploading ${i + 1} of ${rows.length}...`;
+    for (let i = 0; i < tasks.length; i++) {
+      progress.textContent = `Uploading ${i + 1} of ${tasks.length}...`;
       try {
-        await uploadOneDocument(employeeId, rows[i]);
+        await uploadOneFile(employeeId, tasks[i].row, tasks[i].file);
         successCount++;
       } catch (err) {
-        failures.push(`Document ${i + 1}: ${err.message}`);
+        failures.push(`File ${i + 1}: ${err.message}`);
       }
     }
 
@@ -423,7 +568,7 @@
     btn.disabled = false;
 
     if (failures.length === 0) {
-      showAlert(`${successCount} document${successCount === 1 ? '' : 's'} uploaded.`);
+      showAlert(`${successCount} file${successCount === 1 ? '' : 's'} uploaded.`);
       document.getElementById('employeeSelect').value = '';
       resetDocRows();
     } else if (successCount === 0) {
@@ -434,6 +579,94 @@
 
     loadDocuments();
   });
+
+  /*
+   * Toggle a row between "upload a file" mode and "draw a signature" mode,
+   * based on whether its Document Type is set to "Digital Auto Signature".
+   */
+  function updateRowMode(row) {
+    const docType = row.querySelector('.row-doctype').value;
+    const isSig = !!digitalSignatureTypeId && docType == digitalSignatureTypeId;
+
+    row.querySelector('.row-file-wrap').style.display = isSig ? 'none' : 'grid';
+    row.querySelector('.row-sig-wrap').style.display = isSig ? 'block' : 'none';
+    row.querySelector('.row-file').required = !isSig;
+
+    // Hide both Issue Date and Expiry Date for document types that don't
+    // expire (e.g. Aadhaar) — controlled per-type via has_expiry.
+    const hasExpiry = docType ? (docTypeExpiryMap[docType] !== 0) : true;
+    row.querySelector('.row-dates-wrap').style.display = hasExpiry ? 'grid' : 'none';
+    if (!hasExpiry) {
+      row.querySelector('.row-issue').value = '';
+      row.querySelector('.row-expiry').value = '';
+    }
+  }
+
+  /*
+   * Set up mouse/touch drawing on one row's signature canvas. The captured
+   * stroke stays in-memory as a flag (row._sigHasStroke) and is only turned
+   * into an actual PNG file at upload time, via row._getSignatureFile().
+   */
+  function initRowSignature(row) {
+    const canvas = row.querySelector('.row-sig-canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    row._sigHasStroke = false;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#1a1a1a';
+    }
+    resize();
+
+    function pointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    }
+
+    function start(e) {
+      e.preventDefault();
+      drawing = true;
+      row._sigHasStroke = true;
+      const p = pointerPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+    function move(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const p = pointerPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+    function end() { drawing = false; }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    canvas.addEventListener('touchend', end);
+
+    row.querySelector('.row-sig-clear').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      row._sigHasStroke = false;
+    });
+
+    row._getSignatureFile = () => new Promise(resolve => {
+      if (!row._sigHasStroke) { resolve(null); return; }
+      canvas.toBlob(blob => {
+        resolve(new File([blob], `signature_${Date.now()}.png`, { type: 'image/png' }));
+      }, 'image/png');
+    });
+  }
 
   (async function init() {
     await loadDropdowns();

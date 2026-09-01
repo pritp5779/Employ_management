@@ -95,7 +95,7 @@
     }
     tableBody.innerHTML = rows.map(r => `
       <tr>
-        <td>${r.department_name}</td>
+        <td><a href="employees.html?department_id=${r.department_id}">${r.department_name}</a></td>
         <td>${new Date(r.created_at).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
         <td>
           <div class="row-actions">

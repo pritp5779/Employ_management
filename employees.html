@@ -34,10 +34,10 @@
         </div>
         <table>
           <thead>
-            <tr><th>Code</th><th>Name</th><th>Department</th><th>Mobile</th><th>Joining Date</th><th style="width:140px;">Actions</th></tr>
+            <tr><th style="width:48px;"></th><th>Code</th><th>Name</th><th>Department</th><th>Mobile</th><th>Joining Date</th><th>Pending Docs</th><th style="width:140px;">Actions</th></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="6" class="loading">Loading...</td></tr>
+            <tr><td colspan="8" class="loading">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -51,6 +51,29 @@
     <div id="modalAlert"></div>
     <form id="empForm">
       <input type="hidden" id="recordId">
+
+      <div class="field">
+        <label>Photo</label>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div id="photoPreview" style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:#f2f2f4; border:2px solid #eee; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#999; cursor:pointer;" title="Click to choose a photo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          </div>
+          <div>
+            <button type="button" id="photoPickBtn" class="btn secondary" style="width:auto;">Choose photo</button>
+            <button type="button" id="photoCameraBtn" class="btn secondary" style="width:auto;">Take photo</button>
+            <input type="file" id="photoInput" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
+          </div>
+        </div>
+
+        <div id="cameraPanel" style="display:none; margin-top:12px; max-width:360px;">
+          <video id="cameraVideo" autoplay playsinline style="width:100%; border-radius:8px; background:#000; transform:scaleX(-1);"></video>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" id="cameraCaptureBtn" class="btn" style="width:auto;">Capture</button>
+            <button type="button" id="cameraCancelBtn" class="btn secondary" style="width:auto;">Cancel</button>
+          </div>
+          <div id="cameraMsg" style="font-size:13px; font-weight:600; color:#c0392b; margin-top:8px; line-height:1.5;"></div>
+        </div>
+      </div>
 
       <div class="field-grid">
         <div class="field">
@@ -227,10 +250,89 @@
     }
   }
 
+  const PHOTO_ICON_SVG = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+  const photoInput = document.getElementById('photoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  const photoPickBtn = document.getElementById('photoPickBtn');
+  const photoCameraBtn = document.getElementById('photoCameraBtn');
+  const cameraPanel = document.getElementById('cameraPanel');
+  const cameraVideo = document.getElementById('cameraVideo');
+  const cameraMsg = document.getElementById('cameraMsg');
+
+  let selectedPhotoFile = null; // set from either the file picker or a camera capture
+  let cameraStream = null;
+
+  photoPreview.addEventListener('click', () => photoInput.click());
+  photoPickBtn.addEventListener('click', () => photoInput.click());
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (file) {
+      selectedPhotoFile = file;
+      photoPreview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;">`;
+    }
+  });
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    cameraPanel.style.display = 'none';
+  }
+
+  photoCameraBtn.addEventListener('click', async () => {
+    cameraMsg.textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      cameraPanel.style.display = 'block';
+      cameraMsg.textContent = 'Camera access is not available in this browser.';
+      return;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      cameraVideo.srcObject = cameraStream;
+      cameraPanel.style.display = 'block';
+    } catch (err) {
+      cameraPanel.style.display = 'block';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        cameraMsg.innerHTML = 'Camera access is blocked for this site. Click the icon in your browser\'s address bar, set Camera to "Allow", then reload the page and try again.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        cameraMsg.textContent = 'No camera was found on this device.';
+      } else {
+        cameraMsg.textContent = 'Could not access the camera (' + err.name + ').';
+      }
+    }
+  });
+
+  document.getElementById('cameraCancelBtn').addEventListener('click', stopCamera);
+
+  document.getElementById('cameraCaptureBtn').addEventListener('click', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraVideo.videoWidth;
+    canvas.height = cameraVideo.videoHeight;
+    const ctx = canvas.getContext('2d');
+    // Mirror the capture to match the mirrored preview (feels natural, like a selfie camera).
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      selectedPhotoFile = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      photoPreview.innerHTML = `<img src="${URL.createObjectURL(blob)}" style="width:100%;height:100%;object-fit:cover;">`;
+      stopCamera();
+    }, 'image/jpeg', 0.9);
+  });
+
   function openModal(emp = null) {
     document.getElementById('empForm').reset();
     modalAlert.innerHTML = '';
     document.getElementById('recordId').value = '';
+    photoInput.value = '';
+    selectedPhotoFile = null;
+    stopCamera();
+    photoPreview.innerHTML = (emp && emp.photo)
+      ? `<img src="${API_BASE_URL.replace('/api.php', '')}/${emp.photo}" style="width:100%;height:100%;object-fit:cover;">`
+      : PHOTO_ICON_SVG;
     setManagerField(emp ? emp.reporting_manager_id : null, emp ? emp.employee_id : null);
     if (emp) {
       document.getElementById('modalTitle').textContent = `Edit Employee (${emp.employee_code})`;
@@ -252,7 +354,7 @@
     }
     overlay.classList.add('open');
   }
-  function closeModal() { overlay.classList.remove('open'); }
+  function closeModal() { overlay.classList.remove('open'); stopCamera(); }
 
   document.getElementById('btnAddNew').addEventListener('click', () => openModal());
   document.getElementById('btnCancel').addEventListener('click', closeModal);
@@ -279,23 +381,37 @@
     rows = sortRows(rows);
     document.getElementById('cardTitle').textContent = `Employees (${rows.length})`;
     if (rows.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No employees found.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8" class="empty-state">No employees found.</td></tr>';
       return;
     }
-    tableBody.innerHTML = rows.map(r => `
+    tableBody.innerHTML = rows.map(r => {
+      const photoHtml = r.photo
+        ? `<img src="${API_BASE_URL.replace('/api.php','')}/${r.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+        : `<div style="width:36px;height:36px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+           </div>`;
+      const pending = Number(r.pending_count || 0);
+      const pendingHtml = pending > 0
+        ? `<span class="badge inactive">${pending} missing</span>`
+        : `<span class="badge">All complete</span>`;
+
+      return `
       <tr>
+        <td><a href="employee_detail.html?id=${r.employee_id}">${photoHtml}</a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}"><span class="badge">${r.employee_code}</span></a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}" style="color:inherit; text-decoration:none;">${r.full_name}</a></td>
         <td>${r.department_name || '—'}</td>
         <td>${r.mobile || '—'}</td>
         <td>${r.joining_date ? new Date(r.joining_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+        <td>${pendingHtml}</td>
         <td>
           <div class="row-actions">
             <button onclick='editEmployee(${r.employee_id})'>Edit</button>
             <button class="danger-link" onclick="deleteEmployee(${r.employee_id}, '${(r.full_name||'').replace(/'/g,"\\'")}')">Delete</button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   let currentRows = [];
@@ -312,7 +428,7 @@
       currentRows = data.employees;
       renderTable(currentRows);
     } catch (err) {
-      tableBody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="8"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -342,14 +458,14 @@
     const btn = document.getElementById('btnSave');
     btn.disabled = true;
 
-    const payload = {
+    const fields = {
       full_name: document.getElementById('fullName').value.trim(),
-      department_id: document.getElementById('department').value || null,
-      reporting_manager_id: document.getElementById('reportingManager').value || null,
+      department_id: document.getElementById('department').value || '',
+      reporting_manager_id: document.getElementById('reportingManager').value || '',
       mobile: document.getElementById('mobile').value.trim(),
       email: document.getElementById('email').value.trim(),
       joining_date: document.getElementById('joiningDate').value,
-      date_of_birth: document.getElementById('dob').value || null,
+      date_of_birth: document.getElementById('dob').value || '',
       employment_type: document.getElementById('employmentType').value.trim(),
       basic_salary: document.getElementById('basicSalary').value || 0,
       address: document.getElementById('address').value.trim(),
@@ -357,10 +473,38 @@
       emergency_contact_mobile: document.getElementById('emMobile').value.trim(),
       emergency_contact_relation: document.getElementById('emRelation').value.trim(),
     };
-    if (id) payload.employee_id = id;
+    if (id) fields.employee_id = id;
+
+    const newPhoto = selectedPhotoFile;
 
     try {
-      const res = await api.post('employees.save', payload);
+      let res;
+      if (newPhoto) {
+        // A photo was chosen — send multipart so the file goes along with the fields.
+        const formData = new FormData();
+        Object.entries(fields).forEach(([key, val]) => formData.append(key, val));
+        formData.append('photo', newPhoto);
+
+        const headers = {};
+        const token = api.token();
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const response = await fetch(`${API_BASE_URL}?action=employees.save`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+        res = await response.json();
+        if (!response.ok) throw new Error(res.error || 'Save failed.');
+      } else {
+        // No new photo — plain JSON, keeps whatever photo (if any) is already saved.
+        const payload = { ...fields };
+        if (payload.department_id === '') payload.department_id = null;
+        if (payload.reporting_manager_id === '') payload.reporting_manager_id = null;
+        if (payload.date_of_birth === '') payload.date_of_birth = null;
+        res = await api.post('employees.save', payload);
+      }
+
       closeModal();
       showAlert(id ? 'Employee updated.' : `Employee added (code: ${res.employee_code}).`);
       loadEmployees();
@@ -412,12 +556,19 @@
   (async function init() {
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const deptFromUrl = urlParams.get('department_id');
+    if (deptFromUrl) {
+      document.getElementById('deptFilter').value = deptFromUrl;
+      history.replaceState(null, '', 'employees.html');
+    }
+
     await loadEmployees();
 
-    const editId = new URLSearchParams(window.location.search).get('edit');
+    const editId = urlParams.get('edit');
     if (editId) {
       window.editEmployee(editId);
-      history.replaceState(null, '', 'employees.html');
     }
   })();
 </script>

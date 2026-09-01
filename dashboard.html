@@ -23,6 +23,13 @@
           <tbody id="alertsTableBody"></tbody>
         </table>
       </div>
+      <div class="card" id="pendingCard" style="display:none;">
+        <div class="card-head"><h2 id="pendingTitle">Pending Documents</h2></div>
+        <table>
+          <thead><tr><th>Employee</th><th>Missing Documents</th></tr></thead>
+          <tbody id="pendingTableBody"></tbody>
+        </table>
+      </div>
       <div class="card" id="deptCard" style="display:none;">
         <div class="card-head"><h2>Employees by Department</h2></div>
         <table>
@@ -46,37 +53,114 @@
     const statsArea = document.getElementById('statsArea');
     try {
       const data = await api.get('dashboard.stats');
+      const expiringTotal = data.expiring_documents_total ?? data.expiring_documents.length;
+      const pendingTotal = data.pending_documents_total ?? (data.pending_documents ? data.pending_documents.length : 0);
+
       statsArea.outerHTML = `
         <div class="stat-grid" id="statsArea">
           <div class="stat-card"><div class="label">Active Employees</div><div class="value">${data.total_employees}</div></div>
           <div class="stat-card"><div class="label">Departments</div><div class="value">${data.total_departments}</div></div>
-          <div class="stat-card"><div class="label">Expiring/Expired Docs</div><div class="value">${data.expiring_documents.length}</div></div>
+          <div class="stat-card"><div class="label">Expiring/Expired Docs</div><div class="value">${expiringTotal}</div></div>
+          <div class="stat-card"><div class="label">Pending Documents</div><div class="value">${pendingTotal}</div></div>
         </div>`;
+
+      const alertsTitle = document.getElementById('alertsTitle');
+      alertsTitle.textContent = expiringTotal > data.expiring_documents.length
+        ? `Expiring / Expired Documents (showing ${data.expiring_documents.length} of ${expiringTotal})`
+        : 'Expiring / Expired Documents';
 
       const alertsBody = document.getElementById('alertsTableBody');
       if (data.expiring_documents.length === 0) {
         alertsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No documents expiring in the next 30 days.</td></tr>';
       } else {
-        alertsBody.innerHTML = data.expiring_documents.map(d => {
-          const isExpired = d.days_left < 0;
-          const statusClass = isExpired ? 'badge inactive' : 'badge';
-          const statusText = isExpired ? `Expired ${Math.abs(d.days_left)}d ago` : `${d.days_left}d left`;
+        // Group by employee so each person gets one row listing all their
+        // expiring/expired documents together, instead of a repeated row per document.
+        const byEmployee = {};
+        const order = [];
+        data.expiring_documents.forEach(d => {
+          if (!byEmployee[d.employee_id]) {
+            byEmployee[d.employee_id] = { employee_id: d.employee_id, full_name: d.full_name, employee_code: d.employee_code, docs: [] };
+            order.push(d.employee_id);
+          }
+          byEmployee[d.employee_id].docs.push(d);
+        });
+
+        alertsBody.innerHTML = order.map(empId => {
+          const group = byEmployee[empId];
+          const docLines = group.docs.map(d => `<div style="padding:4px 0;">${d.document_name}</div>`).join('');
+          const expiryLines = group.docs.map(d =>
+            `<div style="padding:4px 0;">${new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</div>`
+          ).join('');
+          const statusLines = group.docs.map(d => {
+            const isExpired = d.days_left < 0;
+            const statusClass = isExpired ? 'badge inactive' : 'badge';
+            const statusText = isExpired ? `Expired ${Math.abs(d.days_left)}d ago` : `${d.days_left}d left`;
+            return `<div style="padding:4px 0;"><span class="${statusClass}">${statusText}</span></div>`;
+          }).join('');
+
           return `<tr>
-            <td>${d.full_name} <span class="badge">${d.employee_code}</span></td>
-            <td>${d.document_name}</td>
-            <td>${new Date(d.expiry_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
-            <td><span class="${statusClass}">${statusText}</span></td>
+            <td style="vertical-align:top;"><a href="employee_detail.html?id=${group.employee_id}">${group.full_name} <span class="badge">${group.employee_code}</span></a></td>
+            <td style="vertical-align:top;">${docLines}</td>
+            <td style="vertical-align:top;">${expiryLines}</td>
+            <td style="vertical-align:top;">${statusLines}</td>
           </tr>`;
         }).join('');
+
+        if (expiringTotal > data.expiring_documents.length) {
+          alertsBody.insertAdjacentHTML('beforeend', `
+            <tr><td colspan="4" style="text-align:center; padding:14px;">
+              <a href="documents.html" style="color:#1d4ed8; font-weight:600;">View all ${expiringTotal} documents &rarr;</a>
+            </td></tr>
+          `);
+        }
       }
       document.getElementById('alertsCard').style.display = 'block';
+
+      const pendingBody = document.getElementById('pendingTableBody');
+      const pendingDocs = data.pending_documents || [];
+      const pendingTitle = document.getElementById('pendingTitle');
+      pendingTitle.textContent = pendingTotal > pendingDocs.length
+        ? `Pending Documents (showing ${pendingDocs.length} of ${pendingTotal})`
+        : 'Pending Documents';
+
+      if (pendingDocs.length === 0) {
+        pendingBody.innerHTML = '<tr><td colspan="2" class="empty-state">No pending required documents.</td></tr>';
+      } else {
+        const byEmployeePending = {};
+        const pendingOrder = [];
+        pendingDocs.forEach(p => {
+          if (!byEmployeePending[p.employee_id]) {
+            byEmployeePending[p.employee_id] = { employee_id: p.employee_id, full_name: p.full_name, employee_code: p.employee_code, types: [] };
+            pendingOrder.push(p.employee_id);
+          }
+          byEmployeePending[p.employee_id].types.push(p.document_name);
+        });
+
+        pendingBody.innerHTML = pendingOrder.map(empId => {
+          const group = byEmployeePending[empId];
+          const typeBadges = group.types.map(name => `<span class="badge inactive" style="margin:2px;">${name}</span>`).join('');
+          return `<tr>
+            <td style="vertical-align:top;"><a href="employee_detail.html?id=${group.employee_id}">${group.full_name} <span class="badge">${group.employee_code}</span></a></td>
+            <td style="vertical-align:top;">${typeBadges}</td>
+          </tr>`;
+        }).join('');
+
+        if (pendingTotal > pendingDocs.length) {
+          pendingBody.insertAdjacentHTML('beforeend', `
+            <tr><td colspan="2" style="text-align:center; padding:14px;">
+              <a href="employees.html" style="color:#1d4ed8; font-weight:600;">View all employees &rarr;</a>
+            </td></tr>
+          `);
+        }
+      }
+      document.getElementById('pendingCard').style.display = 'block';
 
       const tbody = document.getElementById('deptTableBody');
       if (data.by_department.length === 0) {
         tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No departments yet.</td></tr>';
       } else {
         tbody.innerHTML = data.by_department.map(d =>
-          `<tr><td>${d.department_name}</td><td>${d.total}</td></tr>`
+          `<tr><td><a href="employees.html?department_id=${d.department_id}">${d.department_name}</a></td><td>${d.total}</td></tr>`
         ).join('');
       }
       document.getElementById('deptCard').style.display = 'block';
