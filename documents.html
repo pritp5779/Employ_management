@@ -486,10 +486,11 @@
     btn.disabled = true;
 
     const id = document.getElementById('editDocId').value;
-    const newFile = document.getElementById('editDocFile').files[0];
+    let newFile = document.getElementById('editDocFile').files[0];
 
     try {
       if (newFile) {
+        newFile = await compressForUpload(newFile);
         const formData = new FormData();
         formData.append('employee_document_id', id);
         formData.append('document_type_id', document.getElementById('editDocType').value);
@@ -607,8 +608,53 @@
 
   document.getElementById('filterEmployee').addEventListener('change', loadDocuments);
 
+  /*
+   * Compress an image in the browser before uploading, targeting ~2MB.
+   * Photos from phone cameras (5–15MB) come down to ≤2MB by scaling to a
+   * max dimension and stepping JPEG quality down gently — text stays sharp
+   * and readable. PDFs and files already ≤2MB pass through untouched.
+   */
+  const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+
+  async function compressForUpload(file) {
+    if (!file.type.startsWith('image/') || file.size <= MAX_UPLOAD_BYTES) return file;
+
+    let img;
+    try {
+      img = await createImageBitmap(file);
+    } catch (e) {
+      return file; // unreadable as image — send as-is
+    }
+
+    let maxDim = 2600; // keeps A4 scans crisp and readable
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff'; // PNG transparency becomes white, not black
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      let quality = 0.88;
+      let blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+      while (blob && blob.size > MAX_UPLOAD_BYTES && quality > 0.6) {
+        quality -= 0.07;
+        blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+      }
+      if (blob && blob.size <= MAX_UPLOAD_BYTES) {
+        return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+      }
+      maxDim = Math.round(maxDim * 0.8); // still too big — reduce dimensions and retry
+    }
+    return file; // give up gracefully — original goes up
+  }
+
   async function uploadOneFile(employeeId, row, file) {
     const docTypeId = row.querySelector('.row-doctype').value;
+
+    file = await compressForUpload(file);
 
     const formData = new FormData();
     formData.append('employee_id', employeeId);
@@ -717,6 +763,12 @@
     row.querySelector('.row-sig-wrap').style.display = isSig ? 'block' : 'none';
     row.querySelector('.row-file').required = !isSig;
 
+    // The canvas was set up while hidden (0x0) — size it now that it's visible.
+    if (isSig) {
+      const canvas = row.querySelector('.row-sig-canvas');
+      if (canvas && canvas.width === 0 && row._resizeSig) row._resizeSig();
+    }
+
     // Hide both Issue Date and Expiry Date for document types that don't
     // expire (e.g. Aadhaar) — controlled per-type via has_expiry.
     const hasExpiry = docType ? (docTypeExpiryMap[docType] !== 0) : true;
@@ -748,6 +800,7 @@
       ctx.lineCap = 'round';
       ctx.strokeStyle = '#1a1a1a';
     }
+    row._resizeSig = resize;
     resize();
 
     function pointerPos(e) {

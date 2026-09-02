@@ -80,6 +80,11 @@
         <div id="waGroupsBody" style="padding:16px 20px;"></div>
       </div>
 
+      <div class="card" id="excelFilesCard" style="display:none;">
+        <div class="card-head"><h2 id="excelFilesTitle">Excel Files</h2></div>
+        <div id="excelFilesBody" style="padding:16px 20px;"></div>
+      </div>
+
       <div class="card" id="pendingDocsCard" style="display:none;">
         <div class="card-head"><h2 id="pendingDocsTitle">Pending Documents</h2></div>
         <div id="pendingDocsBody" style="padding:16px 20px;"></div>
@@ -218,6 +223,16 @@
         ? waGroups.map(g => `<span class="badge" style="margin:3px;">${g.group_name}</span>`).join('')
         : '<span style="color:#888; font-size:13px;">Not added to any WhatsApp group yet — use Edit Employee to select groups.</span>';
       document.getElementById('waGroupsCard').style.display = 'block';
+
+      const excelFiles = e.excel_files || [];
+      document.getElementById('excelFilesTitle').textContent =
+        excelFiles.length > 0 ? `Excel Files (${excelFiles.length})` : 'Excel Files';
+      document.getElementById('excelFilesBody').innerHTML = excelFiles.length > 0
+        ? excelFiles.map(f => f.file_url
+            ? `<a href="${f.file_url}" target="_blank" class="badge" style="margin:3px;">${f.file_name} ↗</a>`
+            : `<span class="badge" style="margin:3px;">${f.file_name}</span>`).join('')
+        : '<span style="color:#888; font-size:13px;">Not added to any Excel file yet — use Edit Employee to select files.</span>';
+      document.getElementById('excelFilesCard').style.display = 'block';
 
       document.getElementById('loadingCard').style.display = 'none';
       document.getElementById('profileCard').style.display = 'block';

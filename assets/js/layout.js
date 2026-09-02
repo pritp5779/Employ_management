@@ -26,6 +26,7 @@ function renderSidebar(active) {
         <a href="employees.html" class="${linkClass('employees')}">Employees</a>
         <a href="documents.html" class="${linkClass('documents')}">Documents</a>
         <a href="whatsapp_groups.html" class="${linkClass('whatsapp_groups')}">WhatsApp Groups</a>
+        <a href="excel_files.html" class="${linkClass('excel_files')}">Excel Files</a>
         <a href="ex_employees.html" class="${linkClass('ex_employees')}">Ex-Employees</a>
         <a href="history.html" class="${linkClass('history')}">Decline History</a>
         ${adminLinks}
@@ -37,4 +38,18 @@ function renderSidebar(active) {
       </div>
     </aside>
   `;
+
+  // Mobile menu button + backdrop (hidden on desktop via CSS).
+  if (!document.getElementById('menuToggle')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <button id="menuToggle" aria-label="Open menu">&#9776;</button>
+      <div id="sidebarBackdrop"></div>
+    `);
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.body.classList.toggle('sidebar-open');
+    });
+    document.getElementById('sidebarBackdrop').addEventListener('click', () => {
+      document.body.classList.remove('sidebar-open');
+    });
+  }
 }

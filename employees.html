@@ -103,6 +103,13 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>Excel Files</label>
+        <div id="excelFilesBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
+          <span style="color:#888; font-size:13px;">Loading files...</span>
+        </div>
+      </div>
+
       <div class="field-grid">
         <div class="field">
           <label for="mobile">Mobile</label>
@@ -196,6 +203,24 @@
       box.innerHTML = groups.map(g => `
         <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
           <input type="checkbox" class="wa-group-cb" value="${g.group_id}" style="width:auto; margin:0;"> ${g.group_name}
+        </label>`).join('');
+    } catch (err) {
+      box.innerHTML = `<span style="color:#c0392b; font-size:13px;">${err.message}</span>`;
+    }
+  }
+
+  async function loadExcelFiles() {
+    const box = document.getElementById('excelFilesBox');
+    try {
+      const data = await api.get('excel_files.list');
+      const files = data.files || [];
+      if (files.length === 0) {
+        box.innerHTML = '<span style="color:#888; font-size:13px;">No files yet — add them on the <a href="excel_files.html">Excel Files</a> page.</span>';
+        return;
+      }
+      box.innerHTML = files.map(f => `
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
+          <input type="checkbox" class="excel-file-cb" value="${f.file_id}" style="width:auto; margin:0;"> ${f.file_name}
         </label>`).join('');
     } catch (err) {
       box.innerHTML = `<span style="color:#c0392b; font-size:13px;">${err.message}</span>`;
@@ -363,6 +388,9 @@
     const empGroupIds = new Set(((emp && emp.whatsapp_groups) || []).map(g => String(g.group_id)));
     document.querySelectorAll('.wa-group-cb').forEach(cb => { cb.checked = empGroupIds.has(cb.value); });
 
+    const empFileIds = new Set(((emp && emp.excel_files) || []).map(f => String(f.file_id)));
+    document.querySelectorAll('.excel-file-cb').forEach(cb => { cb.checked = empFileIds.has(cb.value); });
+
     if (emp) {
       document.getElementById('modalTitle').textContent = `Edit Employee (${emp.employee_code})`;
       document.getElementById('recordId').value = emp.employee_id;
@@ -507,6 +535,9 @@
       whatsapp_group_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
       ),
+      excel_file_ids: JSON.stringify(
+        Array.from(document.querySelectorAll('.excel-file-cb:checked')).map(cb => Number(cb.value))
+      ),
     };
     if (id) fields.employee_id = id;
 
@@ -592,6 +623,7 @@
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
     await loadWaGroups();
+    await loadExcelFiles();
 
     const urlParams = new URLSearchParams(window.location.search);
     const deptFromUrl = urlParams.get('department_id');
