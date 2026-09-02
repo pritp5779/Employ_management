@@ -1,9 +1,7 @@
 /**
  * Injects the sidebar shell into any page with a <div id="sidebar"></div>.
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
- *                     | 'history' | 'approvals' | 'users') after guardPage().
- * 
- * ad
+ *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
@@ -27,6 +25,8 @@ function renderSidebar(active) {
         <div class="nav-label">People</div>
         <a href="employees.html" class="${linkClass('employees')}">Employees</a>
         <a href="documents.html" class="${linkClass('documents')}">Documents</a>
+        <a href="whatsapp_groups.html" class="${linkClass('whatsapp_groups')}">WhatsApp Groups</a>
+        <a href="ex_employees.html" class="${linkClass('ex_employees')}">Ex-Employees</a>
         <a href="history.html" class="${linkClass('history')}">Decline History</a>
         ${adminLinks}
       </nav>

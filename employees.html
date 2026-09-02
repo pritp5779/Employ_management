@@ -96,6 +96,13 @@
         <div></div>
       </div>
 
+      <div class="field">
+        <label>WhatsApp Groups</label>
+        <div id="waGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
+          <span style="color:#888; font-size:13px;">Loading groups...</span>
+        </div>
+      </div>
+
       <div class="field-grid">
         <div class="field">
           <label for="mobile">Mobile</label>
@@ -175,6 +182,24 @@
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  async function loadWaGroups() {
+    const box = document.getElementById('waGroupsBox');
+    try {
+      const data = await api.get('whatsapp_groups.list');
+      const groups = data.groups || [];
+      if (groups.length === 0) {
+        box.innerHTML = '<span style="color:#888; font-size:13px;">No groups yet — add them on the <a href="whatsapp_groups.html">WhatsApp Groups</a> page.</span>';
+        return;
+      }
+      box.innerHTML = groups.map(g => `
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
+          <input type="checkbox" class="wa-group-cb" value="${g.group_id}" style="width:auto; margin:0;"> ${g.group_name}
+        </label>`).join('');
+    } catch (err) {
+      box.innerHTML = `<span style="color:#c0392b; font-size:13px;">${err.message}</span>`;
+    }
   }
 
   async function loadDepartmentsIntoSelects() {
@@ -334,6 +359,10 @@
       ? `<img src="${API_BASE_URL.replace('/api.php', '')}/${emp.photo}" style="width:100%;height:100%;object-fit:cover;">`
       : PHOTO_ICON_SVG;
     setManagerField(emp ? emp.reporting_manager_id : null, emp ? emp.employee_id : null);
+
+    const empGroupIds = new Set(((emp && emp.whatsapp_groups) || []).map(g => String(g.group_id)));
+    document.querySelectorAll('.wa-group-cb').forEach(cb => { cb.checked = empGroupIds.has(cb.value); });
+
     if (emp) {
       document.getElementById('modalTitle').textContent = `Edit Employee (${emp.employee_code})`;
       document.getElementById('recordId').value = emp.employee_id;
@@ -445,10 +474,10 @@
   };
 
   window.deleteEmployee = async function (id, name) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    if (!confirm(`Move "${name}" to Ex-Employees?\n\nTheir profile and documents stay saved — you can Rejoin or permanently delete them from the Ex-Employees page.`)) return;
     try {
       await api.post('employees.delete', { employee_id: id });
-      showAlert('Employee deleted.');
+      showAlert('Employee moved to Ex-Employees.');
       loadEmployees();
     } catch (err) {
       showAlert(err.message, 'error');
@@ -475,6 +504,9 @@
       emergency_contact_name: document.getElementById('emName').value.trim(),
       emergency_contact_mobile: document.getElementById('emMobile').value.trim(),
       emergency_contact_relation: document.getElementById('emRelation').value.trim(),
+      whatsapp_group_ids: JSON.stringify(
+        Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
+      ),
     };
     if (id) fields.employee_id = id;
 
@@ -559,6 +591,7 @@
   (async function init() {
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
+    await loadWaGroups();
 
     const urlParams = new URLSearchParams(window.location.search);
     const deptFromUrl = urlParams.get('department_id');

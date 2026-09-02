@@ -75,9 +75,24 @@
         <div style="padding:20px;" class="loading">Loading employee...</div>
       </div>
 
+      <div class="card" id="waGroupsCard" style="display:none;">
+        <div class="card-head"><h2 id="waGroupsTitle">WhatsApp Groups</h2></div>
+        <div id="waGroupsBody" style="padding:16px 20px;"></div>
+      </div>
+
       <div class="card" id="pendingDocsCard" style="display:none;">
         <div class="card-head"><h2 id="pendingDocsTitle">Pending Documents</h2></div>
         <div id="pendingDocsBody" style="padding:16px 20px;"></div>
+      </div>
+
+      <div class="card" id="sourcesCard" style="display:none;">
+        <div class="card-head"><h2 id="sourcesTitle">Found In</h2></div>
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Source</th><th>Sheet / Group</th><th>Row</th><th>Matched By</th><th style="width:80px;"></th></tr>
+          </thead>
+          <tbody id="sourcesTableBody"></tbody>
+        </table>
       </div>
 
       <div class="card" id="docsCard" style="display:none;">
@@ -131,6 +146,30 @@
   } else {
     loadEmployee();
     loadDocuments();
+    loadSources();
+  }
+
+  async function loadSources() {
+    try {
+      const data = await api.get('employee_sources.get', { employee_id: employeeId });
+      const rows = data.sources || [];
+      if (rows.length === 0) return; // card stays hidden when nothing is mapped
+
+      document.getElementById('sourcesTitle').textContent = `Found In (${rows.length})`;
+      document.getElementById('sourcesTableBody').innerHTML = rows.map(s => `
+        <tr>
+          <td><span class="badge">${s.source_type === 'whatsapp' ? 'WhatsApp' : 'Sheet'}</span></td>
+          <td>${s.source_name}</td>
+          <td>${s.sheet_name || '—'}</td>
+          <td>${s.row_no || '—'}</td>
+          <td>${s.matched_on || '—'}</td>
+          <td>${s.source_url ? `<a href="${s.source_url}" target="_blank">Open</a>` : ''}</td>
+        </tr>`).join('');
+      document.getElementById('sourcesCard').style.display = 'block';
+    } catch (err) {
+      // Sources are optional — never block the page on them.
+      console.error('Sources load failed:', err.message);
+    }
   }
 
   async function loadEmployee() {
@@ -171,6 +210,14 @@
       document.getElementById('btnEditEmployee').addEventListener('click', () => {
         window.location.href = 'employees.html?edit=' + employeeId;
       });
+
+      const waGroups = e.whatsapp_groups || [];
+      document.getElementById('waGroupsTitle').textContent =
+        waGroups.length > 0 ? `WhatsApp Groups (${waGroups.length})` : 'WhatsApp Groups';
+      document.getElementById('waGroupsBody').innerHTML = waGroups.length > 0
+        ? waGroups.map(g => `<span class="badge" style="margin:3px;">${g.group_name}</span>`).join('')
+        : '<span style="color:#888; font-size:13px;">Not added to any WhatsApp group yet — use Edit Employee to select groups.</span>';
+      document.getElementById('waGroupsCard').style.display = 'block';
 
       document.getElementById('loadingCard').style.display = 'none';
       document.getElementById('profileCard').style.display = 'block';
