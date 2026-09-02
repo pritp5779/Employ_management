@@ -2,6 +2,8 @@
  * Injects the sidebar shell into any page with a <div id="sidebar"></div>.
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users') after guardPage().
+ * 
+ * ad
  */
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };

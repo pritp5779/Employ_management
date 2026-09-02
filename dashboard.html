@@ -224,6 +224,7 @@
       const today = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(workbook, `employees_full_${today}.xlsx`);
     } catch (err) {
+      
       alert('Export failed: ' + err.message);
     } finally {
       btn.disabled = false;
