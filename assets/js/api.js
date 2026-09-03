@@ -2,23 +2,18 @@
  * Fetch wrapper for the single-file backend (api.php?action=...).
  * Attaches the bearer token, parses JSON, redirects to login on 401.
  *
- * Auth is kept in sessionStorage: closing the tab/browser logs you out.
- * (Refreshing the page keeps you logged in; a brand-new tab needs login.)
+ * Auth is kept in localStorage: you stay logged in across tabs, browser
+ * restarts, and days — until you press Log out or the token expires.
  */
-
-// One-time cleanup of tokens saved by the old localStorage version.
-localStorage.removeItem('hrms_token');
-localStorage.removeItem('hrms_user');
-
 const api = {
-  token() { return sessionStorage.getItem('hrms_token'); },
-  setToken(token) { sessionStorage.setItem('hrms_token', token); },
-  clearToken() { sessionStorage.removeItem('hrms_token'); },
+  token() { return localStorage.getItem('hrms_token'); },
+  setToken(token) { localStorage.setItem('hrms_token', token); },
+  clearToken() { localStorage.removeItem('hrms_token'); },
   currentUser() {
-    const raw = sessionStorage.getItem('hrms_user');
+    const raw = localStorage.getItem('hrms_user');
     return raw ? JSON.parse(raw) : null;
   },
-  setUser(user) { sessionStorage.setItem('hrms_user', JSON.stringify(user)); },
+  setUser(user) { localStorage.setItem('hrms_user', JSON.stringify(user)); },
 
   buildUrl(action, params = {}) {
     const qs = new URLSearchParams(Object.assign({ action }, params));
@@ -64,6 +59,6 @@ function guardPage() {
 
 function logout() {
   api.clearToken();
-  sessionStorage.removeItem('hrms_user');
+  localStorage.removeItem('hrms_user');
   window.location.href = 'index.html';
 }
