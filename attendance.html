@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Attendance</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card" style="max-width:560px;">
+        <div class="card-head"><h2 id="statusTitle">Today</h2></div>
+        <div style="padding:16px 20px;">
+          <div id="todayStatus" class="loading" style="padding:0;">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:560px;">
+        <div class="card-head"><h2 id="camTitle">Punch</h2></div>
+        <div style="padding:16px 20px;">
+          <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Loading face system... please wait.</div>
+          <div style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+            <video id="cam" autoplay playsinline muted style="width:100%; border-radius:10px; background:#111; transform:scaleX(-1);"></video>
+            <div id="camOverlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:14px; text-align:center; padding:10px; background:rgba(0,0,0,.35); border-radius:10px;">Camera starting...</div>
+          </div>
+          <canvas id="snap" style="display:none;"></canvas>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+            <button class="btn" id="btnPunchIn" disabled>Punch In</button>
+            <button class="btn secondary" id="btnPunchOut" disabled>Punch Out</button>
+          </div>
+          <div id="verifyMsg" style="text-align:center; margin-top:10px; font-size:13.5px; min-height:20px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<script>
+  guardPage();
+  renderSidebar('attendance');
+
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+  const MATCH_THRESHOLD = 0.5;   // euclidean distance — lower is stricter
+  const EAR_BLINK = 0.25;        // eye aspect ratio below this = eye closed
+
+  const alertBox = document.getElementById('alertBox');
+  const video = document.getElementById('cam');
+  const overlay = document.getElementById('camOverlay');
+  const verifyMsg = document.getElementById('verifyMsg');
+  let enrolledDescriptor = null; // Float32Array
+  let enrollMode = false;
+  let busy = false;
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 5000);
+  }
+  function setMsg(text, color) {
+    verifyMsg.textContent = text;
+    verifyMsg.style.color = color || 'var(--muted)';
+  }
+
+  async function loadToday() {
+    try {
+      const data = await api.get('attendance.today');
+      const a = data.attendance;
+      const fmt = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+      document.getElementById('todayStatus').innerHTML = `
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+          <div><div style="font-size:11.5px; color:var(--muted); text-transform:uppercase;">Punch In</div><div style="font-size:20px; font-weight:600;">${fmt(a && a.punch_in)}</div></div>
+          <div><div style="font-size:11.5px; color:var(--muted); text-transform:uppercase;">Punch Out</div><div style="font-size:20px; font-weight:600;">${fmt(a && a.punch_out)}</div></div>
+        </div>`;
+      document.getElementById('btnPunchIn').style.display = (a && a.punch_in) ? 'none' : '';
+      document.getElementById('btnPunchOut').style.display = (a && a.punch_in && !a.punch_out) ? '' : 'none';
+    } catch (err) {
+      document.getElementById('todayStatus').innerHTML = `<div class="alert error">${err.message}</div>`;
+    }
+  }
+
+  async function init() {
+    try {
+      overlay.textContent = 'Loading face models...';
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+      overlay.textContent = 'Starting camera...';
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false });
+      video.srcObject = stream;
+      await new Promise(r => (video.onloadedmetadata = r));
+      overlay.style.display = 'none';
+
+      const faceData = await api.get('face.get');
+      if (faceData.descriptor) {
+        enrolledDescriptor = new Float32Array(JSON.parse(faceData.descriptor));
+        document.getElementById('camHint').textContent = 'Look at the camera and blink once when asked. Only your own live face is accepted.';
+        document.getElementById('btnPunchIn').disabled = false;
+        document.getElementById('btnPunchOut').disabled = false;
+      } else {
+        enrollMode = true;
+        document.getElementById('camTitle').textContent = 'First time: enroll your face';
+        document.getElementById('camHint').textContent = 'Your face is not enrolled yet. Look straight at the camera in good light and press Enroll. This is done only once.';
+        document.getElementById('btnPunchIn').textContent = 'Enroll My Face';
+        document.getElementById('btnPunchIn').disabled = false;
+        document.getElementById('btnPunchOut').style.display = 'none';
+      }
+    } catch (err) {
+      overlay.textContent = 'Camera not available. Allow camera permission and reload.';
+      setMsg(err.message, 'var(--bad-fg)');
+    }
+  }
+
+  function detectOnce() {
+    return faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+  }
+
+  function eyeAspectRatio(eye) {
+    const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    return (d(eye[1], eye[5]) + d(eye[2], eye[4])) / (2 * d(eye[0], eye[3]));
+  }
+
+  async function enrollFlow() {
+    setMsg('Hold still, capturing your face...', 'var(--accent)');
+    const samples = [];
+    for (let i = 0; i < 3; i++) {
+      const det = await detectOnce();
+      if (!det) { setMsg('No face detected — face the camera in good light and try again.', 'var(--bad-fg)'); return; }
+      samples.push(det.descriptor);
+      await new Promise(r => setTimeout(r, 400));
+    }
+    const avg = new Array(128).fill(0);
+    samples.forEach(s => s.forEach((v, i) => (avg[i] += v / samples.length)));
+
+    await api.post('face.enroll', { descriptor: avg });
+    showAlert('Face enrolled. You can punch in now.');
+    enrolledDescriptor = new Float32Array(avg);
+    enrollMode = false;
+    document.getElementById('camTitle').textContent = 'Punch';
+    document.getElementById('btnPunchIn').textContent = 'Punch In';
+    document.getElementById('camHint').textContent = 'Look at the camera and blink once when asked.';
+    setMsg('');
+    loadToday();
+  }
+
+  async function verifyAndPunch(type) {
+    // Phase 1: live face must match the enrolled face on 3 frames.
+    setMsg('Checking your face...', 'var(--accent)');
+    let matches = 0, lastDet = null;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 12000 && matches < 3) {
+      const det = await detectOnce();
+      if (det) {
+        const dist = faceapi.euclideanDistance(det.descriptor, enrolledDescriptor);
+        if (dist < MATCH_THRESHOLD) { matches++; lastDet = det; }
+        else { matches = 0; }
+      }
+      await new Promise(r => setTimeout(r, 150));
+    }
+    if (matches < 3) {
+      setMsg('Face not recognized — try again.', 'var(--bad-fg)');
+      return;
+    }
+
+    // Phase 2: liveness — require a blink within 8 seconds.
+    setMsg('Face matched ✓ Now blink once...', 'var(--accent)');
+    let sawClosed = false, blinked = false;
+    const t1 = Date.now();
+    while (Date.now() - t1 < 8000 && !blinked) {
+      const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 })).withFaceLandmarks();
+      if (det) {
+        const ear = (eyeAspectRatio(det.landmarks.getLeftEye()) + eyeAspectRatio(det.landmarks.getRightEye())) / 2;
+        if (ear < EAR_BLINK) sawClosed = true;
+        else if (sawClosed) blinked = true;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (!blinked) {
+      setMsg('No blink detected — a live face is required. Try again.', 'var(--bad-fg)');
+      return;
+    }
+
+    // Phase 3: capture the frame and punch.
+    setMsg('Verified ✓ Saving...', 'var(--ok-fg)');
+    const canvas = document.getElementById('snap');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
+
+    const formData = new FormData();
+    formData.append('type', type);
+    formData.append('photo', blob, 'punch.jpg');
+
+    const res = await fetch(api.buildUrl('attendance.punch'), {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + api.token() },
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Punch failed.');
+
+    showAlert(data.message);
+    setMsg('');
+    loadToday();
+  }
+
+  async function handle(type) {
+    if (busy) return;
+    busy = true;
+    const btns = [document.getElementById('btnPunchIn'), document.getElementById('btnPunchOut')];
+    btns.forEach(b => (b.disabled = true));
+    try {
+      if (enrollMode) await enrollFlow();
+      else await verifyAndPunch(type);
+    } catch (err) {
+      setMsg(err.message, 'var(--bad-fg)');
+    } finally {
+      btns.forEach(b => (b.disabled = false));
+      busy = false;
+    }
+  }
+
+  document.getElementById('btnPunchIn').addEventListener('click', () => handle('in'));
+  document.getElementById('btnPunchOut').addEventListener('click', () => handle('out'));
+
+  loadToday();
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Shopify Orders</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head" style="flex-wrap:wrap;">
+          <h2>Filters</h2>
+          <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">From</label>
+              <input type="date" id="dateFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+            </div>
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">To</label>
+              <input type="date" id="dateTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+            </div>
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Store</label>
+              <select id="storeFilter" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+                <option value="">All Stores</option>
+              </select>
+            </div>
+            <button class="btn secondary" id="btnToday">Today</button>
+            <span id="loadingHint" style="display:none; font-size:13px; color:var(--muted); align-self:center;">Loading...</span>
+            <button class="btn" id="btnAddOrder" style="background:#0f7a41;">+ Add Order</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="summaryGrid" style="display:none;"></div>
+
+      <div class="card" id="ordersCard" style="display:none;">
+        <div class="card-head">
+          <h2 id="ordersTitle">Orders</h2>
+          <div class="search-box"><input type="text" id="orderSearch" placeholder="Search order #, customer, store, payment..."></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="th-sort" data-key="order_name" style="cursor:pointer; user-select:none;">Order</th>
+              <th class="th-sort" data-key="store" style="cursor:pointer; user-select:none;">Store</th>
+              <th class="th-sort" data-key="created_at" style="cursor:pointer; user-select:none;">Time</th>
+              <th class="th-sort" data-key="customer" style="cursor:pointer; user-select:none;">Customer</th>
+              <th class="th-sort" data-key="phone" style="cursor:pointer; user-select:none;">Mobile</th>
+              <th class="th-sort" data-key="items" style="cursor:pointer; user-select:none;">Items</th>
+              <th class="th-sort" data-key="total" style="cursor:pointer; user-select:none;">Total</th>
+              <th class="th-sort" data-key="financial_status" style="cursor:pointer; user-select:none;">Payment</th>
+              <th class="th-sort" data-key="fulfillment_status" style="cursor:pointer; user-select:none;">Fulfillment</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div id="pagerBar" style="display:none; padding:14px 20px; border-top:1px solid var(--line); display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <span id="pagerInfo" style="font-size:13px; color:var(--muted);"></span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="pageSize" style="padding:7px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+              <option value="25">25 / page</option>
+              <option value="50" selected>50 / page</option>
+              <option value="100">100 / page</option>
+              <option value="all">All</option>
+            </select>
+            <button class="btn secondary" id="btnPrev">&larr; Prev</button>
+            <span id="pageLabel" style="font-size:13px; font-weight:600; min-width:80px; text-align:center;"></span>
+            <button class="btn secondary" id="btnNext">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="detailModal">
+  <div class="modal wide">
+    <h3 id="detailTitle">Order</h3>
+    <div id="detailBody" style="max-height:65vh; overflow-y:auto; overscroll-behavior:contain;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="btnDetailClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <h3>Add Manual Order</h3>
+    <div id="orderModalAlert"></div>
+    <form id="manualOrderForm">
+      <div class="field-grid">
+        <div class="field">
+          <label for="moCustomer">Customer Name *</label>
+          <input type="text" id="moCustomer" required maxlength="150">
+        </div>
+        <div class="field">
+          <label for="moPhone">Mobile</label>
+          <input type="text" id="moPhone" maxlength="30" placeholder="e.g. 9876543210">
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="moItems">Items</label>
+          <input type="number" id="moItems" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="moTotal">Total (₹) *</label>
+          <input type="number" id="moTotal" min="0" step="0.01" required>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="moPayment">Payment</label>
+          <select id="moPayment">
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="cod">COD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="moFulfillment">Fulfillment</label>
+          <select id="moFulfillment">
+            <option value="unfulfilled">Unfulfilled</option>
+            <option value="fulfilled">Fulfilled</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="moDate">Order Date &amp; Time</label>
+          <input type="datetime-local" id="moDate">
+        </div>
+        <div class="field">
+          <label for="moOrderNo">Order No (optional)</label>
+          <input type="text" id="moOrderNo" maxlength="50" placeholder="auto: M0001">
+        </div>
+      </div>
+      <div class="field">
+        <label for="moRemarks">Remarks</label>
+        <input type="text" id="moRemarks" maxlength="255">
+      </div>
+      <div class="actions">
+        <button type="button" class="btn secondary" id="btnOrderCancel">Cancel</button>
+        <button type="submit" class="btn" id="btnOrderSave">Save Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('orders');
+
+  const alertBox = document.getElementById('alertBox');
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function fmtMoney(v, cur) {
+    const n = Number(v || 0);
+    return (cur === 'INR' ? '₹' : cur + ' ') + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  }
+
+  function dateLabel(dstr) {
+    return new Date(dstr + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  async function loadStores() {
+    try {
+      const data = await api.get('shopify.stores');
+      const sel = document.getElementById('storeFilter');
+      sel.innerHTML = '<option value="">All Stores</option>' +
+        (data.stores || []).map(s => `<option value="${s.key}">${s.label}</option>`).join('') +
+        '<option value="manual">Manual</option>';
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  }
+
+  async function loadOrders() {
+    const from = document.getElementById('dateFrom').value;
+    const to = document.getElementById('dateTo').value;
+    const store = document.getElementById('storeFilter').value;
+    if (!from || !to) { showAlert('Pick both dates.', 'error'); return; }
+    if (from > to) { showAlert('"From" date must be before "To" date.', 'error'); return; }
+
+    alertBox.innerHTML = '';
+    document.getElementById('loadingHint').style.display = 'inline';
+
+    try {
+      const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
+      const orders = data.orders || [];
+      (data.errors || []).forEach(e => showAlert(e, 'error'));
+      render(orders);
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      document.getElementById('loadingHint').style.display = 'none';
+    }
+  }
+
+  let allOrders = [];
+  let filteredOrders = [];
+  let currentPage = 1;
+  let sortKey = 'created_at';
+  let sortDir = 'desc';
+
+  const TH_LABELS = {
+    order_name: 'Order', store: 'Store', created_at: 'Time', customer: 'Customer', phone: 'Mobile',
+    items: 'Items', total: 'Total', financial_status: 'Payment', fulfillment_status: 'Fulfillment',
+  };
+
+  function render(orders) {
+    orders.forEach((o, i) => { o._i = i; });
+    allOrders = orders;
+    currentPage = 1;
+    document.getElementById('orderSearch').value = '';
+    renderSummary();
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('orderSearch').value.trim().toLowerCase();
+    filteredOrders = allOrders.filter(o => {
+      if (!q) return true;
+      const qDigits = q.replace(/\D/g, '');
+      return (o.order_name || '').toLowerCase().includes(q)
+        || (o.customer || '').toLowerCase().includes(q)
+        || (o.store || '').toLowerCase().includes(q)
+        || (o.financial_status || '').toLowerCase().includes(q)
+        || (o.fulfillment_status || '').toLowerCase().includes(q)
+        || (qDigits.length >= 3 && (o.phone || '').replace(/\D/g, '').includes(qDigits));
+    });
+
+    const dir = sortDir === 'asc' ? 1 : -1;
+    filteredOrders.sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      if (sortKey === 'items' || sortKey === 'total') {
+        return (Number(va || 0) - Number(vb || 0)) * dir;
+      }
+      if (sortKey === 'order_name') {
+        return (Number(String(va).replace(/\D/g, '')) - Number(String(vb).replace(/\D/g, ''))) * dir;
+      }
+      return String(va || '').localeCompare(String(vb || '')) * dir;
+    });
+
+    renderPage();
+  }
+
+  function renderSummary() {
+    const byStore = {};
+    let grandTotal = 0;
+    allOrders.forEach(o => {
+      byStore[o.store] = byStore[o.store] || { count: 0, total: 0, currency: o.currency };
+      byStore[o.store].count++;
+      byStore[o.store].total += Number(o.total || 0);
+      grandTotal += Number(o.total || 0);
+    });
+
+    const grid = document.getElementById('summaryGrid');
+    grid.innerHTML = `
+      <div class="stat-card"><div class="label">All Orders</div><div class="value">${allOrders.length}</div></div>
+      <div class="stat-card"><div class="label">Total Revenue</div><div class="value">${fmtMoney(grandTotal, 'INR')}</div></div>
+      ${Object.entries(byStore).map(([label, s]) => `
+        <div class="stat-card"><div class="label">${label}</div><div class="value">${s.count} <span style="font-size:13px; font-weight:500; color:var(--muted);">/ ${fmtMoney(s.total, s.currency)}</span></div></div>`).join('')}
+    `;
+    grid.style.display = 'grid';
+  }
+
+  function dayKey(o) {
+    const d = new Date(o.created_at);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function renderPage() {
+    const body = document.getElementById('ordersBody');
+    const pagerBar = document.getElementById('pagerBar');
+    document.getElementById('ordersTitle').textContent =
+      filteredOrders.length === allOrders.length
+        ? `Orders (${allOrders.length})`
+        : `Orders (${filteredOrders.length} of ${allOrders.length})`;
+    document.getElementById('ordersCard').style.display = 'block';
+
+    // Sort arrows on headers
+    document.querySelectorAll('.th-sort').forEach(th => {
+      const key = th.dataset.key;
+      th.innerHTML = TH_LABELS[key] + (key === sortKey ? (sortDir === 'asc' ? ' &#9650;' : ' &#9660;') : '');
+    });
+
+    if (filteredOrders.length === 0) {
+      body.innerHTML = '<tr><td colspan="9" class="empty-state">No matching orders.</td></tr>';
+      pagerBar.style.display = 'none';
+      return;
+    }
+
+    // Page slice
+    const sizeSel = document.getElementById('pageSize').value;
+    const pageSize = sizeSel === 'all' ? filteredOrders.length : Number(sizeSel);
+    const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const pageOrders = filteredOrders.slice(start, start + pageSize);
+
+    const rowHtml = (o) => `
+        <tr>
+          <td style="font-weight:600;"><a href="#" onclick="openDetail(${o._i}); return false;">${o.order_name}</a>${o.manual_order_id ? ` <button class="danger-link" style="background:none;border:none;cursor:pointer;color:var(--bad-fg);font-size:12px;padding:0;margin-left:6px;" onclick="deleteManual(${o.manual_order_id})">✕</button>` : ''}</td>
+          <td><span class="badge">${o.store}</span></td>
+          <td>${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
+          <td>${o.customer}</td>
+          <td style="white-space:nowrap;">${o.phone || '—'}</td>
+          <td>${o.items}</td>
+          <td style="font-weight:600;">${fmtMoney(o.total, o.currency)}</td>
+          <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
+          <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
+        </tr>`;
+
+    if (sortKey === 'created_at') {
+      // Time sort: keep the day-wise grouping with full-day totals for the
+      // current filtered set.
+      const dayTotals = {};
+      filteredOrders.forEach(o => {
+        const k = dayKey(o);
+        dayTotals[k] = dayTotals[k] || { count: 0, total: 0 };
+        dayTotals[k].count++;
+        dayTotals[k].total += Number(o.total || 0);
+      });
+
+      const groups = {};
+      const order = [];
+      pageOrders.forEach(o => {
+        const key = dayKey(o);
+        if (!groups[key]) { groups[key] = []; order.push(key); }
+        groups[key].push(o);
+      });
+
+      body.innerHTML = order.map(day => {
+        const dt = dayTotals[day];
+        return `
+          <tr style="background:#f0f4ff;">
+            <td colspan="9" style="font-weight:700;">
+              ${dateLabel(day)}
+              <span style="float:right; font-weight:600; color:var(--muted);">${dt.count} order${dt.count === 1 ? '' : 's'} · ${fmtMoney(dt.total, 'INR')}</span>
+            </td>
+          </tr>` + groups[day].map(rowHtml).join('');
+      }).join('');
+    } else {
+      // Sorting by another column: flat list (day grouping wouldn't make sense).
+      body.innerHTML = pageOrders.map(rowHtml).join('');
+    }
+
+    // Pager UI
+    pagerBar.style.display = 'flex';
+    document.getElementById('pagerInfo').textContent =
+      `Showing ${start + 1}–${start + pageOrders.length} of ${filteredOrders.length} orders`;
+    document.getElementById('pageLabel').textContent = `Page ${currentPage} / ${totalPages}`;
+    document.getElementById('btnPrev').disabled = currentPage <= 1;
+    document.getElementById('btnNext').disabled = currentPage >= totalPages;
+  }
+
+  document.querySelectorAll('.th-sort').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sortKey === key) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey = key;
+        sortDir = key === 'created_at' ? 'desc' : 'asc';
+      }
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  let searchTimer = null;
+  document.getElementById('orderSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentPage = 1; applyFilters(); }, 200);
+  });
+
+  document.getElementById('btnPrev').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderPage(); window.scrollTo(0, 0); } });
+  document.getElementById('btnNext').addEventListener('click', () => { currentPage++; renderPage(); window.scrollTo(0, 0); });
+  document.getElementById('pageSize').addEventListener('change', () => { currentPage = 1; renderPage(); });
+
+  // Auto-load whenever a filter changes — no button needed.
+  document.getElementById('dateFrom').addEventListener('change', loadOrders);
+  document.getElementById('dateTo').addEventListener('change', loadOrders);
+  document.getElementById('storeFilter').addEventListener('change', loadOrders);
+  document.getElementById('btnToday').addEventListener('click', () => {
+    document.getElementById('dateFrom').value = todayStr();
+    document.getElementById('dateTo').value = todayStr();
+    loadOrders();
+  });
+
+  // ---- Order detail modal
+  const detailModal = document.getElementById('detailModal');
+  function closeDetail() {
+    detailModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('btnDetailClose').addEventListener('click', closeDetail);
+  detailModal.addEventListener('click', (e) => { if (e.target === detailModal) closeDetail(); });
+
+  function detailRow(label, value) {
+    if (!value) return '';
+    return `<div style="display:flex; gap:12px; padding:5px 0; font-size:13.5px;">
+      <div style="min-width:110px; color:var(--muted); font-weight:600;">${label}</div>
+      <div>${value}</div></div>`;
+  }
+
+  window.openDetail = async function (i) {
+    const o = allOrders[i];
+    if (!o) return;
+    document.getElementById('detailTitle').textContent = `${o.order_name} — ${o.store}`;
+    const body = document.getElementById('detailBody');
+    detailModal.classList.add('open');
+    document.body.style.overflow = 'hidden'; // freeze the page behind the popup
+
+    if (o.store_key === 'manual') {
+      body.innerHTML =
+        detailRow('Date', new Date(o.created_at).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })) +
+        detailRow('Customer', o.customer) +
+        detailRow('Mobile', o.phone) +
+        detailRow('Items', o.items) +
+        detailRow('Total', fmtMoney(o.total, o.currency)) +
+        detailRow('Payment', o.financial_status) +
+        detailRow('Fulfillment', o.fulfillment_status) +
+        detailRow('Remarks', o.remarks) +
+        detailRow('Added by', o.created_by);
+      return;
+    }
+
+    body.innerHTML = '<div class="loading" style="padding:20px 0;">Loading order details...</div>';
+    try {
+      const data = await api.get('shopify.order_detail', { store: o.store_key, id: o.id });
+      const d = data.order;
+
+      const itemsHtml = `
+        <table style="width:100%; border-collapse:collapse; margin:10px 0;">
+          <thead><tr>
+            <th style="text-align:left; font-size:11.5px; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line);">Product</th>
+            <th style="text-align:center; font-size:11.5px; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line);">Qty</th>
+            <th style="text-align:right; font-size:11.5px; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line);">Price</th>
+            <th style="text-align:right; font-size:11.5px; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line);">Total</th>
+          </tr></thead>
+          <tbody>${d.line_items.map(li => `
+            <tr>
+              <td style="padding:7px 8px; border-bottom:1px solid #f2f2f2; font-size:13.5px;">${li.title}${li.variant ? `<div style="font-size:12px; color:var(--muted);">${li.variant}</div>` : ''}</td>
+              <td style="padding:7px 8px; border-bottom:1px solid #f2f2f2; text-align:center;">${li.quantity}</td>
+              <td style="padding:7px 8px; border-bottom:1px solid #f2f2f2; text-align:right;">${fmtMoney(li.price, d.currency)}</td>
+              <td style="padding:7px 8px; border-bottom:1px solid #f2f2f2; text-align:right; font-weight:600;">${fmtMoney(li.total, d.currency)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+
+      const totalsHtml = `
+        <div style="margin-left:auto; max-width:260px; font-size:13.5px;">
+          <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal</span><span>${fmtMoney(d.subtotal, d.currency)}</span></div>
+          ${Number(d.discounts) > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--ok-fg);"><span>Discount</span><span>−${fmtMoney(d.discounts, d.currency)}</span></div>` : ''}
+          <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Shipping</span><span>${fmtMoney(d.shipping, d.currency)}</span></div>
+          ${Number(d.tax) > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Tax</span><span>${fmtMoney(d.tax, d.currency)}</span></div>` : ''}
+          <div style="display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid var(--line); font-weight:700;"><span>Total</span><span>${fmtMoney(d.total, d.currency)}</span></div>
+        </div>`;
+
+      const trackingHtml = (d.tracking || []).length
+        ? detailRow('Tracking', d.tracking.map(t => t.url
+            ? `<a href="${t.url}" target="_blank">${t.number}</a>${t.company ? ' (' + t.company + ')' : ''}`
+            : `${t.number}${t.company ? ' (' + t.company + ')' : ''}`).join('<br>'))
+        : '';
+
+      body.innerHTML =
+        detailRow('Date', new Date(d.created_at).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })) +
+        detailRow('Customer', d.customer) +
+        detailRow('Mobile', d.phone) +
+        detailRow('Email', d.email) +
+        detailRow('Address', (d.address || []).join('<br>')) +
+        detailRow('Payment', `<span class="badge ${d.financial_status === 'paid' ? '' : 'inactive'}">${d.financial_status || '—'}</span>${d.gateway ? ' via ' + d.gateway : ''}`) +
+        detailRow('Fulfillment', `<span class="badge ${d.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${d.fulfillment_status || 'unfulfilled'}</span>`) +
+        trackingHtml +
+        detailRow('Note', d.note) +
+        detailRow('Tags', d.tags) +
+        itemsHtml +
+        totalsHtml;
+    } catch (err) {
+      body.innerHTML = `<div class="alert error">${err.message}</div>`;
+    }
+  };
+
+  // ---- Manual order modal
+  const orderModal = document.getElementById('orderModal');
+
+  function nowLocal() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  }
+
+  document.getElementById('btnAddOrder').addEventListener('click', () => {
+    document.getElementById('manualOrderForm').reset();
+    document.getElementById('orderModalAlert').innerHTML = '';
+    document.getElementById('moDate').value = nowLocal();
+    orderModal.classList.add('open');
+  });
+  document.getElementById('btnOrderCancel').addEventListener('click', () => orderModal.classList.remove('open'));
+  orderModal.addEventListener('click', (e) => { if (e.target === orderModal) orderModal.classList.remove('open'); });
+
+  document.getElementById('manualOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnOrderSave');
+    btn.disabled = true;
+    try {
+      const dtLocal = document.getElementById('moDate').value; // yyyy-mm-ddThh:mm
+      await api.post('manual_orders.save', {
+        customer_name: document.getElementById('moCustomer').value.trim(),
+        phone: document.getElementById('moPhone').value.trim(),
+        items: Number(document.getElementById('moItems').value || 1),
+        total: Number(document.getElementById('moTotal').value || 0),
+        payment_status: document.getElementById('moPayment').value,
+        fulfillment_status: document.getElementById('moFulfillment').value,
+        order_date: dtLocal ? dtLocal.replace('T', ' ') + ':00' : '',
+        order_no: document.getElementById('moOrderNo').value.trim(),
+        remarks: document.getElementById('moRemarks').value.trim(),
+      });
+      orderModal.classList.remove('open');
+      showAlert('Order added.');
+      loadOrders();
+    } catch (err) {
+      document.getElementById('orderModalAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  window.deleteManual = async function (id) {
+    if (!confirm('Delete this manual order?')) return;
+    try {
+      await api.post('manual_orders.delete', { manual_order_id: id });
+      showAlert('Order deleted.');
+      loadOrders();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('dateFrom').value = todayStr();
+  document.getElementById('dateTo').value = todayStr();
+  loadStores().then(loadOrders);
+</script>
+</body>
+</html>

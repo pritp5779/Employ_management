@@ -30,8 +30,15 @@
           <div class="field">
             <label for="newRole">Role</label>
             <select id="newRole">
+              <option value="Employee">Employee (attendance only)</option>
               <option value="HR">HR</option>
               <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="newEmployee">Linked Employee <span style="text-transform:none; font-weight:400;">(required for Employee role)</span></label>
+            <select id="newEmployee">
+              <option value="">— None —</option>
             </select>
           </div>
           <button type="button" class="btn" id="btnCreateUser" style="width:auto; margin-top:10px;">Create User</button>
@@ -127,7 +134,8 @@
 
     btn.disabled = true;
     try {
-      await api.post('users.create', { username, password, role });
+      const employeeId = document.getElementById('newEmployee').value || null;
+      await api.post('users.create', { username, password, role, employee_id: employeeId });
       msg.style.color = '#1a7a3c';
       msg.textContent = `"${username}" created as ${role}.`;
       document.getElementById('newUsername').value = '';
@@ -142,6 +150,15 @@
   });
 
   loadUsers();
+
+  (async function loadEmployeeOptions() {
+    try {
+      const data = await api.get('employees.list');
+      const sel = document.getElementById('newEmployee');
+      sel.innerHTML = '<option value="">— None —</option>' +
+        (data.employees || []).map(e => `<option value="${e.employee_id}">${e.full_name} (${e.employee_code})</option>`).join('');
+    } catch (e) { /* select stays with None */ }
+  })();
 </script>
 </body>
 </html>

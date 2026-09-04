@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Targets — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Targets</h1>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <a href="attendance_admin.html" class="btn secondary" style="text-decoration:none;">View attendance</a>
+      </div>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Team target <button id="btnEditTeam" style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; font-weight:600; padding:0;">edit</button></div>
+          <div class="value" id="statTeam">—</div>
+        </div>
+        <div class="stat-card"><div class="label">Achieved</div><div class="value" id="statAchieved">—</div></div>
+        <div class="stat-card"><div class="label">Days done</div><div class="value" id="statDays">—</div></div>
+        <div class="stat-card"><div class="label">Present today</div><div class="value" id="statPresent">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Sales Employees</h2><span style="font-size:12px; color:var(--muted);">Only sales employees are shown. Suggested = the employee's profile Suggested Target, scaled by attendance. Type in Manual target to override; blank = suggested. Achieved is editable.</span></div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Today</th><th>P / A</th><th>Suggested</th><th>Manual target</th><th>Achieved</th><th style="width:220px;">Progress</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('targets');
+
+  const alertBox = document.getElementById('alertBox');
+  let currentMonth = '';
+  let teamTarget = 0;
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+  const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  function monthLabel(m) {
+    return new Date(m + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  }
+
+  async function load() {
+    currentMonth = document.getElementById('monthPick').value;
+    if (!currentMonth) return;
+    document.getElementById('pageTitle').textContent = 'Targets — ' + monthLabel(currentMonth);
+    const tbody = document.getElementById('tableBody');
+    try {
+      const data = await api.get('targets.get', { month: currentMonth });
+      teamTarget = Number(data.team_target || 0);
+      const rows = data.rows || [];
+
+      document.getElementById('statTeam').textContent = teamTarget > 0 ? inr(teamTarget) : 'Not set';
+      document.getElementById('statAchieved').textContent = inr(data.achieved_total);
+      document.getElementById('statDays').textContent = `${data.active_days} / ${data.days_in_month}`;
+      const presentToday = rows.filter(r => r.today === 'present').length;
+      document.getElementById('statPresent').textContent = `${presentToday} / ${rows.length}`;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const effective = r.manual_target !== null ? r.manual_target : (r.suggested || 0);
+        const pct = effective > 0 ? Math.min(100, Math.round((r.achieved / effective) * 100)) : 0;
+        const barColor = pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A');
+        const todayBadge = r.today === 'present'
+          ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Present</span>'
+          : (r.today === 'absent' ? '<span class="badge" style="background:#fdecec; color:#c81e1e;">Absent</span>' : '<span class="badge inactive">—</span>');
+        return `<tr>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+          <td>${todayBadge}</td>
+          <td>${r.present} / ${r.absent}</td>
+          <td style="color:var(--muted);">${r.suggested !== null ? inr(r.suggested) : '—'}</td>
+          <td><input type="number" min="0" step="1000" value="${r.manual_target !== null ? r.manual_target : ''}" placeholder="${r.suggested !== null ? 'suggested' : '—'}"
+                style="width:110px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;"
+                onchange="saveTarget(${r.employee_id}, this.value, null, this)"></td>
+          <td><input type="number" min="0" step="500" value="${r.achieved || ''}" placeholder="0"
+                style="width:100px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;"
+                onchange="saveTarget(${r.employee_id}, undefined, this.value, this)"></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${pct}%; height:8px; background:${barColor};"></div></div>
+              <span style="white-space:nowrap; font-size:12.5px;">${effective > 0 ? pct + '%' : '—'}</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.saveTarget = async function (employeeId, manualTarget, achieved, el) {
+    try {
+      const payload = { month: currentMonth, employee_id: employeeId };
+      if (manualTarget !== undefined) payload.manual_target = manualTarget === '' ? null : Number(manualTarget);
+      if (achieved !== undefined && achieved !== null) payload.achieved = Number(achieved || 0);
+      await api.post('targets.save', payload);
+      el.style.borderColor = '#0f7a41';
+      setTimeout(() => (el.style.borderColor = ''), 1200);
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('btnEditTeam').addEventListener('click', async () => {
+    const val = prompt('Team target for ' + monthLabel(currentMonth) + ' (₹):', teamTarget || '');
+    if (val === null) return;
+    try {
+      await api.post('targets.save', { month: currentMonth, employee_id: 0, manual_target: Number(val || 0) });
+      showAlert('Team target saved.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  });
+
+  const now = new Date();
+  document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('monthPick').addEventListener('change', load);
+  load();
+</script>
+</body>
+</html>

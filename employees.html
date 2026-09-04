@@ -138,7 +138,7 @@
           <input type="text" id="employmentType" placeholder="Full-time / Part-time / Contract" maxlength="50">
         </div>
         <div class="field">
-          <label for="basicSalary">Basic Salary</label>
+          <label for="basicSalary" id="basicSalaryLabel">Basic Salary</label>
           <input type="number" id="basicSalary" step="0.01" min="0">
         </div>
       </div>
@@ -226,6 +226,15 @@
       box.innerHTML = `<span style="color:#c0392b; font-size:13px;">${err.message}</span>`;
     }
   }
+
+  function updateSalaryLabel() {
+    const sel = document.getElementById('department');
+    const deptName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+    const isSales = /sales/i.test(deptName);
+    document.getElementById('basicSalaryLabel').textContent = isSales ? 'Suggested Target (per month)' : 'Basic Salary';
+    document.getElementById('basicSalary').placeholder = isSales ? 'e.g. 40,000' : '';
+  }
+  document.getElementById('department').addEventListener('change', updateSalaryLabel);
 
   async function loadDepartmentsIntoSelects() {
     const data = await api.get('departments.list');
@@ -390,6 +399,7 @@
 
     const empFileIds = new Set(((emp && emp.excel_files) || []).map(f => String(f.file_id)));
     document.querySelectorAll('.excel-file-cb').forEach(cb => { cb.checked = empFileIds.has(cb.value); });
+    setTimeout(updateSalaryLabel, 0);
 
     if (emp) {
       document.getElementById('modalTitle').textContent = `Edit Employee (${emp.employee_code})`;
@@ -402,6 +412,7 @@
       document.getElementById('dob').value = emp.date_of_birth || '';
       document.getElementById('employmentType').value = emp.employment_type || '';
       document.getElementById('basicSalary').value = emp.basic_salary || '';
+      setTimeout(updateSalaryLabel, 0);
       document.getElementById('address').value = emp.address || '';
       document.getElementById('emName').value = emp.emergency_contact_name || '';
       document.getElementById('emMobile').value = emp.emergency_contact_mobile || '';

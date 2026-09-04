@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>Attendance</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 id="cardTitle">Attendance</h2>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+            <button class="btn secondary" id="btnToday">Today</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th>Photos</th><th style="width:110px;">Face</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('attendance_admin');
+
+  const alertBox = document.getElementById('alertBox');
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  const fmtT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+
+  async function load() {
+    const date = document.getElementById('datePick').value || todayStr();
+    const tbody = document.getElementById('tableBody');
+    try {
+      const data = await api.get('attendance.list', { date });
+      const rows = data.rows || [];
+      const present = rows.filter(r => r.punch_in).length;
+      document.getElementById('cardTitle').textContent = `Attendance — ${present} present / ${rows.length - present} absent`;
+
+      const base = API_BASE_URL.replace('/api.php', '');
+      tbody.innerHTML = rows.map(r => {
+        let hours = '—';
+        if (r.punch_in && r.punch_out) {
+          const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
+          hours = (ms / 3600000).toFixed(1) + ' h';
+        }
+        const status = r.punch_in
+          ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
+          : '<span class="badge inactive">Absent</span>';
+        const photos = [
+          r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
+          r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
+        ].filter(Boolean).join(' · ') || '<span style="color:var(--muted);">—</span>';
+        const face = Number(r.face_enrolled)
+          ? `<button class="danger-link" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:0;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
+          : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
+        return `<tr>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
+          <td>${fmtT(r.punch_in)}</td>
+          <td>${fmtT(r.punch_out)}</td>
+          <td>${hours}</td>
+          <td>${status}</td>
+          <td>${photos}</td>
+          <td>${face}</td>
+        </tr>`;
+      }).join('');
+      if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees.</td></tr>';
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.resetFace = async function (id, name) {
+    if (!confirm(`Reset enrolled face for "${name}"?\n\nThey will enroll again on their next login. Use this if the wrong face got enrolled or they changed phones.`)) return;
+    try {
+      await api.post('face.reset', { employee_id: id });
+      showAlert('Face reset.');
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  document.getElementById('datePick').value = todayStr();
+  document.getElementById('datePick').addEventListener('change', load);
+  document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('datePick').value = todayStr(); load(); });
+  load();
+</script>
+</body>
+</html>

@@ -8,6 +8,26 @@ function renderSidebar(active) {
   const linkClass = (key) => (active === key ? 'active' : '');
   const isAdmin = user.role === 'Admin';
 
+  if (user.role === 'Employee') {
+    document.getElementById('sidebar').outerHTML = `
+    <aside class="sidebar">
+      <div class="brand">HR<span>MS</span></div>
+      <nav>
+        <div class="nav-label">My Space</div>
+        <a href="attendance.html" class="${linkClass('attendance')}">Attendance</a>
+      </nav>
+      <div class="user-box">
+        <span class="name">${user.username}</span>
+        <span class="role">${user.role}</span>
+        <button onclick="logout()">Log out</button>
+      </div>
+    </aside>
+  `;
+    if (active !== 'attendance') window.location.href = 'attendance.html';
+    addMobileMenu();
+    return;
+  }
+
   const adminLinks = isAdmin ? `
     <div class="nav-label">Admin</div>
     <a href="approvals.html" class="${linkClass('approvals')}">Approvals</a>
@@ -20,6 +40,9 @@ function renderSidebar(active) {
       <nav>
         <div class="nav-label">Main</div>
         <a href="dashboard.html" class="${linkClass('dashboard')}">Dashboard</a>
+        <a href="orders.html" class="${linkClass('orders')}">Shopify Orders</a>
+        <a href="attendance_admin.html" class="${linkClass('attendance_admin')}">Attendance</a>
+        <a href="targets.html" class="${linkClass('targets')}">Targets</a>
         <div class="nav-label">Masters</div>
         <a href="departments.html" class="${linkClass('departments')}">Departments</a>
         <div class="nav-label">People</div>
@@ -39,7 +62,10 @@ function renderSidebar(active) {
     </aside>
   `;
 
-  // Mobile menu button + backdrop (hidden on desktop via CSS).
+  addMobileMenu();
+}
+
+function addMobileMenu() {
   if (!document.getElementById('menuToggle')) {
     document.body.insertAdjacentHTML('beforeend', `
       <button id="menuToggle" aria-label="Open menu">&#9776;</button>
