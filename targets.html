@@ -13,7 +13,10 @@
     <div class="topbar">
       <h1 id="pageTitle">Targets</h1>
       <div style="display:flex; gap:10px; align-items:center;">
+        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
+        <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span id="syncStatus" style="font-size:12.5px; color:var(--muted); align-self:center;"></span>
         <a href="attendance_admin.html" class="btn secondary" style="text-decoration:none;">View attendance</a>
       </div>
     </div>
@@ -31,16 +34,17 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Sales Employees</h2><span style="font-size:12px; color:var(--muted);">Only sales employees are shown. Suggested = the employee's profile Suggested Target, scaled by attendance. Type in Manual target to override; blank = suggested. Achieved is editable.</span></div>
+        <div class="card-head"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);"></span></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Today</th><th>P / A</th><th>Suggested</th><th>Manual target</th><th>Achieved</th><th style="width:220px;">Progress</th></tr>
+            <tr><th>Employee</th><th>Orders</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th></tr>
           </thead>
-          <tbody id="tableBody">
-            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          <tbody id="dailyBody">
+            <tr><td colspan="6" class="loading">Loading...</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </main>
 </div>
@@ -62,19 +66,111 @@
   }
   const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
+  function monthEndStr() {
+    const [y, m] = currentMonth.split('-').map(Number);
+    const last = new Date(y, m, 0).getDate();
+    return currentMonth + '-' + String(last).padStart(2, '0');
+  }
+
   function monthLabel(m) {
     return new Date(m + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  }
+
+  let monthRows = [];
+  let daysInMonth = 30;
+
+  function bizToday() {
+    const d = new Date();
+    if (d.getHours() < 10) d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function matchesSearch(r) {
+    const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    return (r.full_name || '').toLowerCase().includes(q)
+      || (r.employee_code || '').toLowerCase().includes(q);
+  }
+
+  let dailyCache = null;
+
+  async function loadDaily() {
+    const day = document.getElementById('dayPick').value;
+    if (!day) return;
+    document.getElementById('dailyTitle').textContent = 'Daily — ' + new Date(day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+    const tbody = document.getElementById('dailyBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="loading">Loading day orders...</td></tr>';
+    try {
+      const [data, ovData] = await Promise.all([
+        api.get('shopify.orders', { date_from: day, date_to: day }),
+        api.get('targets.daily', { date: day }),
+      ]);
+      const overrides = ovData.overrides || {};
+      const sums = {}, counts = {};
+      (data.orders || []).forEach(o => {
+        if (!o.salesman) return;
+        sums[o.salesman] = (sums[o.salesman] || 0) + Number(o.total || 0);
+        counts[o.salesman] = (counts[o.salesman] || 0) + 1;
+      });
+
+      dailyCache = { sums, counts, overrides, day };
+      renderDaily();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  function renderDaily() {
+    const tbody = document.getElementById('dailyBody');
+    if (!dailyCache) return;
+    const { sums, counts, overrides, day } = dailyCache;
+    const shown = monthRows.filter(matchesSearch);
+    if (!shown.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No matching employees.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = shown.map(r => {
+        const achieved = sums[r.full_name] || 0;
+        const cnt = counts[r.full_name] || 0;
+        // Daily target priority: per-day manual override -> profile Daily
+        // Target -> monthly Manual ÷ days.
+        const autoDaily = r.manual_target !== null
+          ? Math.round(r.manual_target / daysInMonth)
+          : (Number(r.daily_target) || 0);
+        const override = overrides[String(r.employee_id)];
+        const dailyTarget = override !== undefined ? Number(override) : autoDaily;
+        const realPct = dailyTarget > 0 ? Math.round((achieved / dailyTarget) * 100) : 0;
+        const pct = Math.min(100, realPct);
+        const barColor = realPct > 100 ? '#7C3AED' : (pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A'));
+        const pctLabel = realPct > 100 ? `<b style="color:#7C3AED;">${realPct}% 🎯</b>` : (dailyTarget > 0 ? pct + '%' : '—');
+        return `<tr>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+          <td>${cnt > 0 ? `<a href="orders.html?from=${day}&to=${day}&salesman=${encodeURIComponent(r.full_name)}">${cnt} order${cnt === 1 ? '' : 's'}</a>` : '0'}</td>
+          <td style="font-weight:600;">${inr(achieved)}</td>
+          <td>${cnt > 0 ? inr(achieved / cnt) : '—'}</td>
+          <td><span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, 'day')"
+                style="cursor:pointer; border:1px dashed var(--line); border-radius:6px; padding:5px 9px; display:inline-block; font-size:13px;"
+                title="Click to change today's target">${dailyTarget > 0 ? inr(dailyTarget) : '<span style=\'color:var(--muted)\'>set</span>'} ✎</span></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${pct}%; height:8px; background:${barColor};"></div></div>
+              <span style="white-space:nowrap; font-size:12.5px;">${pctLabel}</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
   }
 
   async function load() {
     currentMonth = document.getElementById('monthPick').value;
     if (!currentMonth) return;
     document.getElementById('pageTitle').textContent = 'Targets — ' + monthLabel(currentMonth);
-    const tbody = document.getElementById('tableBody');
     try {
       const data = await api.get('targets.get', { month: currentMonth });
       teamTarget = Number(data.team_target || 0);
       const rows = data.rows || [];
+      monthRows = rows;
+      daysInMonth = Number(data.days_in_month || 30);
 
       document.getElementById('statTeam').textContent = teamTarget > 0 ? inr(teamTarget) : 'Not set';
       document.getElementById('statAchieved').textContent = inr(data.achieved_total);
@@ -82,41 +178,63 @@
       const presentToday = rows.filter(r => r.today === 'present').length;
       document.getElementById('statPresent').textContent = `${presentToday} / ${rows.length}`;
 
-      if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = rows.map(r => {
-        const effective = r.manual_target !== null ? r.manual_target : (r.suggested || 0);
-        const pct = effective > 0 ? Math.min(100, Math.round((r.achieved / effective) * 100)) : 0;
-        const barColor = pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A');
-        const todayBadge = r.today === 'present'
-          ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Present</span>'
-          : (r.today === 'absent' ? '<span class="badge" style="background:#fdecec; color:#c81e1e;">Absent</span>' : '<span class="badge inactive">—</span>');
-        return `<tr>
-          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
-          <td>${todayBadge}</td>
-          <td>${r.present} / ${r.absent}</td>
-          <td style="color:var(--muted);">${r.suggested !== null ? inr(r.suggested) : '—'}</td>
-          <td><input type="number" min="0" step="1000" value="${r.manual_target !== null ? r.manual_target : ''}" placeholder="${r.suggested !== null ? 'suggested' : '—'}"
-                style="width:110px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;"
-                onchange="saveTarget(${r.employee_id}, this.value, null, this)"></td>
-          <td><input type="number" min="0" step="500" value="${r.achieved || ''}" placeholder="0"
-                style="width:100px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;"
-                onchange="saveTarget(${r.employee_id}, undefined, this.value, this)"></td>
-          <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${pct}%; height:8px; background:${barColor};"></div></div>
-              <span style="white-space:nowrap; font-size:12.5px;">${effective > 0 ? pct + '%' : '—'}</span>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+      showAlert(err.message, 'error');
     }
   }
+
+
+  // Click-to-edit with explicit ✓ save / ✕ cancel buttons.
+  window.startEdit = function (chip, employeeId, kind) {
+    const cell = chip.closest('td');
+    const prev = cell.innerHTML;
+    const current = chip.dataset.value || '';
+    cell.innerHTML = '';
+
+    const input = document.createElement('input');
+    input.type = 'number'; input.min = 0; input.step = 500; input.value = current;
+    input.placeholder = kind === 'day' ? 'blank = auto' : 'e.g. 5000';
+    input.style.cssText = 'width:90px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;';
+
+    const ok = document.createElement('button');
+    ok.innerHTML = '&#10003;';
+    ok.title = 'Save';
+    ok.style.cssText = 'margin-left:6px; background:#0f7a41; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
+
+    const no = document.createElement('button');
+    no.innerHTML = '&#10005;';
+    no.title = 'Cancel';
+    no.style.cssText = 'margin-left:4px; background:#c81e1e; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
+
+    no.onclick = () => { cell.innerHTML = prev; };
+
+    ok.onclick = async () => {
+      ok.disabled = true; no.disabled = true;
+      try {
+        if (kind === 'standing') {
+          await api.post('employees.set_daily_target', { employee_id: employeeId, amount: Number(input.value || 0) });
+        } else {
+          await api.post('targets.save_daily', {
+            date: document.getElementById('dayPick').value,
+            employee_id: employeeId,
+            amount: input.value === '' ? null : Number(input.value),
+          });
+        }
+        load().then(loadDaily);
+      } catch (err) {
+        showAlert(err.message, 'error');
+        cell.innerHTML = prev;
+      }
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') ok.click();
+      if (e.key === 'Escape') no.click();
+    });
+
+    cell.append(input, ok, no);
+    input.focus();
+  };
 
   window.saveTarget = async function (employeeId, manualTarget, achieved, el) {
     try {
@@ -132,6 +250,28 @@
     }
   };
 
+  // Achieved updates automatically: whenever the page opens, a background
+  // sync pulls the month's orders from Shopify (at most once per 15 minutes).
+  async function autoSync() {
+    const key = 'targets_last_sync_' + currentMonth;
+    const last = Number(localStorage.getItem(key) || 0);
+    const status = document.getElementById('syncStatus');
+    if (Date.now() - last < 15 * 60 * 1000) {
+      status.textContent = 'Auto-updated ' + Math.round((Date.now() - last) / 60000) + ' min ago';
+      return;
+    }
+    status.textContent = 'Updating from Shopify...';
+    try {
+      await api.post('targets.sync_orders', { month: currentMonth });
+      localStorage.setItem(key, String(Date.now()));
+      status.textContent = 'Auto-updated just now';
+      load().then(loadDaily);
+    } catch (err) {
+      status.textContent = '';
+      showAlert('Auto-update failed: ' + err.message, 'error');
+    }
+  }
+
   document.getElementById('btnEditTeam').addEventListener('click', async () => {
     const val = prompt('Team target for ' + monthLabel(currentMonth) + ' (₹):', teamTarget || '');
     if (val === null) return;
@@ -146,8 +286,15 @@
 
   const now = new Date();
   document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('monthPick').addEventListener('change', load);
-  load();
+  document.getElementById('monthPick').addEventListener('change', () => load().then(loadDaily).then(autoSync));
+  document.getElementById('dayPick').value = bizToday();
+  document.getElementById('dayPick').addEventListener('change', loadDaily);
+  let searchTimer = null;
+  document.getElementById('empSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderDaily, 150);
+  });
+  load().then(loadDaily).then(autoSync);
 </script>
 </body>
 </html>

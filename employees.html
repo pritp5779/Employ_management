@@ -29,6 +29,7 @@
             </select>
             <div class="search-box"><input type="text" id="tableSearch" placeholder="Search name, code, email, mobile..."></div>
             <button class="btn secondary" id="btnExport" style="width:auto;">Export to Excel</button>
+            <button class="btn secondary" id="btnBulkAdd">Bulk Add</button>
             <button class="btn" id="btnAddNew">+ Add Employee</button>
           </div>
         </div>
@@ -92,6 +93,14 @@
           <input type="text" id="managerSearchInput" placeholder="Search employee..." autocomplete="off">
           <input type="hidden" id="reportingManager">
           <div id="managerDropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid var(--line,#ddd); border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12); max-height:220px; overflow-y:auto; z-index:50;"></div>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="salesTag">Order Tag <span style="text-transform:none; font-weight:400;">(matches Shopify order tag, e.g. "ir")</span></label>
+          <input type="text" id="salesTag" maxlength="50" placeholder="e.g. ir">
         </div>
         <div></div>
       </div>
@@ -172,6 +181,30 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<div class="modal-overlay" id="bulkModal">
+  <div class="modal wide">
+    <h3>Bulk Add Employees</h3>
+    <div id="bulkAlert"></div>
+    <div style="font-size:12.5px; color:var(--muted); margin-bottom:10px;">
+      Upload your Excel/CSV file. Columns (any order, with a header row):<br>
+      <b>Name, Mobile, Email, Department, Joining Date, Salary/Target</b> — and optionally: DOB, Address, Employment Type, Reporting Manager (name or EMP code), Emergency Contact Name / Mobile / Relation.<br>With a header row, columns are matched by name in ANY order.<br>
+      Only Name is required — leave other columns blank if unknown. Department must match an existing department name.
+    </div>
+    <div style="margin-bottom:10px;">
+      <input type="file" id="bulkFile" accept=".xlsx,.xls,.csv" style="font-size:13px;">
+      <div style="font-size:12px; color:var(--muted); margin-top:4px;">Choose an Excel/CSV file. <a href="employee_template.xlsx" download>Download demo Excel template</a> with all fields.</div>
+    </div>
+    <textarea id="bulkText" rows="10" hidden style="width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-size:13px; font-family:monospace;" placeholder="Rahul Patel	9876543210	rahul@x.com	sales	01-09-2026	400000
+Amit Shah	9123456780		web management		"></textarea>
+    <div id="bulkPreview" style="font-size:12.5px; margin-top:8px; color:var(--muted);"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="btnBulkCancel">Cancel</button>
+      <button type="button" class="btn" id="btnBulkImport">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="assets/js/config.js?v=1"></script>
 <script src="assets/js/api.js?v=1"></script>
 <script src="assets/js/layout.js?v=1"></script>
@@ -227,14 +260,7 @@
     }
   }
 
-  function updateSalaryLabel() {
-    const sel = document.getElementById('department');
-    const deptName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
-    const isSales = /sales/i.test(deptName);
-    document.getElementById('basicSalaryLabel').textContent = isSales ? 'Suggested Target (per month)' : 'Basic Salary';
-    document.getElementById('basicSalary').placeholder = isSales ? 'e.g. 40,000' : '';
-  }
-  document.getElementById('department').addEventListener('change', updateSalaryLabel);
+  function updateSalaryLabel() {}
 
   async function loadDepartmentsIntoSelects() {
     const data = await api.get('departments.list');
@@ -412,6 +438,7 @@
       document.getElementById('dob').value = emp.date_of_birth || '';
       document.getElementById('employmentType').value = emp.employment_type || '';
       document.getElementById('basicSalary').value = emp.basic_salary || '';
+      document.getElementById('salesTag').value = emp.sales_tag || '';
       setTimeout(updateSalaryLabel, 0);
       document.getElementById('address').value = emp.address || '';
       document.getElementById('emName').value = emp.emergency_contact_name || '';
@@ -425,8 +452,153 @@
   function closeModal() { overlay.classList.remove('open'); stopCamera(); }
 
   document.getElementById('btnAddNew').addEventListener('click', () => openModal());
+
+  // ---- Bulk add
+  const bulkModal = document.getElementById('bulkModal');
+  document.getElementById('btnBulkAdd').addEventListener('click', () => {
+    document.getElementById('bulkText').value = '';
+    document.getElementById('bulkFile').value = '';
+    document.getElementById('bulkAlert').innerHTML = '';
+    document.getElementById('bulkPreview').textContent = '';
+    bulkModal.classList.add('open');
+  });
+  document.getElementById('btnBulkCancel').addEventListener('click', () => bulkModal.classList.remove('open'));
+  bulkModal.addEventListener('click', (e) => { if (e.target === bulkModal) bulkModal.classList.remove('open'); });
+
+  const COL_PATTERNS = {
+    full_name: /full\s*name|employee\s*name|^name$/i,
+    emergency_contact_name: /emergency.*name/i,
+    emergency_contact_mobile: /emergency.*(mobile|phone|no)/i,
+    emergency_contact_relation: /relation/i,
+    reporting_manager: /manager|reporting/i,
+    mobile: /mobile|phone|contact/i,
+    email: /e-?mail/i,
+    department: /depart|dept/i,
+    date_of_birth: /birth|dob/i,
+    joining_date: /join|doj/i,
+    employment_type: /employment|full.?time|type/i,
+    basic_salary: /salary|target/i,
+    address: /address/i,
+    sales_tag: /^tag$|order.?tag|sales.?tag/i,
+  };
+
+  function parseBulk() {
+    const lines = document.getElementById('bulkText').value.split('\n')
+      .map(l => l.replace(/\r/g, '')).filter(l => l.trim());
+    if (!lines.length) return { rows: [], mapping: null };
+
+    const split = (line) => (line.includes('\t') ? line.split('\t') : line.split(',')).map(c => c.trim());
+
+    // Header detection: does the first line's cells match known column names?
+    const first = split(lines[0]);
+    const map = {};
+    first.forEach((cell, idx) => {
+      for (const [field, re] of Object.entries(COL_PATTERNS)) {
+        if (map[field] === undefined && re.test(cell)) { map[field] = idx; break; }
+      }
+    });
+    const hasHeader = map.full_name !== undefined;
+
+    const dataLines = hasHeader ? lines.slice(1) : lines;
+    const get = (cols, field, fallbackIdx) => {
+      const idx = hasHeader ? map[field] : fallbackIdx;
+      return idx === undefined ? '' : (cols[idx] || '').trim();
+    };
+
+    const rows = dataLines.map(line => {
+      const cols = split(line);
+      return {
+        full_name: get(cols, 'full_name', 0),
+        mobile: get(cols, 'mobile', 1),
+        email: get(cols, 'email', 2),
+        department: get(cols, 'department', 3),
+        joining_date: get(cols, 'joining_date', 4),
+        basic_salary: get(cols, 'basic_salary', 5) || 0,
+        date_of_birth: get(cols, 'date_of_birth'),
+        address: get(cols, 'address'),
+        employment_type: get(cols, 'employment_type'),
+        reporting_manager: get(cols, 'reporting_manager'),
+        emergency_contact_name: get(cols, 'emergency_contact_name'),
+        emergency_contact_mobile: get(cols, 'emergency_contact_mobile'),
+        emergency_contact_relation: get(cols, 'emergency_contact_relation'),
+        sales_tag: get(cols, 'sales_tag'),
+      };
+    }).filter(r => r.full_name);
+
+    return { rows, mapping: hasHeader ? map : null };
+  }
+
+  document.getElementById('bulkFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf);
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      let rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+      rows = rows.filter(r => r.some(c => String(c).trim() !== ''));
+      const tsv = rows.map(r => r.map(c => String(c).trim()).join('\t')).join('\n');
+      document.getElementById('bulkText').value = tsv;
+      document.getElementById('bulkText').dispatchEvent(new Event('input'));
+      if (!tsv) document.getElementById('bulkAlert').innerHTML = '<div class="alert error">No rows found in that file.</div>';
+    } catch (err) {
+      document.getElementById('bulkAlert').innerHTML = `<div class="alert error">Could not read file: ${err.message}</div>`;
+    }
+  });
+
+  const FIELD_LABELS = {
+    full_name: 'Name', mobile: 'Mobile', email: 'Email', department: 'Department',
+    joining_date: 'Joining Date', basic_salary: 'Salary/Target', date_of_birth: 'DOB',
+    address: 'Address', employment_type: 'Employment Type', reporting_manager: 'Reporting Manager',
+    emergency_contact_name: 'Emergency Name', emergency_contact_mobile: 'Emergency Mobile',
+    emergency_contact_relation: 'Emergency Relation', sales_tag: 'Order Tag',
+  };
+
+  document.getElementById('bulkText').addEventListener('input', () => {
+    const { rows, mapping } = parseBulk();
+    const box = document.getElementById('bulkPreview');
+    if (!rows.length) {
+      box.innerHTML = '<span style="color:#c81e1e;">No employees detected — check that a Name column exists.</span>';
+      return;
+    }
+    if (mapping) {
+      const matched = Object.keys(mapping).map(f => FIELD_LABELS[f]);
+      const missing = Object.keys(FIELD_LABELS).filter(f => mapping[f] === undefined).map(f => FIELD_LABELS[f]);
+      box.innerHTML =
+        `<b>${rows.length}</b> employee${rows.length === 1 ? '' : 's'} detected. ` +
+        `<span style="color:#0f7a41;">Matched ${matched.length} field${matched.length === 1 ? '' : 's'}:</span> ${matched.join(', ')}.` +
+        (missing.length ? `<br><span style="color:#888;">Not in your file (will stay blank): ${missing.join(', ')}.</span>` : '') +
+        `<br>First row: ${rows[0].full_name} | ${rows[0].mobile || 'no mobile'} | ${rows[0].department || 'no dept'}`;
+    } else {
+      box.innerHTML = `<b>${rows.length}</b> employee${rows.length === 1 ? '' : 's'} detected (no header row — using default column order Name, Mobile, Email, Department, Joining Date, Salary). First: ${rows[0].full_name}`;
+    }
+  });
+
+  document.getElementById('btnBulkImport').addEventListener('click', async () => {
+    const { rows } = parseBulk();
+    if (rows.length === 0) {
+      document.getElementById('bulkAlert').innerHTML = '<div class="alert error">Paste at least one row first.</div>';
+      return;
+    }
+    const btn = document.getElementById('btnBulkImport');
+    btn.disabled = true; btn.textContent = 'Importing...';
+    try {
+      const data = await api.post('employees.bulk_add', { employees: rows });
+      bulkModal.classList.remove('open');
+      showAlert(data.message + ((data.errors || []).length ? ` ${data.errors.length} issue(s) — see below.` : ''));
+      if ((data.errors || []).length) {
+        alertBox.innerHTML += '<div class="alert error" style="white-space:pre-line;">' + data.errors.join('\n') + '</div>';
+      }
+      loadEmployees();
+    } catch (err) {
+      document.getElementById('bulkAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Import';
+    }
+  });
   document.getElementById('btnCancel').addEventListener('click', closeModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  // Outside click intentionally does NOT close the employee form —
+  // prevents losing a half-filled form by a stray click. Use Cancel to close.
 
   function sortRows(rows) {
     const sortBy = document.getElementById('sortFilter').value;
@@ -543,6 +715,7 @@
       emergency_contact_name: document.getElementById('emName').value.trim(),
       emergency_contact_mobile: document.getElementById('emMobile').value.trim(),
       emergency_contact_relation: document.getElementById('emRelation').value.trim(),
+      sales_tag: document.getElementById('salesTag').value.trim(),
       whatsapp_group_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
       ),

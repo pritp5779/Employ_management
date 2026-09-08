@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Sales — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar"><h1>My Sales</h1></div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="stat-grid" id="statGrid" style="display:none;"></div>
+
+      <div class="card" style="max-width:640px;">
+        <div class="card-head"><h2 id="detailTitle">Details</h2></div>
+        <div style="padding:16px 20px;">
+          <div id="detailBox" class="loading" style="padding:0;">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('my_sales');
+
+  const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  const pctOf = (v, t) => (t > 0 ? Math.round((v / t) * 100) : null);
+  const pctColor = (p) => p >= 100 ? '#7C3AED' : (p >= 60 ? '#0f7a41' : (p >= 30 ? '#b45f06' : '#c81e1e'));
+
+  function bar(value, target) {
+    const p = pctOf(value, target);
+    if (p === null) return '<span style="font-size:12px; color:var(--muted);">No target set</span>';
+    const width = Math.min(100, p);
+    return `
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${width}%; height:8px; background:${pctColor(p)};"></div></div>
+        <span style="white-space:nowrap; font-size:12.5px; font-weight:700; color:${pctColor(p)};">${p}%${p >= 100 ? ' 🎯' : ''}</span>
+      </div>`;
+  }
+
+  async function load() {
+    try {
+      const d = await api.get('my.stats');
+      if (!d.tag) {
+        document.getElementById('detailBox').innerHTML = 'No order tag is set on your profile yet — ask Admin to add one, then your sales will show here.';
+        return;
+      }
+
+      const grid = document.getElementById('statGrid');
+      grid.innerHTML = `
+        <div class="stat-card"><div class="label">Today Sales</div><div class="value">${inr(d.today.sales)}</div></div>
+        <div class="stat-card"><div class="label">Today Orders</div><div class="value">${d.today.orders}</div></div>
+        <div class="stat-card"><div class="label">Month Sales</div><div class="value">${inr(d.month.sales)}</div></div>
+        <div class="stat-card"><div class="label">Month Orders</div><div class="value">${d.month.orders}</div></div>
+      `;
+      grid.style.display = 'grid';
+
+      const dayLabel = new Date(d.business_day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+      document.getElementById('detailBox').innerHTML = `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">Today</div>
+          <div style="font-size:14px; margin-top:4px;">${inr(d.today.sales)} of ${d.daily_target > 0 ? inr(d.daily_target) : '—'} daily target</div>
+          ${bar(d.today.sales, d.daily_target)}
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">This Month</div>
+          <div style="font-size:14px; margin-top:4px;">${inr(d.month.sales)} of ${d.month.target > 0 ? inr(d.month.target) : '—'} monthly target</div>
+          ${bar(d.month.sales, d.month.target)}
+        </div>
+        ${d.today.error ? `<div class="alert error" style="margin-top:12px;">${d.today.error}</div>` : ''}
+      `;
+      document.getElementById('detailTitle').textContent = d.name;
+    } catch (err) {
+      document.getElementById('detailBox').innerHTML = `<div class="alert error">${err.message}</div>`;
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

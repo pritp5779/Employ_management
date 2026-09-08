@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Performance</h1>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
+        <input type="date" id="dayPick" title="Daily ratings" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      </div>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Convincing</th><th>Customer</th><th>Behavior</th></tr>
+          </thead>
+          <tbody id="dailyBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Monthly — Sales Employees</h2></div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Queries</th><th>Avg/day</th><th>Convincing</th><th>Customer</th><th>Behavior</th><th>Overall</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('performance');
+
+  const alertBox = document.getElementById('alertBox');
+  let currentMonth = '';
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function starsAvg(v) {
+    if (v === null || v === undefined) return '<span style="color:var(--muted); font-size:12px;">—</span>';
+    const n = Math.round(v);
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += `<span style="color:${i <= n ? '#BA7517' : '#d8d8d8'}; font-size:15px;">★</span>`;
+    }
+    return out + ` <span style="font-size:12px; color:var(--muted);">${v}</span>`;
+  }
+
+  function starsEditable(empId, field, n) {
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += `<span style="color:${n && i <= n ? '#BA7517' : '#d8d8d8'}; font-size:16px; cursor:pointer;" onclick="rate(${empId}, '${field}', ${i})" title="${i} star${i === 1 ? '' : 's'}">★</span>`;
+    }
+    return out;
+  }
+
+  window.rate = async function (empId, field, value) {
+    try {
+      await api.post('performance.rate', { month: currentMonth, employee_id: empId, field, value });
+      load();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  let monthRows = [];
+  let dailyRows = [];
+  let currentDay = '';
+
+  function matchesSearch(r) {
+    const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    return (r.full_name || '').toLowerCase().includes(q)
+      || (r.employee_code || '').toLowerCase().includes(q);
+  }
+
+  function bizToday() {
+    const d = new Date();
+    if (d.getHours() < 10) d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function starsDaily(empId, field, n) {
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += `<span style="color:${n && i <= n ? '#BA7517' : '#d8d8d8'}; font-size:16px; cursor:pointer;" onclick="rateDaily(${empId}, '${field}', ${i})">★</span>`;
+    }
+    return out;
+  }
+
+  window.rateDaily = async function (empId, field, value) {
+    try {
+      await api.post('performance.rate_daily', { date: currentDay, employee_id: empId, field, value });
+      loadDaily();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.editDayQueries = async function (empId, current) {
+    const v = prompt('Queries handled on ' + currentDay + ':', current === null ? '' : current);
+    if (v === null) return;
+    try {
+      await api.post('queries.save', { employee_id: empId, date: currentDay, query_count: Number(v || 0) });
+      loadDaily();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  async function loadDaily() {
+    currentDay = document.getElementById('dayPick').value;
+    if (!currentDay) return;
+    document.getElementById('dailyTitle').textContent = 'Daily — ' +
+      new Date(currentDay + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+    const tbody = document.getElementById('dailyBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading day data...</td></tr>';
+    try {
+      const data = await api.get('performance.daily', { date: currentDay });
+      dailyRows = data.rows || [];
+      (data.errors || []).forEach(e => showAlert(e, 'error'));
+      renderDaily();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  function renderDaily() {
+    const tbody = document.getElementById('dailyBody');
+    const shown = dailyRows.filter(matchesSearch);
+    if (!shown.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = shown.map(r => {
+      const ratioBadge = r.ratio === null
+        ? '<span style="color:var(--muted); font-size:12px;">—</span>'
+        : `<span class="badge" style="background:${r.ratio >= 9 ? '#e7f7ee' : (r.ratio >= 6 ? '#fdf3e3' : '#fdecec')}; color:${r.ratio >= 9 ? '#0f7a41' : (r.ratio >= 6 ? '#b45f06' : '#c81e1e')};">${r.ratio}%</span>`;
+      return `<tr>
+        <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+        <td>${r.queries !== null ? r.queries : '<span style="color:var(--muted);">—</span>'}
+          <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0;" onclick="editDayQueries(${r.employee_id}, ${r.queries === null ? 'null' : r.queries})">✎</button></td>
+        <td>${r.orders}<div style="font-size:11.5px; color:var(--muted);">${'₹' + Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div></td>
+        <td>${ratioBadge}</td>
+        <td>${starsDaily(r.employee_id, 'convincing', r.convincing)}</td>
+        <td>${starsDaily(r.employee_id, 'customer', r.customer_rating)}</td>
+        <td>${starsDaily(r.employee_id, 'behavior', r.behavior_rating)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function load() {
+    currentMonth = document.getElementById('monthPick').value;
+    if (!currentMonth) return;
+    document.getElementById('pageTitle').textContent = 'Performance — ' +
+      new Date(currentMonth + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    const tbody = document.getElementById('tableBody');
+    try {
+      const data = await api.get('performance.get', { month: currentMonth });
+      monthRows = data.rows || [];
+      renderMonthly();
+    } catch (err) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  function renderMonthly() {
+    const tbody = document.getElementById('tableBody');
+    const shown = monthRows.filter(matchesSearch);
+    if (shown.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = shown.map(r => {
+        return `<tr>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a>
+            <div style="font-size:11.5px; color:var(--muted);">${r.employee_code}${r.sales_tag ? ' · tag ' + r.sales_tag : ''}</div></td>
+          <td>${r.queries}<div style="font-size:11.5px; color:var(--muted);">${r.query_days} day${r.query_days === 1 ? '' : 's'} entered</div></td>
+          <td>${r.avg_per_day}</td>
+          <td>${starsAvg(r.convincing)}</td>
+          <td>${starsAvg(r.customer_rating)}</td>
+          <td>${starsAvg(r.behavior_rating)}</td>
+          <td style="font-weight:700; font-size:15px;">${r.overall !== null ? r.overall : '—'}<div style="font-size:11px; color:var(--muted); font-weight:400;">of 5</div></td>
+        </tr>`;
+      }).join('');
+  }
+
+  const now = new Date();
+  document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('monthPick').addEventListener('change', load);
+  document.getElementById('dayPick').value = bizToday();
+  document.getElementById('dayPick').addEventListener('change', loadDaily);
+  let searchTimer = null;
+  document.getElementById('empSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { renderMonthly(); renderDaily(); }, 150);
+  });
+  load();
+  loadDaily();
+</script>
+</body>
+</html>

@@ -95,8 +95,8 @@ a{color:var(--accent); text-decoration:none;}
 .card-head h2{font-size:15px; margin:0;}
 .search-box input{padding:8px 12px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:220px;}
 table{width:100%; border-collapse:collapse;}
-thead th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 20px; background:#fafbfc; border-bottom:1px solid var(--line);}
-tbody td{padding:12px 20px; border-bottom:1px solid var(--line); font-size:13.5px;}
+thead th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 10px; background:#fafbfc; border-bottom:1px solid var(--line);}
+tbody td{padding:12px 10px; border-bottom:1px solid var(--line); font-size:13.5px;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover{background:#fafbfc;}
 .badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; background:#eef2ff; color:#3730a3;}
@@ -163,4 +163,27 @@ tbody tr:hover{background:#fafbfc;}
 
   .modal{width:100%; max-width:none; max-height:92vh;}
   .modal.wide{max-width:none;}
+}
+
+/* ===== Popup scrolling: keep scroll inside modals, freeze the page behind ===== */
+.modal{overscroll-behavior:contain;}
+body:has(.modal-overlay.open){overflow:hidden;}
+
+/* ===== Fixed sidebar: stays in place while the page scrolls (desktop) ===== */
+@media (min-width: 901px) {
+  .sidebar{position:fixed; top:0; left:0; bottom:0; overflow-y:auto;}
+  .main{margin-left:230px;}
+}
+
+/* ===== Tables fit their card: compact cells, safety scroll only if truly needed ===== */
+.card{overflow-x:auto;}
+
+/* First column keeps a little extra breathing room */
+thead th:first-child, tbody td:first-child{padding-left:20px;}
+thead th:last-child, tbody td:last-child{padding-right:20px;}
+/* Slightly tighter still on smaller laptop windows */
+@media (max-width:1300px){
+  thead th, tbody td{padding-left:6px; padding-right:6px; font-size:12.5px;}
+  thead th:first-child, tbody td:first-child{padding-left:14px;}
+  thead th:last-child, tbody td:last-child{padding-right:14px;}
 }

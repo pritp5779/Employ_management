@@ -15,6 +15,8 @@ function renderSidebar(active) {
       <nav>
         <div class="nav-label">My Space</div>
         <a href="attendance.html" class="${linkClass('attendance')}">Attendance</a>
+        <a href="my_sales.html" class="${linkClass('my_sales')}">My Sales</a>
+        <a href="orders.html" class="${linkClass('orders')}">My Orders</a>
       </nav>
       <div class="user-box">
         <span class="name">${user.username}</span>
@@ -23,14 +25,14 @@ function renderSidebar(active) {
       </div>
     </aside>
   `;
-    if (active !== 'attendance') window.location.href = 'attendance.html';
+    if (!['attendance', 'my_sales', 'orders'].includes(active)) window.location.href = 'attendance.html';
     addMobileMenu();
     return;
   }
 
   const adminLinks = isAdmin ? `
     <div class="nav-label">Admin</div>
-    <a href="approvals.html" class="${linkClass('approvals')}">Approvals</a>
+    <a href="approvals.html" class="${linkClass('approvals')}">Approvals <span id="approvalBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span></a>
     <a href="users.html" class="${linkClass('users')}">Users</a>
   ` : '';
 
@@ -43,6 +45,7 @@ function renderSidebar(active) {
         <a href="orders.html" class="${linkClass('orders')}">Shopify Orders</a>
         <a href="attendance_admin.html" class="${linkClass('attendance_admin')}">Attendance</a>
         <a href="targets.html" class="${linkClass('targets')}">Targets</a>
+        <a href="performance.html" class="${linkClass('performance')}">Performance</a>
         <div class="nav-label">Masters</div>
         <a href="departments.html" class="${linkClass('departments')}">Departments</a>
         <div class="nav-label">People</div>
@@ -63,6 +66,16 @@ function renderSidebar(active) {
   `;
 
   addMobileMenu();
+
+  if (isAdmin) {
+    api.get('approvals.count').then((d) => {
+      const badge = document.getElementById('approvalBadge');
+      if (badge && d.count > 0) {
+        badge.textContent = d.count;
+        badge.style.display = 'inline-block';
+      }
+    }).catch(() => {});
+  }
 }
 
 function addMobileMenu() {
