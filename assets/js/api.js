@@ -40,7 +40,9 @@ const api = {
       throw new Error('Session expired');
     }
     if (!res.ok) {
-      throw new Error(data.error || 'Something went wrong (' + res.status + ')');
+      const err = new Error(data.error || 'Something went wrong (' + res.status + ')');
+      err.data = data; // full server response for callers that need details
+      throw err;
     }
     return data;
   },

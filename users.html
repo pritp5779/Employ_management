@@ -98,6 +98,7 @@
           <td><span class="badge">${u.role}</span></td>
           <td>
             <div class="row-actions">
+              <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-weight:600; font-size:13px; padding:0; margin-right:10px;" onclick="editUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}', '${u.role}', '${u.employee_id || ''}')">Edit</button>
               <button class="danger-link" onclick="deleteUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}')">Delete</button>
             </div>
           </td>
@@ -159,6 +160,62 @@
         (data.employees || []).map(e => `<option value="${e.employee_id}">${e.full_name} (${e.employee_code})</option>`).join('');
     } catch (e) { /* select stays with None */ }
   })();
+
+  // ---- Edit user (username + role + linked employee)
+  window.editUser = function (id, username, role, employeeId) {
+    let m = document.getElementById('editUserModal');
+    if (!m) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay" id="editUserModal">
+          <div class="modal" style="max-width:380px;">
+            <h3>Edit User</h3>
+            <div class="field"><label for="euName">Username</label><input type="text" id="euName"></div>
+            <div class="field"><label for="euRole">Role</label>
+              <select id="euRole">
+                <option value="Employee">Employee (attendance only)</option>
+                <option value="HR">HR</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            <div class="field"><label for="euEmployee">Linked Employee <span style="text-transform:none; font-weight:400;">(required for Employee role)</span></label>
+              <select id="euEmployee"><option value="">— None —</option></select>
+            </div>
+            <div class="actions">
+              <button type="button" class="btn secondary" id="euCancel">Cancel</button>
+              <button type="button" class="btn" id="euSave">Save</button>
+            </div>
+          </div>
+        </div>`);
+      m = document.getElementById('editUserModal');
+      document.getElementById('euCancel').addEventListener('click', () => m.classList.remove('open'));
+      document.getElementById('euSave').addEventListener('click', async () => {
+        const btn = document.getElementById('euSave');
+        btn.disabled = true;
+        try {
+          await api.post('users.update', {
+            user_id: Number(m.dataset.userId),
+            username: document.getElementById('euName').value.trim(),
+            role: document.getElementById('euRole').value,
+            employee_id: document.getElementById('euEmployee').value || null,
+          });
+          m.classList.remove('open');
+          showAlert('User updated.');
+          loadUsers();
+        } catch (err) {
+          showAlert(err.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+    // Employee options: copy from the add-form select (already loaded)
+    document.getElementById('euEmployee').innerHTML = document.getElementById('newEmployee').innerHTML;
+    m.dataset.userId = id;
+    document.getElementById('euName').value = username;
+    document.getElementById('euRole').value = role;
+    document.getElementById('euEmployee').value = employeeId || '';
+    m.classList.add('open');
+  };
 </script>
 </body>
 </html>

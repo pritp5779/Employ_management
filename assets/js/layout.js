@@ -15,8 +15,7 @@ function renderSidebar(active) {
       <nav>
         <div class="nav-label">My Space</div>
         <a href="attendance.html" class="${linkClass('attendance')}">Attendance</a>
-        <a href="my_sales.html" class="${linkClass('my_sales')}">My Sales</a>
-        <a href="orders.html" class="${linkClass('orders')}">My Orders</a>
+        <span id="empSalesNav"></span>
       </nav>
       <div class="user-box">
         <span class="name">${user.username}</span>
@@ -27,6 +26,21 @@ function renderSidebar(active) {
   `;
     if (!['attendance', 'my_sales', 'orders'].includes(active)) window.location.href = 'attendance.html';
     addMobileMenu();
+
+    // Sales employees also get My Sales + My Orders.
+    api.get('me.flags').then((d) => {
+      if (!d.is_sales) {
+        // Non-sales person on a sales page — send them back.
+        if (active === 'my_sales' || active === 'orders') window.location.href = 'attendance.html';
+        return;
+      }
+      const holder = document.getElementById('empSalesNav');
+      if (holder) {
+        holder.outerHTML = `
+        <a href="my_sales.html" class="${linkClass('my_sales')}">My Sales</a>
+        <a href="orders.html" class="${linkClass('orders')}">My Orders</a>`;
+      }
+    }).catch(() => {});
     return;
   }
 

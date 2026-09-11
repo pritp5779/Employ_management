@@ -22,16 +22,6 @@
       </div>
 
       <div class="card" style="max-width:560px;">
-        <div class="card-head"><h2>Today's Queries</h2></div>
-        <div style="padding:16px 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <span style="font-size:13.5px;">How many customer queries did you handle today?</span>
-          <input type="number" id="queryCount" min="0" max="5000" style="width:90px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:14px;">
-          <button class="btn" id="btnSaveQueries">Save</button>
-          <span id="queryMsg" style="font-size:12.5px; color:var(--muted);"></span>
-        </div>
-      </div>
-
-      <div class="card" style="max-width:560px;">
         <div class="card-head"><h2 id="camTitle">Punch</h2></div>
         <div style="padding:16px 20px;">
           <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Loading face system... please wait.</div>
@@ -270,34 +260,6 @@
 
   document.getElementById('btnPunchIn').addEventListener('click', () => handle('in'));
   document.getElementById('btnPunchOut').addEventListener('click', () => handle('out'));
-
-  (async function loadQueries() {
-    try {
-      const d = await api.get('queries.today');
-      if (d.query_count !== null) {
-        document.getElementById('queryCount').value = d.query_count;
-        document.getElementById('queryMsg').textContent = 'Saved for today — you can update it anytime.';
-      }
-    } catch (e) { /* linked-employee errors surface on punch anyway */ }
-  })();
-
-  document.getElementById('btnSaveQueries').addEventListener('click', async () => {
-    const v = document.getElementById('queryCount').value;
-    if (v === '' || Number(v) < 0) {
-      document.getElementById('queryMsg').textContent = 'Enter a number first.';
-      return;
-    }
-    const btn = document.getElementById('btnSaveQueries');
-    btn.disabled = true;
-    try {
-      const d = await api.post('queries.save', { query_count: Number(v) });
-      document.getElementById('queryMsg').textContent = d.message;
-    } catch (err) {
-      document.getElementById('queryMsg').textContent = err.message;
-    } finally {
-      btn.disabled = false;
-    }
-  });
 
   loadToday();
   init();

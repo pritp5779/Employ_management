@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Documents — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css">
 <style>
   .expiry-ok{color:var(--ok-fg);font-weight:600;}
   .expiry-warn{color:#b45309;font-weight:600;}
@@ -138,7 +138,8 @@
         <input type="text" id="editRemarks" maxlength="255">
       </div>
       <div class="field">
-        <label for="editDocFile">Replace File (optional — PDF, JPG, PNG)</label>
+        <label for="editDocFile">Replace File (optional — PDF, JPG, PNG, max 5MB)</label>
+        <div class="dropzone" style="border:2px dashed var(--line); border-radius:8px; padding:12px; text-align:center; cursor:pointer; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Drag &amp; drop file here — or click to choose</div>
         <input type="file" id="editDocFile" accept=".pdf,.jpg,.jpeg,.png">
       </div>
       <div class="actions">
@@ -149,9 +150,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
 <script>
   guardPage();
   renderSidebar('documents');
@@ -312,6 +313,7 @@
             </div>
           </div>
           <div class="delete-row-actions">
+            <button class="btn-pill" style="color:var(--accent);" onclick="editType(${t.document_type_id}, '${t.document_name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${Number(t.has_expiry) ? 1 : 0}, ${Number(t.is_required) ? 1 : 0})">Edit</button>
             <button class="btn-pill btn-delete" data-delete-type="${t.document_type_id}" data-name="${t.document_name.replace(/"/g, '&quot;')}">Delete</button>
           </div>
         </div>
@@ -330,7 +332,17 @@
     btn.disabled = true;
     btn.textContent = 'Deleting...';
     try {
-      await api.post('document_types.delete', { document_type_id: id });
+      try {
+        await api.post('document_types.delete', { document_type_id: id });
+      } catch (err) {
+        if (err.data && err.data.needs_force) {
+          const n = err.data.doc_count;
+          if (!confirm(`This type has ${n} uploaded document(s).\n\nDeleting it will PERMANENTLY delete those files too. Continue?`)) return;
+          await api.post('document_types.delete', { document_type_id: id, force: 1 });
+        } else {
+          throw err;
+        }
+      }
       showAlert(`"${name}" deleted.`);
       await loadDropdowns();
       refreshDocTypeSelects();
@@ -392,7 +404,8 @@
 
       <div class="field-grid row-file-wrap">
         <div class="field">
-          <label>File(s) * (PDF, JPG, PNG. Select multiple pages/photos if needed.)</label>
+          <label>File(s) * (PDF, JPG, PNG — max 5MB each. Select multiple pages/photos if needed.)</label>
+          <div class="dropzone" style="border:2px dashed var(--line); border-radius:8px; padding:12px; text-align:center; cursor:pointer; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Drag &amp; drop files here — or click to choose</div>
           <input type="file" class="row-file" accept=".pdf,.jpg,.jpeg,.png" multiple required>
           <div class="row-file-count" style="font-size:12px; color:#888; margin-top:4px;"></div>
         </div>
@@ -879,6 +892,94 @@
       }
     }
   })();
+
+  window.editType = function (id, currentName, hasExpiry, isRequired) {
+    let m = document.getElementById('editTypeModal');
+    if (!m) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay" id="editTypeModal">
+          <div class="modal" style="max-width:380px;">
+            <h3>Edit Document Type</h3>
+            <div class="field">
+              <label for="etName">Name</label>
+              <input type="text" id="etName">
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin:8px 0;">
+              <input type="checkbox" id="etExpiry"> Has expiry date
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin:8px 0;">
+              <input type="checkbox" id="etRequired"> Required for every employee
+            </label>
+            <div class="actions">
+              <button type="button" class="btn secondary" id="etCancel">Cancel</button>
+              <button type="button" class="btn" id="etSave">Save</button>
+            </div>
+          </div>
+        </div>`);
+      m = document.getElementById('editTypeModal');
+      document.getElementById('etCancel').addEventListener('click', () => m.classList.remove('open'));
+      document.getElementById('etSave').addEventListener('click', async () => {
+        const name = document.getElementById('etName').value.trim();
+        if (!name) { showAlert('Name is required.', 'error'); return; }
+        const btn = document.getElementById('etSave');
+        btn.disabled = true;
+        try {
+          await api.post('document_types.update', {
+            document_type_id: Number(m.dataset.typeId),
+            document_name: name,
+            has_expiry: document.getElementById('etExpiry').checked ? 1 : 0,
+            is_required: document.getElementById('etRequired').checked ? 1 : 0,
+          });
+          m.classList.remove('open');
+          showAlert('Document type updated.');
+          renderManageDocTypesList();
+          refreshPendingTypes();
+        } catch (err) {
+          showAlert(err.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+    m.dataset.typeId = id;
+    document.getElementById('etName').value = currentName;
+    document.getElementById('etExpiry').checked = !!hasExpiry;
+    document.getElementById('etRequired').checked = !!isRequired;
+    m.classList.add('open');
+  };
+
+  // ---- Drag & drop for all document dropzones (works on dynamically added rows too)
+  function dzInput(dz) {
+    return dz.closest('.field') ? dz.closest('.field').querySelector('input[type="file"]') : null;
+  }
+  document.addEventListener('dragover', (e) => {
+    const dz = e.target.closest('.dropzone');
+    if (dz) { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; dz.style.background = '#eef4ff'; }
+  });
+  document.addEventListener('dragleave', (e) => {
+    const dz = e.target.closest('.dropzone');
+    if (dz) { dz.style.borderColor = ''; dz.style.background = ''; }
+  });
+  document.addEventListener('drop', (e) => {
+    const dz = e.target.closest('.dropzone');
+    if (!dz) return;
+    e.preventDefault();
+    dz.style.borderColor = ''; dz.style.background = '';
+    const input = dzInput(dz);
+    if (input && e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      dz.textContent = e.dataTransfer.files.length + ' file(s) ready ✓';
+      dz.style.color = '#0f7a41';
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const dz = e.target.closest('.dropzone');
+    if (dz) { const input = dzInput(dz); if (input) input.click(); }
+  });
+  // Prevent the browser opening dropped files outside dropzones
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => e.preventDefault());
 </script>
 </body>
 </html>

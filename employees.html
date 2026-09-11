@@ -585,10 +585,21 @@ Amit Shah	9123456780		web management		"></textarea>
     try {
       const data = await api.post('employees.bulk_add', { employees: rows });
       bulkModal.classList.remove('open');
-      showAlert(data.message + ((data.errors || []).length ? ` ${data.errors.length} issue(s) — see below.` : ''));
-      if ((data.errors || []).length) {
-        alertBox.innerHTML += '<div class="alert error" style="white-space:pre-line;">' + data.errors.join('\n') + '</div>';
-      }
+
+      // Persistent result box — stays until YOU close it (no auto-clear).
+      const hasErrors = (data.errors || []).length > 0;
+      const box = document.createElement('div');
+      box.className = 'alert ' + (hasErrors ? 'error' : 'success');
+      box.style.cssText = 'position:relative; padding-right:44px; white-space:pre-line;';
+      box.textContent = data.message + (hasErrors ? '\n\n' + data.errors.join('\n') : '');
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '&#10005;';
+      closeBtn.title = 'Close';
+      closeBtn.style.cssText = 'position:absolute; top:8px; right:10px; background:none; border:none; cursor:pointer; font-size:15px; font-weight:700; color:inherit; padding:4px;';
+      closeBtn.onclick = () => box.remove();
+      box.appendChild(closeBtn);
+      alertBox.appendChild(box);
+
       loadEmployees();
     } catch (err) {
       document.getElementById('bulkAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
@@ -643,7 +654,7 @@ Amit Shah	9123456780		web management		"></textarea>
         <td><a href="employee_detail.html?id=${r.employee_id}">${photoHtml}</a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}"><span class="badge">${r.employee_code}</span></a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}" style="color:inherit; text-decoration:none;">${r.full_name}</a>${nameSuffix}</td>
-        <td>${r.department_name || '—'}</td>
+        <td>${r.department_name ? `<a href="#" onclick="filterByDept('${r.department_id}'); return false;" title="Show all ${r.department_name} employees">${r.department_name}</a>` : '—'}</td>
         <td>${r.mobile || '—'}</td>
         <td>${r.joining_date ? new Date(r.joining_date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
         <td>${pendingHtml}</td>
@@ -769,6 +780,13 @@ Amit Shah	9123456780		web management		"></textarea>
     clearTimeout(searchTimer);
     searchTimer = setTimeout(loadEmployees, 350);
   });
+  window.filterByDept = function (deptId) {
+    const sel = document.getElementById('deptFilter');
+    sel.value = String(deptId);
+    loadEmployees();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   document.getElementById('deptFilter').addEventListener('change', loadEmployees);
   document.getElementById('sortFilter').addEventListener('change', () => renderTable(currentRows));
 
