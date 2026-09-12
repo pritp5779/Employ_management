@@ -21,11 +21,11 @@
         <div style="padding:20px; max-width:420px;">
           <div class="field">
             <label for="newUsername">Username</label>
-            <input type="text" id="newUsername" maxlength="100">
+            <input autocomplete="off" name="hrms-new-user" type="text" id="newUsername" maxlength="100">
           </div>
           <div class="field">
             <label for="newPassword">Password (min 6 characters)</label>
-            <input type="password" id="newPassword" maxlength="100">
+            <input autocomplete="new-password" name="hrms-new-pass" type="password" id="newPassword" maxlength="100">
           </div>
           <div class="field">
             <label for="newRole">Role</label>
@@ -69,8 +69,12 @@
 
   const currentUser = api.currentUser() || {};
   if (currentUser.role !== 'Admin') {
-    document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">This page is only available to Admin users.</div>';
-    throw new Error('Not authorized');
+    // Non-admin roles may still have this page granted via Roles.
+    api.get('me.flags').then((d) => {
+      if (!(d.permissions || []).includes('users')) {
+        document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">You do not have access to this page.</div>';
+      }
+    }).catch(() => {});
   }
 
   renderSidebar('users');
@@ -210,12 +214,29 @@
     }
     // Employee options: copy from the add-form select (already loaded)
     document.getElementById('euEmployee').innerHTML = document.getElementById('newEmployee').innerHTML;
+    const euRole = document.getElementById('euRole');
+    if (window._customRoleOpts && !euRole.dataset.customsAdded) {
+      euRole.insertAdjacentHTML('beforeend', window._customRoleOpts);
+      euRole.dataset.customsAdded = '1';
+    }
     m.dataset.userId = id;
     document.getElementById('euName').value = username;
     document.getElementById('euRole').value = role;
     document.getElementById('euEmployee').value = employeeId || '';
     m.classList.add('open');
   };
+
+  // Load custom roles into both role selects (system roles stay hardcoded).
+  (async function loadRoleOptions() {
+    try {
+      const data = await api.get('roles.list');
+      const customs = (data.roles || []).filter(r => !['Admin', 'HR', 'Employee'].includes(r.role_name));
+      if (!customs.length) return;
+      const opts = customs.map(r => `<option value="${r.role_name}">${r.role_name}</option>`).join('');
+      document.getElementById('newRole').insertAdjacentHTML('beforeend', opts);
+      window._customRoleOpts = opts; // used when the edit modal opens
+    } catch (e) { /* roles table not created yet — system roles still work */ }
+  })();
 </script>
 </body>
 </html>

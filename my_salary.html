@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Salary — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1>My Salary</h1>
+      <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="stat-grid" style="max-width:720px;">
+        <div class="stat-card"><div class="label">Monthly Salary</div><div class="value" id="stSalary">—</div></div>
+        <div class="stat-card"><div class="label">Per Day</div><div class="value" id="stDaily">—</div></div>
+        <div class="stat-card"><div class="label">Earned (so far)</div><div class="value" id="stEarned">—</div></div>
+      </div>
+
+      <div class="card" style="max-width:720px;">
+        <div class="card-head"><h2 id="cardTitle">Day-wise</h2><span id="poolInfo" style="font-size:12px; color:var(--muted);"></span></div>
+        <table>
+          <thead><tr><th>Date</th><th>Status</th><th>Pay</th><th>Amount</th></tr></thead>
+          <tbody id="dayBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('my_salary');
+
+  const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  async function load() {
+    const m = document.getElementById('monthPick').value;
+    if (!m) return;
+    document.getElementById('cardTitle').textContent = 'Day-wise — ' +
+      new Date(m + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    const tbody = document.getElementById('dayBody');
+    try {
+      const data = await api.get('salary.detail', { month: m });
+      const d = data.detail;
+      document.getElementById('stSalary').textContent = inr(d.monthly_salary);
+      document.getElementById('stDaily').textContent = inr(d.daily_rate);
+      document.getElementById('stEarned').textContent = inr(d.earned);
+      document.getElementById('poolInfo').textContent = 'Free leave remaining: ' + d.pool_left + ' day(s)';
+      tbody.innerHTML = d.days.map(day => {
+        const color = day.pct >= 100 ? '#0f7a41' : (day.pct > 0 ? '#b45f06' : '#c81e1e');
+        return `<tr>
+          <td style="white-space:nowrap;">${new Date(day.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}</td>
+          <td>${day.status}${day.note ? `<div style="font-size:10.5px; color:var(--muted);">${day.note}</div>` : ''}</td>
+          <td style="color:${color};">${day.pct}%</td>
+          <td style="color:${color}; font-weight:600;">${inr(day.amount)}</td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  const now = new Date();
+  document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('monthPick').addEventListener('change', load);
+  load();
+</script>
+</body>
+</html>

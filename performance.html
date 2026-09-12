@@ -118,7 +118,14 @@
   window.rateDaily = async function (empId, field, value) {
     try {
       await api.post('performance.rate_daily', { date: currentDay, employee_id: empId, field, value });
-      loadDaily();
+      // Update just this value locally — no page reload, no re-fetch.
+      const row = dailyRows.find(r => r.employee_id === empId);
+      if (row) {
+        if (field === 'convincing') row.convincing = value;
+        else if (field === 'customer') row.customer_rating = value;
+        else row.behavior_rating = value;
+      }
+      renderDaily();
     } catch (err) {
       showAlert(err.message, 'error');
     }
@@ -129,7 +136,12 @@
     if (v === null) return;
     try {
       await api.post('queries.save', { employee_id: empId, date: currentDay, query_count: Number(v || 0) });
-      loadDaily();
+      const row = dailyRows.find(r => r.employee_id === empId);
+      if (row) {
+        row.queries = Number(v || 0);
+        row.ratio = row.queries > 0 ? Math.round((row.orders / row.queries) * 1000) / 10 : null;
+      }
+      renderDaily();
     } catch (err) {
       showAlert(err.message, 'error');
     }
@@ -171,7 +183,15 @@
         <td>${ratioBadge}</td>
         <td>${starsDaily(r.employee_id, 'convincing', r.convincing)}</td>
         <td>${starsDaily(r.employee_id, 'customer', r.customer_rating)}</td>
-        <td>${starsDaily(r.employee_id, 'behavior', r.behavior_rating)}</td>
+        <td>${(() => {
+          const opts = [['Good', 5, '#0f7a41', '#e7f7ee'], ['Average', 3, '#b45f06', '#fdf3e3'], ['Bad', 1, '#c81e1e', '#fdecec']];
+          return opts.map(([label, val, fg, bg]) => {
+            const on = r.behavior_rating === val;
+            return `<span onclick="rateDaily(${r.employee_id}, 'behavior', ${val})"
+              style="cursor:pointer; display:inline-block; padding:3px 9px; border-radius:12px; font-size:11.5px; font-weight:600; margin:1px;
+                     background:${on ? bg : 'var(--bg)'}; color:${on ? fg : 'var(--muted)'}; border:1px solid ${on ? fg : 'var(--line)'};">${label}</span>`;
+          }).join('');
+        })()}</td>
       </tr>`;
     }).join('');
   }
@@ -206,7 +226,12 @@
           <td>${r.avg_per_day}</td>
           <td>${starsAvg(r.convincing)}</td>
           <td>${starsAvg(r.customer_rating)}</td>
-          <td>${starsAvg(r.behavior_rating)}</td>
+          <td>${(() => {
+            const v = r.behavior_rating;
+            if (v === null || v === undefined) return '<span style="color:var(--muted); font-size:12px;">—</span>';
+            const [label, fg, bg] = v >= 4 ? ['Good', '#0f7a41', '#e7f7ee'] : (v >= 2 ? ['Average', '#b45f06', '#fdf3e3'] : ['Bad', '#c81e1e', '#fdecec']);
+            return `<span class="badge" style="background:${bg}; color:${fg};">${label}</span>`;
+          })()}</td>
           <td style="font-weight:700; font-size:15px;">${r.overall !== null ? r.overall : '—'}<div style="font-size:11px; color:var(--muted); font-weight:400;">of 5</div></td>
         </tr>`;
       }).join('');

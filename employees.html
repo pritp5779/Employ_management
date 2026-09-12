@@ -21,7 +21,8 @@
               <option value="">All Departments</option>
             </select>
             <select id="sortFilter" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-              <option value="">Sort by</option>
+              <option value="">Sort by (default: employee no.)</option>
+              <option value="code_desc">Employee no. — newest first</option>
               <option value="joining_desc">Joining date: New to Old</option>
               <option value="joining_asc">Joining date: Old to New</option>
               <option value="name_asc">Name: A to Z</option>
@@ -70,6 +71,7 @@
           <video id="cameraVideo" autoplay playsinline style="width:100%; border-radius:8px; background:#000; transform:scaleX(-1);"></video>
           <div style="display:flex; gap:8px; margin-top:8px;">
             <button type="button" id="cameraCaptureBtn" class="btn" style="width:auto;">Capture</button>
+            <button type="button" id="cameraFlipBtn" class="btn secondary" style="width:auto;">🔄 Switch camera</button>
             <button type="button" id="cameraCancelBtn" class="btn secondary" style="width:auto;">Cancel</button>
           </div>
           <div id="cameraMsg" style="font-size:13px; font-weight:600; color:#c0392b; margin-top:8px; line-height:1.5;"></div>
@@ -146,9 +148,10 @@
           <label for="employmentType">Employment Type</label>
           <input type="text" id="employmentType" placeholder="Full-time / Part-time / Contract" maxlength="50">
         </div>
+        <input type="hidden" id="basicSalary">
         <div class="field">
-          <label for="basicSalary" id="basicSalaryLabel">Basic Salary</label>
-          <input type="number" id="basicSalary" step="0.01" min="0">
+          <label for="monthlySalary">Monthly Salary <span style="text-transform:none; font-weight:400;">(0 = no salary page)</span></label>
+          <input type="number" id="monthlySalary" step="0.01" min="0">
         </div>
       </div>
 
@@ -366,16 +369,24 @@ Amit Shah	9123456780		web management		"></textarea>
     cameraPanel.style.display = 'none';
   }
 
-  photoCameraBtn.addEventListener('click', async () => {
+  let cameraFacing = 'user'; // 'user' = front, 'environment' = back
+
+  async function startCamera() {
     cameraMsg.textContent = '';
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       cameraPanel.style.display = 'block';
       cameraMsg.textContent = 'Camera access is not available in this browser.';
       return;
     }
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
     try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFacing } });
       cameraVideo.srcObject = cameraStream;
+      // Mirror only the front camera (selfie feel); back camera stays normal.
+      cameraVideo.style.transform = cameraFacing === 'user' ? 'scaleX(-1)' : 'none';
       cameraPanel.style.display = 'block';
     } catch (err) {
       cameraPanel.style.display = 'block';
@@ -387,6 +398,13 @@ Amit Shah	9123456780		web management		"></textarea>
         cameraMsg.textContent = 'Could not access the camera (' + err.name + ').';
       }
     }
+  }
+
+  photoCameraBtn.addEventListener('click', () => { cameraFacing = 'user'; startCamera(); });
+
+  document.getElementById('cameraFlipBtn').addEventListener('click', () => {
+    cameraFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    startCamera();
   });
 
   document.getElementById('cameraCancelBtn').addEventListener('click', stopCamera);
@@ -396,9 +414,11 @@ Amit Shah	9123456780		web management		"></textarea>
     canvas.width = cameraVideo.videoWidth;
     canvas.height = cameraVideo.videoHeight;
     const ctx = canvas.getContext('2d');
-    // Mirror the capture to match the mirrored preview (feels natural, like a selfie camera).
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
+    if (cameraFacing === 'user') {
+      // Mirror the capture to match the mirrored selfie preview.
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob(blob => {
@@ -438,6 +458,7 @@ Amit Shah	9123456780		web management		"></textarea>
       document.getElementById('dob').value = emp.date_of_birth || '';
       document.getElementById('employmentType').value = emp.employment_type || '';
       document.getElementById('basicSalary').value = emp.basic_salary || '';
+      document.getElementById('monthlySalary').value = Number(emp.monthly_salary) > 0 ? emp.monthly_salary : '';
       document.getElementById('salesTag').value = emp.sales_tag || '';
       setTimeout(updateSalaryLabel, 0);
       document.getElementById('address').value = emp.address || '';
@@ -615,7 +636,9 @@ Amit Shah	9123456780		web management		"></textarea>
     const sortBy = document.getElementById('sortFilter').value;
     const sorted = rows.slice();
 
-    if (sortBy === 'joining_desc') {
+    if (sortBy === 'code_desc') {
+      sorted.sort((a, b) => (b.employee_code || '').localeCompare(a.employee_code || ''));
+    } else if (sortBy === 'joining_desc') {
       sorted.sort((a, b) => new Date(b.joining_date || 0) - new Date(a.joining_date || 0));
     } else if (sortBy === 'joining_asc') {
       sorted.sort((a, b) => new Date(a.joining_date || 0) - new Date(b.joining_date || 0));
@@ -722,6 +745,7 @@ Amit Shah	9123456780		web management		"></textarea>
       date_of_birth: document.getElementById('dob').value || '',
       employment_type: document.getElementById('employmentType').value.trim(),
       basic_salary: document.getElementById('basicSalary').value || 0,
+      monthly_salary: document.getElementById('monthlySalary').value || 0,
       address: document.getElementById('address').value.trim(),
       emergency_contact_name: document.getElementById('emName').value.trim(),
       emergency_contact_mobile: document.getElementById('emMobile').value.trim(),

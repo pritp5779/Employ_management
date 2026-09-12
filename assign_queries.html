@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assign Queries — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1>Assign Queries</h1>
+      <input type="date" id="dayPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card" style="max-width:520px;">
+        <div class="card-head">
+          <h2 id="cardTitle">Today</h2>
+          <span style="font-size:13px; color:var(--muted);">Total: <b id="totalCount" style="color:var(--text, #111);">0</b></span>
+        </div>
+        <div id="empList">
+          <div class="loading" style="padding:24px; text-align:center;">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('assign_queries');
+
+  const alertBox = document.getElementById('alertBox');
+  let rows = [];
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  function day() { return document.getElementById('dayPick').value; }
+
+  function render() {
+    const list = document.getElementById('empList');
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty-state" style="padding:24px; text-align:center;">No sales employees.</div>';
+      return;
+    }
+    document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+    list.innerHTML = rows.map(r => `
+      <div style="display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid var(--line);">
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:14px;">${r.full_name}</div>
+          <div style="font-size:11px; color:var(--muted);">${r.employee_code}</div>
+        </div>
+        <span id="cnt-${r.employee_id}" style="font-size:20px; font-weight:700; min-width:36px; text-align:center;">${r.query_count}</span>
+        <button onclick="bump(${r.employee_id}, -1, this)" title="Undo one"
+          style="width:36px; height:36px; border-radius:8px; border:1px solid var(--line); background:none; color:var(--muted); font-size:16px; cursor:pointer;">−</button>
+        <button onclick="bump(${r.employee_id}, 1, this)"
+          style="width:56px; height:42px; border-radius:8px; border:none; background:#185FA5; color:#fff; font-size:16px; font-weight:700; cursor:pointer;">+1</button>
+      </div>`).join('');
+  }
+
+  window.bump = async function (empId, delta, btn) {
+    btn.disabled = true;
+    try {
+      const d = await api.post('queries.assign_bump', { employee_id: empId, delta, date: day() });
+      const row = rows.find(r => r.employee_id === empId);
+      if (row) row.query_count = d.query_count;
+      document.getElementById('cnt-' + empId).textContent = d.query_count;
+      document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  async function load() {
+    document.getElementById('cardTitle').textContent =
+      new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
+    try {
+      const data = await api.get('queries.assign_list', { date: day() });
+      rows = data.employees || [];
+      render();
+    } catch (err) {
+      document.getElementById('empList').innerHTML = `<div style="padding:20px;"><div class="alert error">${err.message}</div></div>`;
+    }
+  }
+
+  const now = new Date();
+  document.getElementById('dayPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  document.getElementById('dayPick').addEventListener('change', load);
+  load();
+</script>
+</body>
+</html>

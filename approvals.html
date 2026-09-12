@@ -49,8 +49,12 @@
 
   const currentUser = api.currentUser() || {};
   if (currentUser.role !== 'Admin') {
-    document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">This page is only available to Admin users.</div>';
-    throw new Error('Not authorized');
+    // Non-admin roles may still have this page granted via Roles.
+    api.get('me.flags').then((d) => {
+      if (!(d.permissions || []).includes('approvals')) {
+        document.body.innerHTML = '<div style="padding:40px; font-family:sans-serif;">You do not have access to this page.</div>';
+      }
+    }).catch(() => {});
   }
 
   renderSidebar('approvals');
