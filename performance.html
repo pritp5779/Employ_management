@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Performance — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
@@ -25,7 +32,7 @@
         <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Convincing</th><th>Customer</th><th>Behavior</th></tr>
+            <tr><th>Employee</th><th>Query</th><th>Orders</th><th>Ratio</th><th>Convincing</th><th>Customer</th><th>Behavior</th></tr>
           </thead>
           <tbody id="dailyBody">
             <tr><td colspan="7" class="loading">Loading...</td></tr>
@@ -250,5 +257,6 @@
   load();
   loadDaily();
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

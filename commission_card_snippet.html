@@ -1,0 +1,105 @@
+<!--
+  ================= COMMISSION CARD — drop into targets.html =================
+  Paste the card block into targets.html wherever you want the commission
+  table to appear (e.g. right after the existing targets table), and paste
+  the script block below it, right before the closing body tag (or merge
+  it into your existing script section). It reuses your page's existing
+  `month` value if a variable or
+  input with id="monthPick" exists — otherwise it defaults to the current
+  month and exposes its own picker.
+-->
+
+<div class="card">
+  <div class="card-head">
+    <h2 id="commTitle">Commission</h2>
+    <a href="commission_rules.html" style="font-size:12.5px;">Edit rules &rarr;</a>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th><th>Achieved</th><th>Target</th><th>Orders</th>
+        <th>Avg ticket</th><th>Prepaid %</th><th>Rate</th><th>Commission</th><th style="width:110px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="commBody"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+  </table>
+</div>
+
+<script>
+(function () {
+  const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  function commissionMonth() {
+    // Reuses whatever month the rest of the Targets page is showing, if it
+    // exposes one; otherwise falls back to an input#monthPick or "this month".
+    if (typeof currentMonth !== 'undefined' && currentMonth) return currentMonth;
+    const el = document.getElementById('monthPick');
+    if (el && el.value) return el.value;
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  }
+
+  async function loadCommission() {
+    const month = commissionMonth();
+    const tbody = document.getElementById('commBody');
+    document.getElementById('commTitle').textContent = 'Commission — ' +
+      new Date(month + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    try {
+      const data = await api.get('commission.get', { month });
+      const rows = data.rows || [];
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No sales employees.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+          <td>${inr(r.achieved)}</td>
+          <td>${inr(r.target)}</td>
+          <td>${r.orders}</td>
+          <td>${inr(r.ticket_avg)}</td>
+          <td>${r.prepaid_pct}%</td>
+          <td>${r.final_rate}%${r.is_override ? ' <span class="badge" style="font-size:10px;">manual</span>' : ''}</td>
+          <td style="font-weight:700;">${inr(r.final_amount)}</td>
+          <td>
+            <div class="row-actions">
+              <button onclick="commOverride(${r.employee_id}, '${month}', ${r.computed_rate}, ${r.computed_amount})" title="${r.rule}">${r.is_override ? 'Edit' : 'Override'}</button>
+              ${r.is_override ? `<button class="danger-link" onclick="commClear(${r.employee_id}, '${month}')">Clear</button>` : ''}
+            </div>
+          </td>
+        </tr>`).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.commOverride = async function (employeeId, month, currentRate, currentAmount) {
+    const rate = prompt('Commission rate % for this employee (leave the automatic amount below to match, or set your own):', currentRate);
+    if (rate === null) return;
+    const amount = prompt('Commission amount (₹):', Math.round((Number(rate) / 100) * (currentAmount / (currentRate / 100 || 1))) || currentAmount);
+    if (amount === null) return;
+    try {
+      await api.post('commission.override', { employee_id: employeeId, month, rate: Number(rate), commission_amount: Number(amount) });
+      loadCommission();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  window.commClear = async function (employeeId, month) {
+    if (!confirm('Clear the manual override and use the automatic calculation again?')) return;
+    try {
+      await api.post('commission.override', { employee_id: employeeId, month, rate: '' });
+      loadCommission();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Refresh whenever the page's own month picker changes, if there is one.
+  const mp = document.getElementById('monthPick');
+  if (mp) mp.addEventListener('change', loadCommission);
+
+  loadCommission();
+})();
+</script>

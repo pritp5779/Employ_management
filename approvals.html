@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Approvals — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
@@ -108,6 +115,7 @@
             <td>${fmtDate(d.uploaded_at)}</td>
             <td>
               <div class="row-actions">
+                ${d.document_file ? `<a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank" style="margin-right:6px;">View</a>` : ''}
                 <button onclick="approveDocument(${d.employee_document_id})">Approve</button>
                 <button class="danger-link" onclick="declineDocument(${d.employee_document_id}, '${(d.document_name||'').replace(/'/g,"\\'")}')">Decline</button>
               </div>
@@ -166,5 +174,6 @@
 
   load();
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

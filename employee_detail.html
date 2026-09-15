@@ -3,8 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Employee Details — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css">
 <style>
   .expiry-ok{color:var(--ok-fg);font-weight:600;}
   .expiry-warn{color:#b45309;font-weight:600;}
@@ -113,13 +120,23 @@
           </tbody>
         </table>
       </div>
+
+      <div class="card" id="agreementsCard" style="display:none;">
+        <div class="card-head"><h2 id="agreementsTitle">Agreements</h2></div>
+        <table>
+          <thead>
+            <tr><th>Agreement</th><th>Status</th><th>Signed on</th><th>Reference</th><th style="width:120px;">Actions</th></tr>
+          </thead>
+          <tbody id="agreementsTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
 <script>
   guardPage();
   renderSidebar('employees');
@@ -152,6 +169,7 @@
     loadEmployee();
     loadDocuments();
     loadSources();
+    loadAgreements();
   }
 
   async function loadSources() {
@@ -299,6 +317,58 @@
     }
   }
 
+  // ---- Agreements sent to this employee. Signed ones open/download the
+  // generated PDF; anything still pending can be removed from here too.
+  async function loadAgreements() {
+    const tbody = document.getElementById('agreementsTableBody');
+    const card = document.getElementById('agreementsCard');
+    try {
+      const data = await api.get('agreements.list', { employee_id: employeeId });
+      const rows = data.agreements || [];
+      if (!rows.length) { card.style.display = 'none'; return; }
+
+      const base = API_BASE_URL.replace('/api.php', '');
+      const signedCount = rows.filter(a => a.status === 'signed').length;
+      document.getElementById('agreementsTitle').textContent =
+        `Agreements (${signedCount} signed${rows.length - signedCount ? ' · ' + (rows.length - signedCount) + ' pending' : ''})`;
+
+      tbody.innerHTML = rows.map(a => {
+        const signed = a.status === 'signed';
+        return `<tr>
+          <td>${a.template_name}${signed && Number(a.auto_signed) ? '<div style="font-size:11px; color:#0f7a41;">auto-signed</div>' : ''}</td>
+          <td>${signed
+            ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Signed</span>'
+            : '<span class="badge" style="background:#fdf3e3; color:#b45f06;">Pending</span>'}</td>
+          <td>${a.signed_at ? new Date(a.signed_at.replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+          <td style="font-size:12px; color:var(--muted);">${a.reference || '—'}</td>
+          <td>
+            <div class="row-actions">
+              ${signed ? `<a href="agreement_view.html?id=${a.agreement_id}">View</a>` : '<span style="color:var(--muted); font-size:12.5px;">—</span>'}
+              ${signed && a.signed_file ? `<a href="${base}/${a.signed_file}" target="_blank">PDF</a>` : ''}
+              <button class="danger-link" onclick="deleteAgreement(${a.agreement_id}, '${a.template_name.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+      card.style.display = 'block';
+    } catch (err) {
+      // Agreements are optional (HR/Admin only) — never block the page.
+      console.error('Agreements load failed:', err.message);
+      card.style.display = 'none';
+    }
+  }
+
+  window.deleteAgreement = async function (id, name) {
+    if (!confirm(`Delete "${name}" for this employee?\n\nThe generated PDF is removed too. This cannot be undone.`)) return;
+    try {
+      await api.post('agreements.delete', { agreement_id: id });
+      showAlert('Agreement deleted.');
+      loadAgreements();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
   window.deleteDoc = async function (id) {
     if (!confirm('Delete this document? This cannot be undone.')) return;
     try {
@@ -310,5 +380,6 @@
     }
   };
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

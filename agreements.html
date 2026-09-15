@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Agreements — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1>Agreements</h1>
+      <button class="btn" id="btnUpload">+ Upload Template</button>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Templates</h2>
+          <span style="font-size:12px; color:var(--muted);">Upload your designed <b>.pdf</b> (recommended — used as-is, values are written onto it), or an .html / .docx. Markers: {{name}} {{code}} {{department}} {{designation}} {{joining_date}} {{date}} {{salary}} {{signed_at}} {{signature}} {{ref}}</span>
+        </div>
+        <div id="tplList"><div class="loading" style="padding:20px; text-align:center;">Loading...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2 id="sentTitle">Sent Agreements</h2></div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Agreement</th><th>Status</th><th>Signed on</th><th>File</th><th style="width:130px;">Actions</th></tr>
+          </thead>
+          <tbody id="agBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="upTitle">Upload Agreement Template</h3>
+    <input type="hidden" id="tplReplaceId" value="0">
+    <div class="field"><label for="tplName">Template Name</label><input type="text" id="tplName" placeholder="e.g. Employment Agreement"></div>
+    <div class="field">
+      <label for="tplFile">Template file (.pdf, .html or .docx)</label>
+      <input type="file" id="tplFile" accept=".pdf,.html,.htm,.docx">
+      <div style="font-size:11.5px; color:var(--muted); margin-top:6px;"><b>PDF:</b> your design is kept exactly — the markers must be typed as normal text in the PDF. <b>HTML:</b> rendered with its own CSS. <b>Word:</b> converted on the server, approximate styling.</div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="upCancel">Cancel</button>
+      <button type="button" class="btn" id="upSave">Upload</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sendModal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="sendTitle">Send Agreement</h3>
+    <div class="field">
+      <label>Employees</label>
+      <input type="text" id="empFilter" placeholder="Search name or code..." style="margin-bottom:8px;">
+      <div id="empPick" style="max-height:260px; overflow-y:auto; border:1px solid var(--line); border-radius:6px; padding:8px;"></div>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:8px;">Employees with a Digital Signature document (or a drawn signature) are signed instantly — no request is sent to them.</div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="sendCancel">Cancel</button>
+      <button type="button" class="btn" id="sendGo">Send</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
+<script>
+  guardPage();
+  renderSidebar('agreements');
+
+  const alertBox = document.getElementById('alertBox');
+  const base = API_BASE_URL.replace('/api.php', '');
+  let employees = [];
+  let sendTemplateId = 0;
+
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 5000);
+  }
+
+  // ---------- Templates ----------
+  const upModal = document.getElementById('uploadModal');
+  document.getElementById('btnUpload').addEventListener('click', () => {
+    document.getElementById('upTitle').textContent = 'Upload Agreement Template';
+    document.getElementById('tplReplaceId').value = '0';
+    document.getElementById('tplName').value = '';
+    document.getElementById('tplFile').value = '';
+    upModal.classList.add('open');
+  });
+
+  window.replaceTemplate = function (id, name) {
+    document.getElementById('upTitle').textContent = 'Replace file — ' + name;
+    document.getElementById('tplReplaceId').value = String(id);
+    document.getElementById('tplName').value = name;
+    document.getElementById('tplFile').value = '';
+    upModal.classList.add('open');
+  };
+  document.getElementById('upCancel').addEventListener('click', () => upModal.classList.remove('open'));
+
+  document.getElementById('upSave').addEventListener('click', async () => {
+    const name = document.getElementById('tplName').value.trim();
+    const file = document.getElementById('tplFile').files[0];
+    if (!name || !file) { showAlert('Name and template file are required.', 'error'); return; }
+    const fd = new FormData();
+    fd.append('template_name', name);
+    fd.append('template_file', file);
+    const replaceId = Number(document.getElementById('tplReplaceId').value || 0);
+    if (replaceId) fd.append('template_id', String(replaceId));
+    const btn = document.getElementById('upSave');
+    btn.disabled = true;
+    try {
+      const d = await api.upload('agreement_templates.upload', fd);
+      upModal.classList.remove('open');
+      showAlert(d.message || 'Template uploaded.');
+      loadTemplates();
+      loadAgreements();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  window.deleteTemplate = async function (id, name) {
+    if (!confirm(`Delete template "${name}"? Already-signed documents stay in place.`)) return;
+    try {
+      await api.post('agreement_templates.delete', { template_id: id });
+      showAlert('Template deleted.');
+      loadTemplates();
+    } catch (err) { showAlert(err.message, 'error'); }
+  };
+
+  async function loadTemplates() {
+    const box = document.getElementById('tplList');
+    try {
+      const data = await api.get('agreement_templates.list');
+      const tpls = data.templates || [];
+      if (!tpls.length) {
+        box.innerHTML = '<div class="empty-state" style="padding:20px; text-align:center;">No templates yet — upload your agreement PDF above.</div>';
+        return;
+      }
+      box.innerHTML = tpls.map(t => `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 20px; border-bottom:1px solid var(--line); font-size:13.5px;">
+          <span><b>${t.template_name}</b> <span class="badge" style="margin-left:6px; font-size:10.5px;">${/\.pdf$/i.test(t.file_path) ? 'PDF' : (/\.html?$/i.test(t.file_path) ? 'HTML' : 'Word')}</span> <a href="${base}/${t.file_path}" target="_blank" style="font-size:12px; margin-left:8px;">download</a></span>
+          <span class="row-actions">
+            <button onclick="openSend(${t.template_id}, '${t.template_name.replace(/'/g, "\\'")}')">Send to employees</button>
+            <button onclick="replaceTemplate(${t.template_id}, '${t.template_name.replace(/'/g, "\\'")}')">Replace file</button>
+            <button class="danger-link" onclick="deleteTemplate(${t.template_id}, '${t.template_name.replace(/'/g, "\\'")}')">Delete</button>
+          </span>
+        </div>`).join('');
+    } catch (err) {
+      box.innerHTML = `<div style="padding:16px 20px;"><div class="alert error">${err.message}</div></div>`;
+    }
+  }
+
+  // ---------- Send ----------
+  const sendModal = document.getElementById('sendModal');
+  document.getElementById('sendCancel').addEventListener('click', () => sendModal.classList.remove('open'));
+  document.getElementById('empFilter').addEventListener('input', renderEmpPick);
+
+  function renderEmpPick() {
+    const q = document.getElementById('empFilter').value.trim().toLowerCase();
+    const list = employees.filter(e => !q || e.full_name.toLowerCase().includes(q) || (e.employee_code || '').toLowerCase().includes(q));
+    document.getElementById('empPick').innerHTML = list.map(e => `
+      <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:13px;">
+        <input type="checkbox" class="emp-cb" value="${e.employee_id}"> ${e.full_name}
+        <span style="color:var(--muted); font-size:11.5px;">${e.employee_code}</span>
+        ${Number(e.has_signature) ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41; font-size:10.5px;">auto-sign</span>' : ''}
+      </label>`).join('') || '<div style="font-size:12.5px; color:var(--muted); padding:6px;">No matches.</div>';
+  }
+
+  window.openSend = async function (templateId, name) {
+    sendTemplateId = templateId;
+    document.getElementById('sendTitle').textContent = 'Send — ' + name;
+    document.getElementById('empFilter').value = '';
+    // Always refetch so the auto-sign badges reflect signatures saved since.
+    const d = await api.get('employees.list');
+    employees = d.employees || [];
+    renderEmpPick();
+    sendModal.classList.add('open');
+  };
+
+  document.getElementById('sendGo').addEventListener('click', async () => {
+    const ids = [...document.querySelectorAll('.emp-cb:checked')].map(cb => Number(cb.value));
+    if (!ids.length) { showAlert('Pick at least one employee.', 'error'); return; }
+    const btn = document.getElementById('sendGo');
+    btn.disabled = true;
+    try {
+      const d = await api.post('agreements.send', { template_id: sendTemplateId, employee_ids: ids });
+      sendModal.classList.remove('open');
+      showAlert(d.message);
+      loadAgreements();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- Sent list ----------
+  async function loadAgreements() {
+    const tbody = document.getElementById('agBody');
+    try {
+      const data = await api.get('agreements.list');
+      const rows = data.agreements || [];
+      const pending = rows.filter(a => a.status !== 'signed').length;
+      document.getElementById('sentTitle').textContent =
+        rows.length ? `Sent Agreements — ${rows.length - pending} signed / ${pending} pending` : 'Sent Agreements';
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nothing sent yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(a => {
+        const note = a.status === 'signed'
+          ? (Number(a.auto_signed) ? '<div style="font-size:11px; color:#0f7a41;">auto-signed with digital signature</div>' : '')
+          : (a.render_error
+              ? '<div style="font-size:11px; color:#c81e1e;">' + a.render_error + '</div>'
+              : (a.signature_file ? '' : '<div style="font-size:11px; color:#b45f06;">no Digital Signature document uploaded yet</div>'));
+        const actions = a.status === 'signed'
+          ? '<span style="color:var(--muted); font-size:12.5px;">—</span>'
+          : `<div class="row-actions"><button class="danger-link" onclick="cancelAgreement(${a.agreement_id}, '${(a.full_name || '').replace(/'/g, "\\'")}', '${a.template_name.replace(/'/g, "\\'")}')">Cancel request</button></div>`;
+        return `<tr>
+          <td><a href="employee_detail.html?id=${a.employee_id}">${a.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${a.employee_code}</div></td>
+          <td>${a.template_name}${note}</td>
+          <td>${a.status === 'signed'
+            ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Signed</span>'
+            : '<span class="badge" style="background:#fdf3e3; color:#b45f06;">Pending</span>'}</td>
+          <td>${a.signed_at ? new Date(a.signed_at.replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+            ${a.reference ? `<div style="font-size:11px; color:var(--muted);">${a.reference}</div>` : ''}</td>
+          <td>${a.status === 'signed'
+            ? `<a href="agreement_view.html?id=${a.agreement_id}">View</a>${a.signed_file ? ` · <a href="${base}/${a.signed_file}" target="_blank">PDF</a>` : ((a.template_kind === 'html' || a.template_kind === 'pdf') ? '<div style="font-size:11px; color:var(--muted);">PDF is created on first view</div>' : '')}`
+            : '—'}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.cancelAgreement = async function (id, emp, tpl) {
+    if (!confirm(`Cancel the "${tpl}" request for ${emp}?\n\nIt disappears from their My Agreements page. You can send it again later.`)) return;
+    try {
+      await api.post('agreements.cancel', { agreement_id: id });
+      showAlert('Request cancelled.');
+      loadAgreements();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  loadTemplates();
+  loadAgreements();
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Assign Queries — HRMS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Assign Query — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
 <body>
@@ -11,20 +18,34 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar">
-      <h1>Assign Queries</h1>
+      <h1>Assign Query</h1>
       <input type="date" id="dayPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
     </div>
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card" style="max-width:520px;">
+      <div class="card" style="max-width:760px;">
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
-          <span style="font-size:13px; color:var(--muted);">Total: <b id="totalCount" style="color:var(--text, #111);">0</b></span>
+          <span style="font-size:12.5px; color:var(--muted);">
+            Query <b id="sumScout" style="color:#0C447C;">0</b> ·
+            Campaigns <b id="sumChamp" style="color:#854F0B;">0</b> ·
+            Total <b id="totalCount" style="color:var(--ink);">0</b>
+          </span>
         </div>
-        <div id="empList">
-          <div class="loading" style="padding:24px; text-align:center;">Loading...</div>
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Query</th>
+              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Campaigns</th>
+              <th style="text-align:center;">Total</th>
+            </tr>
+          </thead>
+          <tbody id="empList">
+            <tr><td colspan="4" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
@@ -35,7 +56,7 @@
 <script src="assets/js/layout.js?v=1"></script>
 <script>
   guardPage();
-  renderSidebar('assign_queries');
+  renderSidebar('assign_query');
 
   const alertBox = document.getElementById('alertBox');
   let rows = [];
@@ -47,35 +68,47 @@
 
   function day() { return document.getElementById('dayPick').value; }
 
+  function updateSums() {
+    document.getElementById('sumScout').textContent = rows.reduce((t, r) => t + r.scout_count, 0);
+    document.getElementById('sumChamp').textContent = rows.reduce((t, r) => t + r.champion_count, 0);
+    document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+  }
+
   function render() {
     const list = document.getElementById('empList');
     if (!rows.length) {
-      list.innerHTML = '<div class="empty-state" style="padding:24px; text-align:center;">No sales employees.</div>';
+      list.innerHTML = '<tr><td colspan="4" class="empty-state">No sales employees.</td></tr>';
       return;
     }
-    document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+    updateSums();
+    const counter = (r, kind, color, bg) => `
+      <td style="text-align:center; background:${bg};">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <button onclick="bump(${r.employee_id}, '${kind}', -1, this)" title="Undo one"
+            style="width:30px; height:32px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:15px; cursor:pointer;">−</button>
+          <span id="cnt-${kind}-${r.employee_id}" style="font-size:18px; font-weight:700; min-width:30px; text-align:center;">${r[kind + '_count']}</span>
+          <button onclick="bump(${r.employee_id}, '${kind}', 1, this)"
+            style="width:46px; height:34px; border-radius:6px; border:none; background:${color}; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">+1</button>
+        </span>
+      </td>`;
     list.innerHTML = rows.map(r => `
-      <div style="display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid var(--line);">
-        <div style="flex:1; min-width:0;">
-          <div style="font-size:14px;">${r.full_name}</div>
-          <div style="font-size:11px; color:var(--muted);">${r.employee_code}</div>
-        </div>
-        <span id="cnt-${r.employee_id}" style="font-size:20px; font-weight:700; min-width:36px; text-align:center;">${r.query_count}</span>
-        <button onclick="bump(${r.employee_id}, -1, this)" title="Undo one"
-          style="width:36px; height:36px; border-radius:8px; border:1px solid var(--line); background:none; color:var(--muted); font-size:16px; cursor:pointer;">−</button>
-        <button onclick="bump(${r.employee_id}, 1, this)"
-          style="width:56px; height:42px; border-radius:8px; border:none; background:#185FA5; color:#fff; font-size:16px; font-weight:700; cursor:pointer;">+1</button>
-      </div>`).join('');
+      <tr>
+        <td>${r.full_name}<div style="font-size:11px; color:var(--muted);">${r.employee_code}</div></td>
+        ${counter(r, 'scout', '#0EA5E9', '#F7FBFE')}
+        ${counter(r, 'champion', '#F59E0B', '#FEFBF5')}
+        <td style="text-align:center; font-size:16px; font-weight:700;" id="cnt-total-${r.employee_id}">${r.query_count}</td>
+      </tr>`).join('');
   }
 
-  window.bump = async function (empId, delta, btn) {
+  window.bump = async function (empId, kind, delta, btn) {
     btn.disabled = true;
     try {
-      const d = await api.post('queries.assign_bump', { employee_id: empId, delta, date: day() });
+      const d = await api.post('queries.assign_bump', { employee_id: empId, kind, delta, date: day() });
       const row = rows.find(r => r.employee_id === empId);
-      if (row) row.query_count = d.query_count;
-      document.getElementById('cnt-' + empId).textContent = d.query_count;
-      document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+      if (row) { row.query_count = d.query_count; row.scout_count = d.scout_count; row.champion_count = d.champion_count; }
+      document.getElementById('cnt-' + kind + '-' + empId).textContent = d[kind + '_count'];
+      document.getElementById('cnt-total-' + empId).textContent = d.query_count;
+      updateSums();
     } catch (err) {
       showAlert(err.message, 'error');
     } finally {
@@ -91,7 +124,7 @@
       rows = data.employees || [];
       render();
     } catch (err) {
-      document.getElementById('empList').innerHTML = `<div style="padding:20px;"><div class="alert error">${err.message}</div></div>`;
+      document.getElementById('empList').innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -100,5 +133,6 @@
   document.getElementById('dayPick').addEventListener('change', load);
   load();
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

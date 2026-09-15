@@ -23,8 +23,10 @@ function renderSidebar(active) {
     documents: [['documents.html', 'Documents', 'documents']],
     whatsapp_groups: [['whatsapp_groups.html', 'WhatsApp Groups', 'whatsapp']],
     excel_files: [['excel_files.html', 'Excel Files', 'excel']],
-    assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
+    assign_queries: [['assign_queries.html', 'Assign Query', 'assign_query']],
     salary: [['salary.html', 'Salary', 'salary']],
+    commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
+    agreements: [['agreements.html', 'Agreements', 'agreements']],
     decline_history: [['history.html', 'Decline History', 'history']],
     approvals: [['approvals.html', 'Approvals', 'approvals']],
     users: [
@@ -94,7 +96,7 @@ function renderSidebar(active) {
     api.get('me.flags').then((d) => {
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
-      const allowed = ['attendance', 'my_salary'].concat(grantedActives);
+      const allowed = ['attendance', 'my_salary', 'my_agreements'].concat(grantedActives);
       if (d.is_sales) allowed.push('my_sales', 'orders');
       if (!allowed.includes(active)) { window.location.href = 'attendance.html'; return; }
       if (!d.has_salary && active === 'my_salary') { window.location.href = 'attendance.html'; return; }
@@ -111,6 +113,8 @@ function renderSidebar(active) {
           links += `
         <a href="my_salary.html" class="${linkClass('my_salary')}">My Salary</a>`;
         }
+        links += `
+        <a href="my_agreements.html" class="${linkClass('my_agreements')}">My Agreements</a>`;
         // Admin-side pages granted to the Employee role via Roles page.
         if (perms.length) {
           links += `
@@ -145,8 +149,10 @@ function renderSidebar(active) {
         <a href="attendance_admin.html" class="${linkClass('attendance_admin')}">Attendance</a>
         <a href="targets.html" class="${linkClass('targets')}">Targets</a>
         <a href="performance.html" class="${linkClass('performance')}">Performance</a>
-        <a href="assign_queries.html" class="${linkClass('assign_queries')}">Assign Queries</a>
+        <a href="assign_queries.html" class="${linkClass('assign_queries')}">Assign Query</a>
         <a href="salary.html" class="${linkClass('salary')}">Salary</a>
+        <a href="commission_rules.html" class="${linkClass('commission_rules')}">Commission Rules</a>
+        <a href="agreements.html" class="${linkClass('agreements')}">Agreements</a>
         <div class="nav-label">Masters</div>
         <a href="departments.html" class="${linkClass('departments')}">Departments</a>
         <div class="nav-label">People</div>

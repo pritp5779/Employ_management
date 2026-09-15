@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>My Sales — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
@@ -68,7 +75,7 @@
       const dayLabel = new Date(d.business_day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
       document.getElementById('detailBox').innerHTML = `
         <div style="margin-bottom:16px;">
-          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">Today</div>
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">Today — ${dayLabel} (10 AM to next day 10 AM)</div>
           <div style="font-size:14px; margin-top:4px;">${inr(d.today.sales)} of ${d.daily_target > 0 ? inr(d.daily_target) : '—'} daily target</div>
           ${bar(d.today.sales, d.daily_target)}
         </div>
@@ -79,7 +86,7 @@
         </div>
         ${d.today.error ? `<div class="alert error" style="margin-top:12px;">${d.today.error}</div>` : ''}
       `;
-      document.getElementById('detailTitle').textContent = d.name;
+      document.getElementById('detailTitle').textContent = d.name + ' — tag "' + d.tag + '"';
     } catch (err) {
       document.getElementById('detailBox').innerHTML = `<div class="alert error">${err.message}</div>`;
     }
@@ -87,5 +94,6 @@
 
   load();
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

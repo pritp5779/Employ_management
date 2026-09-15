@@ -40,7 +40,7 @@ const api = {
       throw new Error('Session expired');
     }
     if (!res.ok) {
-      const err = new Error(data.error || 'Something went wrong (' + res.status + ')');
+      const err = new Error((data && data.error) || 'Server error (' + res.status + ') — if this persists, re-upload api.php.');
       err.data = data; // full server response for callers that need details
       throw err;
     }
@@ -50,6 +50,22 @@ const api = {
   get(action, params = {}) {
     return this.request(action, { method: 'GET' }, params);
   },
+  async upload(action, formData) {
+    const res = await fetch(`${API_BASE_URL}?action=${action}`, {
+      method: 'POST',
+      headers: this.token() ? { Authorization: 'Bearer ' + this.token() } : {},
+      body: formData,
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      const err = new Error(data.error || 'Something went wrong (' + res.status + ')');
+      err.data = data;
+      throw err;
+    }
+    return data;
+  },
+
   post(action, body) {
     return this.request(action, { method: 'POST', body });
   },

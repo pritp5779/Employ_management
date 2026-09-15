@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Targets — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
@@ -37,10 +44,10 @@
         <div class="card-head"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);">Day runs 10 AM to next day 10 AM. Type in Daily Target to set that day manually; blank = automatic (profile Daily Target, or monthly Manual ÷ days).</span></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th></tr>
+            <tr><th>Employee</th><th>Query</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th>Commission</th></tr>
           </thead>
           <tbody id="dailyBody">
-            <tr><td colspan="8" class="loading">Loading...</td></tr>
+            <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -79,6 +86,52 @@
   let monthRows = [];
   let daysInMonth = 30;
 
+  // ---------- Commission (added — reads the rules from Commission Rules
+  // page and computes each row's commission client-side; never blocks or
+  // alters anything else on the page if the rules can't be fetched). ----------
+  let commissionRules = null;
+  async function loadCommissionRules() {
+    try {
+      const d = await api.get('commission_rules.list');
+      commissionRules = d.rules || [];
+    } catch (err) {
+      commissionRules = []; // column just shows "—" everywhere if unavailable
+    }
+  }
+
+  function calcCommission(achieved, target, ticket, prepaidPct) {
+    if (!commissionRules || !commissionRules.length || achieved <= 0) return null;
+    const overPct = target > 0 ? ((achieved / target) - 1) * 100 : 0;
+    const achievedTarget = target > 0 ? achieved >= target : false;
+
+    let overMatches = commissionRules.filter(r => r.rule_type === 'over_target' && overPct >= Number(r.over_pct) && ticket >= Number(r.ticket_min));
+    overMatches.sort((a, b) => Number(b.over_pct) - Number(a.over_pct) || Number(b.ticket_min) - Number(a.ticket_min));
+
+    let rate, rule;
+    if (overMatches.length) {
+      rate = Number(overMatches[0].rate);
+      rule = overMatches[0].label || ('+' + overMatches[0].over_pct + '% over target');
+    } else {
+      let baseMatches = commissionRules.filter(r => r.rule_type === 'base' && Number(r.achieved_target) === (achievedTarget ? 1 : 0) && ticket >= Number(r.ticket_min));
+      baseMatches.sort((a, b) => Number(b.ticket_min) - Number(a.ticket_min));
+      rate = baseMatches.length ? Number(baseMatches[0].rate) : 0;
+      rule = baseMatches.length ? (baseMatches[0].label || (rate + '%')) : '';
+      let prepaidMatches = commissionRules.filter(r => r.rule_type === 'prepaid' && prepaidPct >= Number(r.prepaid_min));
+      prepaidMatches.sort((a, b) => Number(b.prepaid_min) - Number(a.prepaid_min));
+      if (prepaidMatches.length) rate += Number(prepaidMatches[0].rate);
+    }
+    return { rate, amount: achieved * rate / 100, rule };
+  }
+
+  function commissionCell(achieved, target, cnt, prepaidAmt) {
+    if (achieved <= 0 || cnt <= 0) return '<span style="color:var(--muted);">—</span>';
+    const ticket = achieved / cnt;
+    const prepaidPct = achieved > 0 ? Math.min(100, (prepaidAmt / achieved) * 100) : 0;
+    const c = calcCommission(achieved, target, ticket, prepaidPct);
+    if (!c) return '<span style="color:var(--muted);">—</span>';
+    return `<b>${inr(c.amount)}</b><div style="font-size:11px; color:var(--muted);" title="${c.rule}">${c.rate.toFixed(1)}%</div>`;
+  }
+
   function bizToday() {
     const d = new Date();
     if (d.getHours() < 10) d.setDate(d.getDate() - 1);
@@ -99,7 +152,7 @@
     if (!day) return;
     document.getElementById('dailyTitle').textContent = 'Daily — ' + new Date(day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     const tbody = document.getElementById('dailyBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="loading">Loading day orders...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading day orders...</td></tr>';
     try {
       const [data, ovData, attData, qData] = await Promise.all([
         api.get('shopify.orders', { date_from: day, date_to: day }),
@@ -115,7 +168,7 @@
         if (a.punch_out) punchOutByName[a.full_name] = new Date(a.punch_out.replace(' ', 'T') + '+05:30').getTime();
       });
       const overrides = ovData.overrides || {};
-      const sums = {}, counts = {}, scoutSums = {}, champSums = {}, afterPunch = {};
+      const sums = {}, counts = {}, scoutSums = {}, champSums = {}, afterPunch = {}, prepaidSums = {};
       (data.orders || []).forEach(o => {
         if (!o.salesman) return;
         const amt = Number(o.total || 0);
@@ -125,6 +178,12 @@
         const tags = String(o.tags || '').split(',').map(t => t.trim().toLowerCase());
         if (tags.includes('s')) scoutSums[o.salesman] = (scoutSums[o.salesman] || 0) + amt;
         if (tags.includes('c')) champSums[o.salesman] = (champSums[o.salesman] || 0) + amt;
+        // Prepaid share for the Commission column — anything not COD/pending
+        // counts as prepaid, same rule the server uses for the monthly sync.
+        const fs = String(o.financial_status || '').toLowerCase();
+        if (fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1) {
+          prepaidSums[o.salesman] = (prepaidSums[o.salesman] || 0) + amt;
+        }
         const po = punchOutByName[o.salesman];
         if (po && new Date(o.created_at).getTime() > po) {
           (afterPunch[o.salesman] = afterPunch[o.salesman] || []).push({
@@ -135,20 +194,20 @@
         }
       });
 
-      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, queriesById, overrides, day };
+      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesById, overrides, day };
       renderDaily();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
     if (!dailyCache) return;
-    const { sums, counts, scoutSums, champSums, afterPunch, queriesById, overrides, day } = dailyCache;
+    const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesById, overrides, day } = dailyCache;
     const shown = monthRows.filter(matchesSearch);
     if (!shown.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
       return;
     }
     tbody.innerHTML = shown.map(r => {
@@ -213,9 +272,10 @@
                   <div style="flex:1; height:5px; background:var(--bg); border-radius:3px; overflow:hidden;"><div style="width:${Math.min(100, p)}%; height:5px; background:${color};"></div></div>
                   <span style="white-space:nowrap; font-size:11.5px; color:${color};">${inr(amt)}${dailyTarget > 0 ? ' · ' + p + '%' : ''}</span>
                 </div>`;
-              return mini('Scout', scout, sPct, '#0EA5E9') + mini('Champion', champ, cPct, '#F59E0B');
+              return mini('Query', scout, sPct, '#0EA5E9') + mini('Campaigns', champ, cPct, '#F59E0B');
             })()}
           </td>
+          <td>${commissionCell(achieved, dailyTarget, cnt, prepaidSums[r.full_name] || 0)}</td>
         </tr>`;
       }).join('');
   }
@@ -353,7 +413,9 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(renderDaily, 150);
   });
+  loadCommissionRules();
   load().then(loadDaily).then(autoSync);
 </script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

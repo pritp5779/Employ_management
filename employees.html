@@ -154,6 +154,10 @@
           <input type="number" id="monthlySalary" step="0.01" min="0">
         </div>
       </div>
+        <div class="field">
+          <label for="designation">Designation</label>
+          <input type="text" id="designation" maxlength="100" placeholder="e.g. Sales Executive">
+        </div>
 
       <div class="field">
         <label for="address">Address</label>
@@ -457,6 +461,7 @@ Amit Shah	9123456780		web management		"></textarea>
       document.getElementById('joiningDate').value = emp.joining_date || '';
       document.getElementById('dob').value = emp.date_of_birth || '';
       document.getElementById('employmentType').value = emp.employment_type || '';
+    document.getElementById('designation').value = emp.designation || '';
       document.getElementById('basicSalary').value = emp.basic_salary || '';
       document.getElementById('monthlySalary').value = Number(emp.monthly_salary) > 0 ? emp.monthly_salary : '';
       document.getElementById('salesTag').value = emp.sales_tag || '';
@@ -744,6 +749,7 @@ Amit Shah	9123456780		web management		"></textarea>
       joining_date: document.getElementById('joiningDate').value,
       date_of_birth: document.getElementById('dob').value || '',
       employment_type: document.getElementById('employmentType').value.trim(),
+      designation: document.getElementById('designation').value.trim(),
       basic_salary: document.getElementById('basicSalary').value || 0,
       monthly_salary: document.getElementById('monthlySalary').value || 0,
       address: document.getElementById('address').value.trim(),
