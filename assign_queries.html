@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Assign Query — HRMS</title>
+<title>Assign Queries — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
 <body>
@@ -18,8 +18,17 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar">
-      <h1>Assign Query</h1>
-      <input type="date" id="dayPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      <h1>Assign Queries</h1>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
+        <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+          <option value="">All groups</option>
+          <option value="tmph">TM Perfume House</option>
+          <option value="tmf">TM Fragrance</option>
+          <option value="tm4u">TM4U</option>
+        </select>
+        <input type="date" id="dayPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      </div>
     </div>
     <div class="content">
       <div id="alertBox"></div>
@@ -28,8 +37,8 @@
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
           <span style="font-size:12.5px; color:var(--muted);">
-            Query <b id="sumScout" style="color:#0C447C;">0</b> ·
-            Campaigns <b id="sumChamp" style="color:#854F0B;">0</b> ·
+            Scout <b id="sumScout" style="color:#0C447C;">0</b> ·
+            Champion <b id="sumChamp" style="color:#854F0B;">0</b> ·
             Total <b id="totalCount" style="color:var(--ink);">0</b>
           </span>
         </div>
@@ -37,8 +46,8 @@
           <thead>
             <tr>
               <th>Employee</th>
-              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Query</th>
-              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Campaigns</th>
+              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Scout</th>
+              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Champion</th>
               <th style="text-align:center;">Total</th>
             </tr>
           </thead>
@@ -56,7 +65,7 @@
 <script src="assets/js/layout.js?v=1"></script>
 <script>
   guardPage();
-  renderSidebar('assign_query');
+  renderSidebar('assign_queries');
 
   const alertBox = document.getElementById('alertBox');
   let rows = [];
@@ -67,8 +76,18 @@
   }
 
   function day() { return document.getElementById('dayPick').value; }
+  function groupFilter() { return document.getElementById('groupPick').value || ''; }
+
+  function matchesSearch(r) {
+    const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    return (r.full_name || '').toLowerCase().includes(q)
+      || (r.employee_code || '').toLowerCase().includes(q);
+  }
 
   function updateSums() {
+    // Sums always reflect every employee for the day, regardless of search —
+    // only the visible rows are filtered.
     document.getElementById('sumScout').textContent = rows.reduce((t, r) => t + r.scout_count, 0);
     document.getElementById('sumChamp').textContent = rows.reduce((t, r) => t + r.champion_count, 0);
     document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
@@ -81,6 +100,11 @@
       return;
     }
     updateSums();
+    const shown = rows.filter(matchesSearch);
+    if (!shown.length) {
+      list.innerHTML = '<tr><td colspan="4" class="empty-state">No matching employees.</td></tr>';
+      return;
+    }
     const counter = (r, kind, color, bg) => `
       <td style="text-align:center; background:${bg};">
         <span style="display:inline-flex; align-items:center; gap:6px;">
@@ -91,7 +115,7 @@
             style="width:46px; height:34px; border-radius:6px; border:none; background:${color}; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">+1</button>
         </span>
       </td>`;
-    list.innerHTML = rows.map(r => `
+    list.innerHTML = shown.map(r => `
       <tr>
         <td>${r.full_name}<div style="font-size:11px; color:var(--muted);">${r.employee_code}</div></td>
         ${counter(r, 'scout', '#0EA5E9', '#F7FBFE')}
@@ -106,8 +130,10 @@
       const d = await api.post('queries.assign_bump', { employee_id: empId, kind, delta, date: day() });
       const row = rows.find(r => r.employee_id === empId);
       if (row) { row.query_count = d.query_count; row.scout_count = d.scout_count; row.champion_count = d.champion_count; }
-      document.getElementById('cnt-' + kind + '-' + empId).textContent = d[kind + '_count'];
-      document.getElementById('cnt-total-' + empId).textContent = d.query_count;
+      const scoped = document.getElementById('cnt-' + kind + '-' + empId);
+      if (scoped) scoped.textContent = d[kind + '_count'];
+      const total = document.getElementById('cnt-total-' + empId);
+      if (total) total.textContent = d.query_count;
       updateSums();
     } catch (err) {
       showAlert(err.message, 'error');
@@ -120,7 +146,7 @@
     document.getElementById('cardTitle').textContent =
       new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
     try {
-      const data = await api.get('queries.assign_list', { date: day() });
+      const data = await api.get('queries.assign_list', { date: day(), store_group: groupFilter() });
       rows = data.employees || [];
       render();
     } catch (err) {
@@ -131,6 +157,12 @@
   const now = new Date();
   document.getElementById('dayPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
   document.getElementById('dayPick').addEventListener('change', load);
+  document.getElementById('groupPick').addEventListener('change', load);
+  let searchTimer = null;
+  document.getElementById('empSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(render, 150);
+  });
   load();
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>

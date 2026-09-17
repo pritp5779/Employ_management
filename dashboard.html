@@ -43,13 +43,6 @@
           <tbody id="pendingTableBody"></tbody>
         </table>
       </div>
-      <div class="card" id="deptCard" style="display:none;">
-        <div class="card-head"><h2>Employees by Department</h2></div>
-        <table>
-          <thead><tr><th>Department</th><th>Employees</th></tr></thead>
-          <tbody id="deptTableBody"></tbody>
-        </table>
-      </div>
     </div>
   </main>
 </div>
@@ -180,16 +173,6 @@
         }).join('');
       }
       document.getElementById('pendingCard').style.display = 'block';
-
-      const tbody = document.getElementById('deptTableBody');
-      if (data.by_department.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No departments yet.</td></tr>';
-      } else {
-        tbody.innerHTML = data.by_department.map(d =>
-          `<tr><td><a href="employees.html?department_id=${d.department_id}">${d.department_name}</a></td><td>${d.total}</td></tr>`
-        ).join('');
-      }
-      document.getElementById('deptCard').style.display = 'block';
     } catch (err) {
       statsArea.innerHTML = '<div class="alert error">' + err.message + '</div>';
     }

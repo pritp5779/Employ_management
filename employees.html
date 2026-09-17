@@ -108,6 +108,13 @@
       </div>
 
       <div class="field">
+        <label>Store Groups</label>
+        <div id="storeGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
+          <span style="color:#888; font-size:13px;">Loading...</span>
+        </div>
+      </div>
+
+      <div class="field">
         <label>WhatsApp Groups</label>
         <div id="waGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
           <span style="color:#888; font-size:13px;">Loading groups...</span>
@@ -229,6 +236,15 @@ Amit Shah	9123456780		web management		"></textarea>
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  const STORE_GROUPS = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  function renderStoreGroups() {
+    const box = document.getElementById('storeGroupsBox');
+    box.innerHTML = Object.entries(STORE_GROUPS).map(([key, label]) => `
+      <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
+        <input type="checkbox" class="store-group-cb" value="${key}" style="width:auto; margin:0;"> ${label}
+      </label>`).join('');
   }
 
   async function loadWaGroups() {
@@ -446,6 +462,9 @@ Amit Shah	9123456780		web management		"></textarea>
 
     const empGroupIds = new Set(((emp && emp.whatsapp_groups) || []).map(g => String(g.group_id)));
     document.querySelectorAll('.wa-group-cb').forEach(cb => { cb.checked = empGroupIds.has(cb.value); });
+
+    const empStoreGroups = new Set((emp && emp.store_groups) || []);
+    document.querySelectorAll('.store-group-cb').forEach(cb => { cb.checked = empStoreGroups.has(cb.value); });
 
     const empFileIds = new Set(((emp && emp.excel_files) || []).map(f => String(f.file_id)));
     document.querySelectorAll('.excel-file-cb').forEach(cb => { cb.checked = empFileIds.has(cb.value); });
@@ -760,6 +779,9 @@ Amit Shah	9123456780		web management		"></textarea>
       whatsapp_group_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
       ),
+      store_group_keys: JSON.stringify(
+        Array.from(document.querySelectorAll('.store-group-cb:checked')).map(cb => cb.value)
+      ),
       excel_file_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.excel-file-cb:checked')).map(cb => Number(cb.value))
       ),
@@ -854,6 +876,7 @@ Amit Shah	9123456780		web management		"></textarea>
   (async function init() {
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
+    renderStoreGroups();
     await loadWaGroups();
     await loadExcelFiles();
 

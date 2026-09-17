@@ -59,7 +59,7 @@
       <h1 id="pageTitle">Employee Details</h1>
     </div>
     <div class="content">
-      <a href="employees.html" class="back-link">&larr; Back to Employees</a>
+      <a href="#" id="backLink" class="back-link">&larr; Back</a>
       <div id="alertBox"></div>
 
       <div class="card" id="profileCard" style="display:none;">
@@ -140,6 +140,14 @@
 <script>
   guardPage();
   renderSidebar('employees');
+
+  // "Back" returns to whichever page linked here (Targets, Performance,
+  // Assign Queries, Employees, etc.) instead of always going to Employees.
+  document.getElementById('backLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (history.length > 1) history.back();
+    else location.href = 'employees.html';
+  });
 
   const alertBox = document.getElementById('alertBox');
 

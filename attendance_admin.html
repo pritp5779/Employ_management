@@ -25,6 +25,7 @@
         <div class="card-head">
           <h2 id="cardTitle">Attendance</h2>
           <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
             <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
             <button class="btn secondary" id="btnToday">Today</button>
           </div>
@@ -61,43 +62,62 @@
   }
   const fmtT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
 
+  let allRows = [];
+
+  function matchesSearch(r) {
+    const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    return (r.full_name || '').toLowerCase().includes(q)
+      || (r.employee_code || '').toLowerCase().includes(q);
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    const base = API_BASE_URL.replace('/api.php', '');
+    const shown = allRows.filter(matchesSearch);
+
+    if (!shown.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = shown.map(r => {
+      let hours = '—';
+      if (r.punch_in && r.punch_out) {
+        const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
+        hours = (ms / 3600000).toFixed(1) + ' h';
+      }
+      const status = r.punch_in
+        ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
+        : '<span class="badge inactive">Absent</span>';
+      const photos = [
+        r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
+        r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
+      ].filter(Boolean).join(' · ') || '<span style="color:var(--muted);">—</span>';
+      const face = Number(r.face_enrolled)
+        ? `<button class="danger-link" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:0;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
+        : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
+      return `<tr>
+        <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
+        <td>${fmtT(r.punch_in)}</td>
+        <td>${fmtT(r.punch_out)}</td>
+        <td>${hours}</td>
+        <td>${status}</td>
+        <td>${photos}</td>
+        <td>${face}</td>
+      </tr>`;
+    }).join('');
+  }
+
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();
     const tbody = document.getElementById('tableBody');
     try {
       const data = await api.get('attendance.list', { date });
-      const rows = data.rows || [];
-      const present = rows.filter(r => r.punch_in).length;
-      document.getElementById('cardTitle').textContent = `Attendance — ${present} present / ${rows.length - present} absent`;
-
-      const base = API_BASE_URL.replace('/api.php', '');
-      tbody.innerHTML = rows.map(r => {
-        let hours = '—';
-        if (r.punch_in && r.punch_out) {
-          const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
-          hours = (ms / 3600000).toFixed(1) + ' h';
-        }
-        const status = r.punch_in
-          ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
-          : '<span class="badge inactive">Absent</span>';
-        const photos = [
-          r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
-          r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
-        ].filter(Boolean).join(' · ') || '<span style="color:var(--muted);">—</span>';
-        const face = Number(r.face_enrolled)
-          ? `<button class="danger-link" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:0;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
-          : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
-        return `<tr>
-          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
-          <td>${fmtT(r.punch_in)}</td>
-          <td>${fmtT(r.punch_out)}</td>
-          <td>${hours}</td>
-          <td>${status}</td>
-          <td>${photos}</td>
-          <td>${face}</td>
-        </tr>`;
-      }).join('');
-      if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees.</td></tr>';
+      allRows = data.rows || [];
+      const present = allRows.filter(r => r.punch_in).length;
+      document.getElementById('cardTitle').textContent = `Attendance — ${present} present / ${allRows.length - present} absent`;
+      renderTable();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }
@@ -117,6 +137,11 @@
   document.getElementById('datePick').value = todayStr();
   document.getElementById('datePick').addEventListener('change', load);
   document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('datePick').value = todayStr(); load(); });
+  let searchTimer = null;
+  document.getElementById('empSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderTable, 150);
+  });
   load();
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
