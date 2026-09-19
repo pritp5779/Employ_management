@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Targets — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -29,7 +29,6 @@
         </select>
         <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-        <span id="syncStatus" style="font-size:12.5px; color:var(--muted); align-self:center;"></span>
         <button class="btn secondary" id="btnSyncNow" style="width:auto;" title="Fetch the latest orders from Shopify right now">&#8635; Sync now</button>
         <a href="attendance_admin.html" class="btn secondary" style="text-decoration:none;">View attendance</a>
       </div>
@@ -37,8 +36,8 @@
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card">
-        <div class="card-head"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);">Day runs 10 AM to next day 10 AM. Type in Daily Target to set that day manually; blank = automatic (profile Daily Target, or monthly Manual ÷ days).</span></div>
+      <div class="card" id="targetsCard">
+        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);">Day runs 10 AM to next day 10 AM. Type in Daily Target to set that day manually; blank = automatic (profile Daily Target, or monthly Manual ÷ days).</span></div>
         <table>
           <thead>
             <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th>Commission</th></tr>
@@ -47,21 +46,23 @@
             <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div id="dailyCards" style="display:none; padding:10px;"></div>
       </div>
 
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('targets');
 
   const alertBox = document.getElementById('alertBox');
   let currentMonth = '';
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -95,38 +96,112 @@
     }
   }
 
+  // Returns the final rate/amount plus the individual steps that produced
+  // them, so the UI can show exactly which rule fired instead of only a
+  // one-line summary. steps = [{label, detail, value, muted?}].
   function calcCommission(achieved, target, ticket, prepaidPct) {
     if (!commissionRules || !commissionRules.length || achieved <= 0) return null;
     const overPct = target > 0 ? ((achieved / target) - 1) * 100 : 0;
     const achievedTarget = target > 0 ? achieved >= target : false;
+    const steps = [];
 
     let overMatches = commissionRules.filter(r => r.rule_type === 'over_target' && overPct >= Number(r.over_pct) && ticket >= Number(r.ticket_min));
     overMatches.sort((a, b) => Number(b.over_pct) - Number(a.over_pct) || Number(b.ticket_min) - Number(a.ticket_min));
 
     let rate, rule;
     if (overMatches.length) {
-      rate = Number(overMatches[0].rate);
-      rule = overMatches[0].label || ('+' + overMatches[0].over_pct + '% over target');
+      const m = overMatches[0];
+      rate = Number(m.rate);
+      rule = m.label || ('+' + m.over_pct + '% over target');
+      steps.push({
+        label: 'Over-target',
+        detail: m.label || ('Beat target by ' + Math.round(overPct) + '%'),
+        value: rate.toFixed(1) + '%',
+      });
+      steps.push({ label: 'Prepaid', detail: 'Not applied — over-target tiers are flat', value: '—', muted: true });
     } else {
       let baseMatches = commissionRules.filter(r => r.rule_type === 'base' && Number(r.achieved_target) === (achievedTarget ? 1 : 0) && ticket >= Number(r.ticket_min));
       baseMatches.sort((a, b) => Number(b.ticket_min) - Number(a.ticket_min));
-      rate = baseMatches.length ? Number(baseMatches[0].rate) : 0;
-      rule = baseMatches.length ? (baseMatches[0].label || (rate + '%')) : '';
+      const bm = baseMatches[0];
+      rate = bm ? Number(bm.rate) : 0;
+      rule = bm ? (bm.label || (rate + '%')) : '';
+      steps.push({
+        label: 'Base rate',
+        detail: bm
+          ? (bm.label || ('Target ' + (achievedTarget ? 'achieved' : 'not achieved') + ', ticket ' + (Number(bm.ticket_min) > 0 ? '≥ ' + inr(bm.ticket_min) : 'any')))
+          : 'No matching base rule',
+        value: rate.toFixed(1) + '%',
+      });
+
       let prepaidMatches = commissionRules.filter(r => r.rule_type === 'prepaid' && prepaidPct >= Number(r.prepaid_min));
-      prepaidMatches.sort((a, b) => Number(b.prepaid_min) - Number(a.prepaid_min));
-      if (prepaidMatches.length) rate += Number(prepaidMatches[0].rate);
+      prepaidMatches.sort((a, b2) => Number(b2.prepaid_min) - Number(a.prepaid_min));
+      if (prepaidMatches.length) {
+        const p = prepaidMatches[0];
+        const adj = Number(p.rate);
+        rate += adj;
+        steps.push({
+          label: 'Prepaid',
+          detail: p.label || (Math.round(prepaidPct) + '% prepaid'),
+          value: (adj > 0 ? '+' : '') + adj.toFixed(1) + '%',
+        });
+      } else {
+        steps.push({ label: 'Prepaid', detail: Math.round(prepaidPct) + '% prepaid — no matching rule', value: '—', muted: true });
+      }
     }
-    return { rate, amount: achieved * rate / 100, rule };
+    return { rate, amount: achieved * rate / 100, rule, steps, ticket, prepaidPct };
   }
 
-  function commissionCell(achieved, target, cnt, prepaidAmt) {
+  // Each row's calculation, so the breakdown can render on demand without
+  // recomputing or re-fetching anything.
+  const commissionCalcs = {};
+
+  function commissionCell(achieved, target, cnt, prepaidAmt, rowKey) {
     if (achieved <= 0 || cnt <= 0) return '<span style="color:var(--muted);">—</span>';
     const ticket = achieved / cnt;
     const prepaidPct = achieved > 0 ? Math.min(100, (prepaidAmt / achieved) * 100) : 0;
     const c = calcCommission(achieved, target, ticket, prepaidPct);
     if (!c) return '<span style="color:var(--muted);">—</span>';
-    return `<b>${inr(c.amount)}</b><div style="font-size:11px; color:var(--muted);" title="${c.rule}">${c.rate.toFixed(1)}%</div>`;
+    const key = String(rowKey).replace(/[^A-Za-z0-9_-]/g, '_');
+    commissionCalcs[key] = { c, achieved };
+    return `<b>${inr(c.amount)}</b>
+      <div style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;">
+        <span>${c.rate.toFixed(1)}%</span>
+        <button type="button" onclick="toggleCommissionInfo('${key}', this)" aria-expanded="false"
+          aria-label="How this commission was calculated" title="How this was calculated"
+          style="border:none; background:none; padding:0; margin:0; width:16px; height:16px; min-height:0; line-height:1; color:var(--accent); cursor:pointer; font-size:13px;">&#9432;</button>
+      </div>
+      <div id="cinfo-${key}" style="display:none;"></div>`;
   }
+
+  window.toggleCommissionInfo = function (key, btn) {
+    const box = document.getElementById('cinfo-' + key);
+    const entry = commissionCalcs[key];
+    if (!box || !entry) return;
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+      btn.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    const c = entry.c;
+    const achieved = entry.achieved;
+    box.innerHTML = `
+      <div style="margin-top:7px; padding:8px 9px; background:var(--bg); border:1px solid var(--line); border-radius:6px; min-width:200px;">
+        <div style="font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;">How this was calculated</div>
+        ${c.steps.map(s => `
+          <div style="display:flex; justify-content:space-between; gap:8px; font-size:11px; margin-bottom:4px; text-align:left;">
+            <span style="color:var(--muted); flex:none; width:64px;">${s.label}</span>
+            <span style="flex:1; color:${s.muted ? 'var(--muted)' : 'var(--ink)'};">${s.detail}</span>
+            <span style="flex:none; font-weight:600; color:${s.muted ? 'var(--muted)' : 'var(--ink)'};">${s.value}</span>
+          </div>`).join('')}
+        <div style="display:flex; justify-content:space-between; gap:8px; font-size:11px; margin-top:7px; padding-top:6px; border-top:1px solid var(--line);">
+          <span style="color:var(--muted);">${inr(achieved)} × ${c.rate.toFixed(1)}%</span>
+          <span style="font-weight:700;">${inr(c.amount)}</span>
+        </div>
+        <a href="commission_rules.html" style="font-size:10.5px; display:inline-block; margin-top:6px;">Edit commission rules</a>
+      </div>`;
+    box.style.display = 'block';
+    btn.setAttribute('aria-expanded', 'true');
+  };
 
   function bizToday() {
     const d = new Date();
@@ -147,6 +222,11 @@
 
   let dailyCache = null;
 
+  // Which Shopify store an order came from -> which house it belongs to.
+  // Matches the same mapping used server-side in targets.sync_orders /
+  // performance.daily, so today's live numbers land under the right house.
+  const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+
   async function loadDaily() {
     const day = document.getElementById('dayPick').value;
     if (!day) return;
@@ -160,33 +240,41 @@
         api.get('attendance.list', { date: day }).catch(() => ({ rows: [] })),
         api.get('queries.assign_list', { date: day, store_group: groupFilter() }).catch(() => ({ employees: [] })),
       ]);
-      const queriesById = {};
-      (qData.employees || []).forEach(q => { queriesById[q.employee_id] = q.query_count; });
+      // Query counts, keyed by "employeeId|groupKey" straight from each
+      // employee's per-house breakdown.
+      const queriesByKey = {};
+      (qData.employees || []).forEach(e => (e.groups || []).forEach(g => {
+        queriesByKey[e.employee_id + '|' + g.group_key] = g.query_count;
+      }));
       // Punch-out time per employee name, for "orders after punch out".
       const punchOutByName = {};
       (attData.rows || []).forEach(a => {
         if (a.punch_out) punchOutByName[a.full_name] = new Date(a.punch_out.replace(' ', 'T') + '+05:30').getTime();
       });
-      const overrides = ovData.overrides || {};
+      const overrides = ovData.overrides || {}; // keyed "employeeId|groupKey"
+      // Every sum below is keyed "name|groupKey" so each house's numbers
+      // stay independent for the same employee.
       const sums = {}, counts = {}, scoutSums = {}, champSums = {}, afterPunch = {}, prepaidSums = {};
       (data.orders || []).forEach(o => {
         if (!o.salesman) return;
+        const gk = STORE_TO_GROUP[o.store_key] || '';
+        const nk = o.salesman + '|' + gk;
         const amt = Number(o.total || 0);
-        sums[o.salesman] = (sums[o.salesman] || 0) + amt;
-        counts[o.salesman] = (counts[o.salesman] || 0) + 1;
+        sums[nk] = (sums[nk] || 0) + amt;
+        counts[nk] = (counts[nk] || 0) + 1;
         // Extra tag S = Scout order, C = Champion order.
         const tags = String(o.tags || '').split(',').map(t => t.trim().toLowerCase());
-        if (tags.includes('s')) scoutSums[o.salesman] = (scoutSums[o.salesman] || 0) + amt;
-        if (tags.includes('c')) champSums[o.salesman] = (champSums[o.salesman] || 0) + amt;
+        if (tags.includes('s')) scoutSums[nk] = (scoutSums[nk] || 0) + amt;
+        if (tags.includes('c')) champSums[nk] = (champSums[nk] || 0) + amt;
         // Prepaid share for the Commission column — anything not COD/pending
         // counts as prepaid, same rule the server uses for the monthly sync.
         const fs = String(o.financial_status || '').toLowerCase();
         if (fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1) {
-          prepaidSums[o.salesman] = (prepaidSums[o.salesman] || 0) + amt;
+          prepaidSums[nk] = (prepaidSums[nk] || 0) + amt;
         }
         const po = punchOutByName[o.salesman];
         if (po && new Date(o.created_at).getTime() > po) {
-          (afterPunch[o.salesman] = afterPunch[o.salesman] || []).push({
+          (afterPunch[nk] = afterPunch[nk] || []).push({
             name: o.order_name,
             time: new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
             total: amt,
@@ -194,7 +282,7 @@
         }
       });
 
-      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesById, overrides, day };
+      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day };
       renderDaily();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
@@ -204,35 +292,43 @@
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
     if (!dailyCache) return;
-    const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesById, overrides, day } = dailyCache;
+    const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day } = dailyCache;
+    // monthRows already has one entry per (employee, house) from targets.get.
     const shown = monthRows.filter(matchesSearch);
     if (!shown.length) {
       tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
+      document.getElementById('dailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
     tbody.innerHTML = shown.map(r => {
-        const achieved = sums[r.full_name] || 0;
-        const cnt = counts[r.full_name] || 0;
+        const nk = r.full_name + '|' + r.group_key;
+        const ek = r.employee_id + '|' + r.group_key;
+        const achieved = sums[nk] || 0;
+        const cnt = counts[nk] || 0;
         // Daily target priority: per-day manual override -> profile Daily
-        // Target -> monthly Manual ÷ days.
+        // Target -> monthly Manual ÷ days. The profile Daily Target and
+        // attendance are per-employee (not house-specific); manual_target
+        // here is already this row's own house.
         const autoDaily = r.manual_target !== null
           ? Math.round(r.manual_target / daysInMonth)
           : (Number(r.daily_target) || 0);
-        const override = overrides[String(r.employee_id)];
+        const override = overrides[ek];
         const dailyTarget = override !== undefined ? Number(override) : autoDaily;
         const realPct = dailyTarget > 0 ? Math.round((achieved / dailyTarget) * 100) : 0;
         const pct = Math.min(100, realPct);
         const barColor = realPct > 100 ? '#7C3AED' : (pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A'));
         const pctLabel = realPct > 100 ? `<b style="color:#7C3AED;">${realPct}% 🎯</b>` : (dailyTarget > 0 ? pct + '%' : '—');
+        const houseColor = HOUSE_COLOR[r.group_key] || HOUSE_COLOR[''];
+        const houseBadge = `<span style="display:inline-block; margin-top:3px; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:600; color:${houseColor}; background:${houseColor}18;">${r.group_label}</span>`;
         return `<tr>
-          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+          <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div>${houseBadge}</td>
           <td>${(() => {
-            const q = queriesById[r.employee_id];
+            const q = queriesByKey[ek];
             return q > 0 ? q : '<span style="color:var(--muted);">—</span>';
           })()}</td>
           <td>${cnt > 0 ? `<a href="orders.html?from=${day}&to=${day}&salesman=${encodeURIComponent(r.full_name)}">${cnt} order${cnt === 1 ? '' : 's'}</a>` : '0'}
             ${(() => {
-              const ap = afterPunch[r.full_name] || [];
+              const ap = afterPunch[nk] || [];
               if (!ap.length) return '';
               const sum = ap.reduce((t, o) => t + o.total, 0);
               const shown2 = ap.slice(0, 2);
@@ -243,7 +339,7 @@
             })()}
           </td>
           <td>${(() => {
-            const q = queriesById[r.employee_id];
+            const q = queriesByKey[ek];
             if (!q || q <= 0) return '<span style="color:var(--muted);">—</span>';
             const ratio = Math.round((cnt / q) * 100);
             const bg = ratio >= 25 ? '#e7f7ee' : (ratio >= 15 ? '#fdf3e3' : '#fdecec');
@@ -253,31 +349,147 @@
           })()}</td>
           <td style="font-weight:600;">${inr(achieved)}</td>
           <td>${cnt > 0 ? inr(achieved / cnt) : '—'}</td>
-          <td><span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, 'day')"
-                style="cursor:pointer; border:1px dashed var(--line); border-radius:6px; padding:5px 9px; display:inline-block; font-size:13px;"
-                title="Click to change today's target">${dailyTarget > 0 ? inr(dailyTarget) : '<span style=\'color:var(--muted)\'>set</span>'} ✎</span></td>
+          <td><span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')"
+                style="cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:6px 11px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; ${dailyTarget > 0 ? '' : 'color:var(--accent); font-weight:600;'}"
+                title="Click to change today's target for ${r.group_label}">${dailyTarget > 0 ? inr(dailyTarget) : 'Set target'} <span style="font-size:12px; color:var(--muted);">✎</span></span></td>
           <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${pct}%; height:8px; background:${barColor};"></div></div>
-              <span style="white-space:nowrap; font-size:12.5px;">${pctLabel}</span>
-            </div>
             ${(() => {
-              const scout = scoutSums[r.full_name] || 0;
-              const champ = champSums[r.full_name] || 0;
-              const sPct = dailyTarget > 0 ? Math.round((scout / dailyTarget) * 100) : 0;
-              const cPct = dailyTarget > 0 ? Math.round((champ / dailyTarget) * 100) : 0;
-              const mini = (label, amt, p, color) => `
-                <div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
-                  <span style="width:66px; font-size:11px; font-weight:700; color:${color};">${label}</span>
-                  <div style="flex:1; height:5px; background:var(--bg); border-radius:3px; overflow:hidden;"><div style="width:${Math.min(100, p)}%; height:5px; background:${color};"></div></div>
-                  <span style="white-space:nowrap; font-size:11.5px; color:${color};">${inr(amt)}${dailyTarget > 0 ? ' · ' + p + '%' : ''}</span>
-                </div>`;
-              return mini('Scout', scout, sPct, '#0EA5E9') + mini('Champion', champ, cPct, '#F59E0B');
+              const scout = scoutSums[nk] || 0;
+              const champ = champSums[nk] || 0;
+              // One bar, split into Scout and Champion slices. Both widths
+              // are shares of the daily target, so together they read as the
+              // same overall progress the percentage label shows. Any
+              // achieved amount not tagged S or C is the remainder slice.
+              // When someone beats their target the raw shares exceed 100%,
+              // so everything is scaled down to fit the bar while keeping
+              // the Scout:Champion ratio intact.
+              let sPct = dailyTarget > 0 ? (scout / dailyTarget) * 100 : 0;
+              let cPct = dailyTarget > 0 ? (champ / dailyTarget) * 100 : 0;
+              let otherPct = Math.max(0, pct - sPct - cPct);
+              const sum = sPct + cPct + otherPct;
+              if (sum > 100) {
+                const k = 100 / sum;
+                sPct *= k; cPct *= k; otherPct *= k;
+              }
+              const legend = (label, amt, color) => `
+                <span style="display:inline-flex; align-items:center; gap:5px;">
+                  <span style="width:8px; height:8px; border-radius:2px; background:${color}; flex:none;"></span>
+                  <span style="color:var(--muted);">${label} ${inr(amt)}</span>
+                </span>`;
+              return `
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="flex:1; height:10px; background:var(--bg); border-radius:5px; overflow:hidden; display:flex;">
+                    <div style="width:${sPct}%; background:#0EA5E9;"></div>
+                    <div style="width:${cPct}%; background:#F59E0B;"></div>
+                    <div style="width:${otherPct}%; background:${barColor};"></div>
+                  </div>
+                  <span style="white-space:nowrap; font-size:12.5px;">${pctLabel}</span>
+                </div>
+                ${(scout > 0 || champ > 0)
+                  ? `<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; font-size:11px;">
+                       ${scout > 0 ? legend('Scout', scout, '#0EA5E9') : ''}
+                       ${champ > 0 ? legend('Champion', champ, '#F59E0B') : ''}
+                     </div>`
+                  : ''}`;
             })()}
           </td>
-          <td>${commissionCell(achieved, dailyTarget, cnt, prepaidSums[r.full_name] || 0)}</td>
+          <td>${commissionCell(achieved, dailyTarget, cnt, prepaidSums[nk] || 0, ek)}</td>
         </tr>`;
       }).join('');
+
+    // Mobile: one progress-led card per (employee, house) row. Uses the
+    // same computed values as the table above so the two can't drift.
+    const cardsEl = document.getElementById('dailyCards');
+    cardsEl.innerHTML = shown.map(r => {
+        const nk = r.full_name + '|' + r.group_key;
+        const ek = r.employee_id + '|' + r.group_key;
+        const achieved = sums[nk] || 0;
+        const cnt = counts[nk] || 0;
+        const autoDaily = r.manual_target !== null
+          ? Math.round(r.manual_target / daysInMonth)
+          : (Number(r.daily_target) || 0);
+        const override = overrides[ek];
+        const dailyTarget = override !== undefined ? Number(override) : autoDaily;
+        const realPct = dailyTarget > 0 ? Math.round((achieved / dailyTarget) * 100) : 0;
+        const pct = Math.min(100, realPct);
+        const barColor = realPct > 100 ? '#7C3AED' : (pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A'));
+        const houseColor = HOUSE_COLOR[r.group_key] || HOUSE_COLOR[''];
+
+        // Same segmented bar as the table's Progress column.
+        const scout = scoutSums[nk] || 0;
+        const champ = champSums[nk] || 0;
+        let sPct = dailyTarget > 0 ? (scout / dailyTarget) * 100 : 0;
+        let cPct = dailyTarget > 0 ? (champ / dailyTarget) * 100 : 0;
+        let otherPct = Math.max(0, pct - sPct - cPct);
+        const sum = sPct + cPct + otherPct;
+        if (sum > 100) { const k = 100 / sum; sPct *= k; cPct *= k; otherPct *= k; }
+
+        const q = queriesByKey[ek];
+        const meta = [
+          cnt > 0 ? `${cnt} order${cnt === 1 ? '' : 's'}` : null,
+          cnt > 0 ? `${inr(achieved / cnt)} avg` : null,
+          q > 0 ? `${q} quer${q === 1 ? 'y' : 'ies'}` : null,
+        ].filter(Boolean).join(' · ');
+
+        return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+            <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13px; font-weight:600;">${r.full_name}</a>
+            <span style="font-size:15px; font-weight:700; white-space:nowrap;">${dailyTarget > 0 ? realPct + '%' : '—'}</span>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:1px;">
+            ${r.employee_code} · <span style="color:${houseColor}; font-weight:600;">${r.group_label}</span>
+          </div>
+          <div style="height:12px; background:var(--bg); border:1px solid var(--line); border-radius:6px; overflow:hidden; display:flex; margin-top:9px;">
+            <div style="width:${sPct}%; background:#0EA5E9;"></div>
+            <div style="width:${cPct}%; background:#F59E0B;"></div>
+            <div style="width:${otherPct}%; background:${barColor};"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; gap:10px; font-size:11px; color:var(--muted); margin-top:6px;">
+            <span>${inr(achieved)}${dailyTarget > 0 ? ' of ' + inr(dailyTarget) : ''}</span>
+            <span style="text-align:right;">${meta || 'No orders'}</span>
+          </div>
+          ${(scout > 0 || champ > 0)
+            ? `<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:5px; font-size:10.5px; color:var(--muted);">
+                 ${scout > 0 ? `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#0EA5E9;"></span>Scout ${inr(scout)}</span>` : ''}
+                 ${champ > 0 ? `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#F59E0B;"></span>Champion ${inr(champ)}</span>` : ''}
+               </div>`
+            : ''}
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:9px; padding-top:8px; border-top:1px solid var(--line);">
+            <span style="font-size:11px; color:var(--muted);">${commissionLabel(achieved, dailyTarget, cnt, prepaidSums[nk] || 0, 'm' + ek)}</span>
+            <span style="display:flex; align-items:center; gap:10px;">
+              <span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')"
+                style="cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:4px 9px; font-size:11px; white-space:nowrap; ${dailyTarget > 0 ? '' : 'color:var(--accent); font-weight:600;'}">${dailyTarget > 0 ? inr(dailyTarget) : 'Set target'} ✎</span>
+              <span style="font-size:14px; font-weight:700; color:#0f7a41; white-space:nowrap;">${commissionAmount(achieved, dailyTarget, cnt, prepaidSums[nk] || 0)}</span>
+            </span>
+          </div>
+          <div id="cinfo-m${ek.replace(/[^A-Za-z0-9_-]/g, '_')}" style="display:none;"></div>
+        </div>`;
+      }).join('');
+  }
+
+  // Commission split into label + amount so the card can place them at
+  // opposite ends of its footer row, reusing the same calculation and the
+  // same expandable breakdown as the table.
+  function commissionLabel(achieved, target, cnt, prepaidAmt, rowKey) {
+    if (achieved <= 0 || cnt <= 0) return 'No commission';
+    const ticket = achieved / cnt;
+    const prepaidPct = achieved > 0 ? Math.min(100, (prepaidAmt / achieved) * 100) : 0;
+    const c = calcCommission(achieved, target, ticket, prepaidPct);
+    if (!c) return 'No commission';
+    const key = String(rowKey).replace(/[^A-Za-z0-9_-]/g, '_');
+    commissionCalcs[key] = { c, achieved };
+    return `Commission · ${c.rate.toFixed(1)}%
+      <button type="button" onclick="toggleCommissionInfo('${key}', this)" aria-expanded="false"
+        aria-label="How this commission was calculated" title="How this was calculated"
+        style="border:none; background:none; padding:0; margin-left:3px; width:16px; height:16px; min-height:0; line-height:1; color:var(--accent); cursor:pointer; font-size:13px; vertical-align:-2px;">&#9432;</button>`;
+  }
+
+  function commissionAmount(achieved, target, cnt, prepaidAmt) {
+    if (achieved <= 0 || cnt <= 0) return '—';
+    const ticket = achieved / cnt;
+    const prepaidPct = achieved > 0 ? Math.min(100, (prepaidAmt / achieved) * 100) : 0;
+    const c = calcCommission(achieved, target, ticket, prepaidPct);
+    return c ? inr(c.amount) : '—';
   }
 
   async function load() {
@@ -296,7 +508,7 @@
 
 
   // Click-to-edit with explicit ✓ save / ✕ cancel buttons.
-  window.startEdit = function (chip, employeeId, kind) {
+  window.startEdit = function (chip, employeeId, groupKey, kind) {
     const cell = chip.closest('td');
     const prev = cell.innerHTML;
     const current = chip.dataset.value || '';
@@ -325,20 +537,21 @@
         if (kind === 'standing') {
           const amount = Number(input.value || 0);
           await api.post('employees.set_daily_target', { employee_id: employeeId, amount });
-          // Update the row's profile default locally — no full page reload.
-          const row = monthRows.find(r => r.employee_id === employeeId);
-          if (row) row.daily_target = amount;
+          // Update every house-row's profile default locally — no full page reload.
+          monthRows.filter(r => r.employee_id === employeeId).forEach(r => (r.daily_target = amount));
         } else {
           const amount = input.value === '' ? null : Number(input.value);
           await api.post('targets.save_daily', {
             date: document.getElementById('dayPick').value,
             employee_id: employeeId,
+            group_key: groupKey,
             amount,
           });
           // Update today's override locally — no full page reload.
           if (dailyCache) {
-            if (amount === null) delete dailyCache.overrides[String(employeeId)];
-            else dailyCache.overrides[String(employeeId)] = amount;
+            const ek = employeeId + '|' + groupKey;
+            if (amount === null) delete dailyCache.overrides[ek];
+            else dailyCache.overrides[ek] = amount;
           }
         }
         renderDaily();
@@ -381,16 +594,22 @@
   // the data genuinely needs it.
   const btnSync = document.getElementById('btnSyncNow');
 
-  async function runSync(force) {
-    const status = document.getElementById('syncStatus');
+  // Sync first, then load once. Calling load() before the sync and again
+  // after it (because the sync changed the numbers) is what made the page
+  // fetch everything twice on open. Now the sync runs first and the single
+  // load that follows already sees the fresh data.
+  async function runSync(force, reloadAfter = true) {
     btnSync.disabled = true;
-    status.textContent = force ? 'Syncing from Shopify...' : 'Checking for updates...';
+    if (force) showAlert('Syncing from Shopify...');
     try {
       const d = await api.post('targets.sync_orders', { month: currentMonth, force: !!force });
-      status.textContent = d.message || '';
-      if (!d.skipped) load().then(loadDaily);
+      // Only surface the message on an explicit click — a silent background
+      // check on page load shouldn't pop a banner every time.
+      if (force && d.message) showAlert(d.message);
+      // Only reload when the sync actually changed something AND the caller
+      // isn't about to load anyway.
+      if (reloadAfter && !d.skipped) await load().then(loadDaily);
     } catch (err) {
-      status.textContent = '';
       showAlert((force ? 'Sync failed: ' : 'Auto-update failed: ') + err.message, 'error');
     } finally {
       btnSync.disabled = false;
@@ -399,9 +618,40 @@
 
   btnSync.addEventListener('click', () => runSync(true));
 
+  // Filters and scroll position survive a round trip to an employee's
+  // profile and back, so returning lands the user where they left off
+  // rather than resetting to today's default view at the top of the list.
+  const TARGETS_STATE = 'hrmsTargetsState';
+
+  function saveTargetsState() {
+    try {
+      sessionStorage.setItem(TARGETS_STATE, JSON.stringify({
+        month: document.getElementById('monthPick').value,
+        day: document.getElementById('dayPick').value,
+        group: document.getElementById('groupPick').value,
+        search: document.getElementById('empSearch').value,
+        scroll: window.scrollY,
+      }));
+    } catch (e) { /* storage unavailable — fall back to defaults */ }
+  }
+
+  // Capture on any navigation away (clicking an employee, the sidebar, etc.)
+  window.addEventListener('pagehide', saveTargetsState);
+
+  function restoreTargetsState() {
+    let s = null;
+    try { s = JSON.parse(sessionStorage.getItem(TARGETS_STATE) || 'null'); } catch (e) {}
+    if (!s) return false;
+    if (s.month) document.getElementById('monthPick').value = s.month;
+    if (s.day) document.getElementById('dayPick').value = s.day;
+    if (s.group) document.getElementById('groupPick').value = s.group;
+    if (s.search) document.getElementById('empSearch').value = s.search;
+    return typeof s.scroll === 'number' ? s.scroll : 0;
+  }
+
   const now = new Date();
   document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('monthPick').addEventListener('change', () => load().then(loadDaily).then(() => runSync(false)));
+  document.getElementById('monthPick').addEventListener('change', () => init());
   document.getElementById('groupPick').addEventListener('change', () => load().then(loadDaily));
   document.getElementById('dayPick').value = bizToday();
   document.getElementById('dayPick').addEventListener('change', loadDaily);
@@ -410,8 +660,20 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(renderDaily, 150);
   });
+
+  // Sync (cheap when already fresh — the server just confirms and returns),
+  // then load once with whatever the sync left behind.
+  async function init(restoreScroll) {
+    currentMonth = document.getElementById('monthPick').value;
+    await runSync(false, false);
+    await load();
+    await loadDaily();
+    if (restoreScroll) window.scrollTo(0, restoreScroll);
+  }
+
   loadCommissionRules();
-  load().then(loadDaily).then(() => runSync(false));
+  const savedScroll = restoreTargetsState();
+  init(savedScroll);
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

@@ -141,6 +141,23 @@
   guardPage();
   renderSidebar('employees');
 
+  // Remember where the user came from (Targets, Performance, Attendance…)
+  // so both "Back" and the post-save redirect from the Employees edit form
+  // can return there. Captured once on arrival, because navigating to the
+  // edit form would otherwise overwrite the referrer.
+  (function captureOrigin() {
+    const ref = document.referrer;
+    if (!ref) return;
+    try {
+      const u = new URL(ref);
+      if (u.origin !== location.origin) return;
+      const page = u.pathname.split('/').pop();
+      // Don't record the edit form itself or this page — only real origins.
+      if (!page || page === 'employee_detail.html' || page === 'employees.html') return;
+      sessionStorage.setItem('hrmsReturnTo', u.pathname + u.search);
+    } catch (e) { /* malformed referrer — just skip */ }
+  })();
+
   // "Back" returns to whichever page linked here (Targets, Performance,
   // Assign Queries, Employees, etc.) instead of always going to Employees.
   document.getElementById('backLink').addEventListener('click', (e) => {

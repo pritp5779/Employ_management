@@ -37,11 +37,17 @@
         </table>
       </div>
       <div class="card" id="pendingCard" style="display:none;">
-        <div class="card-head"><h2 id="pendingTitle">Pending Documents</h2></div>
+        <div class="card-head">
+          <h2 id="pendingTitle">Pending Documents</h2>
+          <span id="pendingCount" style="font-size:12.5px; color:var(--muted);"></span>
+        </div>
         <table>
           <thead><tr><th>Employee</th><th>Missing Documents</th></tr></thead>
           <tbody id="pendingTableBody"></tbody>
         </table>
+        <div style="padding:12px 20px; text-align:center; display:none;" id="pendingLoadMoreWrap">
+          <button class="btn secondary" id="btnPendingLoadMore" style="width:auto;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -112,7 +118,7 @@
 
       const alertsBody = document.getElementById('alertsTableBody');
       if (data.expiring_documents.length === 0) {
-        alertsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No documents expiring in the next 30 days.</td></tr>';
+        document.getElementById('alertsCard').style.display = 'none';
       } else {
         // Group by employee so each person gets one row listing all their
         // expiring/expired documents together, instead of a repeated row per document.
@@ -154,23 +160,37 @@
             </td></tr>
           `);
         }
+        document.getElementById('alertsCard').style.display = 'block';
       }
-      document.getElementById('alertsCard').style.display = 'block';
 
       const pendingBody = document.getElementById('pendingTableBody');
       const pendingTitle = document.getElementById('pendingTitle');
       pendingTitle.textContent = `Pending Documents (${pendingTotal})`;
 
-      if (missingByEmp.length === 0) {
-        pendingBody.innerHTML = '<tr><td colspan="2" class="empty-state">No pending documents — every employee has uploaded all document types.</td></tr>';
-      } else {
-        pendingBody.innerHTML = missingByEmp.map(e => {
-          const typeBadges = e.missing.map(name => `<span class="badge inactive" style="margin:2px;">${name}</span>`).join('');
-          return `<tr>
+      const PENDING_PAGE_SIZE = 10;
+      let pendingShown = 0;
+
+      function renderPendingRow(e) {
+        const typeBadges = e.missing.map(name => `<span class="badge inactive" style="margin:2px;">${name}</span>`).join('');
+        return `<tr>
             <td style="vertical-align:top;"><a href="employee_detail.html?id=${e.employee_id}">${e.full_name} <span class="badge">${e.employee_code}</span></a></td>
             <td style="vertical-align:top;">${typeBadges}</td>
           </tr>`;
-        }).join('');
+      }
+
+      function loadMorePending() {
+        const next = missingByEmp.slice(pendingShown, pendingShown + PENDING_PAGE_SIZE);
+        pendingBody.insertAdjacentHTML('beforeend', next.map(renderPendingRow).join(''));
+        pendingShown += next.length;
+        document.getElementById('pendingCount').textContent = `Showing ${pendingShown} of ${missingByEmp.length}`;
+        document.getElementById('pendingLoadMoreWrap').style.display = pendingShown >= missingByEmp.length ? 'none' : 'block';
+      }
+
+      if (missingByEmp.length === 0) {
+        pendingBody.innerHTML = '<tr><td colspan="2" class="empty-state">No pending documents — every employee has uploaded all document types.</td></tr>';
+      } else {
+        document.getElementById('btnPendingLoadMore').addEventListener('click', loadMorePending);
+        loadMorePending();
       }
       document.getElementById('pendingCard').style.display = 'block';
     } catch (err) {

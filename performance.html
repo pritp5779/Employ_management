@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Performance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,7 @@
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
         <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-          <option value="">All groups</option>
+          <option value="">All houses</option>
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
@@ -34,62 +34,119 @@
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card">
+      <div class="card" id="perfDailyCard">
         <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Query</th><th>Orders</th><th>Ratio</th><th>Convincing</th><th>Customer</th><th>Behavior</th></tr>
+            <tr><th>Employee</th><th style="width:130px;">House</th><th>Query</th><th>Orders</th><th>Ratio</th><th style="width:150px;">Add-on</th><th>Convincing</th><th>Customer</th><th>Behavior</th></tr>
           </thead>
           <tbody id="dailyBody">
-            <tr><td colspan="7" class="loading">Loading...</td></tr>
+            <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div id="perfDailyCards" style="display:none; padding:10px;"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="perfMonthCard">
         <div class="card-head"><h2>Monthly — Sales Employees</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Queries</th><th>Avg/day</th><th>Convincing</th><th>Customer</th><th>Behavior</th><th>Overall</th></tr>
+            <tr><th>Employee</th><th style="width:130px;">House</th><th>Queries</th><th>Avg/day</th><th>Convincing</th><th>Customer</th><th>Behavior</th><th>Overall</th></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="7" class="loading">Loading...</td></tr>
+            <tr><td colspan="8" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div id="perfMonthCards" style="display:none; padding:10px;"></div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+
+<datalist id="mlSizes">
+  <option value="5 ML"><option value="10 ML"><option value="20 ML"><option value="30 ML">
+  <option value="50 ML"><option value="100 ML"><option value="200 ML">
+</datalist>
+
+<div class="modal-overlay" id="addonModal">
+  <div class="modal wide">
+    <h3 id="addonTitle">Add-on</h3>
+    <div id="addonSub" style="font-size:12px; color:var(--muted); margin:-12px 0 16px;"></div>
+    <div id="addonModalAlert"></div>
+    <input type="hidden" id="addonEmpId">
+    <input type="hidden" id="addonGroupKey">
+
+    <div class="field">
+      <label for="addonOrder">Original order</label>
+      <input type="text" id="addonOrder" placeholder="#14902">
+    </div>
+
+    <div style="margin-bottom:6px; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">Products added</div>
+    <div style="display:grid; grid-template-columns:1fr 92px 58px 30px; gap:8px; margin-bottom:5px;">
+      <span style="font-size:10.5px; color:var(--muted);">Product</span>
+      <span style="font-size:10.5px; color:var(--muted);">Size (ML)</span>
+      <span style="font-size:10.5px; color:var(--muted);">Qty</span>
+      <span></span>
+    </div>
+    <div id="addonItems"></div>
+    <button type="button" id="btnAddonAddRow" class="btn secondary" style="width:auto; font-size:12.5px; padding:6px 12px;">+ Another product</button>
+
+    <div class="field" style="margin-top:18px; padding-top:14px; border-top:1px solid var(--line);">
+      <label for="addonPrice">Total add-on price</label>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <input type="number" id="addonPrice" min="0" step="1" placeholder="950" style="width:150px;">
+        <span id="addonCovers" style="font-size:11.5px; color:var(--muted);">for the products above</span>
+      </div>
+    </div>
+
+    <div class="actions" style="align-items:center; justify-content:space-between;">
+      <span style="font-size:12.5px; color:var(--muted);">Add-on total <b id="addonTotal" style="color:#0f7a41; font-size:15px;">₹0</b></span>
+      <span style="display:flex; gap:10px;">
+        <button type="button" class="btn secondary" id="btnAddonCancel">Cancel</button>
+        <button type="button" class="btn" id="btnAddonSave">Save add-on</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addonListModal">
+  <div class="modal">
+    <h3 id="addonListTitle">Add-ons</h3>
+    <div id="addonListSub" style="font-size:12px; color:var(--muted); margin:-12px 0 14px;"></div>
+    <div id="addonListBody"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="btnAddonListClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('performance');
 
   const alertBox = document.getElementById('alertBox');
   let currentMonth = '';
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
   }
 
+  function houseBadge(row) {
+    const color = HOUSE_COLOR[row.group_key] || HOUSE_COLOR[''];
+    return `<span style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:${color}; background:${color}18;">${row.group_label}</span>`;
+  }
+
   // Plain-number display for the monthly average (read-only) — no stars.
   function numAvg(v) {
     if (v === null || v === undefined) return '<span style="color:var(--muted); font-size:12px;">—</span>';
-    return `<span style="font-size:14px; font-weight:600;">${v}</span> <span style="font-size:11px; color:var(--muted);">/ 5</span>`;
+    return `<span style="font-size:14px; font-weight:600;">${v}</span> <span style="font-size:11px; color:var(--muted);">/ 10</span>`;
   }
-
-  window.rate = async function (empId, field, value) {
-    try {
-      await api.post('performance.rate', { month: currentMonth, employee_id: empId, field, value });
-      load();
-    } catch (err) {
-      showAlert(err.message, 'error');
-    }
-  };
 
   let monthRows = [];
   let dailyRows = [];
@@ -109,28 +166,52 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  // Editable numeric box (1-5) — replaces the old clickable star row.
+  // Editable numeric box, 1-10 with one decimal place (e.g. 1.5, 5.6).
   function ratingInput(empId, field, n) {
-    return `<input type="number" min="1" max="5" step="1" value="${n === null || n === undefined ? '' : n}"
-              placeholder="1-5" style="width:56px; padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;"
+    return `<input type="number" min="1" max="10" step="0.1" value="${n === null || n === undefined ? '' : n}"
+              placeholder="1-10" style="width:62px; padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;"
               onchange="rateDaily(${empId}, '${field}', this.value)">`;
   }
 
   window.rateDaily = async function (empId, field, rawValue) {
-    const value = Number(rawValue);
-    if (!Number.isInteger(value) || value < 1 || value > 5) {
-      showAlert('Enter a whole number from 1 to 5.', 'error');
-      renderDaily(); // reset the box back to its last known value
-      return;
+    // Behavior comes from the Good/Average/Bad chips and is always 5/3/1;
+    // Convincing and Customer accept 1-10 with one decimal place.
+    let value = Number(rawValue);
+    if (field === 'behavior') {
+      if (![1, 3, 5].includes(value)) { renderDaily(); return; }
+    } else {
+      value = Math.round(value * 10) / 10;
+      if (!isFinite(value) || value < 1 || value > 10) {
+        showAlert('Enter a number from 1 to 10 (one decimal allowed, e.g. 5.6).', 'error');
+        renderDaily(); // reset the box back to its last known value
+        return;
+      }
     }
     try {
       await api.post('performance.rate_daily', { date: currentDay, employee_id: empId, field, value });
-      // Update just this value locally — no page reload, no re-fetch.
-      const row = dailyRows.find(r => r.employee_id === empId);
-      if (row) {
+      // Ratings are per-person, not per-house — update every one of this
+      // employee's house-rows locally, not just the row that was clicked.
+      dailyRows.filter(r => r.employee_id === empId).forEach(row => {
         if (field === 'convincing') row.convincing = value;
         else if (field === 'customer') row.customer_rating = value;
         else row.behavior_rating = value;
+      });
+      renderDaily();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.editDayQueries = async function (empId, groupKey, current) {
+    const v = prompt('Queries handled on ' + currentDay + ':', current === null ? '' : current);
+    if (v === null) return;
+    try {
+      await api.post('queries.save', { employee_id: empId, date: currentDay, group_key: groupKey, query_count: Number(v || 0) });
+      // Only this specific house's row changes — queries are per-house.
+      const row = dailyRows.find(r => r.employee_id === empId && r.group_key === groupKey);
+      if (row) {
+        row.queries = Number(v || 0);
+        row.ratio = row.queries > 0 ? Math.round((row.orders / row.queries) * 1000) / 10 : null;
       }
       renderDaily();
     } catch (err) {
@@ -138,17 +219,126 @@
     }
   };
 
-  window.editDayQueries = async function (empId, current) {
-    const v = prompt('Queries handled on ' + currentDay + ':', current === null ? '' : current);
-    if (v === null) return;
+
+  // ===== Add-ons: extra products upsold onto an existing order =====
+  // Stored separately from achieved/commission on purpose — the customer
+  // pays one combined total, so the add-on value already arrives inside the
+  // Shopify order and counting it again would double-count the same rupees.
+  let addonSummary = {};   // employee_id -> { count, total }
+  let addonRows = [];      // full list for the selected day
+
+  async function loadAddons() {
+    if (!currentDay) return;
     try {
-      await api.post('queries.save', { employee_id: empId, date: currentDay, query_count: Number(v || 0) });
-      const row = dailyRows.find(r => r.employee_id === empId);
-      if (row) {
-        row.queries = Number(v || 0);
-        row.ratio = row.queries > 0 ? Math.round((row.orders / row.queries) * 1000) / 10 : null;
-      }
+      const d = await api.get('addons.list', { date: currentDay });
+      addonSummary = d.by_employee || {};
+      addonRows = d.addons || [];
+    } catch (err) {
+      addonSummary = {}; addonRows = [];
+    }
+  }
+
+  function addonCell(r) {
+    const s = addonSummary[r.employee_id];
+    const summary = s
+      ? `<a href="#" onclick="showAddons(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="View this day's add-ons"><b>${inrShort(s.total)}</b> <span style="color:var(--muted);">· ${s.count}</span></a>`
+      : '<span style="color:var(--muted);">—</span>';
+    return `<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      ${summary}
+      <button onclick="openAddon(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}', '${r.group_key}', '${r.group_label}')"
+        style="font-size:11px; padding:4px 9px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--accent); font-weight:600; cursor:pointer; min-height:0;">+ Add</button>
+    </div>`;
+  }
+
+  const inrShort = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  // ---- entry modal ----
+  function addonItemRow() {
+    return `<div class="addon-item" style="display:grid; grid-template-columns:1fr 92px 58px 30px; gap:8px; margin-bottom:7px;">
+      <input type="text" class="ad-name" placeholder="Product name" style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      <input type="text" class="ad-size" placeholder="" style="width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      <input type="number" class="ad-qty" value="1" min="1" style="width:100%; padding:8px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;">
+      <button type="button" onclick="this.closest('.addon-item').remove(); recalcAddonTotal();" title="Remove this product"
+        style="width:30px; height:34px; padding:0; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--bad-fg); cursor:pointer; font-size:14px; min-height:0;">&times;</button>
+    </div>`;
+  }
+
+  window.recalcAddonTotal = function () {
+    const named = [...document.querySelectorAll('#addonItems .addon-item')]
+      .filter(row => row.querySelector('.ad-name').value.trim()).length;
+    document.getElementById('addonCovers').textContent =
+      named === 0 ? 'for the products above' : `for ${named} product${named === 1 ? '' : 's'} above`;
+    const price = Number(document.getElementById('addonPrice').value || 0);
+    document.getElementById('addonTotal').textContent = price > 0 ? inrShort(price) : '₹0';
+  };
+
+  window.openAddon = function (empId, empName, groupKey, groupLabel) {
+    document.getElementById('addonEmpId').value = empId;
+    document.getElementById('addonGroupKey').value = groupKey || '';
+    document.getElementById('addonTitle').textContent = 'Add-on for ' + empName;
+    document.getElementById('addonSub').textContent =
+      new Date(currentDay + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
+      + (groupLabel ? ' · ' + groupLabel : '');
+    document.getElementById('addonOrder').value = '';
+    document.getElementById('addonItems').innerHTML = addonItemRow() + addonItemRow();
+    document.getElementById('addonPrice').value = '';
+    document.getElementById('addonModalAlert').innerHTML = '';
+    recalcAddonTotal();
+    document.getElementById('addonModal').classList.add('open');
+  };
+
+  function closeAddon() { document.getElementById('addonModal').classList.remove('open'); }
+
+  window.showAddons = function (empId, empName) {
+    const mine = addonRows.filter(a => Number(a.employee_id) === Number(empId));
+    const total = mine.reduce((t, a) => t + Number(a.price), 0);
+
+    // Products saved together share an addon_group and one price, so they
+    // are shown as a single add-on rather than loose rows.
+    const groups = {};
+    const order = [];
+    mine.forEach(a => {
+      const k = a.addon_group || ('single-' + a.addon_id);
+      if (!groups[k]) { groups[k] = { order_name: a.order_name, price: 0, items: [], key: k, addon_id: a.addon_id }; order.push(k); }
+      groups[k].price += Number(a.price);
+      groups[k].items.push(a);
+    });
+
+    document.getElementById('addonListTitle').textContent = empName + ' · add-ons';
+    document.getElementById('addonListSub').textContent =
+      `${order.length} add-on${order.length === 1 ? '' : 's'} · ${inrShort(total)}`;
+    document.getElementById('addonListBody').innerHTML = order.length
+      ? order.map(k => {
+          const g = groups[k];
+          return `<div style="padding:9px 0; border-bottom:1px solid var(--line);">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+              <span style="color:var(--accent); font-size:12.5px;">${g.order_name || 'No order ref'}</span>
+              <span style="display:flex; align-items:center; gap:10px;">
+                <b style="font-size:13px;">${inrShort(g.price)}</b>
+                <button onclick="deleteAddon('${g.key}', ${g.addon_id})" title="Remove this add-on"
+                  style="background:none; border:none; cursor:pointer; color:var(--bad-fg); font-size:14px; padding:0; min-height:0;">&times;</button>
+              </span>
+            </div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">
+              ${g.items.map(it => `${it.product_name}${it.size_ml ? ' ' + it.size_ml + ' ML' : ''}${Number(it.qty) > 1 ? ' ×' + it.qty : ''}`).join(' · ')}
+            </div>
+          </div>`;
+        }).join('')
+      : '<div class="empty-state" style="padding:20px;">No add-ons recorded for this day.</div>';
+    document.getElementById('addonListModal').classList.add('open');
+  };
+
+  window.deleteAddon = async function (groupKey, fallbackId) {
+    if (!confirm('Remove this add-on and all its products?')) return;
+    try {
+      const payload = String(groupKey).startsWith('single-')
+        ? { addon_id: fallbackId }
+        : { addon_group: groupKey };
+      await api.post('addons.delete', payload);
+      await loadAddons();
       renderDaily();
+      document.getElementById('addonListModal').classList.remove('open');
+      showAlert('Add-on removed.');
     } catch (err) {
       showAlert(err.message, 'error');
     }
@@ -160,14 +350,15 @@
     document.getElementById('dailyTitle').textContent = 'Daily — ' +
       new Date(currentDay + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     const tbody = document.getElementById('dailyBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading day data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading day data...</td></tr>';
     try {
       const data = await api.get('performance.daily', { date: currentDay, store_group: groupFilter() });
       dailyRows = data.rows || [];
       (data.errors || []).forEach(e => showAlert(e, 'error'));
+      await loadAddons();   // must land before the first render or the column reads empty
       renderDaily();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -175,7 +366,8 @@
     const tbody = document.getElementById('dailyBody');
     const shown = dailyRows.filter(matchesSearch);
     if (!shown.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
+      document.getElementById('perfDailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
     tbody.innerHTML = shown.map(r => {
@@ -184,10 +376,12 @@
         : `<span class="badge" style="background:${r.ratio >= 9 ? '#e7f7ee' : (r.ratio >= 6 ? '#fdf3e3' : '#fdecec')}; color:${r.ratio >= 9 ? '#0f7a41' : (r.ratio >= 6 ? '#b45f06' : '#c81e1e')};">${r.ratio}%</span>`;
       return `<tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div></td>
+        <td>${houseBadge(r)}</td>
         <td>${r.queries !== null ? r.queries : '<span style="color:var(--muted);">—</span>'}
-          <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0;" onclick="editDayQueries(${r.employee_id}, ${r.queries === null ? 'null' : r.queries})">✎</button></td>
+          <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0;" onclick="editDayQueries(${r.employee_id}, '${r.group_key}', ${r.queries === null ? 'null' : r.queries})">✎</button></td>
         <td>${r.orders}<div style="font-size:11.5px; color:var(--muted);">${'₹' + Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div></td>
         <td>${ratioBadge}</td>
+        <td>${addonCell(r)}</td>
         <td>${ratingInput(r.employee_id, 'convincing', r.convincing)}</td>
         <td>${ratingInput(r.employee_id, 'customer', r.customer_rating)}</td>
         <td>${(() => {
@@ -200,6 +394,40 @@
           }).join('');
         })()}</td>
       </tr>`;
+    }).join('');
+
+    // Mobile: one card per employee/house, with the ratings as the same
+    // editable controls the table uses.
+    document.getElementById('perfDailyCards').innerHTML = shown.map(r => {
+      const ratioTxt = r.ratio === null ? '—' : r.ratio + '%';
+      const ratioFg = r.ratio === null ? 'var(--muted)' : (r.ratio >= 9 ? '#0f7a41' : (r.ratio >= 6 ? '#b45f06' : '#c81e1e'));
+      return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13px; font-weight:600;">${r.full_name}</a>
+          <span style="font-size:13px; font-weight:700; color:${ratioFg}; white-space:nowrap;">${ratioTxt}</span>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:1px;">${r.employee_code} · ${houseBadge(r)}</div>
+        <div style="display:flex; gap:14px; margin-top:9px; font-size:12px;">
+          <span><span style="color:var(--muted);">Query</span>
+            ${r.queries !== null ? r.queries : '—'}
+            <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0 0 0 2px;" onclick="editDayQueries(${r.employee_id}, '${r.group_key}', ${r.queries === null ? 'null' : r.queries})">✎</button>
+          </span>
+          <span><span style="color:var(--muted);">Orders</span> ${r.orders}</span>
+          <span><span style="color:var(--muted);">Sales</span> ₹${Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+        </div>
+        <div style="display:flex; gap:14px; align-items:center; margin-top:10px; padding-top:9px; border-top:1px solid var(--line); flex-wrap:wrap;">
+          <span style="font-size:11.5px;"><span style="color:var(--muted);">Convincing</span> ${ratingInput(r.employee_id, 'convincing', r.convincing)}</span>
+          <span style="font-size:11.5px;"><span style="color:var(--muted);">Customer</span> ${ratingInput(r.employee_id, 'customer', r.customer_rating)}</span>
+        </div>
+        <div style="display:flex; gap:4px; margin-top:8px; flex-wrap:wrap;">
+          ${[['Good', 5, '#0f7a41', '#e7f7ee'], ['Average', 3, '#b45f06', '#fdf3e3'], ['Bad', 1, '#c81e1e', '#fdecec']].map(([label, val, fg, bg]) => {
+            const on = r.behavior_rating === val;
+            return `<span onclick="rateDaily(${r.employee_id}, 'behavior', ${val})"
+              style="cursor:pointer; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:600;
+                     background:${on ? bg : 'var(--bg)'}; color:${on ? fg : 'var(--muted)'}; border:1px solid ${on ? fg : 'var(--line)'};">${label}</span>`;
+          }).join('')}
+        </div>
+      </div>`;
     }).join('');
   }
 
@@ -214,7 +442,7 @@
       monthRows = data.rows || [];
       renderMonthly();
     } catch (err) {
-      document.getElementById('tableBody').innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="8"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -222,13 +450,15 @@
     const tbody = document.getElementById('tableBody');
     const shown = monthRows.filter(matchesSearch);
     if (shown.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matching employees.</td></tr>';
+      document.getElementById('perfMonthCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
     tbody.innerHTML = shown.map(r => {
         return `<tr>
           <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a>
             <div style="font-size:11.5px; color:var(--muted);">${r.employee_code}${r.sales_tag ? ' · tag ' + r.sales_tag : ''}</div></td>
+          <td>${houseBadge(r)}</td>
           <td>${r.queries}<div style="font-size:11.5px; color:var(--muted);">${r.query_days} day${r.query_days === 1 ? '' : 's'} entered</div></td>
           <td>${r.avg_per_day}</td>
           <td>${numAvg(r.convincing)}</td>
@@ -239,9 +469,34 @@
             const [label, fg, bg] = v >= 4 ? ['Good', '#0f7a41', '#e7f7ee'] : (v >= 2 ? ['Average', '#b45f06', '#fdf3e3'] : ['Bad', '#c81e1e', '#fdecec']);
             return `<span class="badge" style="background:${bg}; color:${fg};">${label}</span>`;
           })()}</td>
-          <td style="font-weight:700; font-size:15px;">${r.overall !== null ? r.overall : '—'}<div style="font-size:11px; color:var(--muted); font-weight:400;">of 5</div></td>
+          <td style="font-weight:700; font-size:15px;">${r.overall !== null ? r.overall : '—'}<div style="font-size:11px; color:var(--muted); font-weight:400;">of 10</div></td>
         </tr>`;
       }).join('');
+
+    document.getElementById('perfMonthCards').innerHTML = shown.map(r => {
+      const behLabel = (v) => {
+        if (v === null || v === undefined) return '<span style="color:var(--muted);">—</span>';
+        const [label, fg, bg] = v >= 4 ? ['Good', '#0f7a41', '#e7f7ee'] : (v >= 2 ? ['Average', '#b45f06', '#fdf3e3'] : ['Bad', '#c81e1e', '#fdecec']);
+        return `<span class="badge" style="background:${bg}; color:${fg};">${label}</span>`;
+      };
+      const num = (v) => (v === null || v === undefined) ? '—' : v;
+      return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13px; font-weight:600;">${r.full_name}</a>
+          <span style="font-size:15px; font-weight:700; white-space:nowrap;">${r.overall !== null ? r.overall : '—'}<span style="font-size:10px; color:var(--muted); font-weight:400;"> / 10</span></span>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:1px;">${r.employee_code}${r.sales_tag ? ' · tag ' + r.sales_tag : ''} · ${houseBadge(r)}</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+          <div><div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Queries</div><div style="font-size:13px;">${r.queries} <span style="font-size:11px; color:var(--muted);">(${r.query_days}d)</span></div></div>
+          <div><div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Avg / day</div><div style="font-size:13px;">${r.avg_per_day}</div></div>
+          <div><div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Convincing</div><div style="font-size:13px;">${num(r.convincing)}</div></div>
+          <div><div style="font-size:10px; color:var(--muted); text-transform:uppercase;">Customer</div><div style="font-size:13px;">${num(r.customer_rating)}</div></div>
+        </div>
+        <div style="margin-top:9px; padding-top:8px; border-top:1px solid var(--line); font-size:11.5px;">
+          <span style="color:var(--muted);">Behavior</span> ${behLabel(r.behavior_rating)}
+        </div>
+      </div>`;
+    }).join('');
   }
 
   const now = new Date();
@@ -255,6 +510,69 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => { renderMonthly(); renderDaily(); }, 150);
   });
+  // ---- add-on modal wiring ----
+  document.getElementById('btnAddonAddRow').addEventListener('click', () => {
+    document.getElementById('addonItems').insertAdjacentHTML('beforeend', addonItemRow());
+  });
+  document.getElementById('btnAddonCancel').addEventListener('click', closeAddon);
+  document.getElementById('addonModal').addEventListener('click', (e) => {
+    if (e.target.id === 'addonModal') closeAddon();
+  });
+  document.getElementById('btnAddonListClose').addEventListener('click', () => {
+    document.getElementById('addonListModal').classList.remove('open');
+  });
+  document.getElementById('addonListModal').addEventListener('click', (e) => {
+    if (e.target.id === 'addonListModal') e.currentTarget.classList.remove('open');
+  });
+  document.getElementById('addonItems').addEventListener('input', (e) => {
+    if (e.target.classList.contains('ad-name')) recalcAddonTotal();
+  });
+  document.getElementById('addonPrice').addEventListener('input', recalcAddonTotal);
+
+  document.getElementById('btnAddonSave').addEventListener('click', async () => {
+    const alertBox = document.getElementById('addonModalAlert');
+    const items = [];
+    document.querySelectorAll('#addonItems .addon-item').forEach(row => {
+      const name = row.querySelector('.ad-name').value.trim();
+      if (!name) return; // blank spare rows are ignored, not an error
+      items.push({
+        product_name: name,
+        size_ml: row.querySelector('.ad-size').value.trim(),
+        qty: Math.max(1, Number(row.querySelector('.ad-qty').value || 1)),
+      });
+    });
+    if (!items.length) {
+      alertBox.innerHTML = '<div class="alert error">Enter at least one product name.</div>';
+      return;
+    }
+    const totalPrice = Number(document.getElementById('addonPrice').value || 0);
+    if (!(totalPrice > 0)) {
+      alertBox.innerHTML = '<div class="alert error">Enter the total add-on price.</div>';
+      return;
+    }
+
+    const btn = document.getElementById('btnAddonSave');
+    btn.disabled = true;
+    try {
+      const d = await api.post('addons.save', {
+        employee_id: Number(document.getElementById('addonEmpId').value),
+        date: currentDay,
+        group_key: document.getElementById('addonGroupKey').value,
+        order_name: document.getElementById('addonOrder').value.trim(),
+        total_price: totalPrice,
+        items,
+      });
+      closeAddon();
+      showAlert(d.message || 'Add-on saved.');
+      await loadAddons();
+      renderDaily();
+    } catch (err) {
+      alertBox.innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   load();
   loadDaily();
 </script>

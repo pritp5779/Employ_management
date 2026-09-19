@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Orders — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -41,7 +41,7 @@
             </div>
             <button class="btn secondary" id="btnToday">Today</button>
             <span id="loadingHint" style="display:none; font-size:13px; color:var(--muted); align-self:center;">Loading...</span>
-            <button class="btn" id="btnAddOrder" style="background:#0f7a41;">+ Add Order</button>
+            <button class="btn" id="btnAddOrder">+ Add Order</button>
           </div>
         </div>
       </div>
@@ -70,6 +70,7 @@
           </thead>
           <tbody id="ordersBody"></tbody>
         </table>
+        <div id="ordersCards" style="display:none;"></div>
         <div id="pagerBar" style="display:none; padding:14px 20px; border-top:1px solid var(--line); display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           <span id="pagerInfo" style="font-size:13px; color:var(--muted);"></span>
           <div style="display:flex; gap:8px; align-items:center;">
@@ -194,6 +195,17 @@
     return (cur === 'INR' ? '₹' : cur + ' ') + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   }
 
+  // Abbreviated amount for the 3-per-row mobile stat cards, where the full
+  // "₹64,082.26" simply doesn't fit in a third of a phone screen.
+  function fmtMoneyShort(v, cur) {
+    const n = Number(v || 0);
+    const sym = cur === 'INR' ? '₹' : cur + ' ';
+    if (n >= 10000000) return sym + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'cr';
+    if (n >= 100000) return sym + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000) return sym + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return sym + Math.round(n);
+  }
+
   function dateLabel(dstr) {
     return new Date(dstr + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   }
@@ -293,11 +305,25 @@
     });
 
     const grid = document.getElementById('summaryGrid');
+    // Each card carries both a full label/amount and a short one; CSS shows
+    // whichever fits (short only under the mobile breakpoint).
     grid.innerHTML = `
-      <div class="stat-card"><div class="label">All Orders</div><div class="value">${allOrders.length}</div></div>
-      <div class="stat-card"><div class="label">Total Revenue</div><div class="value">${fmtMoney(grandTotal, 'INR')}</div></div>
+      <div class="stat-card">
+        <div class="label"><span class="lbl-full">All Orders</span><span class="lbl-short">Orders</span></div>
+        <div class="value">${allOrders.length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label"><span class="lbl-full">Total Revenue</span><span class="lbl-short">Revenue</span></div>
+        <div class="value"><span class="amt-full">${fmtMoney(grandTotal, 'INR')}</span><span class="amt-short">${fmtMoneyShort(grandTotal, 'INR')}</span></div>
+      </div>
       ${Object.entries(byStore).map(([label, s]) => `
-        <div class="stat-card"><div class="label">${label}</div><div class="value">${s.count} <span style="font-size:13px; font-weight:500; color:var(--muted);">/ ${fmtMoney(s.total, s.currency)}</span></div></div>`).join('')}
+        <div class="stat-card">
+          <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
+          <div class="value">${s.count}
+            <span class="amt-full" style="font-size:13px; font-weight:500; color:var(--muted);"> / ${fmtMoney(s.total, s.currency)}</span>
+            <span class="amt-short">${fmtMoneyShort(s.total, s.currency)}</span>
+          </div>
+        </div>`).join('')}
     `;
     grid.style.display = 'grid';
   }
@@ -328,6 +354,7 @@
 
     if (filteredOrders.length === 0) {
       body.innerHTML = '<tr><td colspan="10" class="empty-state">No matching orders.</td></tr>';
+      document.getElementById('ordersCards').innerHTML = '<div class="empty-state">No matching orders.</div>';
       pagerBar.style.display = 'none';
       return;
     }
@@ -342,8 +369,8 @@
 
     const rowHtml = (o) => `
         <tr>
-          <td style="font-weight:600;"><a href="#" onclick="openDetail(${o._i}); return false;">${o.order_name}</a>${o.manual_order_id ? ` <button class="danger-link" style="background:none;border:none;cursor:pointer;color:var(--bad-fg);font-size:12px;padding:0;margin-left:6px;" onclick="deleteManual(${o.manual_order_id})">✕</button>` : ''}</td>
-          <td><span class="badge">${o.store}</span></td>
+          <td style="font-weight:600;"><a href="#" onclick="openDetail(${o._i}); return false;">${o.order_name}</a>${o.manual_order_id ? ` <button class="danger-link" title="Delete this manual order" aria-label="Delete order" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;color:var(--bad-fg);font-size:12px;padding:4px 8px;margin-left:6px;line-height:1;" onclick="deleteManual(${o.manual_order_id})">✕</button>` : ''}</td>
+          <td><span style="color:var(--muted);">${o.store}</span></td>
           <td>${o.salesman || '—'}</td>
           <td>${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
           <td>${o.customer}</td>
@@ -353,6 +380,30 @@
           <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
           <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
         </tr>`;
+
+    // Mobile equivalent of one order row: order # + total on top, customer
+    // and phone as a subtitle, store/time/items on one line, payment and
+    // fulfillment as pills at the bottom — same data as the table row above,
+    // just laid out as a card instead of ten cramped columns.
+    const cardHtml = (o) => `
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:8px;" onclick="openDetail(${o._i})">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+            <span style="font-weight:600; color:var(--accent);">${o.order_name}</span>
+            <span style="font-weight:600;">${fmtMoney(o.total, o.currency)}</span>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-top:4px;">${o.customer}${o.phone ? ' · ' + o.phone : ''}${o.salesman ? ' · ' + o.salesman : ''}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size:12px; color:var(--muted);">${o.store}</span>
+            <span style="font-size:12px; color:var(--muted);">${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · ${o.items} item${o.items === 1 ? '' : 's'}</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span>
+            <span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span>
+            ${o.manual_order_id ? `<button class="danger-link" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;color:var(--bad-fg);font-size:12px;padding:6px 12px;margin-left:auto;line-height:1.3;" onclick="event.stopPropagation(); deleteManual(${o.manual_order_id})">Delete</button>` : ''}
+          </div>
+        </div>`;
+
+    const cardsEl = document.getElementById('ordersCards');
 
     if (sortKey === 'created_at') {
       // Time sort: keep the day-wise grouping with full-day totals for the
@@ -383,9 +434,19 @@
             </td>
           </tr>` + groups[day].map(rowHtml).join('');
       }).join('');
+
+      cardsEl.innerHTML = order.map(day => {
+        const dt = dayTotals[day];
+        return `
+          <div style="font-weight:700; font-size:13px; padding:8px 2px; display:flex; justify-content:space-between;">
+            <span>${dateLabel(day)}</span>
+            <span style="font-weight:600; color:var(--muted);">${dt.count} order${dt.count === 1 ? '' : 's'} · ${fmtMoney(dt.total, 'INR')}</span>
+          </div>` + groups[day].map(cardHtml).join('');
+      }).join('');
     } else {
       // Sorting by another column: flat list (day grouping wouldn't make sense).
       body.innerHTML = pageOrders.map(rowHtml).join('');
+      cardsEl.innerHTML = pageOrders.map(cardHtml).join('');
     }
 
     // Pager UI

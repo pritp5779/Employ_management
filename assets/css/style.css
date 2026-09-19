@@ -82,28 +82,60 @@ a{color:var(--accent); text-decoration:none;}
 
 .main{flex:1; min-width:0; display:flex; flex-direction:column;}
 .topbar{background:var(--surface); border-bottom:1px solid var(--line); padding:16px 28px; display:flex; align-items:center; justify-content:space-between;}
+/* Every control in the page header shares one height so the row reads as a
+   single baseline. Without this each control derives its own height from
+   padding + font-size — inputs land at ~35px and .btn at ~41px, which is
+   what makes the header look jagged. Scoped to .topbar so buttons in page
+   bodies and modals keep their larger default size. */
+.topbar input, .topbar select, .topbar .btn, .topbar a.btn, .topbar button{
+  height:36px; box-sizing:border-box; font-size:13px; line-height:1;
+  padding-top:0; padding-bottom:0;
+}
+.topbar .btn, .topbar a.btn, .topbar button{padding-left:14px; padding-right:14px;}
+.topbar input, .topbar select{padding-left:10px; padding-right:10px;}
 .topbar h1{font-size:18px; margin:0;}
 .content{padding:24px 28px; flex:1;}
 
-.stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px;}
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:24px;}
 .stat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow);}
 .stat-card .label{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
 .stat-card .value{font-size:26px; font-weight:700; margin-top:6px;}
+/* Stat cards carry both a full and a short label/amount; only the full one
+   shows until the mobile breakpoint swaps them (see the media query below). */
+.lbl-short, .amt-short{display:none;}
 
-.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin-bottom:20px;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:20px;}
 .card-head{padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
 .card-head h2{font-size:15px; margin:0;}
 .search-box input{padding:8px 12px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:220px;}
 table{width:100%; border-collapse:collapse;}
-thead th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 10px; background:#fafbfc; border-bottom:1px solid var(--line);}
-tbody td{padding:12px 10px; border-bottom:1px solid var(--line); font-size:13.5px;}
+/* Sticky column headers: in long lists (200 employees, hundreds of orders)
+   the labels otherwise scroll away immediately, leaving unlabelled columns.
+   The header cell carries the sticky position rather than the <tr>, since
+   position:sticky doesn't apply to table rows in every browser. An opaque
+   background is required so rows don't show through as they pass beneath. */
+thead th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 10px; background:#fafbfc; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:2;}
+/* Cells top-align so every value in a row starts on the same baseline.
+   With default middle alignment, a tall cell (the Progress bar with its
+   legend) pushes short values in the same row down to the middle, breaking
+   the horizontal scan line across the row. */
+tbody td{padding:12px 10px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:top;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover{background:#fafbfc;}
 .badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; background:#eef2ff; color:#3730a3;}
-.row-actions{display:flex; gap:14px;}
-.row-actions button{background:none; border:none; padding:0; cursor:pointer; font-size:13px; color:var(--accent); font-weight:600;}
-.row-actions button.danger-link{color:var(--bad-fg);}
-.row-actions button:hover{text-decoration:underline;}
+/* Row actions (Edit / Delete / View) read as buttons and have a real hit
+   area — bare text with padding:0 gives a ~15px tall target that's hard to
+   hit accurately and easy to overlook. Outline style keeps them from
+   competing with primary actions on the page. */
+.row-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.row-actions button, .row-actions a{
+  background:none; border:1px solid var(--line); border-radius:6px;
+  padding:6px 12px; cursor:pointer; font-size:13px; font-weight:600;
+  color:var(--accent); line-height:1.3; text-decoration:none; display:inline-block;
+}
+.row-actions button.danger-link, .row-actions a.danger-link{color:var(--bad-fg); border-color:#f3c9c9;}
+.row-actions button:hover, .row-actions a:hover{background:#f9fafb; text-decoration:none;}
+.row-actions button.danger-link:hover, .row-actions a.danger-link:hover{background:var(--bad-bg);}
 .empty-state{padding:40px 20px; text-align:center; color:var(--muted);}
 .loading{padding:40px 20px; text-align:center; color:var(--muted);}
 
@@ -150,19 +182,142 @@ tbody tr:hover{background:#fafbfc;}
   .topbar{padding:14px 18px 14px 64px; flex-wrap:wrap; gap:10px;}
   .content{padding:16px 14px;}
 
-  /* Tables scroll sideways inside their card instead of squeezing */
-  .card{overflow-x:auto;}
-  .card table{min-width:640px;}
+  /* Filter/control rows in the topbar (search box + house dropdown + date
+     pickers + buttons) wrap onto multiple lines instead of overflowing —
+     every page that puts a plain flex row directly inside .topbar (Targets,
+     Performance, Assign Queries, etc.) gets this automatically. flex-basis
+     here takes priority over each control's own inline width, so they also
+     shrink/grow to sit two-per-row cleanly on a phone instead of staying
+     locked at their desktop pixel width. */
+  .topbar > div{display:flex; flex-wrap:wrap; row-gap:8px; column-gap:8px; width:100%;}
+  .topbar > div > input, .topbar > div > select, .topbar > div > button, .topbar > div > a.btn{
+    flex:1 1 140px;
+  }
+  .topbar > div > span{flex:0 0 auto;} /* status text stays its own size */
+
+  /* Tables scroll sideways inside their card instead of squeezing.
+     The scroll sits on the table itself (display:block makes it scrollable)
+     rather than on .card, so the sticky headers keep working — an overflow
+     on the card would clip them. */
+  /* Tables that opt out of stacking (.no-stack) keep the old sideways
+     scroll; everything else is handled by the stacking rules further down. */
+  .card > table.no-stack{display:block; overflow-x:auto; min-width:0;}
+  .card table.no-stack{min-width:640px;}
+
+  /* Orders table specifically switches to stacked cards instead of
+     horizontal scroll — 10 columns is too many fields per row to stay
+     readable even with sideways scrolling. #ordersCards is populated by
+     orders.html's own JS with the same data as the table. */
+  #ordersCard table{display:none;}
+  #ordersCard #ordersCards{display:block !important;}
+
+  /* Attendance switches to two-column labelled cards for the same reason —
+     seven columns can't stay readable at phone width. */
+  #attCard table{display:none;}
+  #attCard #attCards{display:block !important;}
+
+  /* Targets: nine columns is the widest table in the app — switches to
+     progress-led cards rather than sideways scrolling. */
+  #targetsCard table{display:none;}
+  #targetsCard #dailyCards{display:block !important;}
+
+  /* Employees: eight columns including a photo and two row actions —
+     stacks into cards rather than scrolling sideways. */
+  #empCard table{display:none;}
+  #empCard #empCards{display:block !important;}
+
+  /* Performance: two eight-column tables — both stack into cards. */
+  #perfDailyCard table, #perfMonthCard table{display:none;}
+  #perfDailyCard #perfDailyCards, #perfMonthCard #perfMonthCards{display:block !important;}
+
+  /* ---- Generic responsive tables ----
+     Every remaining table (Assign Queries, Salary, Commission Rules,
+     Agreements, Departments, WhatsApp Groups, Excel Files, Ex-Employees,
+     Decline History, Approvals, Users, Roles) becomes a stack of labelled
+     cards instead of scrolling sideways. layout.js stamps each cell with a
+     data-label from its column header, which is what the ::before below
+     prints. Tables with a purpose-built card view opt out by hiding
+     themselves at this breakpoint, so they never reach these rules. */
+  .card table:not(.no-stack){display:block; min-width:0; width:100%; overflow-x:visible;}
+  .card table:not(.no-stack) thead{display:none;}
+  .card table:not(.no-stack) tbody,
+  .card table:not(.no-stack) tbody tr,
+  .card table:not(.no-stack) tbody td{display:block; width:auto;}
+  .card table:not(.no-stack) tbody tr{
+    border:1px solid var(--line); border-radius:10px;
+    padding:6px 10px; margin:0 10px 8px;
+  }
+  .card table:not(.no-stack) tbody tr:hover{background:var(--surface);}
+  .card table:not(.no-stack) tbody td{
+    border:none; padding:6px 0; font-size:13px;
+    display:flex; align-items:flex-start; gap:10px;
+  }
+  .card table:not(.no-stack) tbody td + td{border-top:1px solid var(--line);}
+  .card table:not(.no-stack) tbody td[data-label]::before{
+    content:attr(data-label);
+    flex:none; width:104px; font-size:10.5px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.03em; padding-top:2px;
+  }
+  /* A cell with no label (empty header, e.g. a photo column) spans full width */
+  .card table:not(.no-stack) tbody td:not([data-label]){display:block;}
+  /* Rows that span the table — day-group headers, empty states, loading —
+     stay as plain full-width blocks rather than pretending to be cards. */
+  .card table:not(.no-stack) tbody td[colspan]{
+    display:block; padding:10px 0;
+  }
+  .card table:not(.no-stack) tbody tr:has(td[colspan]){
+    border:none; padding:0; margin:0;
+  }
 
   .search-box input{min-width:0; width:100%;}
-  .card-head{align-items:stretch;}
+  /* Card headers stack: heading on its own line, then any controls
+     (search box, filter dropdowns) full-width beneath it — an input
+     squeezed onto the heading's line ends up ~130px wide with a
+     truncated placeholder and a cramped tap target. */
+  .card-head{align-items:stretch; flex-direction:column; gap:10px;}
+  .card-head > *{width:100%;}
+  .card-head .search-box input{width:100%;}
+  .card-head select, .card-head input[type="text"]{flex:1 1 140px;}
+  /* Controls nested one level deep (a flex wrapper holding a search box and
+     a date picker) also need to fill the row rather than keep a fixed px
+     width set inline for desktop. */
+  .card-head > div{display:flex; flex-wrap:wrap; gap:8px;}
+  .card-head > div > input, .card-head > div > select, .card-head > div > button{flex:1 1 140px; width:auto; min-width:0;}
 
   .field-grid{grid-template-columns:1fr;}
-  .stat-grid{grid-template-columns:1fr 1fr;}
+
+  /* Stat cards: 3 per row, using the short label/amount variants so the
+     numbers actually fit in a third of a phone screen. */
+  .stat-grid{grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
+  .stat-card{padding:8px 9px;}
+  .stat-card .label{font-size:11px; text-transform:none; letter-spacing:0;}
+  .stat-card .value{font-size:17px; margin-top:3px;}
+  .lbl-full, .amt-full{display:none;}
+  .lbl-short{display:inline;}
+  .amt-short{display:block; font-size:11px; font-weight:400; color:var(--muted); margin-top:1px;}
   .detail-grid{grid-template-columns:1fr 1fr !important;}
 
   .modal{width:100%; max-width:none; max-height:92vh;}
   .modal.wide{max-width:none;}
+
+  /* Comfortable tap targets on touch screens — topbar controls step up to
+     match, keeping the header's single-baseline alignment on mobile too. */
+  .btn, .btn.secondary, button{min-height:38px;}
+  .topbar input, .topbar select, .topbar .btn, .topbar a.btn, .topbar button{height:38px;}
+  .row-actions button, .row-actions a{padding:8px 14px;}
+}
+
+/* Phones narrower than ~400px: tables need every pixel, so trim padding
+   further and let long badges/labels wrap instead of forcing extra width. */
+@media (max-width:400px){
+  .content{padding:12px 10px;}
+  .card-head{padding:12px 14px;}
+  thead th, tbody td{padding-left:6px; padding-right:6px; font-size:12px;}
+  /* Stay 3-up even on the narrowest phones — just tighten the cards further. */
+  .stat-grid{gap:5px;}
+  .stat-card{padding:7px;}
+  .stat-card .value{font-size:15px;}
+  .badge{white-space:normal;}
 }
 
 /* ===== Popup scrolling: keep scroll inside modals, freeze the page behind ===== */
@@ -175,8 +330,16 @@ body:has(.modal-overlay.open){overflow:hidden;}
   .main{margin-left:230px;}
 }
 
-/* ===== Tables fit their card: compact cells, safety scroll only if truly needed ===== */
-.card{overflow-x:auto;}
+/* ===== Tables fit their card: compact cells, safety scroll only if truly needed =====
+   Note: the horizontal scroll lives on a wrapper INSIDE the card, not on the
+   card itself — setting overflow on .card would create a scroll container and
+   silently break the sticky table headers above. */
+.card > table{display:table; width:100%;}
+
+/* The card no longer uses overflow:hidden (it would clip sticky headers),
+   so the header row rounds its own outer corners to match the card. */
+.card > table thead th:first-child{border-top-left-radius:var(--radius);}
+.card > table thead th:last-child{border-top-right-radius:var(--radius);}
 
 /* First column keeps a little extra breathing room */
 thead th:first-child, tbody td:first-child{padding-left:20px;}

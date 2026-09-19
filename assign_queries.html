@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Assign Queries — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,7 @@
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
         <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-          <option value="">All groups</option>
+          <option value="">All houses</option>
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
@@ -33,7 +33,7 @@
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card" style="max-width:760px;">
+      <div class="card" style="max-width:860px;">
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
           <span style="font-size:12.5px; color:var(--muted);">
@@ -46,13 +46,14 @@
           <thead>
             <tr>
               <th>Employee</th>
+              <th style="width:150px;">House</th>
               <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Scout</th>
               <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Champion</th>
               <th style="text-align:center;">Total</th>
             </tr>
           </thead>
           <tbody id="empList">
-            <tr><td colspan="4" class="loading">Loading...</td></tr>
+            <tr><td colspan="5" class="loading">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -60,15 +61,19 @@
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('assign_queries');
 
   const alertBox = document.getElementById('alertBox');
-  let rows = [];
+  let employees = []; // each: { employee_id, full_name, employee_code, groups: [{group_key, group_label, query_count, scout_count, champion_count}] }
+
+  // House label -> accent color, so the same house reads consistently
+  // everywhere (Assign Queries, Targets, Performance).
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -78,61 +83,82 @@
   function day() { return document.getElementById('dayPick').value; }
   function groupFilter() { return document.getElementById('groupPick').value || ''; }
 
-  function matchesSearch(r) {
+  function matchesSearch(e) {
     const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
     if (!q) return true;
-    return (r.full_name || '').toLowerCase().includes(q)
-      || (r.employee_code || '').toLowerCase().includes(q);
+    return (e.full_name || '').toLowerCase().includes(q)
+      || (e.employee_code || '').toLowerCase().includes(q);
   }
 
   function updateSums() {
-    // Sums always reflect every employee for the day, regardless of search —
-    // only the visible rows are filtered.
-    document.getElementById('sumScout').textContent = rows.reduce((t, r) => t + r.scout_count, 0);
-    document.getElementById('sumChamp').textContent = rows.reduce((t, r) => t + r.champion_count, 0);
-    document.getElementById('totalCount').textContent = rows.reduce((t, r) => t + r.query_count, 0);
+    // Sums reflect every employee/house shown for the day, regardless of
+    // the search box — only which ROWS are visible is filtered by search.
+    let scout = 0, champ = 0, total = 0;
+    employees.forEach(e => e.groups.forEach(g => { scout += g.scout_count; champ += g.champion_count; total += g.query_count; }));
+    document.getElementById('sumScout').textContent = scout;
+    document.getElementById('sumChamp').textContent = champ;
+    document.getElementById('totalCount').textContent = total;
+  }
+
+  function counterCell(empId, groupKey, group, kind, color, bg) {
+    return `
+      <td style="text-align:center; background:${bg}; vertical-align:middle;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <button onclick="bump(${empId}, '${groupKey}', '${kind}', -1, this)" title="Undo one"
+            style="width:30px; height:32px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:15px; cursor:pointer;">−</button>
+          <span id="cnt-${kind}-${empId}-${groupKey}" style="font-size:18px; font-weight:700; min-width:30px; text-align:center;">${group[kind + '_count']}</span>
+          <button onclick="bump(${empId}, '${groupKey}', '${kind}', 1, this)"
+            style="width:46px; height:34px; border-radius:6px; border:none; background:${color}; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">+1</button>
+        </span>
+      </td>`;
   }
 
   function render() {
     const list = document.getElementById('empList');
-    if (!rows.length) {
-      list.innerHTML = '<tr><td colspan="4" class="empty-state">No sales employees.</td></tr>';
+    if (!employees.length) {
+      list.innerHTML = '<tr><td colspan="5" class="empty-state">No sales employees.</td></tr>';
       return;
     }
     updateSums();
-    const shown = rows.filter(matchesSearch);
+    const shown = employees.filter(matchesSearch);
     if (!shown.length) {
-      list.innerHTML = '<tr><td colspan="4" class="empty-state">No matching employees.</td></tr>';
+      list.innerHTML = '<tr><td colspan="5" class="empty-state">No matching employees.</td></tr>';
       return;
     }
-    const counter = (r, kind, color, bg) => `
-      <td style="text-align:center; background:${bg};">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <button onclick="bump(${r.employee_id}, '${kind}', -1, this)" title="Undo one"
-            style="width:30px; height:32px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:15px; cursor:pointer;">−</button>
-          <span id="cnt-${kind}-${r.employee_id}" style="font-size:18px; font-weight:700; min-width:30px; text-align:center;">${r[kind + '_count']}</span>
-          <button onclick="bump(${r.employee_id}, '${kind}', 1, this)"
-            style="width:46px; height:34px; border-radius:6px; border:none; background:${color}; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">+1</button>
-        </span>
-      </td>`;
-    list.innerHTML = shown.map(r => `
-      <tr>
-        <td>${r.full_name}<div style="font-size:11px; color:var(--muted);">${r.employee_code}</div></td>
-        ${counter(r, 'scout', '#0EA5E9', '#F7FBFE')}
-        ${counter(r, 'champion', '#F59E0B', '#FEFBF5')}
-        <td style="text-align:center; font-size:16px; font-weight:700;" id="cnt-total-${r.employee_id}">${r.query_count}</td>
-      </tr>`).join('');
+
+    // One row per (employee, house) — the employee's name spans all of
+    // their house rows with rowspan, so multi-house employees read as one
+    // block instead of repeating the name each time.
+    list.innerHTML = shown.map(e => {
+      const groups = e.groups.length ? e.groups : [{ group_key: '', group_label: 'Ungrouped', query_count: 0, scout_count: 0, champion_count: 0 }];
+      return groups.map((g, i) => {
+        const nameCell = i === 0
+          ? `<td rowspan="${groups.length}" style="vertical-align:top; ${groups.length > 1 ? 'border-right:2px solid var(--line);' : ''}">
+               ${e.full_name}<div style="font-size:11px; color:var(--muted);">${e.employee_code}</div>
+             </td>`
+          : '';
+        const color = HOUSE_COLOR[g.group_key] || HOUSE_COLOR[''];
+        return `<tr>
+          ${nameCell}
+          <td><span style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:${color}; background:${color}18;">${g.group_label}</span></td>
+          ${counterCell(e.employee_id, g.group_key, g, 'scout', '#0EA5E9', '#F7FBFE')}
+          ${counterCell(e.employee_id, g.group_key, g, 'champion', '#F59E0B', '#FEFBF5')}
+          <td style="text-align:center; font-size:16px; font-weight:700; vertical-align:middle;" id="cnt-total-${e.employee_id}-${g.group_key}">${g.query_count}</td>
+        </tr>`;
+      }).join('');
+    }).join('');
   }
 
-  window.bump = async function (empId, kind, delta, btn) {
+  window.bump = async function (empId, groupKey, kind, delta, btn) {
     btn.disabled = true;
     try {
-      const d = await api.post('queries.assign_bump', { employee_id: empId, kind, delta, date: day() });
-      const row = rows.find(r => r.employee_id === empId);
-      if (row) { row.query_count = d.query_count; row.scout_count = d.scout_count; row.champion_count = d.champion_count; }
-      const scoped = document.getElementById('cnt-' + kind + '-' + empId);
+      const d = await api.post('queries.assign_bump', { employee_id: empId, group_key: groupKey, kind, delta, date: day() });
+      const emp = employees.find(e => e.employee_id === empId);
+      const grp = emp && emp.groups.find(g => g.group_key === groupKey);
+      if (grp) { grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count; }
+      const scoped = document.getElementById(`cnt-${kind}-${empId}-${groupKey}`);
       if (scoped) scoped.textContent = d[kind + '_count'];
-      const total = document.getElementById('cnt-total-' + empId);
+      const total = document.getElementById(`cnt-total-${empId}-${groupKey}`);
       if (total) total.textContent = d.query_count;
       updateSums();
     } catch (err) {
@@ -147,10 +173,10 @@
       new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
     try {
       const data = await api.get('queries.assign_list', { date: day(), store_group: groupFilter() });
-      rows = data.employees || [];
+      employees = data.employees || [];
       render();
     } catch (err) {
-      document.getElementById('empList').innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
+      document.getElementById('empList').innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 

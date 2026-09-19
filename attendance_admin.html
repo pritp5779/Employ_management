@@ -11,25 +11,27 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="app">
   <div id="sidebar"></div>
   <main class="main">
-    <div class="topbar"><h1>Attendance</h1></div>
+    <div class="topbar">
+      <div>
+        <h1>Attendance</h1>
+        <div id="attSummary" style="font-size:12.5px; color:var(--muted); margin-top:2px;"></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
+        <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <button class="btn secondary" id="btnToday">Today</button>
+      </div>
+    </div>
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card">
-        <div class="card-head">
-          <h2 id="cardTitle">Attendance</h2>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
-            <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-            <button class="btn secondary" id="btnToday">Today</button>
-          </div>
-        </div>
+      <div class="card" id="attCard">
         <table>
           <thead>
             <tr><th>Employee</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th>Photos</th><th style="width:110px;">Face</th></tr>
@@ -38,6 +40,7 @@
             <tr><td colspan="7" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div id="attCards" style="display:none; padding:10px;"></div>
       </div>
     </div>
   </main>
@@ -73,39 +76,79 @@
 
   function renderTable() {
     const tbody = document.getElementById('tableBody');
+    const cardsEl = document.getElementById('attCards');
     const base = API_BASE_URL.replace('/api.php', '');
     const shown = allRows.filter(matchesSearch);
 
     if (!shown.length) {
       tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      cardsEl.innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
 
-    tbody.innerHTML = shown.map(r => {
+    // Shared per-row values, computed once and used by both the desktop
+    // table row and the mobile card so the two can never drift apart.
+    const prep = (r) => {
       let hours = '—';
       if (r.punch_in && r.punch_out) {
         const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
         hours = (ms / 3600000).toFixed(1) + ' h';
       }
+      const statusText = r.punch_in ? (r.punch_out ? 'Completed' : 'Working') : 'Absent';
+      const statusColor = r.punch_in ? (r.punch_out ? '#3730a3' : '#0f7a41') : 'var(--muted)';
       const status = r.punch_in
         ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
         : '<span class="badge inactive">Absent</span>';
-      const photos = [
+      const photoLinks = [
         r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
         r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
-      ].filter(Boolean).join(' · ') || '<span style="color:var(--muted);">—</span>';
-      const face = Number(r.face_enrolled)
-        ? `<button class="danger-link" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:0;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
+      ].filter(Boolean);
+      const photos = photoLinks.join(' · ') || '<span style="color:var(--muted);">—</span>';
+      const faceBtn = Number(r.face_enrolled)
+        ? `<button class="danger-link" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:6px 12px;line-height:1.3;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
         : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
+      return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn };
+    };
+
+    tbody.innerHTML = shown.map(r => {
+      const v = prep(r);
       return `<tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
         <td>${fmtT(r.punch_in)}</td>
         <td>${fmtT(r.punch_out)}</td>
-        <td>${hours}</td>
-        <td>${status}</td>
-        <td>${photos}</td>
-        <td>${face}</td>
+        <td>${v.hours}</td>
+        <td>${v.status}</td>
+        <td>${v.photos}</td>
+        <td>${v.faceBtn}</td>
       </tr>`;
+    }).join('');
+
+    // Mobile: two-column labelled grid — every field keeps its label, so
+    // nothing has to be inferred from column position on a narrow screen.
+    const field = (label, value) =>
+      `<div><div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">${label}</div>
+        <div style="font-size:13px; margin-top:1px;">${value}</div></div>`;
+
+    cardsEl.innerHTML = shown.map(r => {
+      const v = prep(r);
+      return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+        <div style="font-size:13px; font-weight:600;">
+          <a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a>
+          <span style="font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;">${r.employee_code}</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
+          ${field('Punch in', fmtT(r.punch_in))}
+          ${field('Punch out', fmtT(r.punch_out))}
+          ${field('Hours', v.hours)}
+          ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>`)}
+        </div>
+        ${(v.photoLinks.length || Number(r.face_enrolled))
+          ? `<div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);">
+               ${v.photoLinks.length ? `<span style="font-size:12.5px;">${v.photoLinks.join(' · ')}</span>` : ''}
+               ${Number(r.face_enrolled) ? `<span style="margin-left:auto;">${v.faceBtn}</span>` : ''}
+             </div>`
+          : ''}
+      </div>`;
     }).join('');
   }
 
@@ -116,7 +159,9 @@
       const data = await api.get('attendance.list', { date });
       allRows = data.rows || [];
       const present = allRows.filter(r => r.punch_in).length;
-      document.getElementById('cardTitle').textContent = `Attendance — ${present} present / ${allRows.length - present} absent`;
+      const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+      document.getElementById('attSummary').textContent =
+        `${present} present · ${allRows.length - present} absent · ${dateLabel}`;
       renderTable();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;

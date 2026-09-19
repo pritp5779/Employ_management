@@ -27,6 +27,10 @@
           <thead><tr><th>Code</th><th>Name</th><th>Added</th><th style="width:140px;">Actions</th></tr></thead>
           <tbody id="pendingEmpBody"></tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px;">
+          <span id="pendingEmpShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnPendingEmpLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
 
       <div class="card" id="pendingDocCard" style="display:none;">
@@ -35,6 +39,10 @@
           <thead><tr><th>Employee</th><th>Document</th><th>Uploaded</th><th style="width:140px;">Actions</th></tr></thead>
           <tbody id="pendingDocBody"></tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px;">
+          <span id="pendingDocShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnPendingDocLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
 
       <div class="card" id="emptyCard" style="display:none;">
@@ -76,6 +84,65 @@
     return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
   }
 
+  const PAGE_SIZE = 10;
+  let empRows = [], empShown = 0;
+  let docRows = [], docShown = 0;
+
+  function empRowHtml(e) {
+    return `
+          <tr>
+            <td><span class="badge">${e.employee_code}</span></td>
+            <td><a href="employee_detail.html?id=${e.employee_id}">${e.full_name}</a></td>
+            <td>${fmtDate(e.created_at)}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="approveEmployee(${e.employee_id})">Approve</button>
+                <button class="danger-link" onclick="declineEmployee(${e.employee_id}, '${(e.full_name||'').replace(/'/g,"\\'")}')">Decline</button>
+              </div>
+            </td>
+          </tr>`;
+  }
+
+  function docRowHtml(d) {
+    return `
+          <tr>
+            <td><a href="employee_detail.html?id=${d.employee_id}">${d.full_name} <span class="badge">${d.employee_code}</span></a></td>
+            <td>${d.document_name}</td>
+            <td>${fmtDate(d.uploaded_at)}</td>
+            <td>
+              <div class="row-actions">
+                ${d.document_file ? `<a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank" style="margin-right:6px;">View</a>` : ''}
+                <button onclick="approveDocument(${d.employee_document_id})">Approve</button>
+                <button class="danger-link" onclick="declineDocument(${d.employee_document_id}, '${(d.document_name||'').replace(/'/g,"\\'")}')">Decline</button>
+              </div>
+            </td>
+          </tr>`;
+  }
+
+  function updateLoadMoreUi(rows, shown, countEl, btnEl) {
+    const label = document.getElementById(countEl);
+    const btn = document.getElementById(btnEl);
+    label.textContent = rows.length ? `Showing ${shown} of ${rows.length}` : '';
+    btn.style.display = shown >= rows.length ? 'none' : 'inline-block';
+  }
+
+  function renderEmpNextPage() {
+    const next = empRows.slice(empShown, empShown + PAGE_SIZE);
+    document.getElementById('pendingEmpBody').insertAdjacentHTML('beforeend', next.map(empRowHtml).join(''));
+    empShown += next.length;
+    updateLoadMoreUi(empRows, empShown, 'pendingEmpShownCount', 'btnPendingEmpLoadMore');
+  }
+
+  function renderDocNextPage() {
+    const next = docRows.slice(docShown, docShown + PAGE_SIZE);
+    document.getElementById('pendingDocBody').insertAdjacentHTML('beforeend', next.map(docRowHtml).join(''));
+    docShown += next.length;
+    updateLoadMoreUi(docRows, docShown, 'pendingDocShownCount', 'btnPendingDocLoadMore');
+  }
+
+  document.getElementById('btnPendingEmpLoadMore').addEventListener('click', renderEmpNextPage);
+  document.getElementById('btnPendingDocLoadMore').addEventListener('click', renderDocNextPage);
+
   async function load() {
     try {
       const data = await api.get('dashboard.stats');
@@ -89,38 +156,20 @@
         return;
       }
 
+      empRows = pendingEmps; empShown = 0;
+      docRows = pendingDocs; docShown = 0;
+
       if (pendingEmps.length > 0) {
         document.getElementById('pendingEmpTitle').textContent = `Pending Employees (${pendingEmps.length})`;
-        document.getElementById('pendingEmpBody').innerHTML = pendingEmps.map(e => `
-          <tr>
-            <td><span class="badge">${e.employee_code}</span></td>
-            <td><a href="employee_detail.html?id=${e.employee_id}">${e.full_name}</a></td>
-            <td>${fmtDate(e.created_at)}</td>
-            <td>
-              <div class="row-actions">
-                <button onclick="approveEmployee(${e.employee_id})">Approve</button>
-                <button class="danger-link" onclick="declineEmployee(${e.employee_id}, '${(e.full_name||'').replace(/'/g,"\\'")}')">Decline</button>
-              </div>
-            </td>
-          </tr>`).join('');
+        document.getElementById('pendingEmpBody').innerHTML = '';
+        renderEmpNextPage();
         document.getElementById('pendingEmpCard').style.display = 'block';
       }
 
       if (pendingDocs.length > 0) {
         document.getElementById('pendingDocTitle').textContent = `Pending Documents (${pendingDocs.length})`;
-        document.getElementById('pendingDocBody').innerHTML = pendingDocs.map(d => `
-          <tr>
-            <td><a href="employee_detail.html?id=${d.employee_id}">${d.full_name} <span class="badge">${d.employee_code}</span></a></td>
-            <td>${d.document_name}</td>
-            <td>${fmtDate(d.uploaded_at)}</td>
-            <td>
-              <div class="row-actions">
-                ${d.document_file ? `<a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank" style="margin-right:6px;">View</a>` : ''}
-                <button onclick="approveDocument(${d.employee_document_id})">Approve</button>
-                <button class="danger-link" onclick="declineDocument(${d.employee_document_id}, '${(d.document_name||'').replace(/'/g,"\\'")}')">Decline</button>
-              </div>
-            </td>
-          </tr>`).join('');
+        document.getElementById('pendingDocBody').innerHTML = '';
+        renderDocNextPage();
         document.getElementById('pendingDocCard').style.display = 'block';
       }
     } catch (err) {

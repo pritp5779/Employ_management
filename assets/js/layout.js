@@ -23,7 +23,7 @@ function renderSidebar(active) {
     documents: [['documents.html', 'Documents', 'documents']],
     whatsapp_groups: [['whatsapp_groups.html', 'WhatsApp Groups', 'whatsapp']],
     excel_files: [['excel_files.html', 'Excel Files', 'excel']],
-    assign_queries: [['assign_queries.html', 'Assign Query', 'assign_query']],
+    assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
     salary: [['salary.html', 'Salary', 'salary']],
     commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
     agreements: [['agreements.html', 'Agreements', 'agreements']],
@@ -132,38 +132,60 @@ function renderSidebar(active) {
     return;
   }
 
-  const adminLinks = isAdmin ? `
-    <div class="nav-label">Admin</div>
-    <a href="approvals.html" class="${linkClass('approvals')}">Approvals <span id="approvalBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span></a>
-    <a href="users.html" class="${linkClass('users')}">Users</a>
-        <a href="roles.html" class="${linkClass('roles')}">Roles</a>
-  ` : '';
+  const adminLinks = isAdmin ? [
+    ['approvals.html', 'Approvals <span id="approvalBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'approvals'],
+    ['users.html', 'Users', 'users'],
+    ['roles.html', 'Roles', 'roles'],
+  ] : [];
+
+  // Sidebar links grouped into collapsible categories. "Main" holds the
+  // day-to-day pages and opens by default; the rest start collapsed unless
+  // they contain the current page, so navigating straight to e.g.
+  // Departments always lands with "Masters" already open.
+  const categories = [
+    { key: 'main', label: 'Main', defaultOpen: true, links: [
+      ['dashboard.html', 'Dashboard', 'dashboard'],
+      ['orders.html', 'Shopify Orders', 'orders'],
+      ['attendance_admin.html', 'Attendance', 'attendance_admin'],
+      ['targets.html', 'Targets', 'targets'],
+      ['performance.html', 'Performance', 'performance'],
+      ['assign_queries.html', 'Assign Queries', 'assign_queries'],
+      ['salary.html', 'Salary', 'salary'],
+      ['commission_rules.html', 'Commission Rules', 'commission_rules'],
+      ['agreements.html', 'Agreements', 'agreements'],
+    ]},
+    { key: 'masters', label: 'Masters', defaultOpen: false, links: [
+      ['departments.html', 'Departments', 'departments'],
+    ]},
+    { key: 'people', label: 'People', defaultOpen: false, links: [
+      ['employees.html', 'Employees', 'employees'],
+      ['documents.html', 'Documents', 'documents'],
+      ['whatsapp_groups.html', 'WhatsApp Groups', 'whatsapp_groups'],
+      ['excel_files.html', 'Excel Files', 'excel_files'],
+      ['ex_employees.html', 'Ex-Employees', 'ex_employees'],
+      ['history.html', 'Decline History', 'history'],
+    ]},
+    { key: 'admin', label: 'Admin', defaultOpen: false, links: adminLinks },
+  ].filter(cat => cat.links.length);
+
+  const navHtml = categories.map(cat => {
+    const linksHtml = cat.links.map(([href, label, key]) =>
+      `<a href="${href}" class="${linkClass(key)}">${label}</a>`
+    ).join('');
+    return `
+        <div class="nav-cat" data-cat="${cat.key}">
+          <button type="button" class="nav-label nav-cat-toggle" data-cat-toggle="${cat.key}" style="display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; cursor:pointer; font:inherit; text-align:left;">
+            <span>${cat.label}</span>
+            <span class="nav-cat-chevron" data-chevron="${cat.key}" style="display:inline-block; transition:transform 0.15s;">&#9662;</span>
+          </button>
+          <div class="nav-cat-body" data-cat-body="${cat.key}">${linksHtml}</div>
+        </div>`;
+  }).join('');
 
   document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
       <div class="brand">HR<span>MS</span></div>
-      <nav>
-        <div class="nav-label">Main</div>
-        <a href="dashboard.html" class="${linkClass('dashboard')}">Dashboard</a>
-        <a href="orders.html" class="${linkClass('orders')}">Shopify Orders</a>
-        <a href="attendance_admin.html" class="${linkClass('attendance_admin')}">Attendance</a>
-        <a href="targets.html" class="${linkClass('targets')}">Targets</a>
-        <a href="performance.html" class="${linkClass('performance')}">Performance</a>
-        <a href="assign_queries.html" class="${linkClass('assign_queries')}">Assign Query</a>
-        <a href="salary.html" class="${linkClass('salary')}">Salary</a>
-        <a href="commission_rules.html" class="${linkClass('commission_rules')}">Commission Rules</a>
-        <a href="agreements.html" class="${linkClass('agreements')}">Agreements</a>
-        <div class="nav-label">Masters</div>
-        <a href="departments.html" class="${linkClass('departments')}">Departments</a>
-        <div class="nav-label">People</div>
-        <a href="employees.html" class="${linkClass('employees')}">Employees</a>
-        <a href="documents.html" class="${linkClass('documents')}">Documents</a>
-        <a href="whatsapp_groups.html" class="${linkClass('whatsapp_groups')}">WhatsApp Groups</a>
-        <a href="excel_files.html" class="${linkClass('excel_files')}">Excel Files</a>
-        <a href="ex_employees.html" class="${linkClass('ex_employees')}">Ex-Employees</a>
-        <a href="history.html" class="${linkClass('history')}">Decline History</a>
-        ${adminLinks}
-      </nav>
+      <nav>${navHtml}</nav>
       <div class="user-box">
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
@@ -173,6 +195,7 @@ function renderSidebar(active) {
   `;
 
   addMobileMenu();
+  initNavCategories(categories, active);
 
   if (isAdmin) {
     api.get('approvals.count').then((d) => {
@@ -183,6 +206,39 @@ function renderSidebar(active) {
       }
     }).catch(() => {});
   }
+}
+
+function initNavCategories(categories, active) {
+  const STORAGE_KEY = 'hrms_nav_open';
+  let stored = {};
+  try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { stored = {}; }
+
+  const activeCat = categories.find(cat => cat.links.some(link => link[2] === active));
+
+  categories.forEach(cat => {
+    const isOpen = activeCat && cat.key === activeCat.key
+      ? true
+      : (stored[cat.key] !== undefined ? stored[cat.key] : cat.defaultOpen);
+    applyNavCatState(cat.key, isOpen);
+  });
+
+  document.querySelectorAll('[data-cat-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.catToggle;
+      const body = document.querySelector(`[data-cat-body="${key}"]`);
+      const nowOpen = body.style.display === 'none';
+      applyNavCatState(key, nowOpen);
+      stored[key] = nowOpen;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    });
+  });
+}
+
+function applyNavCatState(key, isOpen) {
+  const body = document.querySelector(`[data-cat-body="${key}"]`);
+  const chevron = document.querySelector(`[data-chevron="${key}"]`);
+  if (body) body.style.display = isOpen ? 'block' : 'none';
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
 }
 
 function addMobileMenu() {
@@ -199,3 +255,56 @@ function addMobileMenu() {
     });
   }
 }
+/**
+ * Generic responsive tables.
+ *
+ * Stamps every <td> with a data-label taken from its column's <th>, so CSS
+ * can render each row as a labelled card on narrow screens without every
+ * page needing its own hand-built card markup. Rows are usually injected by
+ * each page's own JS long after load, so a MutationObserver re-stamps
+ * whenever a tbody changes.
+ *
+ * Tables that already ship a purpose-built mobile card view (Orders,
+ * Attendance, Targets, Employees, Performance) hide their <table> entirely
+ * at the same breakpoint, so this never competes with them.
+ */
+(function responsiveTables() {
+  function stamp(table) {
+    const heads = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    if (!heads.length) return;
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      // Skip grouping/spanning rows (day headers, "no results" messages):
+      // their single cell spans the table and has no one column to name.
+      const cells = tr.children;
+      if (cells.length !== heads.length) return;
+      [...cells].forEach((td, i) => {
+        if (heads[i]) td.setAttribute('data-label', heads[i]);
+      });
+    });
+  }
+
+  function stampAll() {
+    document.querySelectorAll('table').forEach(stamp);
+  }
+
+  function watch() {
+    stampAll();
+    const obs = new MutationObserver((records) => {
+      const touched = new Set();
+      records.forEach(r => {
+        const t = r.target.closest && r.target.closest('table');
+        if (t) touched.add(t);
+      });
+      touched.forEach(stamp);
+    });
+    document.querySelectorAll('tbody').forEach(tb => {
+      obs.observe(tb, { childList: true, subtree: true });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch);
+  } else {
+    watch();
+  }
+})();
