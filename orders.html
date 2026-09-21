@@ -12,12 +12,35 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Orders — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=3">
+<style>
+  .topbar .tb-title{display:flex; align-items:center; gap:12px; min-width:0;}
+  .topbar .tb-title h1{margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .topbar .back-btn{display:inline-flex; align-items:center; gap:4px; flex:0 0 auto !important; width:auto;
+    height:34px; padding:0 12px 0 8px; border:1px solid var(--line); border-radius:8px; background:#fff;
+    color:var(--ink,#111827); font-size:13px; font-weight:600; cursor:pointer; transition:background .15s ease, border-color .15s ease;}
+  .topbar .back-btn:hover{background:#f6f7f9; border-color:#cfd4dc;}
+  .topbar .back-btn:active{transform:scale(.97);}
+  .topbar .back-btn:focus-visible{outline:3px solid rgba(37,99,235,.35); outline-offset:2px;}
+  .topbar .back-btn[hidden]{display:none;}
+  @media (max-width:820px){
+    .topbar .tb-title{width:100%; flex-wrap:nowrap !important;}
+    .topbar .tb-title h1{font-size:16px;}
+  }
+</style>
 </head>
 <body>
 <div class="app">
   <div id="sidebar"></div>
   <main class="main">
-    <div class="topbar"><h1>Shopify Orders</h1></div>
+    <div class="topbar">
+      <div class="tb-title">
+        <button type="button" class="back-btn" id="btnBack" hidden aria-label="Go back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h1>Shopify Orders</h1>
+      </div>
+    </div>
     <div class="content">
       <div id="alertBox"></div>
 
@@ -71,7 +94,7 @@
           <tbody id="ordersBody"></tbody>
         </table>
         <div id="ordersCards" style="display:none; padding:10px;"></div>
-        <div id="pagerBar" style="display:none; padding:14px 20px; border-top:1px solid var(--line); display:none; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div id="pagerBar" style="display:none; padding:14px 20px; border-top:1px solid var(--line); align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           <span id="pagerInfo" style="font-size:13px; color:var(--muted);"></span>
           <div class="pager-controls" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <select id="pageSize" style="padding:7px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -232,17 +255,23 @@
     alertBox.innerHTML = '';
     document.getElementById('loadingHint').style.display = 'inline';
 
+    // Changing the dates quickly fires several requests; a slower, older one
+    // must not overwrite the newest one's results when it finally arrives.
+    const reqId = ++ordersReqId;
     try {
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
+      if (reqId !== ordersReqId) return;
       const orders = data.orders || [];
       (data.errors || []).forEach(e => showAlert(e, 'error'));
       render(orders);
     } catch (err) {
+      if (reqId !== ordersReqId) return;
       showAlert(err.message, 'error');
     } finally {
-      document.getElementById('loadingHint').style.display = 'none';
+      if (reqId === ordersReqId) document.getElementById('loadingHint').style.display = 'none';
     }
   }
+  let ordersReqId = 0;
 
   let allOrders = [];
   let filteredOrders = [];
@@ -255,6 +284,13 @@
     items: 'Items', total: 'Total', financial_status: 'Payment', fulfillment_status: 'Fulfillment',
   };
 
+  // The orders this page is about: one salesperson's when opened from
+  // Targets (?salesman=Name), otherwise everything loaded. The stat cards,
+  // the list and its title all use this, so they can never disagree.
+  function scopedOrders() {
+    return urlSalesman ? allOrders.filter(o => o.salesman === urlSalesman) : allOrders;
+  }
+
   function render(orders) {
     orders.forEach((o, i) => { o._i = i; });
     allOrders = orders;
@@ -266,8 +302,7 @@
 
   function applyFilters() {
     const q = document.getElementById('orderSearch').value.trim().toLowerCase();
-    filteredOrders = allOrders.filter(o => {
-      if (urlSalesman && o.salesman !== urlSalesman) return false;
+    filteredOrders = scopedOrders().filter(o => {
       if (!q) return true;
       const qDigits = q.replace(/\D/g, '');
       return (o.order_name || '').toLowerCase().includes(q)
@@ -295,9 +330,10 @@
   }
 
   function renderSummary() {
+    const base = scopedOrders();
     const byStore = {};
     let grandTotal = 0;
-    allOrders.forEach(o => {
+    base.forEach(o => {
       byStore[o.store] = byStore[o.store] || { count: 0, total: 0, currency: o.currency };
       byStore[o.store].count++;
       byStore[o.store].total += Number(o.total || 0);
@@ -310,7 +346,7 @@
     grid.innerHTML = `
       <div class="stat-card">
         <div class="label"><span class="lbl-full">All Orders</span><span class="lbl-short">Orders</span></div>
-        <div class="value">${allOrders.length}</div>
+        <div class="value">${base.length}</div>
       </div>
       <div class="stat-card">
         <div class="label"><span class="lbl-full">Total Revenue</span><span class="lbl-short">Revenue</span></div>
@@ -340,10 +376,11 @@
   function renderPage() {
     const body = document.getElementById('ordersBody');
     const pagerBar = document.getElementById('pagerBar');
+    const scopeCount = scopedOrders().length;
     document.getElementById('ordersTitle').textContent =
-      filteredOrders.length === allOrders.length
-        ? `Orders (${allOrders.length})`
-        : `Orders (${filteredOrders.length} of ${allOrders.length})`;
+      filteredOrders.length === scopeCount
+        ? `Orders (${scopeCount})`
+        : `Orders (${filteredOrders.length} of ${scopeCount})`;
     document.getElementById('ordersCard').style.display = 'block';
 
     // Sort arrows on headers
@@ -531,8 +568,12 @@
     }
 
     body.innerHTML = '<div class="loading" style="padding:20px 0;">Loading order details...</div>';
+    // Opening a second order before the first finishes loading: only the
+    // latest one may fill the popup.
+    const detailId = ++detailReqId;
     try {
       const data = await api.get('shopify.order_detail', { store: o.store_key, id: o.id });
+      if (detailId !== detailReqId) return;
       const d = data.order;
 
       const itemsHtml = `
@@ -582,9 +623,11 @@
         itemsHtml +
         totalsHtml;
     } catch (err) {
+      if (detailId !== detailReqId) return;
       body.innerHTML = `<div class="alert error">${err.message}</div>`;
     }
   };
+  let detailReqId = 0;
 
   // ---- Manual order modal
   const orderModal = document.getElementById('orderModal');
@@ -655,6 +698,23 @@
   if (urlSalesman) {
     document.querySelector('.topbar h1').textContent = 'Orders — ' + urlSalesman;
   }
+
+  // Back: only when this page shows ONE employee's orders, opened from
+  // Targets (orders.html?…&salesman=Name). It returns through browser
+  // history so Targets restores its date, filters and scroll position; if
+  // there's no history to go back to (link opened in a new tab), it opens
+  // Targets directly.
+  (function setupBack() {
+    if (!urlSalesman) return;
+    const btn = document.getElementById('btnBack');
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      let cameFromApp = false;
+      try { cameFromApp = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+      if (cameFromApp && history.length > 1) history.back();
+      else location.href = 'targets.html';
+    });
+  })();
   loadStores().then(loadOrders).then(() => {
     if (urlQ) {
       document.getElementById('orderSearch').value = urlQ;

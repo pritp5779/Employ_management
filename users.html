@@ -12,16 +12,25 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Users — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=3">
+<style>
+  .login-summary{font-size:12.5px; color:var(--muted); margin-top:2px;}
+  .login-summary b{color:#b45f06;}
+  .login-summary.done b{color:#0f7a41;}
+  .need-code{font-size:11.5px; color:var(--muted);}
+  #addLoginCard.flash{animation:addFlash 1.4s ease;}
+  @keyframes addFlash{0%,100%{box-shadow:var(--shadow);} 25%{box-shadow:0 0 0 3px rgba(37,99,235,.35);}}
+  @media (prefers-reduced-motion: reduce){ #addLoginCard.flash{animation:none;} }
+</style>
 </head>
 <body>
 <div class="app">
   <div id="sidebar"></div>
   <main class="main">
-    <div class="topbar"><h1>Users</h1></div>
+    <div class="topbar"><div><h1>Users</h1><div id="loginSummary" class="login-summary"></div></div></div>
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card">
+      <div class="card" id="addLoginCard">
         <div class="card-head">
           <h2>Add a login</h2>
         </div>
@@ -58,6 +67,24 @@
           </div>
           <button type="button" class="btn" id="btnCreateUser" style="width:auto; margin-top:10px;">Create User</button>
           <div id="createUserMsg" style="font-size:13px; margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <div class="card" id="needLoginCard">
+        <div class="card-head">
+          <div>
+            <h2 id="needLoginTitle">Employees without a login</h2>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">Active employees who can't sign in yet. Employees still waiting for Admin approval aren't listed.</div>
+          </div>
+          <div class="search-box"><input type="text" id="needLoginSearch" placeholder="Search name, code or department..." autocomplete="off"></div>
+        </div>
+        <table>
+          <thead><tr><th>Employee</th><th>Department</th><th style="width:140px;">Action</th></tr></thead>
+          <tbody id="needLoginBody"><tr><td colspan="3" class="loading">Loading...</td></tr></tbody>
+        </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="needLoginCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnNeedLoginMore" style="width:auto; display:none;">Load more</button>
         </div>
       </div>
 
@@ -131,6 +158,9 @@
    * Rows are held in memory and re-rendered on each keystroke.
    */
   let allUsers = [];
+  let allEmployees = [];
+  let employeesLoaded = false;
+  let usersLoaded = false;
   let employeeNames = {};   // employee_id -> "Name (CODE)"
 
   function matchesUserSearch(u) {
@@ -210,7 +240,9 @@
     try {
       const data = await api.get('users.list');
       allUsers = data.users || [];
+      usersLoaded = true;
       renderUsers();
+      renderNeedLogin();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }
@@ -249,13 +281,90 @@
       msg.textContent = `"${username}" created as ${role}.`;
       document.getElementById('newUsername').value = '';
       document.getElementById('newPassword').value = '';
-      loadUsers();
+      document.getElementById('newEmployee').value = '';
+      loadUsers();   // also refreshes "Employees without a login"
     } catch (err) {
       msg.style.color = '#c0392b';
       msg.textContent = err.message;
     } finally {
       btn.disabled = false;
     }
+  });
+
+  // ---------- Employees without a login ----------
+  // Active employees with no login linked to them. Recomputed whenever the
+  // users or employees reload, so creating a login removes the person here.
+  const NEED_PAGE_SIZE = 10;
+  let needLimit = NEED_PAGE_SIZE;
+
+  function employeesWithoutLogin() {
+    const linked = new Set(allUsers.filter(u => u.employee_id).map(u => String(u.employee_id)));
+    return allEmployees.filter(e => e.status !== 'pending' && !linked.has(String(e.employee_id)));
+  }
+
+  function renderNeedLogin() {
+    // Both lists are needed: comparing against a users list that hasn't
+    // arrived yet would briefly show every employee as missing a login.
+    if (!employeesLoaded || !usersLoaded) return;
+    const all = employeesWithoutLogin();
+    const q = (document.getElementById('needLoginSearch').value || '').trim().toLowerCase();
+    const rows = !q ? all : all.filter(e =>
+      (e.full_name || '').toLowerCase().includes(q) ||
+      (e.employee_code || '').toLowerCase().includes(q) ||
+      (e.department_name || '').toLowerCase().includes(q));
+
+    const summary = document.getElementById('loginSummary');
+    summary.classList.toggle('done', all.length === 0);
+    summary.innerHTML = all.length
+      ? `<b>${all.length}</b> employee${all.length === 1 ? '' : 's'} still need${all.length === 1 ? 's' : ''} a login`
+      : '<b>Every active employee has a login</b>';
+
+    document.getElementById('needLoginTitle').textContent =
+      rows.length === all.length ? `Employees without a login (${all.length})` : `Employees without a login (${rows.length} of ${all.length})`;
+
+    const body = document.getElementById('needLoginBody');
+    const label = document.getElementById('needLoginCount');
+    const btn = document.getElementById('btnNeedLoginMore');
+    if (!rows.length) {
+      body.innerHTML = `<tr><td colspan="3" class="empty-state">${all.length ? 'No matching employees.' : 'Every active employee has a login.'}</td></tr>`;
+      label.textContent = ''; btn.style.display = 'none';
+      return;
+    }
+    const showing = Math.min(needLimit, rows.length);
+    body.innerHTML = rows.slice(0, showing).map(e => `
+      <tr>
+        <td><a href="employee_detail.html?id=${e.employee_id}">${e.full_name}</a><div class="need-code">${e.employee_code || ''}</div></td>
+        <td>${e.department_name || '<span style="color:var(--muted);">—</span>'}</td>
+        <td><div class="row-actions"><button onclick="prepareLogin(${e.employee_id})">Create login</button></div></td>
+      </tr>`).join('');
+    label.textContent = `Showing ${showing} of ${rows.length}`;
+    btn.style.display = showing >= rows.length ? 'none' : 'inline-block';
+  }
+
+  // Fill the "Add a login" form for this employee, then hand over to the
+  // password field. The username suggestion (their employee code) can be
+  // changed before saving.
+  window.prepareLogin = function (employeeId) {
+    const e = allEmployees.find(x => String(x.employee_id) === String(employeeId));
+    if (!e) return;
+    document.getElementById('newRole').value = 'Employee';
+    document.getElementById('newEmployee').value = String(e.employee_id);
+    document.getElementById('newUsername').value = String(e.employee_code || '').toLowerCase();
+    document.getElementById('newPassword').value = '';
+    const msg = document.getElementById('createUserMsg');
+    msg.style.color = 'var(--muted)';
+    msg.textContent = `Creating a login for ${e.full_name}. Set a password, then press Create User.`;
+    const card = document.getElementById('addLoginCard');
+    card.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
+    document.getElementById('newPassword').focus({ preventScroll: true });
+  };
+
+  document.getElementById('btnNeedLoginMore').addEventListener('click', () => { needLimit += NEED_PAGE_SIZE; renderNeedLogin(); });
+  let needSearchTimer = null;
+  document.getElementById('needLoginSearch').addEventListener('input', () => {
+    clearTimeout(needSearchTimer);
+    needSearchTimer = setTimeout(() => { needLimit = NEED_PAGE_SIZE; renderNeedLogin(); }, 120);
   });
 
   loadUsers();
@@ -269,8 +378,13 @@
       (data.employees || []).forEach(e => {
         employeeNames[e.employee_id] = `${e.full_name} (${e.employee_code})`;
       });
+      allEmployees = data.employees || [];
+      employeesLoaded = true;
       renderUsers();   // fill in the linked-employee column now names are known
-    } catch (e) { /* select stays with None */ }
+      renderNeedLogin();
+    } catch (e) {
+      document.getElementById('needLoginBody').innerHTML = `<tr><td colspan="3"><div class="alert error">Couldn't load employees: ${e.message}</div></td></tr>`;
+    }
   })();
 
   // ---- Edit user (username + role + linked employee + optional new password)

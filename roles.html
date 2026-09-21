@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Roles — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -34,6 +34,10 @@
             <tr><td colspan="4" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="roleShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnRoleLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -57,9 +61,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('roles');
@@ -126,17 +130,12 @@
     }
   };
 
-  async function load() {
-    const tbody = document.getElementById('tableBody');
-    try {
-      const data = await api.get('roles.list');
-      allPerms = data.all_permissions || {};
-      window._roles = data.roles || [];
-      if (!window._roles.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No roles yet — run the roles SQL, then add roles here.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = window._roles.map(r => {
+  // Paging: 10 rows, "Load more" adds 10. Kept as a count so saving or
+  // deleting a role (which reloads the list) keeps your place.
+  const ROLE_PAGE_SIZE = 10;
+  let roleLimit = ROLE_PAGE_SIZE;
+
+  function roleRowHtml(r) {
         const isSystem = Number(r.is_system) === 1;
         const access = r.role_name === 'Admin'
           ? '<span class="badge">Everything</span>'
@@ -155,13 +154,45 @@
             <div class="row-actions">
               ${r.role_name === 'Admin'
                 ? '<span style="color:var(--muted); font-size:12.5px;">Locked</span>'
-                : `<button style="background:none; border:none; cursor:pointer; color:var(--accent); font-weight:600; font-size:13px; padding:0; margin-right:10px;" onclick="editRole(${r.role_id})">Edit</button>`}
+                : `<button onclick="editRole(${r.role_id})">Edit</button>`}
               ${isSystem && r.role_name !== 'HR' ? '' : `<button class="danger-link" onclick="deleteRole(${r.role_id}, '${r.role_name.replace(/'/g, "\\'")}')">Delete</button>`}
             </div>
           </td>
         </tr>`;
-      }).join('');
+  }
+
+  function renderRoles() {
+    const tbody = document.getElementById('tableBody');
+    const label = document.getElementById('roleShownCount');
+    const btn = document.getElementById('btnRoleLoadMore');
+    const rows = window._roles || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No roles yet — run the roles SQL, then add roles here.</td></tr>';
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+    const showing = Math.min(roleLimit, rows.length);
+    tbody.innerHTML = rows.slice(0, showing).map(roleRowHtml).join('');
+    label.textContent = `Showing ${showing} of ${rows.length}`;
+    btn.style.display = showing >= rows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnRoleLoadMore').addEventListener('click', () => {
+    roleLimit += ROLE_PAGE_SIZE;
+    renderRoles();
+  });
+
+  async function load() {
+    const tbody = document.getElementById('tableBody');
+    try {
+      const data = await api.get('roles.list');
+      allPerms = data.all_permissions || {};
+      window._roles = data.roles || [];   // editRole() still looks roles up here
+      renderRoles();
     } catch (err) {
+      document.getElementById('roleShownCount').textContent = '';
+      document.getElementById('btnRoleLoadMore').style.display = 'none';
       tbody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }

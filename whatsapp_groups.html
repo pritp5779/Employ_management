@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>WhatsApp Groups — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -34,6 +34,10 @@
             <tr><td colspan="4" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="pageShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnPageLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -67,9 +71,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js"></script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/layout.js"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('whatsapp_groups');
@@ -108,13 +112,19 @@
   document.getElementById('btnMembersClose').addEventListener('click', () => membersOverlay.classList.remove('open'));
   membersOverlay.addEventListener('click', (e) => { if (e.target === membersOverlay) membersOverlay.classList.remove('open'); });
 
-  function renderTable(rows) {
-    document.getElementById('cardTitle').textContent = `Groups (${rows.length})`;
-    if (rows.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="4" class="empty-state">No groups yet — add your WhatsApp group names here, then select them while adding employees.</td></tr>';
-      return;
-    }
-    tableBody.innerHTML = rows.map(r => `
+  // Paging: 10 rows, "Load more" adds 10. Kept as a count so adding,
+  // editing or deleting (which reloads the list) keeps your place.
+  // Typing a search starts again from the first 10.
+  const PAGE_SIZE = 10;
+  let pageLimit = PAGE_SIZE;
+
+  function matchesSearch(r) {
+    const q = document.getElementById('tableSearch').value.trim().toLowerCase();
+    return !q || (r.group_name || '').toLowerCase().includes(q);
+  }
+
+  function rowHtml(r) {
+    return `
       <tr>
         <td>${r.group_name}</td>
         <td><button style="background:none; border:none; color:#1d4ed8; cursor:pointer; font-weight:600; padding:0;" onclick="viewMembers(${r.group_id}, '${r.group_name.replace(/'/g, "\\'")}')">${r.member_count} member${r.member_count == 1 ? '' : 's'}</button></td>
@@ -125,15 +135,49 @@
             <button class="danger-link" onclick="deleteRow(${r.group_id}, '${r.group_name.replace(/'/g,"\\'")}')">Delete</button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
   }
+
+  // Always renders from the full list through the current search, so a
+  // reload after Save/Delete keeps honouring whatever is in the search box.
+  function renderTable() {
+    const rows = allRows.filter(matchesSearch);
+    const label = document.getElementById('pageShownCount');
+    const btn = document.getElementById('btnPageLoadMore');
+
+    document.getElementById('cardTitle').textContent =
+      rows.length === allRows.length
+        ? `Groups (${allRows.length})`
+        : `Groups (${rows.length} of ${allRows.length})`;
+
+    if (rows.length === 0) {
+      tableBody.innerHTML = allRows.length
+        ? '<tr><td colspan="4" class="empty-state">No matching groups.</td></tr>'
+        : '<tr><td colspan="4" class="empty-state">No groups yet — add your WhatsApp group names here, then select them while adding employees.</td></tr>';
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+
+    const showing = Math.min(pageLimit, rows.length);
+    tableBody.innerHTML = rows.slice(0, showing).map(rowHtml).join('');
+    label.textContent = `Showing ${showing} of ${rows.length}`;
+    btn.style.display = showing >= rows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnPageLoadMore').addEventListener('click', () => {
+    pageLimit += PAGE_SIZE;
+    renderTable();
+  });
 
   async function loadGroups() {
     try {
       const data = await api.get('whatsapp_groups.list');
-      allRows = data.groups;
-      renderTable(allRows);
+      allRows = data.groups || [];
+      renderTable();
     } catch (err) {
+      document.getElementById('pageShownCount').textContent = '';
+      document.getElementById('btnPageLoadMore').style.display = 'none';
       tableBody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
@@ -193,9 +237,10 @@
     }
   });
 
-  document.getElementById('tableSearch').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    renderTable(allRows.filter(r => r.group_name.toLowerCase().includes(q)));
+  let searchTimer = null;
+  document.getElementById('tableSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { pageLimit = PAGE_SIZE; renderTable(); }, 150);
   });
 
   loadGroups();

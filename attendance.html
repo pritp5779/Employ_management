@@ -11,7 +11,37 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
+<style>
+  /* Camera stays off until a punch button is tapped. */
+  .cam-idle{display:flex; flex-direction:column; align-items:center; gap:8px; padding:26px 12px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:13px; text-align:center;}
+  .cam-idle svg{width:34px; height:34px;}
+  .cam-panel{position:relative; width:100%; max-width:400px; margin:0 auto; border-radius:14px; overflow:hidden; background:#0b0b0f;
+    animation:camIn .32s cubic-bezier(.2,.8,.2,1);}
+  .cam-panel[hidden]{display:none;}
+  @keyframes camIn{from{opacity:0; transform:translateY(14px) scale(.98);}}
+  .cam-panel video{display:block; width:100%; transform:scaleX(-1);}   /* mirror, like a selfie */
+  /* Face guide oval: dashed while searching, green once matched. */
+  .cam-oval{position:absolute; left:50%; top:47%; width:52%; aspect-ratio:3/4; transform:translate(-50%,-50%); border-radius:50%;
+    border:3px dashed rgba(255,255,255,.6); box-shadow:0 0 0 999px rgba(0,0,0,.28); transition:border-color .25s, box-shadow .25s; pointer-events:none;}
+  .cam-oval.ok{border:3px solid #22c55e; box-shadow:0 0 0 999px rgba(0,0,0,.2), 0 0 16px #22c55e;}
+  .cam-live{position:absolute; top:10px; left:10px; display:flex; align-items:center; gap:6px; color:#fff; font-size:11.5px; font-weight:600;
+    background:rgba(0,0,0,.35); padding:4px 9px; border-radius:12px;}
+  .cam-live b{width:8px; height:8px; border-radius:50%; background:#ef4444; animation:camBlink 1s infinite;}
+  @keyframes camBlink{50%{opacity:.3;}}
+  .cam-cancel{position:absolute; top:8px; right:8px; width:36px; height:36px; min-height:0; border-radius:50%; border:none; background:rgba(0,0,0,.45);
+    color:#fff; font-size:17px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;}
+  .cam-cancel:focus-visible{outline:3px solid #fff; outline-offset:2px;}
+  .cam-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:14px;
+    text-align:center; padding:12px; background:rgba(0,0,0,.45);}
+  .cam-overlay[hidden]{display:none;}
+  .punch-btns{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
+  .punch-btns .btn{min-width:150px;}
+  .done-note{text-align:center; margin-top:12px; font-size:14px; font-weight:600; color:var(--ok-fg,#0f7a41);}
+  .done-note[hidden]{display:none;}
+  @media (max-width:820px){ .punch-btns .btn{flex:1 1 140px; min-height:48px; font-size:15px;} }
+  @media (prefers-reduced-motion: reduce){ .cam-panel{animation:none;} .cam-live b{animation:none;} .cam-oval{transition:none;} }
+</style>
 </head>
 <body>
 <div class="app">
@@ -31,26 +61,37 @@
       <div class="card" style="max-width:560px;">
         <div class="card-head"><h2 id="camTitle">Punch</h2></div>
         <div style="padding:16px 20px;">
-          <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Loading face system... please wait.</div>
-          <div style="position:relative; width:100%; max-width:400px; margin:0 auto;">
-            <video id="cam" autoplay playsinline muted style="width:100%; border-radius:10px; background:#111; transform:scaleX(-1);"></video>
-            <div id="camOverlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:14px; text-align:center; padding:10px; background:rgba(0,0,0,.35); border-radius:10px;">Camera starting...</div>
+          <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Tap Punch In or Punch Out — the camera opens only then, and closes when you're done.</div>
+
+          <div id="camIdle" class="cam-idle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M9.5 5H15l1.5 2H20a1 1 0 0 1 1 1v9.5M17 19H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h2"/><path d="M9.9 10.3A3 3 0 0 0 14 14.4"/></svg>
+            Camera is off until you punch
+          </div>
+
+          <div id="camPanel" class="cam-panel" hidden>
+            <video id="cam" playsinline muted></video>
+            <div id="camOval" class="cam-oval" aria-hidden="true"></div>
+            <div class="cam-live" aria-hidden="true"><b></b>Camera on</div>
+            <button type="button" class="cam-cancel" id="btnCancel" aria-label="Cancel and turn the camera off">✕</button>
+            <div id="camOverlay" class="cam-overlay">Starting camera…</div>
           </div>
           <canvas id="snap" style="display:none;"></canvas>
-          <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+
+          <div class="punch-btns">
             <button class="btn" id="btnPunchIn" disabled>Punch In</button>
             <button class="btn secondary" id="btnPunchOut" disabled>Punch Out</button>
           </div>
-          <div id="verifyMsg" style="text-align:center; margin-top:10px; font-size:13.5px; min-height:20px;"></div>
+          <div id="doneNote" class="done-note" hidden>You're done for today ✓</div>
+          <div id="verifyMsg" role="status" aria-live="polite" style="text-align:center; margin-top:10px; font-size:13.5px; min-height:20px;"></div>
         </div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 <script>
   guardPage();
@@ -58,15 +99,23 @@
 
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
   const MATCH_THRESHOLD = 0.5;   // euclidean distance — lower is stricter
-  const EAR_BLINK = 0.25;        // eye aspect ratio below this = eye closed
 
   const alertBox = document.getElementById('alertBox');
   const video = document.getElementById('cam');
+  const panel = document.getElementById('camPanel');
+  const idle = document.getElementById('camIdle');
   const overlay = document.getElementById('camOverlay');
+  const oval = document.getElementById('camOval');
   const verifyMsg = document.getElementById('verifyMsg');
+  const btnIn = document.getElementById('btnPunchIn');
+  const btnOut = document.getElementById('btnPunchOut');
+
   let enrolledDescriptor = null; // Float32Array
   let enrollMode = false;
+  let faceLoaded = false;        // face.get answered (decides Enroll vs Punch)
   let busy = false;
+  let stream = null;             // the live camera, only while a punch runs
+  let cancelled = false;         // ✕ tapped, or the app was left mid-punch
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -77,6 +126,7 @@
     verifyMsg.style.color = color || 'var(--muted)';
   }
 
+  // ---------- Today's status ----------
   async function loadToday() {
     try {
       const data = await api.get('attendance.today');
@@ -87,44 +137,88 @@
           <div><div style="font-size:11.5px; color:var(--muted); text-transform:uppercase;">Punch In</div><div style="font-size:20px; font-weight:600;">${fmt(a && a.punch_in)}</div></div>
           <div><div style="font-size:11.5px; color:var(--muted); text-transform:uppercase;">Punch Out</div><div style="font-size:20px; font-weight:600;">${fmt(a && a.punch_out)}</div></div>
         </div>`;
-      document.getElementById('btnPunchIn').style.display = (a && a.punch_in) ? 'none' : '';
-      document.getElementById('btnPunchOut').style.display = (a && a.punch_in && !a.punch_out) ? '' : 'none';
+      if (!enrollMode) {
+        btnIn.style.display = (a && a.punch_in) ? 'none' : '';
+        btnOut.style.display = (a && a.punch_in && !a.punch_out) ? '' : 'none';
+      }
+      const done = !!(a && a.punch_in && a.punch_out);
+      document.getElementById('doneNote').hidden = !done;
+      if (!stream) idle.style.display = done ? 'none' : '';   // don't show "camera off" while it's on
     } catch (err) {
       document.getElementById('todayStatus').innerHTML = `<div class="alert error">${err.message}</div>`;
     }
   }
 
-  async function init() {
+  // ---------- Face models: loaded once, in the background ----------
+  // Loading starts as the page opens so the camera is ready quickly when a
+  // button is tapped; a punch simply waits for it if it isn't done yet.
+  let modelsPromise = null;
+  function loadModels() {
+    if (!modelsPromise) {
+      modelsPromise = Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      ]).catch(err => { modelsPromise = null; throw new Error('Could not load the face check — check your internet and tap again.'); });
+    }
+    return modelsPromise;
+  }
+
+  // Whether this person still needs to enroll decides what the first button does.
+  async function loadFace() {
     try {
-      overlay.textContent = 'Loading face models...';
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-
-      overlay.textContent = 'Starting camera...';
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false });
-      video.srcObject = stream;
-      await new Promise(r => (video.onloadedmetadata = r));
-      overlay.style.display = 'none';
-
       const faceData = await api.get('face.get');
       if (faceData.descriptor) {
         enrolledDescriptor = new Float32Array(JSON.parse(faceData.descriptor));
-        document.getElementById('camHint').textContent = 'Look at the camera and blink once when asked. Only your own live face is accepted.';
-        document.getElementById('btnPunchIn').disabled = false;
-        document.getElementById('btnPunchOut').disabled = false;
+        enrollMode = false;
+        document.getElementById('camHint').textContent = 'Tap Punch In or Punch Out — the camera opens only then. Look at it and blink once when asked; it closes as soon as you\'re done.';
       } else {
         enrollMode = true;
         document.getElementById('camTitle').textContent = 'First time: enroll your face';
-        document.getElementById('camHint').textContent = 'Your face is not enrolled yet. Look straight at the camera in good light and press Enroll. This is done only once.';
-        document.getElementById('btnPunchIn').textContent = 'Enroll My Face';
-        document.getElementById('btnPunchIn').disabled = false;
-        document.getElementById('btnPunchOut').style.display = 'none';
+        document.getElementById('camHint').textContent = 'Your face is not enrolled yet. Tap Enroll My Face, look straight at the camera in good light. This is done only once.';
+        btnIn.textContent = 'Enroll My Face';
+        btnIn.style.display = '';
+        btnOut.style.display = 'none';
       }
+      faceLoaded = true;
+      btnIn.disabled = false;
+      btnOut.disabled = false;
     } catch (err) {
-      overlay.textContent = 'Camera not available. Allow camera permission and reload.';
       setMsg(err.message, 'var(--bad-fg)');
     }
+  }
+
+  // ---------- Camera: on only while a punch runs ----------
+  async function openCamera() {
+    idle.style.display = 'none';
+    panel.hidden = false;
+    oval.classList.remove('ok');
+    overlay.hidden = false;
+    overlay.textContent = 'Starting camera…';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false });
+    } catch (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+        throw new Error('Camera permission is blocked — allow camera access for this site in your browser settings, then tap again.');
+      }
+      if (err && err.name === 'NotFoundError') throw new Error('No camera found on this device.');
+      throw new Error('Could not start the camera — close other apps using it and tap again.');
+    }
+    if (cancelled) { closeCamera(); return; }     // ✕ tapped while the permission prompt was up
+    video.srcObject = stream;
+    await new Promise(r => (video.readyState >= 1 ? r() : (video.onloadedmetadata = r)));
+    await video.play().catch(() => {});
+    overlay.hidden = true;
+  }
+
+  // Stops every camera track (turns the camera light off) and hides the view.
+  function closeCamera() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    video.srcObject = null;
+    video.onloadedmetadata = null;
+    panel.hidden = true;
+    oval.classList.remove('ok');
+    idle.style.display = document.getElementById('doneNote').hidden ? '' : 'none';
   }
 
   function detectOnce() {
@@ -142,11 +236,14 @@
     setMsg('Hold still, capturing your face...', 'var(--accent)');
     const samples = [];
     for (let i = 0; i < 3; i++) {
+      if (cancelled) return;
       const det = await detectOnce();
       if (!det) { setMsg('No face detected — face the camera in good light and try again.', 'var(--bad-fg)'); return; }
+      oval.classList.add('ok');
       samples.push(det.descriptor);
       await new Promise(r => setTimeout(r, 400));
     }
+    if (cancelled) return;
     const avg = new Array(128).fill(0);
     samples.forEach(s => s.forEach((v, i) => (avg[i] += v / samples.length)));
 
@@ -155,8 +252,8 @@
     enrolledDescriptor = new Float32Array(avg);
     enrollMode = false;
     document.getElementById('camTitle').textContent = 'Punch';
-    document.getElementById('btnPunchIn').textContent = 'Punch In';
-    document.getElementById('camHint').textContent = 'Look at the camera and blink once when asked.';
+    btnIn.textContent = 'Punch In';
+    document.getElementById('camHint').textContent = 'Tap Punch In or Punch Out — the camera opens only then. Look at it and blink once when asked.';
     setMsg('');
     loadToday();
   }
@@ -175,7 +272,7 @@
     let noseBase = null;
     const t0 = Date.now();
 
-    while (Date.now() - t0 < 15000) {
+    while (Date.now() - t0 < 15000 && !cancelled) {
       frame++;
       const needDescriptor = matches < 2 && frame % 2 === 1;
       let det;
@@ -186,6 +283,7 @@
         det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 256 }))
           .withFaceLandmarks();
       }
+      if (cancelled) return;
 
       if (det) {
         // Face match (until confirmed twice)
@@ -193,6 +291,7 @@
           const dist = faceapi.euclideanDistance(det.descriptor, enrolledDescriptor);
           if (dist < MATCH_THRESHOLD) matches++;
         }
+        oval.classList.toggle('ok', matches >= 2);
 
         // Liveness A: blink, relative to this person's own open-eye shape
         const ear = (eyeAspectRatio(det.landmarks.getLeftEye()) + eyeAspectRatio(det.landmarks.getRightEye())) / 2;
@@ -214,22 +313,24 @@
       }
       await new Promise(r => setTimeout(r, 60));
     }
+    if (cancelled) return;
 
     if (matches < 2) {
-      setMsg('Face not recognized — try again in better light, closer to the camera.', 'var(--bad-fg)');
+      setMsg('Face not recognized — tap again in better light, closer to the camera.', 'var(--bad-fg)');
       return;
     }
     if (!live) {
-      setMsg('Could not confirm a live face — blink or turn your head slightly and try again.', 'var(--bad-fg)');
+      setMsg('Could not confirm a live face — tap again, then blink or turn your head slightly.', 'var(--bad-fg)');
       return;
     }
 
-    // Phase 3: capture the frame and punch.
+    // Capture the verified frame, then turn the camera off before saving.
     setMsg('Verified ✓ Saving...', 'var(--ok-fg)');
     const canvas = document.getElementById('snap');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
+    closeCamera();
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
 
     const formData = new FormData();
@@ -250,26 +351,50 @@
   }
 
   async function handle(type) {
-    if (busy) return;
+    if (busy || !faceLoaded) return;
     busy = true;
-    const btns = [document.getElementById('btnPunchIn'), document.getElementById('btnPunchOut')];
-    btns.forEach(b => (b.disabled = true));
+    cancelled = false;
+    [btnIn, btnOut].forEach(b => (b.disabled = true));
     try {
+      setMsg('Getting the face check ready…', 'var(--accent)');
+      await loadModels();
+      if (cancelled) return;
+      await openCamera();
+      if (cancelled) return;
       if (enrollMode) await enrollFlow();
       else await verifyAndPunch(type);
     } catch (err) {
-      setMsg(err.message, 'var(--bad-fg)');
+      if (!cancelled) setMsg(err.message, 'var(--bad-fg)');
     } finally {
-      btns.forEach(b => (b.disabled = false));
+      closeCamera();        // always off afterwards: success, failure or cancel
+      [btnIn, btnOut].forEach(b => (b.disabled = false));
       busy = false;
     }
   }
 
-  document.getElementById('btnPunchIn').addEventListener('click', () => handle('in'));
-  document.getElementById('btnPunchOut').addEventListener('click', () => handle('out'));
+  btnIn.addEventListener('click', () => handle('in'));
+  btnOut.addEventListener('click', () => handle('out'));
+
+  document.getElementById('btnCancel').addEventListener('click', () => {
+    cancelled = true;
+    closeCamera();
+    setMsg('Cancelled — camera off, nothing saved.');
+  });
+
+  // Leaving the app (switching apps, locking the phone, closing the tab)
+  // mid-punch turns the camera off instead of leaving it running.
+  function stopOnLeave() {
+    if (!stream) return;
+    cancelled = true;
+    closeCamera();
+    setMsg('Camera turned off because you left the app — tap again to punch.');
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopOnLeave(); });
+  window.addEventListener('pagehide', stopOnLeave);
 
   loadToday();
-  init();
+  loadFace();
+  loadModels().catch(() => { /* retried on tap, with a clear message */ });
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

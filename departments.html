@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Departments — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -27,6 +27,10 @@
             <tr><td colspan="3" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="deptShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnDeptLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -50,9 +54,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('departments');
@@ -62,6 +66,12 @@
   const overlay = document.getElementById('formModal');
   const modalAlert = document.getElementById('modalAlert');
   let allRows = [];
+
+  // Paging: 10 rows, "Load more" adds 10. Kept as a count so adding,
+  // editing or deleting a department (which reloads the list) keeps your
+  // place. Typing a search starts again from the first 10.
+  const DEPT_PAGE_SIZE = 10;
+  let deptLimit = DEPT_PAGE_SIZE;
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -87,13 +97,13 @@
   document.getElementById('btnCancel').addEventListener('click', closeModal);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
-  function renderTable(rows) {
-    document.getElementById('cardTitle').textContent = `Departments (${rows.length})`;
-    if (rows.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No departments yet.</td></tr>';
-      return;
-    }
-    tableBody.innerHTML = rows.map(r => `
+  function matchesSearch(r) {
+    const q = document.getElementById('tableSearch').value.trim().toLowerCase();
+    return !q || (r.department_name || '').toLowerCase().includes(q);
+  }
+
+  function rowHtml(r) {
+    return `
       <tr>
         <td><a href="employees.html?department_id=${r.department_id}">${r.department_name}</a></td>
         <td>${new Date(r.created_at).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
@@ -103,15 +113,47 @@
             <button class="danger-link" onclick="deleteRow(${r.department_id}, '${r.department_name.replace(/'/g,"\\'")}')">Delete</button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
   }
+
+  // Always renders from the full list through the current search, so a
+  // reload after Save/Delete keeps honouring whatever is in the search box.
+  function renderTable() {
+    const rows = allRows.filter(matchesSearch);
+    const label = document.getElementById('deptShownCount');
+    const btn = document.getElementById('btnDeptLoadMore');
+
+    document.getElementById('cardTitle').textContent =
+      rows.length === allRows.length
+        ? `Departments (${allRows.length})`
+        : `Departments (${rows.length} of ${allRows.length})`;
+
+    if (rows.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="3" class="empty-state">${allRows.length ? 'No matching departments.' : 'No departments yet.'}</td></tr>`;
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+
+    const showing = Math.min(deptLimit, rows.length);
+    tableBody.innerHTML = rows.slice(0, showing).map(rowHtml).join('');
+    label.textContent = `Showing ${showing} of ${rows.length}`;
+    btn.style.display = showing >= rows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnDeptLoadMore').addEventListener('click', () => {
+    deptLimit += DEPT_PAGE_SIZE;
+    renderTable();
+  });
 
   async function loadDepartments() {
     try {
       const data = await api.get('departments.list');
-      allRows = data.departments;
-      renderTable(allRows);
+      allRows = data.departments || [];
+      renderTable();
     } catch (err) {
+      document.getElementById('deptShownCount').textContent = '';
+      document.getElementById('btnDeptLoadMore').style.display = 'none';
       tableBody.innerHTML = `<tr><td colspan="3"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
@@ -153,9 +195,10 @@
     }
   });
 
-  document.getElementById('tableSearch').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    renderTable(allRows.filter(r => r.department_name.toLowerCase().includes(q)));
+  let searchTimer = null;
+  document.getElementById('tableSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { deptLimit = DEPT_PAGE_SIZE; renderTable(); }, 150);
   });
 
   loadDepartments();

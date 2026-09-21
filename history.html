@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Decline History — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -38,14 +38,18 @@
             <tr><td colspan="6" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="histShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnHistLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js"></script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/layout.js"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('history');
@@ -62,19 +66,12 @@
 
   const currentUser = api.currentUser() || {};
 
-  async function loadHistory() {
-    const tbody = document.getElementById('historyTableBody');
-    try {
-      const data = await api.get('approval_history.list');
-      const rows = data.history;
-      document.getElementById('historyTitle').textContent = `History (${rows.length})`;
+  // Paging: 10 rows, "Load more" adds 10.
+  const HIST_PAGE_SIZE = 10;
+  let histLimit = HIST_PAGE_SIZE;
+  let histRows = [];
 
-      if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No declined items yet.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = rows.map(h => {
+  function histRowHtml(h) {
         const displayName = h.entity_type === 'document'
           ? `${h.document_name} <span style="color:#888;">(${h.employee_name}${h.employee_code ? ' · ' + h.employee_code : ''})</span>`
           : `${h.employee_name}${h.employee_code ? ` <span class="badge">${h.employee_code}</span>` : ''}`;
@@ -92,8 +89,39 @@
             </div>
           </td>
         </tr>`;
-      }).join('');
+  }
+
+  function renderHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    const label = document.getElementById('histShownCount');
+    const btn = document.getElementById('btnHistLoadMore');
+    document.getElementById('historyTitle').textContent = `History (${histRows.length})`;
+    if (!histRows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No declined items yet.</td></tr>';
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+    const showing = Math.min(histLimit, histRows.length);
+    tbody.innerHTML = histRows.slice(0, showing).map(histRowHtml).join('');
+    label.textContent = `Showing ${showing} of ${histRows.length}`;
+    btn.style.display = showing >= histRows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnHistLoadMore').addEventListener('click', () => {
+    histLimit += HIST_PAGE_SIZE;
+    renderHistory();
+  });
+
+  async function loadHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    try {
+      const data = await api.get('approval_history.list');
+      histRows = data.history || [];
+      renderHistory();
     } catch (err) {
+      document.getElementById('histShownCount').textContent = '';
+      document.getElementById('btnHistLoadMore').style.display = 'none';
       tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }

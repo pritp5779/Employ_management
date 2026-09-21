@@ -12,6 +12,40 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Targets — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=3">
+<style>
+  .tgt-chip{cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:4px 9px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px;}
+  .tgt-chip.empty{color:var(--accent); font-weight:600;}
+  .tgt-pill{font-size:10px; font-weight:600; padding:1px 6px; border-radius:8px;}
+  .tgt-pill.auto{background:#e7f7ee; color:#0f7a41;}
+  .tgt-pill.man{background:#fdf3e3; color:#b45f06;}
+  .tgt-how{font-size:10.5px; color:var(--muted); margin-top:3px; line-height:1.35;}
+  .tgt-revert{background:none; border:none; padding:0; margin-top:2px; font-size:11px; color:var(--accent); cursor:pointer; min-height:0;}
+  .rule-switch{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--ink,#111827); margin:0 0 10px;}
+  .rule-switch input, .rule-check input, .rule-houses input{width:16px; height:16px; min-height:0; margin:0; flex:none;}
+  .rule-body{max-height:62vh; overflow-y:auto; overscroll-behavior:contain; margin:0 -4px; padding:0 4px;}
+  .rule-card{border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--surface,#fff);}
+  .rule-card.bad{border-color:#c81e1e;}
+  .rule-card-head{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .rule-card-head input{flex:1; min-width:0; font-weight:600;}
+  .rule-del{background:none; border:none; color:#c81e1e; font-size:12.5px; cursor:pointer; padding:4px 6px; min-height:0; white-space:nowrap;}
+  .rule-days{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;}
+  .rule-day{border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:14px; padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; min-height:0;}
+  .rule-day.on{background:#eaf2ff; border-color:#2563eb; color:#1d4ed8;}
+  .rule-day.clash{border-color:#c81e1e; color:#c81e1e; background:#fdecec;}
+  .rule-fields{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
+  .rule-fields label{display:flex; flex-direction:column; gap:3px; font-size:11.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--muted); margin:0;}
+  .rule-fields input, .rule-fields select{width:100%; min-width:0;}
+  .rule-check{display:flex; align-items:center; gap:8px; margin:10px 0 0; font-size:12.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink,#111827);}
+  .rule-sentence{margin-top:10px; background:#f6f7fb; border-radius:8px; padding:8px 10px; font-size:12.5px; line-height:1.5;}
+  .rule-sentence b{color:var(--accent);}
+  .rule-add{width:100%; margin:2px 0 12px;}
+  .rule-houses-title{font-size:12px; font-weight:600; color:var(--muted); margin:4px 0 6px;}
+  .rule-houses{display:flex; flex-wrap:wrap; gap:8px 16px;}
+  .rule-houses label{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink,#111827); margin:0;}
+  .rule-note{font-size:11.5px; color:var(--muted); margin:6px 0 0;}
+  .modal.rule-off .rule-body, .modal.rule-off .rule-houses{opacity:.45; pointer-events:none;}
+  @media (max-width:820px){ .rule-fields input, .rule-fields select, .rule-card-head input{font-size:16px;} .rule-day{padding:6px 11px;} }
+</style>
 </head>
 <body>
 <div class="app">
@@ -25,11 +59,11 @@
           <option value="">All groups</option>
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
-          <option value="tm4u">TM4U</option>
         </select>
         <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <button class="btn secondary" id="btnSyncNow" style="width:auto;" title="Fetch the latest orders from Shopify right now">&#8635; Sync now</button>
+        <button class="btn secondary" id="btnRule" type="button" style="width:auto;" title="How daily targets are set automatically">Target rule</button>
         <a href="attendance_admin.html" class="btn secondary" style="text-decoration:none;">View attendance</a>
       </div>
     </div>
@@ -37,7 +71,7 @@
       <div id="alertBox"></div>
 
       <div class="card" id="targetsCard">
-        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);">Day runs 10 AM to next day 10 AM. Type in Daily Target to set that day manually; blank = automatic (profile Daily Target, or monthly Manual ÷ days).</span></div>
+        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their orders from every house add up together. Day runs 10 AM to next day 10 AM. Only TM Perfume House and TM Fragrance store orders count. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
         <table>
           <thead>
             <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th title="Estimated from this day's orders against this day's target — not the month-end payable amount">Est. commission<div style="font-size:9.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">today only</div></th></tr>
@@ -57,6 +91,26 @@
   </main>
 </div>
 
+
+<div class="modal-overlay" id="ruleModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>Target rules</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target.</p>
+    <div id="ruleAlert"></div>
+    <label class="rule-switch"><input type="checkbox" id="ruleEnabled"> Set daily targets automatically</label>
+    <div class="rule-body">
+      <div id="ruleList"></div>
+      <button type="button" class="btn secondary rule-add" id="ruleAdd">+ Add rule</button>
+      <div class="rule-houses-title">Applies to employees in</div>
+      <div id="ruleHouses" class="rule-houses"></div>
+      <p class="rule-note">Houses added later are not included until you tick them here.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="ruleCancel">Cancel</button>
+      <button type="button" class="btn" id="ruleSave">Save rules</button>
+    </div>
+  </div>
+</div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=2"></script>
@@ -66,7 +120,12 @@
 
   const alertBox = document.getElementById('alertBox');
   let currentMonth = '';
-  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
+  // Shopify order tags that mark an order's type. Edit here to change them.
+  const SCOUT_TAGS = ['query', 's'];         // 's' = old tag, still accepted
+  const CHAMPION_TAGS = ['campaign', 'c'];   // 'c' = old tag, still accepted
+
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706' };
+  const HOUSE_COLOR_OTHER = '#6B7280';   // any house added later, until it gets its own colour
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -227,50 +286,197 @@
 
   let dailyCache = null;
 
+  // ---------- Automatic target rules ----------
+  // A set of rules. Each covers some weekdays and averages either the
+  // previous N days, or the same weekday over the previous N weeks
+  // (e.g. last 3 Sundays for a Sunday). Defaults mirror the server's.
+  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let ruleSet = {
+    enabled: 1, groups: ['tmph', 'tmf'],
+    rules: [{ name: 'Every day', weekdays: [0, 1, 2, 3, 4, 5, 6], basis: 'days', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 }],
+  };
+  let ruleHouses = { tmph: 'TM Perfume House', tmf: 'TM Fragrance' };
+
+  async function loadTargetRule() {
+    try {
+      const d = await api.get('target_rule.get');
+      if (d.rule) ruleSet = d.rule;
+      if (d.houses) ruleHouses = d.houses;
+    } catch (err) { /* keep defaults; targets still work */ }
+  }
+
+  // Automatic targets apply to a person in at least one ticked house.
+  const ruleApplies = (r) => !!ruleSet.enabled && (r.houses || []).some(h => (ruleSet.groups || []).includes(h));
+
+  // The rule covering this date's weekday, or null.
+  function ruleForDay(day) {
+    if (!ruleSet.enabled) return null;
+    const wd = new Date(day + 'T00:00:00').getDay();
+    return (ruleSet.rules || []).find(r => (r.weekdays || []).includes(wd)) || null;
+  }
+
+  // The past dates a rule averages for this day, oldest first.
+  function ruleHistDays(rule, day) {
+    if (!rule) return [];
+    const n = Number(rule.lookback) || 0;
+    const step = rule.basis === 'weekday' ? 7 : 1;
+    return Array.from({ length: n }, (_, i) => addDays(day, -step * (n - i)));
+  }
+
+  function ruleBasisLabel(rule, day, n) {
+    if (rule.basis === 'weekday') return `last ${n} ${WEEKDAYS[new Date(day + 'T00:00:00').getDay()]}${n === 1 ? '' : 's'}`;
+    return `last ${n} day${n === 1 ? '' : 's'}`;
+  }
+
+  function ymd(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function addDays(dstr, n) { const d = new Date(dstr + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); }
+  // Business day an order belongs to (10 AM → 10 AM), same rule as Orders.
+  function orderDay(o) {
+    if (o.biz_date) return o.biz_date;
+    return ymd(new Date(new Date(o.created_at).getTime() - 10 * 3600 * 1000));
+  }
+
+  /*
+   * The daily target for one row, and where it came from.
+   * Priority: set by hand for this day → the rule covering this weekday
+   * (if on, and the person is in a ticked house) → profile Daily Target →
+   * monthly Manual ÷ days.
+   * Desktop rows and phone cards both call this, so they always agree.
+   */
+  function resolveTarget(r) {
+    const { overrides, hist, histDays, rule, day } = dailyCache;
+    const ek = r.employee_id + '|' + r.group_key;
+    const nk = r.full_name + '|' + r.group_key;
+    if (overrides[ek] !== undefined) return { amount: Number(overrides[ek]), source: 'manual', how: 'Set by hand for this day' };
+
+    if (rule && ruleApplies(r) && histDays.length) {
+      const byDay = hist[nk] || {};
+      const vals = histDays.map(d => byDay[d] || 0);
+      const counted = rule.skip_zero ? vals.filter(v => v > 0) : vals;
+      const min = Number(rule.min_target) || 0;
+      const pct = Number(rule.pct);
+      const tag = rule.name ? `${rule.name}: ` : '';
+      if (counted.length) {
+        const avg = counted.reduce((a, b) => a + b, 0) / counted.length;
+        const exact = Math.round(avg * (1 + pct / 100));      // to the rupee
+        const amount = Math.max(min, exact);
+        let how = `${tag}avg of ${ruleBasisLabel(rule, day, counted.length)} ${inr(avg)} ${pct >= 0 ? '+' : '−'} ${Math.abs(pct)}%`;
+        how += amount > exact ? ` → minimum ${inr(min)}` : ` = ${inr(amount)}`;
+        return { amount, source: 'rule', how };
+      }
+      if (min > 0) return { amount: min, source: 'rule', how: `${tag}no sales in the ${ruleBasisLabel(rule, day, histDays.length)} — minimum target` };
+    }
+
+    const fallback = r.manual_target !== null ? Math.round(r.manual_target / daysInMonth) : (Number(r.daily_target) || 0);
+    return { amount: fallback, source: fallback > 0 ? 'profile' : 'none', how: fallback > 0 ? 'From profile / monthly target' : '' };
+  }
+
+  // Target chip + how it was worked out + "back to auto" when set by hand.
+  function targetCell(r, t, compact) {
+    const pill = t.source === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (t.source === 'rule' ? '<span class="tgt-pill auto">Auto</span>' : '');
+    const chip = `<span class="tgt-chip ${t.amount > 0 ? '' : 'empty'}" data-value="${t.source === 'manual' ? t.amount : ''}"
+        onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')" title="Click to set by hand">${t.amount > 0 ? inr(t.amount) : 'Set target'} ${pill} ✎</span>`;
+    const revert = t.source === 'manual'
+      ? `<button type="button" class="tgt-revert" onclick="revertTarget(${r.employee_id}, '${r.group_key}')">↺ Back to automatic</button>` : '';
+    if (compact) return chip + revert;
+    return chip + (t.how && t.source !== 'manual' ? `<div class="tgt-how">${t.how}</div>` : '') + (revert ? `<div>${revert}</div>` : '');
+  }
+
+  // One small badge per house the person belongs to.
+  function houseBadges(r) {
+    return (r.houses || []).filter(h => ruleHouses[h]).map(h => {
+      const c = HOUSE_COLOR[h] || HOUSE_COLOR_OTHER;
+      return `<span style="display:inline-block; margin:3px 4px 0 0; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:600; color:${c}; background:${c}18;">${ruleHouses[h] || h}</span>`;
+    }).join('');
+  }
+
+  window.revertTarget = async function (employeeId, groupKey) {
+    try {
+      await api.post('targets.save_daily', { date: document.getElementById('dayPick').value, employee_id: employeeId, group_key: groupKey, amount: null });
+      if (dailyCache) delete dailyCache.overrides[employeeId + '|' + groupKey];
+      renderDaily();
+    } catch (err) {
+      showAlert(err.message, 'error');
+    }
+  };
+
   // Which Shopify store an order came from -> which house it belongs to.
   // Matches the same mapping used server-side in targets.sync_orders /
   // performance.daily, so today's live numbers land under the right house.
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
 
+  let dailyReqId = 0;
   async function loadDaily() {
     const day = document.getElementById('dayPick').value;
     if (!day) return;
+    const reqId = ++dailyReqId;
     document.getElementById('dailyTitle').textContent = 'Daily — ' + new Date(day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     const tbody = document.getElementById('dailyBody');
     tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading day orders...</td></tr>';
     try {
+      // Past dates the day's rule averages. "Last N days" are consecutive,
+      // so they come back in the same request as today (one wider range).
+      // "Same weekday" dates are a week apart, so each is fetched on its own
+      // in parallel — one range would pull every day in between.
+      const rule = ruleForDay(day);
+      const histDays = ruleHistDays(rule, day);
+      const ordersReq = !histDays.length
+        ? api.get('shopify.orders', { date_from: day, date_to: day })
+        : rule.basis === 'days'
+          ? api.get('shopify.orders', { date_from: histDays[0], date_to: day })
+          : Promise.all([day, ...histDays].map(d => api.get('shopify.orders', { date_from: d, date_to: d })))
+              .then(parts => ({ orders: parts.flatMap(p => p.orders || []), errors: parts.flatMap(p => p.errors || []) }));
       const [data, ovData, attData, qData] = await Promise.all([
-        api.get('shopify.orders', { date_from: day, date_to: day }),
+        ordersReq,
         api.get('targets.daily', { date: day }),
         api.get('attendance.list', { date: day }).catch(() => ({ rows: [] })),
         api.get('queries.assign_list', { date: day, store_group: groupFilter() }).catch(() => ({ employees: [] })),
       ]);
       // Query counts, keyed by "employeeId|groupKey" straight from each
       // employee's per-house breakdown.
+      // Query counts per person, added up across their houses (one row per
+      // employee now), keyed "employeeId|".
       const queriesByKey = {};
       (qData.employees || []).forEach(e => (e.groups || []).forEach(g => {
-        queriesByKey[e.employee_id + '|' + g.group_key] = g.query_count;
+        const k = e.employee_id + '|';
+        queriesByKey[k] = (queriesByKey[k] || 0) + (Number(g.query_count) || 0);
       }));
       // Punch-out time per employee name, for "orders after punch out".
       const punchOutByName = {};
       (attData.rows || []).forEach(a => {
         if (a.punch_out) punchOutByName[a.full_name] = new Date(a.punch_out.replace(' ', 'T') + '+05:30').getTime();
       });
+      if (reqId !== dailyReqId) return;   // a newer day was picked meanwhile
       const overrides = ovData.overrides || {}; // keyed "employeeId|groupKey"
       // Every sum below is keyed "name|groupKey" so each house's numbers
       // stay independent for the same employee.
       const sums = {}, counts = {}, scoutSums = {}, champSums = {}, afterPunch = {}, prepaidSums = {};
+      const hist = {};   // "name|" -> { 'YYYY-MM-DD': collection } for the day's rule
       (data.orders || []).forEach(o => {
+        // Only Shopify orders from a house's own store count here. MySales,
+        // MySales 4P and manual orders belong to no house, so they don't
+        // count toward Achieved or the averages behind automatic targets.
+        if (!STORE_TO_GROUP[o.store_key]) return;
         if (!o.salesman) return;
-        const gk = STORE_TO_GROUP[o.store_key] || '';
-        const nk = o.salesman + '|' + gk;
+        // One key per person: their orders from every house add up together
+        // toward their single daily target. ('|' + '' matches row keys.)
+        const nk = o.salesman + '|';
         const amt = Number(o.total || 0);
+        const od = histDays.length ? orderDay(o) : day;
+        if (od !== day) {                 // an earlier day: only feeds the average
+          if (histDays.includes(od)) (hist[nk] = hist[nk] || {})[od] = ((hist[nk] || {})[od] || 0) + amt;
+          return;
+        }
         sums[nk] = (sums[nk] || 0) + amt;
         counts[nk] = (counts[nk] || 0) + 1;
-        // Extra tag S = Scout order, C = Champion order.
+        // Order type comes from its Shopify tags: "query" = Query,
+        // "campaign" = Campaign. The old one-letter tags (s / c) still
+        // count, so orders tagged before the switch keep their type.
         const tags = String(o.tags || '').split(',').map(t => t.trim().toLowerCase());
-        if (tags.includes('s')) scoutSums[nk] = (scoutSums[nk] || 0) + amt;
-        if (tags.includes('c')) champSums[nk] = (champSums[nk] || 0) + amt;
+        if (tags.some(t => SCOUT_TAGS.includes(t))) scoutSums[nk] = (scoutSums[nk] || 0) + amt;
+        if (tags.some(t => CHAMPION_TAGS.includes(t))) champSums[nk] = (champSums[nk] || 0) + amt;
         // Prepaid share for the Commission column — anything not COD/pending
         // counts as prepaid, same rule the server uses for the monthly sync.
         const fs = String(o.financial_status || '').toLowerCase();
@@ -287,9 +493,10 @@
         }
       });
 
-      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day };
+      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day, hist, histDays, rule };
       renderDaily();
     } catch (err) {
+      if (reqId !== dailyReqId) return;
       tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
@@ -298,7 +505,7 @@
   // than appended HTML because renderDaily() also re-runs after inline edits
   // (daily target, overrides) — re-rendering up to the current limit keeps
   // an edit on row 25 from collapsing the list back to 10.
-  const DAILY_PAGE_SIZE = 15;
+  const DAILY_PAGE_SIZE = 10;
   let dailyLimit = DAILY_PAGE_SIZE;
   let dailyMatched = 0;
 
@@ -317,7 +524,7 @@
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
     if (!dailyCache) return;
-    const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day } = dailyCache;
+    const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, day } = dailyCache;
     // monthRows already has one entry per (employee, house) from targets.get.
     const matched = monthRows.filter(matchesSearch);
     dailyMatched = matched.length;
@@ -333,21 +540,13 @@
         const ek = r.employee_id + '|' + r.group_key;
         const achieved = sums[nk] || 0;
         const cnt = counts[nk] || 0;
-        // Daily target priority: per-day manual override -> profile Daily
-        // Target -> monthly Manual ÷ days. The profile Daily Target and
-        // attendance are per-employee (not house-specific); manual_target
-        // here is already this row's own house.
-        const autoDaily = r.manual_target !== null
-          ? Math.round(r.manual_target / daysInMonth)
-          : (Number(r.daily_target) || 0);
-        const override = overrides[ek];
-        const dailyTarget = override !== undefined ? Number(override) : autoDaily;
+        const tgt = resolveTarget(r);
+        const dailyTarget = tgt.amount;
         const realPct = dailyTarget > 0 ? Math.round((achieved / dailyTarget) * 100) : 0;
         const pct = Math.min(100, realPct);
         const barColor = realPct > 100 ? '#7C3AED' : (pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A'));
-        const pctLabel = realPct > 100 ? `<b style="color:#7C3AED;">${realPct}% 🎯</b>` : (dailyTarget > 0 ? pct + '%' : '—');
-        const houseColor = HOUSE_COLOR[r.group_key] || HOUSE_COLOR[''];
-        const houseBadge = `<span style="display:inline-block; margin-top:3px; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:600; color:${houseColor}; background:${houseColor}18;">${r.group_label}</span>`;
+        const pctLabel = realPct > 100 ? `<b style="color:#7C3AED;">${realPct}% 🎯</b>` : (dailyTarget > 0 ? `<b style="color:${barColor};">${pct}%</b>` : '—');
+        const houseBadge = houseBadges(r);
         return `<tr>
           <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div>${houseBadge}</td>
           <td>${(() => {
@@ -377,20 +576,18 @@
           })()}</td>
           <td style="font-weight:600;">${inr(achieved)}</td>
           <td>${cnt > 0 ? inr(achieved / cnt) : '—'}</td>
-          <td><span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')"
-                style="cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:6px 11px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; ${dailyTarget > 0 ? '' : 'color:var(--accent); font-weight:600;'}"
-                title="Click to change today's target for ${r.group_label}">${dailyTarget > 0 ? inr(dailyTarget) : 'Set target'} <span style="font-size:12px; color:var(--muted);">✎</span></span></td>
+          <td>${targetCell(r, tgt, false)}</td>
           <td>
             ${(() => {
               const scout = scoutSums[nk] || 0;
               const champ = champSums[nk] || 0;
-              // One bar, split into Scout and Champion slices. Both widths
+              // One bar, split into Query and Campaign slices. Both widths
               // are shares of the daily target, so together they read as the
               // same overall progress the percentage label shows. Any
-              // achieved amount not tagged S or C is the remainder slice.
+              // achieved amount with neither tag is the grey "Other" slice.
               // When someone beats their target the raw shares exceed 100%,
               // so everything is scaled down to fit the bar while keeping
-              // the Scout:Champion ratio intact.
+              // the Query:Campaign ratio intact.
               let sPct = dailyTarget > 0 ? (scout / dailyTarget) * 100 : 0;
               let cPct = dailyTarget > 0 ? (champ / dailyTarget) * 100 : 0;
               let otherPct = Math.max(0, pct - sPct - cPct);
@@ -409,14 +606,15 @@
                   <div style="flex:1; height:10px; background:var(--bg); border-radius:5px; overflow:hidden; display:flex;">
                     <div style="width:${sPct}%; background:#0EA5E9;"></div>
                     <div style="width:${cPct}%; background:#F59E0B;"></div>
-                    <div style="width:${otherPct}%; background:${barColor};"></div>
+                    <div style="width:${otherPct}%; background:#94A3B8;"></div>
                   </div>
                   <span style="white-space:nowrap; font-size:12.5px;">${pctLabel}</span>
                 </div>
-                ${(scout > 0 || champ > 0)
+                ${achieved > 0
                   ? `<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; font-size:11px;">
-                       ${scout > 0 ? legend('Scout', scout, '#0EA5E9') : ''}
-                       ${champ > 0 ? legend('Champion', champ, '#F59E0B') : ''}
+                       ${legend('Query', scout, '#0EA5E9')}
+                       ${legend('Campaign', champ, '#F59E0B')}
+                       ${Math.max(0, achieved - scout - champ) > 0 ? legend('Other', Math.max(0, achieved - scout - champ), '#94A3B8') : ''}
                      </div>`
                   : ''}`;
             })()}
@@ -433,15 +631,11 @@
         const ek = r.employee_id + '|' + r.group_key;
         const achieved = sums[nk] || 0;
         const cnt = counts[nk] || 0;
-        const autoDaily = r.manual_target !== null
-          ? Math.round(r.manual_target / daysInMonth)
-          : (Number(r.daily_target) || 0);
-        const override = overrides[ek];
-        const dailyTarget = override !== undefined ? Number(override) : autoDaily;
+        const tgt = resolveTarget(r);
+        const dailyTarget = tgt.amount;
         const realPct = dailyTarget > 0 ? Math.round((achieved / dailyTarget) * 100) : 0;
         const pct = Math.min(100, realPct);
         const barColor = realPct > 100 ? '#7C3AED' : (pct >= 60 ? '#1D9E75' : (pct >= 30 ? '#EF9F27' : '#E24B4A'));
-        const houseColor = HOUSE_COLOR[r.group_key] || HOUSE_COLOR[''];
 
         // Same segmented bar as the table's Progress column.
         const scout = scoutSums[nk] || 0;
@@ -462,31 +656,31 @@
         return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
           <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
             <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13px; font-weight:600;">${r.full_name}</a>
-            <span style="font-size:15px; font-weight:700; white-space:nowrap;">${dailyTarget > 0 ? realPct + '%' : '—'}</span>
+            <span style="font-size:15px; font-weight:700; white-space:nowrap; color:${dailyTarget > 0 ? barColor : 'inherit'};">${dailyTarget > 0 ? realPct + '%' : '—'}</span>
           </div>
           <div style="font-size:11px; color:var(--muted); margin-top:1px;">
-            ${r.employee_code} · <span style="color:${houseColor}; font-weight:600;">${r.group_label}</span>
+            ${r.employee_code}</div><div>${houseBadges(r)}
           </div>
           <div style="height:12px; background:var(--bg); border:1px solid var(--line); border-radius:6px; overflow:hidden; display:flex; margin-top:9px;">
             <div style="width:${sPct}%; background:#0EA5E9;"></div>
             <div style="width:${cPct}%; background:#F59E0B;"></div>
-            <div style="width:${otherPct}%; background:${barColor};"></div>
+            <div style="width:${otherPct}%; background:#94A3B8;"></div>
           </div>
           <div style="display:flex; justify-content:space-between; gap:10px; font-size:11px; color:var(--muted); margin-top:6px;">
             <span>${inr(achieved)}${dailyTarget > 0 ? ' of ' + inr(dailyTarget) : ''}</span>
             <span style="text-align:right;">${meta || 'No orders'}</span>
           </div>
-          ${(scout > 0 || champ > 0)
+          ${achieved > 0
             ? `<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:5px; font-size:10.5px; color:var(--muted);">
-                 ${scout > 0 ? `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#0EA5E9;"></span>Scout ${inr(scout)}</span>` : ''}
-                 ${champ > 0 ? `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#F59E0B;"></span>Champion ${inr(champ)}</span>` : ''}
+                 <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#0EA5E9;"></span>Query ${inr(scout)}</span>
+                 <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#F59E0B;"></span>Campaign ${inr(champ)}</span>
+                 ${Math.max(0, achieved - scout - champ) > 0 ? `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:2px; background:#94A3B8;"></span>Other ${inr(Math.max(0, achieved - scout - champ))}</span>` : ''}
                </div>`
             : ''}
           <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:9px; padding-top:8px; border-top:1px solid var(--line);">
             <span style="font-size:11px; color:var(--muted);">${commissionLabel(achieved, dailyTarget, cnt, prepaidSums[nk] || 0, 'm' + ek)}</span>
             <span style="display:flex; align-items:center; gap:10px;">
-              <span data-value="${override !== undefined ? override : ''}" onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')"
-                style="cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:4px 9px; font-size:11px; white-space:nowrap; ${dailyTarget > 0 ? '' : 'color:var(--accent); font-weight:600;'}">${dailyTarget > 0 ? inr(dailyTarget) : 'Set target'} ✎</span>
+              <span style="display:flex; flex-direction:column; align-items:flex-end;">${targetCell(r, tgt, true)}</span>
               <span style="font-size:14px; font-weight:700; color:#0f7a41; white-space:nowrap;">${commissionAmount(achieved, dailyTarget, cnt, prepaidSums[nk] || 0)}</span>
             </span>
           </div>
@@ -537,27 +731,34 @@
 
   // Click-to-edit with explicit ✓ save / ✕ cancel buttons.
   window.startEdit = function (chip, employeeId, groupKey, kind) {
-    const cell = chip.closest('td');
-    const prev = cell.innerHTML;
+    // The editor replaces the chip itself rather than its table cell. The
+    // old version looked up chip.closest('td'), which exists in the desktop
+    // table but not in the mobile cards — there it returned null and the
+    // tap silently did nothing.
+    const editor = document.createElement('span');
+    editor.style.cssText = 'display:inline-flex; align-items:center; gap:4px; flex-wrap:nowrap;';
+    const restore = () => { if (editor.isConnected) editor.replaceWith(chip); };
     const current = chip.dataset.value || '';
-    cell.innerHTML = '';
 
     const input = document.createElement('input');
     input.type = 'number'; input.min = 0; input.step = 500; input.value = current;
+    input.inputMode = 'numeric';
     input.placeholder = kind === 'day' ? 'blank = auto' : 'e.g. 5000';
-    input.style.cssText = 'width:90px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;';
+    // 16px on phones: iOS zooms the whole page into any input under 16px.
+    const small = window.innerWidth <= 820;
+    input.style.cssText = `width:${small ? 100 : 90}px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:${small ? 16 : 13}px;`;
 
     const ok = document.createElement('button');
     ok.innerHTML = '&#10003;';
     ok.title = 'Save';
-    ok.style.cssText = 'margin-left:6px; background:#0f7a41; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
+    ok.style.cssText = 'background:#0f7a41; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
 
     const no = document.createElement('button');
     no.innerHTML = '&#10005;';
     no.title = 'Cancel';
-    no.style.cssText = 'margin-left:4px; background:#c81e1e; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
+    no.style.cssText = 'background:#c81e1e; color:#fff; border:none; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px;';
 
-    no.onclick = () => { cell.innerHTML = prev; };
+    no.onclick = restore;
 
     ok.onclick = async () => {
       ok.disabled = true; no.disabled = true;
@@ -585,7 +786,7 @@
         renderDaily();
       } catch (err) {
         showAlert(err.message, 'error');
-        cell.innerHTML = prev;
+        restore();
       } finally {
         ok.disabled = false; no.disabled = false;
       }
@@ -596,7 +797,8 @@
       if (e.key === 'Escape') no.click();
     });
 
-    cell.append(input, ok, no);
+    editor.append(input, ok, no);
+    chip.replaceWith(editor);
     input.focus();
   };
 
@@ -673,7 +875,8 @@
     if (!s) return false;
     if (s.month) document.getElementById('monthPick').value = s.month;
     if (s.day) document.getElementById('dayPick').value = s.day;
-    if (s.group) document.getElementById('groupPick').value = s.group;
+    const gp = document.getElementById('groupPick');
+    if (s.group && [...gp.options].some(o => o.value === s.group)) gp.value = s.group;
     if (s.search) document.getElementById('empSearch').value = s.search;
     // Restore the loaded row count too — otherwise only 10 rows render and
     // the saved scroll position points past the end of the list.
@@ -704,6 +907,156 @@
   // removed, so running it here just meant waiting on a month of Shopify
   // data to compute a number nothing reads. It still runs from "Sync now",
   // which is what Commission and Performance pages rely on.
+  // ---------- Target rules window ----------
+  const ruleModal = document.getElementById('ruleModal');
+  const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];                 // show Mon → Sun
+  const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let draft = [];                                          // rules being edited
+
+  function readDraftFromDom() {
+    document.querySelectorAll('#ruleList .rule-card').forEach((card, i) => {
+      const r = draft[i];
+      r.name = card.querySelector('.rule-name').value.trim();
+      r.basis = card.querySelector('.rule-basis').value;
+      r.lookback = Number(card.querySelector('.rule-lookback').value);
+      r.pct = Number(card.querySelector('.rule-pct').value || 0);
+      r.min_target = Number(card.querySelector('.rule-min').value || 0);
+      r.skip_zero = card.querySelector('.rule-skip').checked ? 1 : 0;
+    });
+  }
+
+  function lookbackOptions(basis, current) {
+    const max = basis === 'weekday' ? 8 : 14;
+    const unit = basis === 'weekday' ? 'week' : 'day';
+    const opts = [];
+    for (let n = 1; n <= max; n++) opts.push(`<option value="${n}" ${n === Number(current) ? 'selected' : ''}>${n} ${unit}${n === 1 ? '' : 's'}</option>`);
+    return opts.join('');
+  }
+
+  function ruleSentence(r) {
+    if (!r.weekdays.length) return 'Pick the days this rule covers.';
+    const days = DAY_ORDER.filter(d => r.weekdays.includes(d));
+    const dayText = days.length === 7 ? 'Every day' : days.map(d => WEEKDAYS[d]).join(', ');
+    const basis = r.basis === 'weekday'
+      ? `the same weekday over the last <b>${r.lookback} week${r.lookback === 1 ? '' : 's'}</b>`
+      : `the last <b>${r.lookback} day${r.lookback === 1 ? '' : 's'}</b>`;
+    return `${dayText}: average of ${basis}${r.skip_zero ? ' (days with sales)' : ''} <b>${r.pct >= 0 ? '+' : '−'} ${Math.abs(r.pct)}%</b>${r.min_target > 0 ? `, never below <b>${inr(r.min_target)}</b>` : ''}.`;
+  }
+
+  // Days used by more than one rule, so they can be flagged before saving.
+  function clashes() {
+    const seen = {}, bad = new Set();
+    draft.forEach(r => r.weekdays.forEach(d => { if (seen[d] !== undefined) bad.add(d); seen[d] = true; }));
+    return bad;
+  }
+
+  function renderRules() {
+    const bad = clashes();
+    document.getElementById('ruleList').innerHTML = draft.map((r, i) => `
+      <div class="rule-card ${r.weekdays.some(d => bad.has(d)) ? 'bad' : ''}">
+        <div class="rule-card-head">
+          <input type="text" class="rule-name" maxlength="60" placeholder="Rule ${i + 1}" value="${(r.name || '').replace(/"/g, '&quot;')}" aria-label="Rule name">
+          ${draft.length > 1 ? `<button type="button" class="rule-del" data-del="${i}">Delete</button>` : ''}
+        </div>
+        <div class="rule-days" role="group" aria-label="Days this rule covers">
+          ${DAY_ORDER.map(d => `<button type="button" class="rule-day ${r.weekdays.includes(d) ? 'on' : ''} ${r.weekdays.includes(d) && bad.has(d) ? 'clash' : ''}"
+             data-rule="${i}" data-day="${d}" aria-pressed="${r.weekdays.includes(d)}">${DAY_SHORT[d]}</button>`).join('')}
+        </div>
+        <div class="rule-fields">
+          <label>Average of
+            <select class="rule-basis"><option value="days" ${r.basis === 'days' ? 'selected' : ''}>Last few days</option><option value="weekday" ${r.basis === 'weekday' ? 'selected' : ''}>Same weekday, past weeks</option></select></label>
+          <label>How many
+            <select class="rule-lookback">${lookbackOptions(r.basis, r.lookback)}</select></label>
+          <label>Add on top (%)
+            <input type="number" class="rule-pct" step="1" min="-90" max="500" value="${r.pct}"></label>
+          <label>Minimum target (₹)
+            <input type="number" class="rule-min" step="100" min="0" placeholder="0 = none" value="${Number(r.min_target) > 0 ? r.min_target : ''}"></label>
+        </div>
+        <label class="rule-check"><input type="checkbox" class="rule-skip" ${r.skip_zero ? 'checked' : ''}> Skip days with no sales (leave / absent)</label>
+        <div class="rule-sentence">${ruleSentence(r)}</div>
+      </div>`).join('');
+    ruleModal.querySelector('.modal').classList.toggle('rule-off', !document.getElementById('ruleEnabled').checked);
+  }
+
+  function openRule() {
+    document.getElementById('ruleAlert').innerHTML = '';
+    document.getElementById('ruleEnabled').checked = !!ruleSet.enabled;
+    draft = (ruleSet.rules || []).map(r => ({ ...r, weekdays: [...(r.weekdays || [])] }));
+    if (!draft.length) draft = [{ name: 'Every day', weekdays: [0, 1, 2, 3, 4, 5, 6], basis: 'days', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 }];
+    document.getElementById('ruleHouses').innerHTML = Object.entries(ruleHouses).map(([k, label]) =>
+      `<label><input type="checkbox" value="${k}" ${(ruleSet.groups || []).includes(k) ? 'checked' : ''}> ${label}</label>`).join('');
+    renderRules();
+    ruleModal.classList.add('open');
+  }
+  const closeRule = () => ruleModal.classList.remove('open');
+
+  document.getElementById('btnRule').addEventListener('click', openRule);
+  document.getElementById('ruleCancel').addEventListener('click', closeRule);
+  ruleModal.addEventListener('click', (e) => {
+    if (e.target === ruleModal) { closeRule(); return; }
+    const dayBtn = e.target.closest('.rule-day');
+    if (dayBtn) {
+      readDraftFromDom();
+      const r = draft[Number(dayBtn.dataset.rule)], d = Number(dayBtn.dataset.day);
+      r.weekdays = r.weekdays.includes(d) ? r.weekdays.filter(x => x !== d) : [...r.weekdays, d];
+      renderRules();
+      return;
+    }
+    const del = e.target.closest('[data-del]');
+    if (del) { readDraftFromDom(); draft.splice(Number(del.dataset.del), 1); renderRules(); }
+  });
+  document.getElementById('ruleAdd').addEventListener('click', () => {
+    readDraftFromDom();
+    // New rule starts with whichever days no rule covers yet.
+    const used = new Set(draft.flatMap(r => r.weekdays));
+    draft.push({ name: '', weekdays: [0, 1, 2, 3, 4, 5, 6].filter(d => !used.has(d)), basis: 'weekday', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 });
+    renderRules();
+    const cards = document.querySelectorAll('#ruleList .rule-card');
+    cards[cards.length - 1].scrollIntoView({ block: 'nearest' });
+  });
+  // Typing updates the sentence; changing "Average of" also re-labels "How many".
+  ruleModal.addEventListener('input', (e) => {
+    if (!e.target.closest('.rule-card')) return;
+    readDraftFromDom();
+    const card = e.target.closest('.rule-card');
+    card.querySelector('.rule-sentence').innerHTML = ruleSentence(draft[[...card.parentNode.children].indexOf(card)]);
+  });
+  ruleModal.addEventListener('change', (e) => {
+    if (e.target.id === 'ruleEnabled') { ruleModal.querySelector('.modal').classList.toggle('rule-off', !e.target.checked); return; }
+    if (e.target.classList.contains('rule-basis')) {
+      readDraftFromDom();
+      const i = [...document.querySelectorAll('#ruleList .rule-card')].indexOf(e.target.closest('.rule-card'));
+      draft[i].lookback = Math.min(draft[i].lookback, draft[i].basis === 'weekday' ? 8 : 14);
+      renderRules();
+    }
+  });
+
+  document.getElementById('ruleSave').addEventListener('click', async () => {
+    readDraftFromDom();
+    const alertEl = document.getElementById('ruleAlert');
+    const enabled = document.getElementById('ruleEnabled').checked ? 1 : 0;
+    const groups = [...document.querySelectorAll('#ruleHouses input:checked')].map(i => i.value);
+    if (enabled) {
+      const empty = draft.findIndex(r => !r.weekdays.length);
+      if (empty >= 0) { alertEl.innerHTML = `<div class="alert error">${draft[empty].name || 'Rule ' + (empty + 1)}: pick at least one day.</div>`; return; }
+      if (clashes().size) { alertEl.innerHTML = '<div class="alert error">A day is in more than one rule (shown in red). Each day can only be in one rule.</div>'; return; }
+      if (!groups.length) { alertEl.innerHTML = '<div class="alert error">Tick at least one house, or turn automatic targets off.</div>'; return; }
+    }
+    const btn = document.getElementById('ruleSave');
+    btn.disabled = true;
+    try {
+      const d = await api.post('target_rule.save', { enabled, groups, rules: draft });
+      ruleSet = d.rule || { enabled, groups, rules: draft };
+      closeRule();
+      showAlert(d.message || 'Target rules saved.');
+      loadDaily();   // the dates to fetch may have changed
+    } catch (err) {
+      alertEl.innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   async function init(restoreScroll) {
     currentMonth = document.getElementById('monthPick').value;
     // Sequential, not parallel: renderDaily() reads monthRows and
@@ -717,7 +1070,9 @@
 
   loadCommissionRules();
   const savedScroll = restoreTargetsState();
-  init(savedScroll);
+  // The rule decides how many past days loadDaily() fetches, so it has to
+  // arrive first; it's one small local query.
+  loadTargetRule().then(() => init(savedScroll));
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

@@ -308,3 +308,85 @@ function addMobileMenu() {
     watch();
   }
 })();
+
+/**
+ * Uploaded files open through api.php (files.view), app-wide.
+ *
+ * Direct links like …/empmanagment/uploads/doc_158_….png return 404 on this
+ * hosting, and files uploaded before the domain move sit in the old domain's
+ * folder. Every page builds those direct links (Approvals "View", employee
+ * documents, photos…), so rather than edit each page this intercepts them:
+ *  - clicking a link into /uploads/ fetches the file with the login token
+ *    and opens it in a new tab;
+ *  - <img> tags pointing into /uploads/ are loaded the same way.
+ */
+(function uploadsViaApi() {
+  if (typeof api === 'undefined' || typeof API_BASE_URL === 'undefined') return;
+
+  const relOf = (url) => {
+    const i = String(url || '').indexOf('/uploads/');
+    return i === -1 ? null : decodeURIComponent(String(url).slice(i + 1).split('?')[0].split('#')[0]);
+  };
+  const fetchBlob = async (rel) => {
+    const res = await fetch(api.buildUrl('files.view', { path: rel }), {
+      headers: api.token() ? { Authorization: 'Bearer ' + api.token() } : {},
+    });
+    if (!res.ok) {
+      let msg = `Could not open the file (HTTP ${res.status}).`;
+      try { const j = await res.json(); if (j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    return res.blob();
+  };
+
+  // ---- links ----
+  document.addEventListener('click', async (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    const rel = relOf(a.getAttribute('href'));
+    if (!rel) return;
+    e.preventDefault();
+
+    // Open the tab now, inside the click, so popup blockers allow it.
+    const win = window.open('', '_blank');
+    if (win) win.document.write('<p style="font:14px system-ui; padding:24px; color:#555;">Opening file…</p>');
+    try {
+      const url = URL.createObjectURL(await fetchBlob(rel));
+      if (win) win.location.href = url; else window.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      if (win) {
+        win.document.body.innerHTML = '';
+        const p = win.document.createElement('p');
+        p.style.cssText = 'font:14px system-ui; padding:24px; color:#b42318;';
+        p.textContent = err.message;
+        win.document.body.appendChild(p);
+      } else {
+        alert(err.message);
+      }
+    }
+  }, true);
+
+  // ---- images ----
+  const cache = new Map(); // rel -> Promise<objectURL>
+  const fixImg = (img) => {
+    if (img.dataset.upFixed) return;
+    const rel = relOf(img.getAttribute('src'));
+    if (!rel) return;
+    img.dataset.upFixed = '1';
+    if (!cache.has(rel)) cache.set(rel, fetchBlob(rel).then(b => URL.createObjectURL(b)));
+    cache.get(rel).then(u => { img.src = u; }).catch(() => { img.style.visibility = 'hidden'; });
+  };
+  const scan = (root) => {
+    if (root.tagName === 'IMG') fixImg(root);
+    root.querySelectorAll && root.querySelectorAll('img[src*="/uploads/"]').forEach(fixImg);
+  };
+  const start = () => {
+    scan(document);
+    new MutationObserver(recs => recs.forEach(r => {
+      r.addedNodes.forEach(n => n.nodeType === 1 && scan(n));
+      if (r.type === 'attributes' && r.target.tagName === 'IMG') { delete r.target.dataset.upFixed; fixImg(r.target); }
+    })).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();

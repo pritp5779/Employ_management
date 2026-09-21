@@ -50,6 +50,16 @@
   </main>
 </div>
 
+
+<div class="modal-overlay" id="photoModal">
+  <div class="modal" style="max-width:440px;">
+    <h3 id="photoTitle">Punch photo</h3>
+    <div id="photoBody" style="text-align:center; min-height:120px;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="photoClose">Close</button>
+    </div>
+  </div>
+</div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=2"></script>
@@ -97,9 +107,10 @@
     const status = r.punch_in
       ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
       : '<span class="badge inactive">Absent</span>';
+    const nm = (r.full_name || '').replace(/'/g, "\\'");
     const photoLinks = [
-      r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
-      r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
+      r.punch_in_photo ? `<a href="#" onclick="viewPunchPhoto(${r.employee_id}, 'in', '${nm}'); return false;">In</a>` : '',
+      r.punch_out_photo ? `<a href="#" onclick="viewPunchPhoto(${r.employee_id}, 'out', '${nm}'); return false;">Out</a>` : '',
     ].filter(Boolean);
     const photos = photoLinks.join(' · ') || '<span style="color:var(--muted);">—</span>';
     const faceBtn = Number(r.face_enrolled)
@@ -185,8 +196,60 @@
 
   document.getElementById('btnAttLoadMore').addEventListener('click', renderAttNextPage);
 
+
+  // ---- Punch photo viewer ----
+  // Photos are fetched through api.php (attendance.photo) with the login
+  // token attached, rather than linked directly under /uploads/. A plain
+  // <a href> can't send the token, so the bytes are fetched and shown here.
+  const photoModal = document.getElementById('photoModal');
+  let photoObjectUrl = null;
+
+  function closePhoto() {
+    photoModal.classList.remove('open');
+    if (photoObjectUrl) { URL.revokeObjectURL(photoObjectUrl); photoObjectUrl = null; }
+    document.getElementById('photoBody').innerHTML = '';
+  }
+  document.getElementById('photoClose').addEventListener('click', closePhoto);
+  photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhoto(); });
+
+  window.viewPunchPhoto = async function (empId, which, name) {
+    const body = document.getElementById('photoBody');
+    document.getElementById('photoTitle').textContent =
+      `${name} — punch ${which === 'out' ? 'out' : 'in'}`;
+    body.innerHTML = '<div class="loading" style="padding:30px 0;">Loading photo...</div>';
+    photoModal.classList.add('open');
+    try {
+      const res = await fetch(api.buildUrl('attendance.photo', {
+        employee_id: empId, date: currentAttDate, which,
+      }), { headers: { Authorization: 'Bearer ' + api.token() } });
+
+      if (!res.ok) {
+        let msg = `Could not load the photo (HTTP ${res.status}).`;
+        try {
+          const j = await res.json();
+          if (j.error) msg = j.error;
+          if (j.expected_path) msg += `<div style="font-size:11px; color:var(--muted); margin-top:6px; word-break:break-all;">Expected at: ${j.expected_path}</div>`;
+        } catch (e) {
+          if (res.status === 404) msg = 'The server is running an older api.php without photo support — upload the new api.php.';
+        }
+        body.innerHTML = `<div class="alert error" style="text-align:left;">${msg}</div>`;
+        return;
+      }
+
+      const blob = await res.blob();
+      if (photoObjectUrl) URL.revokeObjectURL(photoObjectUrl);
+      photoObjectUrl = URL.createObjectURL(blob);
+      body.innerHTML = `<img src="${photoObjectUrl}" alt="Punch photo" style="max-width:100%; max-height:60vh; border-radius:8px;">`;
+    } catch (err) {
+      body.innerHTML = `<div class="alert error" style="text-align:left;">${err.message}</div>`;
+    }
+  };
+
+  let currentAttDate = '';
+
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();
+    currentAttDate = date;
     const tbody = document.getElementById('tableBody');
     try {
       const data = await api.get('attendance.list', { date });
