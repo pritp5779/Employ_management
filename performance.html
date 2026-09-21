@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Performance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -45,6 +45,10 @@
           </tbody>
         </table>
         <div id="perfDailyCards" style="display:none; padding:10px;"></div>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="perfDailyShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="perfDailyLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
 
       <div class="card" id="perfMonthCard">
@@ -58,6 +62,10 @@
           </tbody>
         </table>
         <div id="perfMonthCards" style="display:none; padding:10px;"></div>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="perfMonthShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="perfMonthLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -362,9 +370,37 @@
     }
   }
 
+  // Paging for both lists: show 10, "Load more" adds 10. Stored as a row
+  // count (not appended HTML) because renderDaily() re-runs after every
+  // rating, query or add-on edit — re-rendering up to the current limit
+  // keeps an edit on row 25 from collapsing the list back to 10.
+  const PERF_PAGE_SIZE = 10;
+  const perfPaging = {
+    daily: { limit: PERF_PAGE_SIZE, matched: 0, prefix: 'perfDaily' },
+    month: { limit: PERF_PAGE_SIZE, matched: 0, prefix: 'perfMonth' },
+  };
+
+  function updatePerfLoadMore(key) {
+    const pg = perfPaging[key];
+    const label = document.getElementById(pg.prefix + 'ShownCount');
+    const btn = document.getElementById(pg.prefix + 'LoadMore');
+    if (!pg.matched) { label.textContent = ''; btn.style.display = 'none'; return; }
+    const showing = Math.min(pg.limit, pg.matched);
+    label.textContent = `Showing ${showing} of ${pg.matched}`;
+    btn.style.display = showing >= pg.matched ? 'none' : 'inline-block';
+  }
+
+  // Filter or data changed — start that list again from the first 10.
+  function resetPerfLimit(...keys) {
+    keys.forEach(k => { perfPaging[k].limit = PERF_PAGE_SIZE; });
+  }
+
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
-    const shown = dailyRows.filter(matchesSearch);
+    const matched = dailyRows.filter(matchesSearch);
+    perfPaging.daily.matched = matched.length;
+    const shown = matched.slice(0, perfPaging.daily.limit);
+    updatePerfLoadMore('daily');
     if (!shown.length) {
       tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('perfDailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
@@ -448,7 +484,10 @@
 
   function renderMonthly() {
     const tbody = document.getElementById('tableBody');
-    const shown = monthRows.filter(matchesSearch);
+    const matched = monthRows.filter(matchesSearch);
+    perfPaging.month.matched = matched.length;
+    const shown = matched.slice(0, perfPaging.month.limit);
+    updatePerfLoadMore('month');
     if (shown.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('perfMonthCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
@@ -501,14 +540,20 @@
 
   const now = new Date();
   document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('monthPick').addEventListener('change', load);
-  document.getElementById('groupPick').addEventListener('change', () => { load(); loadDaily(); });
+  document.getElementById('monthPick').addEventListener('change', () => { resetPerfLimit('month'); load(); });
+  document.getElementById('groupPick').addEventListener('change', () => { resetPerfLimit('month', 'daily'); load(); loadDaily(); });
   document.getElementById('dayPick').value = bizToday();
-  document.getElementById('dayPick').addEventListener('change', loadDaily);
+  document.getElementById('dayPick').addEventListener('change', () => { resetPerfLimit('daily'); loadDaily(); });
+  document.getElementById('perfDailyLoadMore').addEventListener('click', () => {
+    perfPaging.daily.limit += PERF_PAGE_SIZE; renderDaily();
+  });
+  document.getElementById('perfMonthLoadMore').addEventListener('click', () => {
+    perfPaging.month.limit += PERF_PAGE_SIZE; renderMonthly();
+  });
   let searchTimer = null;
   document.getElementById('empSearch').addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => { renderMonthly(); renderDaily(); }, 150);
+    searchTimer = setTimeout(() => { resetPerfLimit('month', 'daily'); renderMonthly(); renderDaily(); }, 150);
   });
   // ---- add-on modal wiring ----
   document.getElementById('btnAddonAddRow').addEventListener('click', () => {

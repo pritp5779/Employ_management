@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -41,14 +41,18 @@
           </tbody>
         </table>
         <div id="attCards" style="display:none; padding:10px;"></div>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="attShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnAttLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('attendance_admin');
@@ -74,45 +78,39 @@
       || (r.employee_code || '').toLowerCase().includes(q);
   }
 
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    const cardsEl = document.getElementById('attCards');
+  // Paging: 10 at a time, table and mobile cards kept in step.
+  const ATT_PAGE_SIZE = 10;
+  let attFiltered = [];
+  let attShown = 0;
+
+  // Shared per-row values, computed once and used by both the desktop
+  // table row and the mobile card so the two can never drift apart.
+  function prep(r) {
     const base = API_BASE_URL.replace('/api.php', '');
-    const shown = allRows.filter(matchesSearch);
-
-    if (!shown.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
-      cardsEl.innerHTML = '<div class="empty-state">No matching employees.</div>';
-      return;
+    let hours = '—';
+    if (r.punch_in && r.punch_out) {
+      const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
+      hours = (ms / 3600000).toFixed(1) + ' h';
     }
+    const statusText = r.punch_in ? (r.punch_out ? 'Completed' : 'Working') : 'Absent';
+    const statusColor = r.punch_in ? (r.punch_out ? '#3730a3' : '#0f7a41') : 'var(--muted)';
+    const status = r.punch_in
+      ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
+      : '<span class="badge inactive">Absent</span>';
+    const photoLinks = [
+      r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
+      r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
+    ].filter(Boolean);
+    const photos = photoLinks.join(' · ') || '<span style="color:var(--muted);">—</span>';
+    const faceBtn = Number(r.face_enrolled)
+      ? `<button class="danger-link" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:6px 12px;line-height:1.3;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
+      : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
+    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn };
+  }
 
-    // Shared per-row values, computed once and used by both the desktop
-    // table row and the mobile card so the two can never drift apart.
-    const prep = (r) => {
-      let hours = '—';
-      if (r.punch_in && r.punch_out) {
-        const ms = new Date(r.punch_out.replace(' ', 'T')) - new Date(r.punch_in.replace(' ', 'T'));
-        hours = (ms / 3600000).toFixed(1) + ' h';
-      }
-      const statusText = r.punch_in ? (r.punch_out ? 'Completed' : 'Working') : 'Absent';
-      const statusColor = r.punch_in ? (r.punch_out ? '#3730a3' : '#0f7a41') : 'var(--muted)';
-      const status = r.punch_in
-        ? (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
-        : '<span class="badge inactive">Absent</span>';
-      const photoLinks = [
-        r.punch_in_photo ? `<a href="${base}/${r.punch_in_photo}" target="_blank">In</a>` : '',
-        r.punch_out_photo ? `<a href="${base}/${r.punch_out_photo}" target="_blank">Out</a>` : '',
-      ].filter(Boolean);
-      const photos = photoLinks.join(' · ') || '<span style="color:var(--muted);">—</span>';
-      const faceBtn = Number(r.face_enrolled)
-        ? `<button class="danger-link" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:6px 12px;line-height:1.3;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
-        : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
-      return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn };
-    };
-
-    tbody.innerHTML = shown.map(r => {
-      const v = prep(r);
-      return `<tr>
+  function attRowHtml(r) {
+    const v = prep(r);
+    return `<tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
         <td>${fmtT(r.punch_in)}</td>
         <td>${fmtT(r.punch_out)}</td>
@@ -121,17 +119,16 @@
         <td>${v.photos}</td>
         <td>${v.faceBtn}</td>
       </tr>`;
-    }).join('');
+  }
 
-    // Mobile: two-column labelled grid — every field keeps its label, so
-    // nothing has to be inferred from column position on a narrow screen.
-    const field = (label, value) =>
-      `<div><div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">${label}</div>
-        <div style="font-size:13px; margin-top:1px;">${value}</div></div>`;
+  // Mobile: two-column labelled grid — every field keeps its label.
+  const field = (label, value) =>
+    `<div><div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">${label}</div>
+      <div style="font-size:13px; margin-top:1px;">${value}</div></div>`;
 
-    cardsEl.innerHTML = shown.map(r => {
-      const v = prep(r);
-      return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+  function attCardHtml(r) {
+    const v = prep(r);
+    return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
         <div style="font-size:13px; font-weight:600;">
           <a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a>
           <span style="font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;">${r.employee_code}</span>
@@ -149,8 +146,44 @@
              </div>`
           : ''}
       </div>`;
-    }).join('');
   }
+
+  function updateAttLoadMoreUi() {
+    const label = document.getElementById('attShownCount');
+    const btn = document.getElementById('btnAttLoadMore');
+    if (!attFiltered.length) { label.textContent = ''; btn.style.display = 'none'; return; }
+    label.textContent = `Showing ${attShown} of ${attFiltered.length}`;
+    btn.style.display = attShown >= attFiltered.length ? 'none' : 'inline-block';
+  }
+
+  function renderAttNextPage() {
+    const next = attFiltered.slice(attShown, attShown + ATT_PAGE_SIZE);
+    document.getElementById('tableBody').insertAdjacentHTML('beforeend', next.map(attRowHtml).join(''));
+    document.getElementById('attCards').insertAdjacentHTML('beforeend', next.map(attCardHtml).join(''));
+    attShown += next.length;
+    updateAttLoadMoreUi();
+  }
+
+  // Full re-render: a new date, a reload, or a search starts again from the
+  // first 10 so the count and results always line up.
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    const cardsEl = document.getElementById('attCards');
+    attFiltered = allRows.filter(matchesSearch);
+    attShown = 0;
+
+    if (!attFiltered.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      cardsEl.innerHTML = '<div class="empty-state">No matching employees.</div>';
+      updateAttLoadMoreUi();
+      return;
+    }
+    tbody.innerHTML = '';
+    cardsEl.innerHTML = '';
+    renderAttNextPage();
+  }
+
+  document.getElementById('btnAttLoadMore').addEventListener('click', renderAttNextPage);
 
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();

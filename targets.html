@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Targets — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -40,13 +40,17 @@
         <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span style="font-size:12px; color:var(--muted);">Day runs 10 AM to next day 10 AM. Type in Daily Target to set that day manually; blank = automatic (profile Daily Target, or monthly Manual ÷ days).</span></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th>Commission</th></tr>
+            <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th title="Estimated from this day's orders against this day's target — not the month-end payable amount">Est. commission<div style="font-size:9.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">today only</div></th></tr>
           </thead>
           <tbody id="dailyBody">
             <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="dailyCards" style="display:none; padding:10px;"></div>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="dailyShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnDailyLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
 
     </div>
@@ -187,6 +191,7 @@
     box.innerHTML = `
       <div style="margin-top:7px; padding:8px 9px; background:var(--bg); border:1px solid var(--line); border-radius:6px; min-width:200px;">
         <div style="font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;">How this was calculated</div>
+        <div style="font-size:10.5px; color:var(--muted); margin-bottom:7px; line-height:1.4;">Based on this day's orders against this day's target. The month-end payable figure is worked out on monthly totals.</div>
         ${c.steps.map(s => `
           <div style="display:flex; justify-content:space-between; gap:8px; font-size:11px; margin-bottom:4px; text-align:left;">
             <span style="color:var(--muted); flex:none; width:64px;">${s.label}</span>
@@ -289,12 +294,35 @@
     }
   }
 
+  // Paging: show 10 rows, "Load more" adds 10. The limit is a count rather
+  // than appended HTML because renderDaily() also re-runs after inline edits
+  // (daily target, overrides) — re-rendering up to the current limit keeps
+  // an edit on row 25 from collapsing the list back to 10.
+  const DAILY_PAGE_SIZE = 15;
+  let dailyLimit = DAILY_PAGE_SIZE;
+  let dailyMatched = 0;
+
+  function updateDailyLoadMoreUi() {
+    const label = document.getElementById('dailyShownCount');
+    const btn = document.getElementById('btnDailyLoadMore');
+    if (!dailyMatched) { label.textContent = ''; btn.style.display = 'none'; return; }
+    const showing = Math.min(dailyLimit, dailyMatched);
+    label.textContent = `Showing ${showing} of ${dailyMatched}`;
+    btn.style.display = showing >= dailyMatched ? 'none' : 'inline-block';
+  }
+
+  // Called when the data or filter changes — start again from the first 10.
+  function resetDailyLimit() { dailyLimit = DAILY_PAGE_SIZE; }
+
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
     if (!dailyCache) return;
     const { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, queriesByKey, overrides, day } = dailyCache;
     // monthRows already has one entry per (employee, house) from targets.get.
-    const shown = monthRows.filter(matchesSearch);
+    const matched = monthRows.filter(matchesSearch);
+    dailyMatched = matched.length;
+    const shown = matched.slice(0, dailyLimit);
+    updateDailyLoadMoreUi();
     if (!shown.length) {
       tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('dailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
@@ -478,7 +506,7 @@
     if (!c) return 'No commission';
     const key = String(rowKey).replace(/[^A-Za-z0-9_-]/g, '_');
     commissionCalcs[key] = { c, achieved };
-    return `Commission · ${c.rate.toFixed(1)}%
+    return `Est. commission (today) · ${c.rate.toFixed(1)}%
       <button type="button" onclick="toggleCommissionInfo('${key}', this)" aria-expanded="false"
         aria-label="How this commission was calculated" title="How this was calculated"
         style="border:none; background:none; padding:0; margin-left:3px; width:16px; height:16px; min-height:0; line-height:1; color:var(--accent); cursor:pointer; font-size:13px; vertical-align:-2px;">&#9432;</button>`;
@@ -631,6 +659,7 @@
         group: document.getElementById('groupPick').value,
         search: document.getElementById('empSearch').value,
         scroll: window.scrollY,
+        limit: dailyLimit,
       }));
     } catch (e) { /* storage unavailable — fall back to defaults */ }
   }
@@ -646,26 +675,41 @@
     if (s.day) document.getElementById('dayPick').value = s.day;
     if (s.group) document.getElementById('groupPick').value = s.group;
     if (s.search) document.getElementById('empSearch').value = s.search;
+    // Restore the loaded row count too — otherwise only 10 rows render and
+    // the saved scroll position points past the end of the list.
+    if (Number(s.limit) > DAILY_PAGE_SIZE) dailyLimit = Number(s.limit);
     return typeof s.scroll === 'number' ? s.scroll : 0;
   }
 
   const now = new Date();
   document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('monthPick').addEventListener('change', () => init());
-  document.getElementById('groupPick').addEventListener('change', () => load().then(loadDaily));
+  document.getElementById('monthPick').addEventListener('change', () => { resetDailyLimit(); init(); });
+  document.getElementById('groupPick').addEventListener('change', () => { resetDailyLimit(); load().then(loadDaily); });
   document.getElementById('dayPick').value = bizToday();
-  document.getElementById('dayPick').addEventListener('change', loadDaily);
+  document.getElementById('dayPick').addEventListener('change', () => { resetDailyLimit(); loadDaily(); });
   let searchTimer = null;
   document.getElementById('empSearch').addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(renderDaily, 150);
+    searchTimer = setTimeout(() => { resetDailyLimit(); renderDaily(); }, 150);
+  });
+  document.getElementById('btnDailyLoadMore').addEventListener('click', () => {
+    dailyLimit += DAILY_PAGE_SIZE;
+    renderDaily();
   });
 
-  // Sync (cheap when already fresh — the server just confirms and returns),
-  // then load once with whatever the sync left behind.
+  // No Shopify sync on load. Everything this page shows — Achieved, Ticket
+  // Size, Progress, Commission — is built from the selected DAY's orders
+  // fetched in loadDaily(). The month-long sync only feeds targets.achieved,
+  // which this page stopped displaying when the summary stat cards were
+  // removed, so running it here just meant waiting on a month of Shopify
+  // data to compute a number nothing reads. It still runs from "Sync now",
+  // which is what Commission and Performance pages rely on.
   async function init(restoreScroll) {
     currentMonth = document.getElementById('monthPick').value;
-    await runSync(false, false);
+    // Sequential, not parallel: renderDaily() reads monthRows and
+    // daysInMonth, both set by load(), so the day table must render after
+    // it. load() is a single local DB query, so this costs almost nothing —
+    // the slow part was the Shopify sync, which is now gone.
     await load();
     await loadDaily();
     if (restoreScroll) window.scrollTo(0, restoreScroll);

@@ -15,6 +15,16 @@
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
+/* Nothing should push the page sideways — a single over-wide element would
+   otherwise let the whole layout slide left/right on a phone. */
+/* Horizontal-overflow guard. overflow-x on <html> propagates to the
+   viewport, so the WINDOW still does the scrolling (window.scrollY and
+   scrollTo keep working). The previous version also set it on <body>, which
+   silently made body its own scroll container — mobile browsers still let
+   the page pan sideways, and window.scrollTo stopped restoring position.
+   "clip" on body/main trims overflow without creating a scroll container. */
+html{overflow-x:hidden;}
+body, .main{overflow-x:clip;}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -210,6 +220,16 @@ tbody tr:hover{background:#fafbfc;}
      orders.html's own JS with the same data as the table. */
   #ordersCard table{display:none;}
   #ordersCard #ordersCards{display:block !important;}
+  /* Long customer names, phone numbers and salesman names run together on
+     one line in the card — let them wrap instead of stretching the card. */
+  #ordersCards > div{max-width:100%; overflow-wrap:anywhere;}
+  /* Pager: page-size, Prev, "Page 1 / 3", Next is ~380px in one row —
+     wider than a phone. Let it wrap and share the width instead. */
+  #pagerBar{padding:12px 10px !important; justify-content:center !important;}
+  .pager-controls{width:100%; justify-content:space-between;}
+  .pager-controls .btn{flex:1 1 0; min-width:0; padding-left:8px; padding-right:8px;}
+  .pager-controls #pageLabel{min-width:0 !important; flex:0 0 auto;}
+  .pager-controls #pageSize{flex:1 1 100%;}
 
   /* Attendance switches to two-column labelled cards for the same reason —
      seven columns can't stay readable at phone width. */
@@ -283,6 +303,11 @@ tbody tr:hover{background:#fafbfc;}
      width set inline for desktop. */
   .card-head > div{display:flex; flex-wrap:wrap; gap:8px;}
   .card-head > div > input, .card-head > div > select, .card-head > div > button{flex:1 1 140px; width:auto; min-width:0;}
+  /* Orders' filter row wraps each field in its own label+input div, so the
+     control sits two levels down and needs constraining too — otherwise the
+     date pickers keep their natural width and push the page sideways. */
+  .card-head > div > div{flex:1 1 140px; min-width:0;}
+  .card-head > div > div > input, .card-head > div > div > select{width:100%; min-width:0;}
 
   .field-grid{grid-template-columns:1fr;}
 

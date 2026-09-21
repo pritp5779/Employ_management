@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Agreements — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -39,6 +39,10 @@
           </thead>
           <tbody id="agBody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="agShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnAgLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -77,9 +81,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('agreements');
@@ -214,21 +218,14 @@
   });
 
   // ---------- Sent list ----------
-  async function loadAgreements() {
-    const tbody = document.getElementById('agBody');
-    try {
-      const data = await api.get('agreements.list');
-      const rows = data.agreements || [];
-      const pending = rows.filter(a => a.status !== 'signed').length;
-      document.getElementById('sentTitle').textContent =
-        rows.length ? `Sent Agreements — ${rows.length - pending} signed / ${pending} pending` : 'Sent Agreements';
+  // Paging: 10 rows, "Load more" adds 10. Kept as a count because the list
+  // reloads after sending, cancelling or replacing a template — so an action
+  // on row 25 doesn't collapse the list back to 10.
+  const AG_PAGE_SIZE = 10;
+  let agLimit = AG_PAGE_SIZE;
+  let agRows = [];
 
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nothing sent yet.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = rows.map(a => {
+  function agRowHtml(a) {
         const note = a.status === 'signed'
           ? (Number(a.auto_signed) ? '<div style="font-size:11px; color:#0f7a41;">auto-signed with digital signature</div>' : '')
           : (a.render_error
@@ -250,8 +247,42 @@
             : '—'}</td>
           <td>${actions}</td>
         </tr>`;
-      }).join('');
+  }
+
+  function renderAgreements() {
+    const tbody = document.getElementById('agBody');
+    const label = document.getElementById('agShownCount');
+    const btn = document.getElementById('btnAgLoadMore');
+    if (!agRows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nothing sent yet.</td></tr>';
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+    const showing = Math.min(agLimit, agRows.length);
+    tbody.innerHTML = agRows.slice(0, showing).map(agRowHtml).join('');
+    label.textContent = `Showing ${showing} of ${agRows.length}`;
+    btn.style.display = showing >= agRows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnAgLoadMore').addEventListener('click', () => {
+    agLimit += AG_PAGE_SIZE;
+    renderAgreements();
+  });
+
+  async function loadAgreements() {
+    const tbody = document.getElementById('agBody');
+    try {
+      const data = await api.get('agreements.list');
+      agRows = data.agreements || [];
+      const pending = agRows.filter(a => a.status !== 'signed').length;
+      document.getElementById('sentTitle').textContent =
+        agRows.length ? `Sent Agreements — ${agRows.length - pending} signed / ${pending} pending` : 'Sent Agreements';
+      renderAgreements();
     } catch (err) {
+      agRows = [];
+      document.getElementById('agShownCount').textContent = '';
+      document.getElementById('btnAgLoadMore').style.display = 'none';
       tbody.innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }

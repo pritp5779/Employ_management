@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Salary — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -40,6 +40,10 @@
           </thead>
           <tbody id="ovBody"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="ovShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnOvLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
@@ -78,9 +82,9 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
   renderSidebar('salary');
@@ -188,6 +192,47 @@
   }
 
   // ---------- Overview ----------
+  // Paging: 10 rows, "Load more" adds 10. Stored as a row count because the
+  // overview reloads after every rule change and every time the day-wise
+  // popup closes — keeping the count means marking leave for row 25 doesn't
+  // collapse the list back to 10. Only a new month starts again from 10.
+  const OV_PAGE_SIZE = 10;
+  let ovLimit = OV_PAGE_SIZE;
+  let ovRows = [];
+
+  function ovRowHtml(r) {
+    return `<tr style="cursor:pointer;" onclick="openDetail(${r.employee_id})" title="Click for day-wise view">
+        <td><b>${r.full_name}</b><div style="font-size:11.5px; color:var(--muted);">${r.employee_code} · ${inr(r.daily_rate)}/day</div></td>
+        <td>${inr(r.monthly_salary)}</td>
+        <td>${r.counts.present}</td>
+        <td>${r.counts.wfh}</td>
+        <td>${r.counts.leave_units}</td>
+        <td style="color:${r.counts.absent > 0 ? '#c81e1e' : 'inherit'};">${r.counts.absent}</td>
+        <td style="font-weight:700;">${inr(r.earned)}</td>
+      </tr>`;
+  }
+
+  function renderOverview() {
+    const tbody = document.getElementById('ovBody');
+    const label = document.getElementById('ovShownCount');
+    const btn = document.getElementById('btnOvLoadMore');
+    if (!ovRows.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees have a Monthly Salary set. Add it in the employee\'s Edit form.</td></tr>';
+      label.textContent = '';
+      btn.style.display = 'none';
+      return;
+    }
+    const showing = Math.min(ovLimit, ovRows.length);
+    tbody.innerHTML = ovRows.slice(0, showing).map(ovRowHtml).join('');
+    label.textContent = `Showing ${showing} of ${ovRows.length}`;
+    btn.style.display = showing >= ovRows.length ? 'none' : 'inline-block';
+  }
+
+  document.getElementById('btnOvLoadMore').addEventListener('click', () => {
+    ovLimit += OV_PAGE_SIZE;
+    renderOverview();
+  });
+
   async function loadOverview() {
     const m = month();
     if (!m) return;
@@ -196,21 +241,12 @@
     const tbody = document.getElementById('ovBody');
     try {
       const data = await api.get('salary.overview', { month: m });
-      const rows = data.rows || [];
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No employees have a Monthly Salary set. Add it in the employee\'s Edit form.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(r => `<tr style="cursor:pointer;" onclick="openDetail(${r.employee_id})" title="Click for day-wise view">
-        <td><b>${r.full_name}</b><div style="font-size:11.5px; color:var(--muted);">${r.employee_code} · ${inr(r.daily_rate)}/day</div></td>
-        <td>${inr(r.monthly_salary)}</td>
-        <td>${r.counts.present}</td>
-        <td>${r.counts.wfh}</td>
-        <td>${r.counts.leave_units}</td>
-        <td style="color:${r.counts.absent > 0 ? '#c81e1e' : 'inherit'};">${r.counts.absent}</td>
-        <td style="font-weight:700;">${inr(r.earned)}</td>
-      </tr>`).join('');
+      ovRows = data.rows || [];
+      renderOverview();
     } catch (err) {
+      ovRows = [];
+      document.getElementById('ovShownCount').textContent = '';
+      document.getElementById('btnOvLoadMore').style.display = 'none';
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
@@ -272,7 +308,7 @@
 
   const now = new Date();
   document.getElementById('monthPick').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('monthPick').addEventListener('change', loadOverview);
+  document.getElementById('monthPick').addEventListener('change', () => { ovLimit = OV_PAGE_SIZE; loadOverview(); });
   loadRules();
   loadOverview();
 </script>

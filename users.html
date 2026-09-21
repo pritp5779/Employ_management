@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Users — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 <div class="app">
@@ -32,7 +32,15 @@
           </div>
           <div class="field">
             <label for="newPassword">Password (min 6 characters)</label>
-            <input autocomplete="new-password" name="hrms-new-pass" type="password" id="newPassword" maxlength="100">
+            <div style="position:relative;">
+              <input autocomplete="new-password" name="hrms-new-pass" type="password" id="newPassword" maxlength="100" style="padding-right:42px; width:100%; box-sizing:border-box;">
+              <button type="button" class="pw-toggle" data-target="newPassword" aria-label="Show password"
+                style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--muted); min-height:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="field">
             <label for="newRole">Role</label>
@@ -44,7 +52,7 @@
           </div>
           <div class="field">
             <label for="newEmployee">Linked Employee <span style="text-transform:none; font-weight:400;">(required for Employee role)</span></label>
-            <select id="newEmployee">
+            <select id="newEmployee" size="1">
               <option value="">— None —</option>
             </select>
           </div>
@@ -56,21 +64,26 @@
       <div class="card">
         <div class="card-head">
           <h2 id="usersTitle">All Users</h2>
+          <div class="search-box"><input type="text" id="userSearch" placeholder="Search by username, role or employee..." autocomplete="off"></div>
         </div>
         <table>
-          <thead><tr><th>Username</th><th>Role</th><th style="width:100px;">Actions</th></tr></thead>
+          <thead><tr><th>Username</th><th>Role</th><th>Linked employee</th><th style="width:100px;">Actions</th></tr></thead>
           <tbody id="usersTableBody">
-            <tr><td colspan="3" class="loading">Loading...</td></tr>
+            <tr><td colspan="4" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px;">
+          <span id="userShownCount" style="font-size:12.5px; color:var(--muted);"></span>
+          <button class="btn secondary" id="btnUserLoadMore" style="width:auto; display:none;">Load more</button>
+        </div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=2"></script>
 <script>
   guardPage();
 
@@ -92,30 +105,114 @@
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
   }
 
+  /*
+   * Show/hide for any password field. Stored passwords are bcrypt hashes and
+   * can never be read back — not even by an Admin — so this reveals what is
+   * being TYPED, it does not display an existing password.
+   */
+  const EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  const EYE_OFF = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pw-toggle');
+    if (!btn) return;
+    const input = document.getElementById(btn.dataset.target);
+    if (!input) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    const svg = btn.querySelector('svg');
+    if (svg) svg.innerHTML = showing ? EYE_OPEN : EYE_OFF;
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  });
+
+  /*
+   * Search across the users list — match on username, role, or the linked
+   * employee's name, so a person can be found without scrolling the table.
+   * Rows are held in memory and re-rendered on each keystroke.
+   */
+  let allUsers = [];
+  let employeeNames = {};   // employee_id -> "Name (CODE)"
+
+  function matchesUserSearch(u) {
+    const q = (document.getElementById('userSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    const emp = employeeNames[u.employee_id] || '';
+    return (u.username || '').toLowerCase().includes(q)
+      || (u.role || '').toLowerCase().includes(q)
+      || emp.toLowerCase().includes(q);
+  }
+
+  const USER_PAGE_SIZE = 20;
+  let userShown = 0;
+  let userFiltered = [];
+
+  function userRowHtml(u) {
+    return `
+        <tr>
+          <td>${u.username}</td>
+          <td><span class="badge">${u.role}</span></td>
+          <td>${employeeNames[u.employee_id] || '<span style="color:var(--muted);">—</span>'}</td>
+          <td>
+            <div class="row-actions">
+              <button onclick="editUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}', '${u.role}', '${u.employee_id || ''}')">Edit</button>
+              <button class="danger-link" onclick="deleteUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+  }
+
+  function updateUserLoadMoreUi() {
+    const label = document.getElementById('userShownCount');
+    const btn = document.getElementById('btnUserLoadMore');
+    if (!userFiltered.length) { label.textContent = ''; btn.style.display = 'none'; return; }
+    label.textContent = `Showing ${userShown} of ${userFiltered.length}`;
+    btn.style.display = userShown >= userFiltered.length ? 'none' : 'inline-block';
+  }
+
+  function renderUserNextPage() {
+    const next = userFiltered.slice(userShown, userShown + USER_PAGE_SIZE);
+    document.getElementById('usersTableBody').insertAdjacentHTML('beforeend', next.map(userRowHtml).join(''));
+    userShown += next.length;
+    updateUserLoadMoreUi();
+  }
+
+  function renderUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    // Searching or reloading restarts from page one, so results always
+    // begin at the top rather than continuing a previous page count.
+    userFiltered = allUsers.filter(matchesUserSearch);
+    userShown = 0;
+
+    document.getElementById('usersTitle').textContent =
+      userFiltered.length === allUsers.length
+        ? `All Users (${allUsers.length})`
+        : `All Users (${userFiltered.length} of ${allUsers.length})`;
+
+    if (!userFiltered.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No matching users.</td></tr>';
+      updateUserLoadMoreUi();
+      return;
+    }
+    tbody.innerHTML = '';
+    renderUserNextPage();
+  }
+
+  document.getElementById('btnUserLoadMore').addEventListener('click', renderUserNextPage);
+
+  let userSearchTimer = null;
+  document.getElementById('userSearch').addEventListener('input', () => {
+    clearTimeout(userSearchTimer);
+    userSearchTimer = setTimeout(renderUsers, 120);
+  });
+
   async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     try {
       const data = await api.get('users.list');
-      document.getElementById('usersTitle').textContent = `All Users (${data.users.length})`;
-
-      if (data.users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No users yet.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = data.users.map(u => `
-        <tr>
-          <td>${u.username}</td>
-          <td><span class="badge">${u.role}</span></td>
-          <td>
-            <div class="row-actions">
-              <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-weight:600; font-size:13px; padding:0; margin-right:10px;" onclick="editUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}', '${u.role}', '${u.employee_id || ''}')">Edit</button>
-              <button class="danger-link" onclick="deleteUser(${u.user_id}, '${u.username.replace(/'/g, "\\'")}')">Delete</button>
-            </div>
-          </td>
-        </tr>`).join('');
+      allUsers = data.users || [];
+      renderUsers();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="3"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -169,10 +266,14 @@
       const sel = document.getElementById('newEmployee');
       sel.innerHTML = '<option value="">— None —</option>' +
         (data.employees || []).map(e => `<option value="${e.employee_id}">${e.full_name} (${e.employee_code})</option>`).join('');
+      (data.employees || []).forEach(e => {
+        employeeNames[e.employee_id] = `${e.full_name} (${e.employee_code})`;
+      });
+      renderUsers();   // fill in the linked-employee column now names are known
     } catch (e) { /* select stays with None */ }
   })();
 
-  // ---- Edit user (username + role + linked employee)
+  // ---- Edit user (username + role + linked employee + optional new password)
   window.editUser = function (id, username, role, employeeId) {
     let m = document.getElementById('editUserModal');
     if (!m) {
@@ -191,6 +292,19 @@
             <div class="field"><label for="euEmployee">Linked Employee <span style="text-transform:none; font-weight:400;">(required for Employee role)</span></label>
               <select id="euEmployee"><option value="">— None —</option></select>
             </div>
+            <div class="field">
+              <label for="euPassword">New password <span style="text-transform:none; font-weight:400;">(leave blank to keep the current one)</span></label>
+              <div style="position:relative;">
+                <input type="password" id="euPassword" autocomplete="new-password" maxlength="100" placeholder="Leave blank to keep current password" style="padding-right:42px; width:100%; box-sizing:border-box;">
+                <button type="button" class="pw-toggle" data-target="euPassword" aria-label="Show password"
+                  style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--muted); min-height:0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
+              <div style="font-size:11.5px; color:var(--muted); margin-top:5px;">Existing passwords are stored encrypted and can't be shown — you can only set a new one.</div>
+            </div>
             <div class="actions">
               <button type="button" class="btn secondary" id="euCancel">Cancel</button>
               <button type="button" class="btn" id="euSave">Save</button>
@@ -201,6 +315,13 @@
       document.getElementById('euCancel').addEventListener('click', () => m.classList.remove('open'));
       document.getElementById('euSave').addEventListener('click', async () => {
         const btn = document.getElementById('euSave');
+        const newPw = document.getElementById('euPassword').value;
+        // Catch a too-short password here so the user isn't told only after
+        // a round trip; the server enforces the same rule regardless.
+        if (newPw !== '' && newPw.length < 6) {
+          showAlert('Password must be at least 6 characters.', 'error');
+          return;
+        }
         btn.disabled = true;
         try {
           await api.post('users.update', {
@@ -208,9 +329,10 @@
             username: document.getElementById('euName').value.trim(),
             role: document.getElementById('euRole').value,
             employee_id: document.getElementById('euEmployee').value || null,
+            password: newPw, // blank = leave the existing password alone
           });
           m.classList.remove('open');
-          showAlert('User updated.');
+          showAlert(newPw ? 'User updated and password changed.' : 'User updated.');
           loadUsers();
         } catch (err) {
           showAlert(err.message, 'error');
@@ -230,6 +352,14 @@
     document.getElementById('euName').value = username;
     document.getElementById('euRole').value = role;
     document.getElementById('euEmployee').value = employeeId || '';
+    // Always clear, and reset the eye to hidden — otherwise a password typed
+    // for one user would still be sitting there when another is opened.
+    const pw = document.getElementById('euPassword');
+    pw.value = '';
+    pw.type = 'password';
+    const pwSvg = document.querySelector('.pw-toggle[data-target="euPassword"] svg');
+    if (pwSvg) pwSvg.innerHTML = EYE_OPEN;
+
     m.classList.add('open');
   };
 
