@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Dashboard — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body>
 <div class="app">
@@ -54,9 +54,9 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="assets/js/config.js"></script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/layout.js"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('dashboard');
@@ -118,7 +118,7 @@
 
       const alertsBody = document.getElementById('alertsTableBody');
       if (data.expiring_documents.length === 0) {
-        document.getElementById('alertsCard').style.display = 'none';
+        alertsBody.innerHTML = '<tr><td colspan="4" class="empty-state">No documents expiring in the next 30 days.</td></tr>';
       } else {
         // Group by employee so each person gets one row listing all their
         // expiring/expired documents together, instead of a repeated row per document.
@@ -160,8 +160,8 @@
             </td></tr>
           `);
         }
-        document.getElementById('alertsCard').style.display = 'block';
       }
+      document.getElementById('alertsCard').style.display = 'block';
 
       const pendingBody = document.getElementById('pendingTableBody');
       const pendingTitle = document.getElementById('pendingTitle');
@@ -193,6 +193,7 @@
         loadMorePending();
       }
       document.getElementById('pendingCard').style.display = 'block';
+
     } catch (err) {
       statsArea.innerHTML = '<div class="alert error">' + err.message + '</div>';
     }
@@ -233,7 +234,7 @@
 
       const today = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(workbook, `employees_full_${today}.xlsx`);
-    } catch (err) { 
+    } catch (err) {
       alert('Export failed: ' + err.message);
     } finally {
       btn.disabled = false;

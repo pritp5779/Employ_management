@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Login — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body>
   <div class="auth-wrap">
@@ -44,8 +44,11 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script>
-  // Already logged in? Skip straight to dashboard.
-  if (api.token()) window.location.href = 'dashboard.html';
+  // Each role has its own home page: employees never pass through the
+  // admin Dashboard. replace() keeps the login page out of the history, so
+  // the phone's back button can't land on it (or on a page it bounced off).
+  const homeFor = (u) => (u && u.role === 'Employee') ? 'attendance.html' : 'dashboard.html';
+  if (api.token()) window.location.replace(homeFor(api.currentUser()));
 
   const togglePassword = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
@@ -77,7 +80,7 @@
       });
       api.setToken(data.token);
       api.setUser(data.user);
-      window.location.href = 'dashboard.html';
+      window.location.replace(homeFor(data.user));
     } catch (err) {
       alertBox.innerHTML = '<div class="alert error">' + err.message + '</div>';
     } finally {

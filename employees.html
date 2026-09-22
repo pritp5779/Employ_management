@@ -226,9 +226,17 @@ Amit Shah	9123456780		web management		"></textarea>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
+
+  // Link to an uploaded file through the file viewer (api.php files.view),
+  // with the login carried in the link. Direct /uploads/ links 404 on this
+  // hosting, and this needs no other script to run.
+  function fileUrl(rel) {
+    return API_BASE_URL + '?action=files.view&path=' + encodeURIComponent(String(rel || '').replace(/^\/+/, ''))
+      + '&token=' + encodeURIComponent(api.token() || '');
+  }
   renderSidebar('employees');
 
   const tableBody = document.getElementById('tableBody');
@@ -686,7 +694,7 @@ Amit Shah	9123456780		web management		"></textarea>
 
   function empRowHtml(r) {
     const photoHtml = r.photo
-      ? `<img src="${API_BASE_URL.replace('/api.php','')}/${r.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+      ? `<img src="${fileUrl(r.photo)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
       : `<div style="width:36px;height:36px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;">
              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
            </div>`;
@@ -727,9 +735,8 @@ Amit Shah	9123456780		web management		"></textarea>
   // Mobile card for one employee — same data and same actions as the table
   // row, stacked so eight columns don't have to fit a phone screen.
   function empCardHtml(r) {
-    const base = API_BASE_URL.replace('/api.php', '');
     const photoHtml = r.photo
-      ? `<img src="${base}/${r.photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;">`
+      ? `<img src="${fileUrl(r.photo)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;">`
       : `<div style="width:42px;height:42px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;flex:none;">
            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
          </div>`;

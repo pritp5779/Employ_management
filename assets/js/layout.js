@@ -13,6 +13,7 @@ function renderSidebar(active) {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
+    punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
     performance: [['performance.html', 'Performance', 'performance']],
     departments: [['departments.html', 'Departments', 'departments']],
@@ -55,7 +56,7 @@ function renderSidebar(active) {
       // allowed page instead (e.g. login lands on Dashboard by default).
       const activePerm = Object.keys(PAGES_FOR_PERM).find(p => PAGES_FOR_PERM[p].some(d => d[2] === active));
       if (perms.length && activePerm && !perms.includes(activePerm)) {
-        window.location.href = PAGES_FOR_PERM[perms[0]][0][0];
+        window.location.replace(PAGES_FOR_PERM[perms[0]][0][0]);
         return;
       }
       const nav = document.getElementById('customNav');
@@ -76,6 +77,13 @@ function renderSidebar(active) {
   }
 
   if (user.role === 'Employee') {
+    // Pages every employee may open. Anything else is hidden immediately —
+    // before its own script can show admin data — until me.flags confirms
+    // the Employee role was granted that module on the Roles page.
+    const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_agreements', 'my_sales', 'orders'];
+    const needsCheck = !EMPLOYEE_PAGES.includes(active);
+    if (needsCheck) document.documentElement.style.visibility = 'hidden';
+
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
       <div class="brand">HR<span>MS</span></div>
@@ -98,8 +106,11 @@ function renderSidebar(active) {
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
       const allowed = ['attendance', 'my_salary', 'my_agreements'].concat(grantedActives);
       if (d.is_sales) allowed.push('my_sales', 'orders');
-      if (!allowed.includes(active)) { window.location.href = 'attendance.html'; return; }
-      if (!d.has_salary && active === 'my_salary') { window.location.href = 'attendance.html'; return; }
+      // replace(): the refused page never enters the history, so the back
+      // button goes to the previous employee page, not back to this one.
+      if (!allowed.includes(active)) { window.location.replace('attendance.html'); return; }
+      if (!d.has_salary && active === 'my_salary') { window.location.replace('attendance.html'); return; }
+      if (needsCheck) document.documentElement.style.visibility = '';
 
       const holder = document.getElementById('empSalesNav');
       if (holder) {
@@ -128,7 +139,7 @@ function renderSidebar(active) {
         }
         holder.outerHTML = links;
       }
-    }).catch(() => {});
+    }).catch(() => { if (needsCheck) window.location.replace('attendance.html'); });
     return;
   }
 

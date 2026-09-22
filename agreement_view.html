@@ -38,13 +38,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
 <script>
   guardPage();
+
+  // Link to an uploaded file through the file viewer (api.php files.view),
+  // with the login carried in the link. Direct /uploads/ links 404 on this
+  // hosting, and this needs no other script to run.
+  function fileUrl(rel) {
+    return API_BASE_URL + '?action=files.view&path=' + encodeURIComponent(String(rel || '').replace(/^\/+/, ''))
+      + '&token=' + encodeURIComponent(api.token() || '');
+  }
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  const base = API_BASE_URL.replace('/api.php', '');
   const params = new URLSearchParams(location.search);
   const agreementId = Number(params.get('id') || 0);
   const paper = document.getElementById('paper');
@@ -63,7 +70,7 @@
     const clean = s => (s || '').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_');
     return `${clean(info.template_name) || 'agreement'}_${clean(info.employee_name) || 'employee'}_${info.employee_code || ''}.pdf`;
   }
-  function showPdfLink() { if (info && info.signed_file) { pdfLink.href = `${base}/${info.signed_file}`; pdfLink.style.display = ''; } else pdfLink.style.display = 'none'; }
+  function showPdfLink() { if (info && info.signed_file) { pdfLink.href = fileUrl(info.signed_file); pdfLink.style.display = ''; } else pdfLink.style.display = 'none'; }
   async function saveToServer(blob) {
     const fd = new FormData(); fd.append('agreement_id', String(agreementId)); fd.append('pdf', blob, fileName());
     const d = await api.upload('agreements.upload_pdf', fd);
@@ -97,7 +104,7 @@
       const relPath = which === 'signed' ? info.signed_file : info.template_file;
       if (relPath) {
         try {
-          const r2 = await fetch(`${base}/${relPath}`, { cache: 'no-store' });
+          const r2 = await fetch(fileUrl(relPath), { cache: 'no-store' });
           if (r2.ok) return new Uint8Array(await r2.arrayBuffer());
         } catch (e) { /* fall through to the clear error below */ }
       }
@@ -292,7 +299,7 @@
       const isStaff = ((api.currentUser() || {}).role || '') !== 'Employee';
 
       if (info.template_kind === 'docx') {
-        if (info.signed_file) { location.replace(`${base}/${info.signed_file}`); return; }
+        if (info.signed_file) { location.replace(fileUrl(info.signed_file)); return; }
         paper.innerHTML = '<div style="padding:40px;color:#6b7280;">This agreement uses a Word template and has not been generated yet.</div>';
         return;
       }

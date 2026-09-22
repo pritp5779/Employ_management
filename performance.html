@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Performance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
   .rs{display:inline-flex; align-items:center; gap:6px; outline:none; border-radius:6px; vertical-align:middle;}
   .rs:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.35);}
@@ -34,6 +34,9 @@
   .rate-toggle b{color:var(--ink,#111827);}
   .rate-toggle .chev{display:inline-block; transition:transform .2s ease; margin-left:2px;}
   .rate-toggle.open{border-color:var(--accent); color:var(--accent);}
+  .rate-toggle.todo{border-color:#f0c36d; background:#fff8e6; color:#8a5a00;}
+  .rate-toggle.done{border-color:#bfe6cf; background:#effaf3; color:#0f7a41;}
+  .rate-toggle.todo b, .rate-toggle.done b{color:inherit;}
   .rate-toggle.open .chev{transform:rotate(90deg);}
   tr.ord-row > td{background:#fafbfd; padding:4px 14px 10px 28px !important;}
   .ord-list{display:flex; flex-direction:column;}
@@ -81,10 +84,10 @@
         <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th style="width:130px;">House</th><th>Query</th><th>Orders</th><th>Ratio</th><th style="width:150px;">Add-on</th><th>Ticket size convincing</th><th>Call rating</th><th>Customer behaviour</th></tr>
+            <tr><th>Employee</th><th style="width:130px;">House</th><th>Query</th><th>Orders</th><th>Ratio</th><th style="width:150px;">Add-on</th><th>Ticket size convincing</th><th>Call rating</th><th>Customer behaviour</th><th style="width:120px;">Rated</th></tr>
           </thead>
           <tbody id="dailyBody">
-            <tr><td colspan="9" class="loading">Loading...</td></tr>
+            <tr><td colspan="10" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="perfDailyCards" style="display:none; padding:10px;"></div>
@@ -174,7 +177,7 @@
 
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('performance');
@@ -308,7 +311,7 @@
     const k = r.employee_id + '|' + r.group_key;
     if (!rr.total) return '<span style="font-size:11.5px; color:var(--muted);">No orders</span>';
     const done = rr.rated === rr.total;
-    return `<button type="button" class="rate-toggle ${openRows.has(k) ? 'open' : ''}" onclick="toggleOrders('${k}')"
+    return `<button type="button" class="rate-toggle ${openRows.has(k) ? 'open' : ''} ${done ? 'done' : (rr.rated ? '' : 'todo')}" onclick="toggleOrders('${k}')"
               aria-expanded="${openRows.has(k)}">${done ? '✓ ' : ''}<b>${rr.rated}</b>/${rr.total} rated <span class="chev">›</span></button>`;
   }
 
@@ -578,7 +581,7 @@
       await loadAddons();   // must land before the first render or the column reads empty
       renderDaily();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -614,7 +617,7 @@
     const shown = matched.slice(0, perfPaging.daily.limit);
     updatePerfLoadMore('daily');
     if (!shown.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('perfDailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
@@ -632,9 +635,10 @@
         <td>${addonCell(r)}</td>
         ${(() => { const rr = rowRatings(r); const lg = rr.legacy ? 'Daily rating (given before per-order ratings)' : 'Average of rated orders';
           return `<td>${miniStars(rr.ticket, lg)}</td><td>${miniStars(rr.call, lg)}</td>
-            <td><div style="font-size:12.5px; font-weight:600; color:${rr.behaviour === 'Good' ? '#0f7a41' : (rr.behaviour === 'Bad' ? '#c81e1e' : (rr.behaviour ? '#b45f06' : 'var(--muted)'))};">${rr.behaviour || '—'}</div>${ratedToggle(r, rr)}</td>`; })()}
+            <td><div style="font-size:12.5px; font-weight:600; color:${rr.behaviour === 'Good' ? '#0f7a41' : (rr.behaviour === 'Bad' ? '#c81e1e' : (rr.behaviour ? '#b45f06' : 'var(--muted)'))};">${rr.behaviour || '—'}</div></td>
+            <td>${ratedToggle(r, rr)}</td>`; })()}
       </tr>${openRows.has(r.employee_id + '|' + r.group_key) && (r.order_list || []).length
-        ? `<tr class="ord-row"><td colspan="9"><div class="ord-list">${orderRowsHtml(r)}</div></td></tr>` : ''}`;
+        ? `<tr class="ord-row"><td colspan="10"><div class="ord-list">${orderRowsHtml(r)}</div></td></tr>` : ''}`;
     }).join('');
 
     // Mobile: one card per employee/house, with the ratings as the same

@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
   /* Camera stays off until a punch button is tapped. */
   .cam-idle{display:flex; flex-direction:column; align-items:center; gap:8px; padding:26px 12px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:13px; text-align:center;}
@@ -91,14 +91,20 @@
 
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 <script>
   guardPage();
   renderSidebar('attendance');
 
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-  const MATCH_THRESHOLD = 0.5;   // euclidean distance — lower is stricter
+  const MATCH_THRESHOLD = 0.45;  // euclidean distance — lower is stricter
+  const MATCHES_NEEDED = 3;      // consecutive matching frames; one mismatch resets the count
+  const MIN_FACE_FRAC = 0.22;    // face must span at least this share of the frame width
+  // iOS Safari runs the models on the GPU with 16-bit numbers, which blurs
+  // face fingerprints so different people can pass as the same person.
+  // On iOS the models run on the CPU instead: slower, but exact.
+  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   const alertBox = document.getElementById('alertBox');
   const video = document.getElementById('cam');
@@ -155,11 +161,16 @@
   let modelsPromise = null;
   function loadModels() {
     if (!modelsPromise) {
-      modelsPromise = Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      ]).catch(err => { modelsPromise = null; throw new Error('Could not load the face check — check your internet and tap again.'); });
+      modelsPromise = (async () => {
+        if (IS_IOS && faceapi.tf && faceapi.tf.setBackend) {
+          try { await faceapi.tf.setBackend('cpu'); await faceapi.tf.ready(); } catch (e) { /* keep default */ }
+        }
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        ]);
+      })().catch(err => { modelsPromise = null; throw new Error('Could not load the face check — check your internet and tap again.'); });
     }
     return modelsPromise;
   }
@@ -196,7 +207,15 @@
     overlay.hidden = false;
     overlay.textContent = 'Starting camera…';
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false });
+      // Ask for the front camera strictly first — a loose request lets iOS
+      // pick or switch cameras. Fall back to the loose form on devices
+      // that don't label their cameras.
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'user' }, width: { ideal: 640 } }, audio: false });
+      } catch (strict) {
+        if (strict && strict.name !== 'OverconstrainedError' && strict.name !== 'NotFoundError') throw strict;
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false });
+      }
     } catch (err) {
       if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
         throw new Error('Camera permission is blocked — allow camera access for this site in your browser settings, then tap again.');
@@ -239,11 +258,20 @@
       if (cancelled) return;
       const det = await detectOnce();
       if (!det) { setMsg('No face detected — face the camera in good light and try again.', 'var(--bad-fg)'); return; }
+      if (det.detection.box.width < MIN_FACE_FRAC * video.videoWidth) { setMsg('Come closer — your face must fill the oval.', 'var(--bad-fg)'); return; }
       oval.classList.add('ok');
       samples.push(det.descriptor);
       await new Promise(r => setTimeout(r, 400));
     }
     if (cancelled) return;
+    // The three captures must agree with each other; if they don't, the
+    // fingerprint is unreliable (moving, poor light, GPU precision).
+    for (let i = 1; i < samples.length; i++) {
+      if (faceapi.euclideanDistance(samples[0], samples[i]) > 0.35) {
+        setMsg('Could not get a steady reading — hold still in good light and tap Enroll again.', 'var(--bad-fg)');
+        return;
+      }
+    }
     const avg = new Array(128).fill(0);
     samples.forEach(s => s.forEach((v, i) => (avg[i] += v / samples.length)));
 
@@ -264,17 +292,20 @@
     // YOUR normal eye shape — works with glasses) OR a slight head turn.
     setMsg('Look at the camera...', 'var(--accent)');
 
-    let matches = 0;
+    let matches = 0;           // consecutive matching frames
+    let bestDist = Infinity;   // closest score seen, for the failure message
+    let tooFar = false;
     let frame = 0;
     let baselineEAR = 0;
     let sawClosed = false;
     let live = false;
     let noseBase = null;
     const t0 = Date.now();
+    const limit = IS_IOS ? 25000 : 15000;   // CPU checking is slower
 
-    while (Date.now() - t0 < 15000 && !cancelled) {
+    while (Date.now() - t0 < limit && !cancelled) {
       frame++;
-      const needDescriptor = matches < 2 && frame % 2 === 1;
+      const needDescriptor = matches < MATCHES_NEEDED && (IS_IOS || frame % 2 === 1);
       let det;
       if (needDescriptor) {
         det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 256 }))
@@ -286,12 +317,21 @@
       if (cancelled) return;
 
       if (det) {
-        // Face match (until confirmed twice)
-        if (det.descriptor && matches < 2) {
-          const dist = faceapi.euclideanDistance(det.descriptor, enrolledDescriptor);
-          if (dist < MATCH_THRESHOLD) matches++;
+        // Face match: several frames in a row must match; a frame that
+        // doesn't resets the count, so a stranger can't collect matches
+        // from occasional lucky frames.
+        if (det.descriptor && matches < MATCHES_NEEDED) {
+          if (det.detection.box.width < MIN_FACE_FRAC * video.videoWidth) {
+            tooFar = true;
+            setMsg('Come closer — your face must fill the oval.', 'var(--accent)');
+          } else {
+            tooFar = false;
+            const dist = faceapi.euclideanDistance(det.descriptor, enrolledDescriptor);
+            bestDist = Math.min(bestDist, dist);
+            matches = dist < MATCH_THRESHOLD ? matches + 1 : 0;
+          }
         }
-        oval.classList.toggle('ok', matches >= 2);
+        oval.classList.toggle('ok', matches >= MATCHES_NEEDED);
 
         // Liveness A: blink, relative to this person's own open-eye shape
         const ear = (eyeAspectRatio(det.landmarks.getLeftEye()) + eyeAspectRatio(det.landmarks.getRightEye())) / 2;
@@ -308,15 +348,16 @@
         if (noseBase === null) noseBase = rel;
         if (Math.abs(rel - noseBase) > 0.10) live = true;
 
-        if (matches >= 2 && !live) setMsg('Face matched ✓ Blink once or turn your head slightly...', 'var(--accent)');
-        if (matches >= 2 && live) break;
+        if (matches >= MATCHES_NEEDED && !live) setMsg('Face matched ✓ Blink once or turn your head slightly...', 'var(--accent)');
+        if (matches >= MATCHES_NEEDED && live) break;
       }
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, IS_IOS ? 20 : 60));
     }
     if (cancelled) return;
 
-    if (matches < 2) {
-      setMsg('Face not recognized — tap again in better light, closer to the camera.', 'var(--bad-fg)');
+    if (matches < MATCHES_NEEDED) {
+      const score = bestDist < Infinity ? ` (closest score ${bestDist.toFixed(2)}, needs under ${MATCH_THRESHOLD})` : '';
+      setMsg((tooFar ? 'Face too far from the camera' : 'Face not recognized') + ' — tap again in better light, closer to the camera.' + score, 'var(--bad-fg)');
       return;
     }
     if (!live) {

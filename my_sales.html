@@ -11,7 +11,11 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>My Sales — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
+<style>
+  .amt-short{display:none;}
+  @media (max-width:820px){ .amt-full{display:none;} .amt-short{display:inline;} }
+</style>
 </head>
 <body>
 <div class="app">
@@ -33,14 +37,17 @@
   </main>
 </div>
 
-<script src="assets/js/config.js?v=1"></script>
-<script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/layout.js?v=1"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('my_sales');
 
   const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  // Short amounts for the narrow stat cards on phones (₹1.2L / ₹64.1k).
+  const inrShort = (v) => { v = Number(v || 0); return v >= 100000 ? '₹' + (v / 100000).toFixed(1).replace(/\.0$/, '') + 'L' : (v >= 1000 ? '₹' + (v / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : inr(v)); };
+  const money = (v) => `<span class="amt-full">${inr(v)}</span><span class="amt-short">${inrShort(v)}</span>`;
   const pctOf = (v, t) => (t > 0 ? Math.round((v / t) * 100) : null);
   const pctColor = (p) => p >= 100 ? '#7C3AED' : (p >= 60 ? '#0f7a41' : (p >= 30 ? '#b45f06' : '#c81e1e'));
 
@@ -65,9 +72,9 @@
 
       const grid = document.getElementById('statGrid');
       grid.innerHTML = `
-        <div class="stat-card"><div class="label">Today Sales</div><div class="value">${inr(d.today.sales)}</div></div>
+        <div class="stat-card"><div class="label">Today Sales</div><div class="value">${money(d.today.sales)}</div></div>
         <div class="stat-card"><div class="label">Today Orders</div><div class="value">${d.today.orders}</div></div>
-        <div class="stat-card"><div class="label">Month Sales</div><div class="value">${inr(d.month.sales)}</div></div>
+        <div class="stat-card"><div class="label">Month Sales</div><div class="value">${money(d.month.sales)}</div></div>
         <div class="stat-card"><div class="label">Month Orders</div><div class="value">${d.month.orders}</div></div>
       `;
       grid.style.display = 'grid';

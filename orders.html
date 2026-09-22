@@ -11,8 +11,13 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Orders — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
+  /* Stat cards carry a full and a short label/amount; only one shows at a
+     time. Kept here as well as in style.css so the cards render correctly
+     even when a browser or local server has an older stylesheet. */
+  .lbl-short, .amt-short{display:none;}
+  @media (max-width:820px){ .lbl-full, .amt-full{display:none;} .lbl-short{display:inline;} .amt-short{display:block;} }
   .topbar .tb-title{display:flex; align-items:center; gap:12px; min-width:0;}
   .topbar .tb-title h1{margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .topbar .back-btn{display:inline-flex; align-items:center; gap:4px; flex:0 0 auto !important; width:auto;
@@ -189,7 +194,7 @@
 
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('orders');

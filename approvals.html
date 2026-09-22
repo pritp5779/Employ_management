@@ -58,9 +58,17 @@
 
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
+
+  // Link to an uploaded file through the file viewer (api.php files.view),
+  // with the login carried in the link. Direct /uploads/ links 404 on this
+  // hosting, and this needs no other script to run.
+  function fileUrl(rel) {
+    return API_BASE_URL + '?action=files.view&path=' + encodeURIComponent(String(rel || '').replace(/^\/+/, ''))
+      + '&token=' + encodeURIComponent(api.token() || '');
+  }
 
   const currentUser = api.currentUser() || {};
   if (currentUser.role !== 'Admin') {
@@ -111,7 +119,7 @@
             <td>${fmtDate(d.uploaded_at)}</td>
             <td>
               <div class="row-actions">
-                ${d.document_file ? `<a href="${API_BASE_URL.replace('/api.php','')}/${d.document_file}" target="_blank" style="margin-right:6px;">View</a>` : ''}
+                ${d.document_file ? `<a href="${fileUrl(d.document_file)}" target="_blank" style="margin-right:6px;">View</a>` : ''}
                 <button onclick="approveDocument(${d.employee_document_id})">Approve</button>
                 <button class="danger-link" onclick="declineDocument(${d.employee_document_id}, '${(d.document_name||'').replace(/'/g,"\\'")}')">Decline</button>
               </div>

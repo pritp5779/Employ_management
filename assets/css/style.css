@@ -345,9 +345,12 @@ tbody tr:hover{background:#fafbfc;}
   .badge{white-space:normal;}
 }
 
-/* ===== Popup scrolling: keep scroll inside modals, freeze the page behind ===== */
+/* ===== Popup scrolling: keep scroll inside the popup =====
+   No scroll lock on the page behind it. Locking (overflow:hidden on body or
+   html) made browsers snap the page to the top when a popup opened, so
+   closing it left the user at the top of the list. The overlay is fixed
+   and covers the page anyway; contain stops scroll chaining out of it. */
 .modal{overscroll-behavior:contain;}
-body:has(.modal-overlay.open){overflow:hidden;}
 
 /* ===== Fixed sidebar: stays in place while the page scrolls (desktop) ===== */
 @media (min-width: 901px) {

@@ -139,6 +139,14 @@
 <script src="assets/js/layout.js"></script>
 <script>
   guardPage();
+
+  // Link to an uploaded file through the file viewer (api.php files.view),
+  // with the login carried in the link. Direct /uploads/ links 404 on this
+  // hosting, and this needs no other script to run.
+  function fileUrl(rel) {
+    return API_BASE_URL + '?action=files.view&path=' + encodeURIComponent(String(rel || '').replace(/^\/+/, ''))
+      + '&token=' + encodeURIComponent(api.token() || '');
+  }
   renderSidebar('employees');
 
   // Remember where the user came from (Targets, Performance, Attendance…)
@@ -352,7 +360,6 @@
       const rows = data.agreements || [];
       if (!rows.length) { card.style.display = 'none'; return; }
 
-      const base = API_BASE_URL.replace('/api.php', '');
       const signedCount = rows.filter(a => a.status === 'signed').length;
       document.getElementById('agreementsTitle').textContent =
         `Agreements (${signedCount} signed${rows.length - signedCount ? ' · ' + (rows.length - signedCount) + ' pending' : ''})`;
@@ -369,7 +376,7 @@
           <td>
             <div class="row-actions">
               ${signed ? `<a href="agreement_view.html?id=${a.agreement_id}">View</a>` : '<span style="color:var(--muted); font-size:12.5px;">—</span>'}
-              ${signed && a.signed_file ? `<a href="${base}/${a.signed_file}" target="_blank">PDF</a>` : ''}
+              ${signed && a.signed_file ? `<a href="${fileUrl(a.signed_file)}" target="_blank">PDF</a>` : ''}
               <button class="danger-link" onclick="deleteAgreement(${a.agreement_id}, '${a.template_name.replace(/'/g, "\\'")}')">Delete</button>
             </div>
           </td>
