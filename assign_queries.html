@@ -11,7 +11,27 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Assign Queries — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
+<style>
+  /* Employee label colour: a rainbow dot in the name cell opens a colour
+     wheel; the chosen colour tints the cell and the dot shows it exactly. */
+  .emp-cell{position:relative; padding-right:34px !important;}
+  .color-dot{position:absolute; right:10px; top:14px; width:18px; height:18px; border-radius:50%; cursor:pointer;
+    background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line);}
+  .color-dot.on{background:var(--c);}
+  .color-dot:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+  .cw{position:absolute; z-index:120; background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px; display:none; flex-direction:column; align-items:center; gap:8px; box-shadow:0 10px 30px rgba(0,0,0,.18); width:200px;}
+  .cw.open{display:flex;}
+  .cw-wheel{position:relative; width:160px; height:160px; border-radius:50%; cursor:crosshair; touch-action:none;
+    background:radial-gradient(circle,#fff 0,rgba(255,255,255,0) 70%),conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+  .cw-cur{position:absolute; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.4); transform:translate(-50%,-50%); pointer-events:none;}
+  .cw-prev{display:flex; align-items:center; gap:8px; width:100%; font-size:11px;}
+  .cw-prev i{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); flex:none;}
+  .cw-prev code{flex:1; font-size:11px; color:var(--muted);}
+  .cw-acts{display:flex; gap:6px; width:100%;}
+  .cw-acts .btn{flex:1; padding:6px; font-size:12px; min-height:0;}
+  @media (max-width:820px){ .color-dot{width:22px; height:22px; top:12px;} .cw{width:220px;} .cw-wheel{width:180px; height:180px;} }
+</style>
 </head>
 <body>
 <div class="app">
@@ -22,7 +42,6 @@
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
         <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-          <option value="">All houses</option>
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
@@ -37,8 +56,8 @@
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
           <span style="font-size:12.5px; color:var(--muted);">
-            Query <b id="sumScout" style="color:#0C447C;">0</b> ·
-            campaign <b id="sumChamp" style="color:#854F0B;">0</b> ·
+            Scout <b id="sumScout" style="color:#0C447C;">0</b> ·
+            Champion <b id="sumChamp" style="color:#854F0B;">0</b> ·
             Total <b id="totalCount" style="color:var(--ink);">0</b>
           </span>
         </div>
@@ -47,8 +66,8 @@
             <tr>
               <th>Employee</th>
               <th style="width:150px;">House</th>
-              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Query</th>
-              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">campaign</th>
+              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Scout</th>
+              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Champion</th>
               <th style="text-align:center;">Total</th>
             </tr>
           </thead>
@@ -61,11 +80,68 @@
   </main>
 </div>
 
+<div class="cw" id="colorWheel" role="dialog" aria-label="Pick a colour">
+  <div class="cw-wheel" id="cwWheel"><span class="cw-cur" id="cwCur" style="display:none;"></span></div>
+  <div class="cw-prev"><i id="cwPrev"></i><code id="cwHex">—</code></div>
+  <div class="cw-acts"><button type="button" class="btn secondary" id="cwNone">None</button><button type="button" class="btn" id="cwUse">Use colour</button></div>
+</div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
+
+  // ---------- Employee label colour ----------
+  const tint = (c) => c ? `background:${c}2b;` : '';
+  const cw = document.getElementById('colorWheel'), cwWheel = document.getElementById('cwWheel'), cwCur = document.getElementById('cwCur');
+  let cwEmp = 0, cwGroup = '', cwPick = '';
+  function hsvToHex(h, s, v) { const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0); return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); }
+  function cwSet(hex, x, y) {
+    cwPick = hex || '';
+    document.getElementById('cwPrev').style.background = hex || 'transparent';
+    document.getElementById('cwHex').textContent = hex || '—';
+    if (x !== undefined) { cwCur.style.display = 'block'; cwCur.style.left = x + 'px'; cwCur.style.top = y + 'px'; cwCur.style.background = hex; }
+    else cwCur.style.display = 'none';
+  }
+  function cwFromEvent(ev) {
+    const r = cwWheel.getBoundingClientRect(); const cx = r.width / 2, cy = r.height / 2;
+    let x = ev.clientX - r.left, y = ev.clientY - r.top, dx = x - cx, dy = y - cy;
+    const dist = Math.hypot(dx, dy) || 1; const sat = Math.min(1, dist / cx);
+    if (dist > cx) { dx *= cx / dist; dy *= cx / dist; x = cx + dx; y = cy + dy; }
+    const hue = ((Math.atan2(dy, dx) * 180 / Math.PI) + 90 + 360) % 360;
+    cwSet(hsvToHex(hue, sat, 1), x, y);
+  }
+  let cwDrag = false;
+  cwWheel.addEventListener('pointerdown', (e) => { cwDrag = true; cwWheel.setPointerCapture(e.pointerId); cwFromEvent(e); });
+  cwWheel.addEventListener('pointermove', (e) => { if (cwDrag) cwFromEvent(e); });
+  cwWheel.addEventListener('pointerup', () => { cwDrag = false; });
+  function openWheel(dot) {
+    cwEmp = Number(dot.dataset.emp);
+    cwGroup = dot.dataset.group || '';
+    const r = dot.getBoundingClientRect();
+    cw.style.left = Math.max(8, Math.min(r.left + window.scrollX - 90, document.documentElement.clientWidth - 212)) + 'px';
+    cw.style.top = (r.bottom + window.scrollY + 8) + 'px';
+    cw.classList.add('open');
+    cwSet(dot.dataset.color || '');
+  }
+  async function saveColor(color) {
+    cw.classList.remove('open');
+    try {
+      await api.post('employees.set_color', { employee_id: cwEmp, group_key: cwGroup, color });
+      const dot = document.querySelector(`.color-dot[data-emp="${cwEmp}"][data-group="${cwGroup}"]`);
+      if (dot) { dot.dataset.color = color; dot.style.setProperty('--c', color || 'transparent'); dot.classList.toggle('on', !!color); dot.closest('td').style.background = color ? color + '2b' : ''; }
+      const row = employees.find(e => Number(e.employee_id) === cwEmp);
+      const grp = row && row.groups.find(x => x.group_key === cwGroup); if (grp) grp.color = color;
+    } catch (err) { showAlert(err.message, 'error'); }
+  }
+  document.getElementById('cwUse').addEventListener('click', () => saveColor(cwPick));
+  document.getElementById('cwNone').addEventListener('click', () => saveColor(''));
+  document.addEventListener('click', (e) => {
+    const dot = e.target.closest('.color-dot');
+    if (dot) { e.preventDefault(); openWheel(dot); return; }
+    if (!e.target.closest('.cw')) cw.classList.remove('open');
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cw.classList.remove('open'); const dot = e.target.closest && e.target.closest('.color-dot'); if (dot && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openWheel(dot); } });
   renderSidebar('assign_queries');
 
   const alertBox = document.getElementById('alertBox');
@@ -81,7 +157,9 @@
   }
 
   function day() { return document.getElementById('dayPick').value; }
-  function groupFilter() { return document.getElementById('groupPick').value || ''; }
+  // One house at a time (there is no "All houses"): the page shows the chosen
+  // house's employees, one row each, and colours are per employee per house.
+  function groupFilter() { return document.getElementById('groupPick').value || 'tmph'; }
 
   function matchesSearch(e) {
     const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
@@ -133,8 +211,9 @@
       const groups = e.groups.length ? e.groups : [{ group_key: '', group_label: 'Ungrouped', query_count: 0, scout_count: 0, champion_count: 0 }];
       return groups.map((g, i) => {
         const nameCell = i === 0
-          ? `<td rowspan="${groups.length}" style="vertical-align:top; ${groups.length > 1 ? 'border-right:2px solid var(--line);' : ''}">
+          ? `<td rowspan="${groups.length}" class="emp-cell" style="vertical-align:top; ${groups.length > 1 ? 'border-right:2px solid var(--line);' : ''} ${tint(g.color)}">
                ${e.full_name}<div style="font-size:11px; color:var(--muted);">${e.employee_code}</div>
+               <span class="color-dot ${g.color ? 'on' : ''}" style="--c:${g.color || 'transparent'};" data-emp="${e.employee_id}" data-group="${g.group_key}" data-color="${g.color || ''}" role="button" tabindex="0" title="Pick a colour for ${e.full_name} in ${g.group_label}"></span>
              </td>`
           : '';
         const color = HOUSE_COLOR[g.group_key] || HOUSE_COLOR[''];

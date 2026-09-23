@@ -64,6 +64,7 @@
         <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <button class="btn secondary" id="btnSyncNow" style="width:auto;" title="Fetch the latest orders from Shopify right now">&#8635; Sync now</button>
+        <button class="btn secondary" id="btnTiming" type="button" title="Set when each business day starts">Day timing</button>
         <button class="btn secondary" id="btnRule" type="button" style="width:auto;" title="How daily targets are set automatically">Target rule</button>
         <a href="attendance_admin.html" class="btn secondary" style="text-decoration:none;">View attendance</a>
       </div>
@@ -109,6 +110,20 @@
     <div class="actions">
       <button type="button" class="btn secondary" id="ruleCancel">Cancel</button>
       <button type="button" class="btn" id="ruleSave">Save rules</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="timingModal">
+  <div class="modal" style="max-width:440px;">
+    <h3>Day timing</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">A business day runs from its start time until the next day's start time. Orders, targets and sales are counted in that window. Default is 10:00 AM every day.</p>
+    <div id="timingAlert"></div>
+    <div id="timingRows"></div>
+    <p style="font-size:11.5px; color:var(--muted); margin:10px 0 0;">A change applies to orders counted from now on. Run <b>Sync now</b> afterwards to recount this month.</p>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="timingReset">Reset to 10:00 AM</button>
+      <button type="button" class="btn secondary" id="timingCancel">Cancel</button>
+      <button type="button" class="btn" id="timingSave">Save</button>
     </div>
   </div>
 </div>
@@ -268,11 +283,27 @@
     btn.setAttribute('aria-expanded', 'true');
   };
 
-  function bizToday() {
-    const d = new Date();
-    if (d.getHours() < 10) d.setDate(d.getDate() - 1);
+
+  // ---------- Business-day timing (Admin: Targets → Day timing) ----------
+  // Start time per weekday [Sun..Sat], default 10:00. A business day runs
+  // from its start until the next day's start. Loaded once per page.
+  let DAY_START = ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+  const timingReady = api.get('day_timing.get').then(d => { if (Array.isArray(d.start) && d.start.length === 7) DAY_START = d.start; }).catch(() => {});
+  function bizDayOf(dt) {           // Date -> 'YYYY-MM-DD'
+    const d = new Date(dt);
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
+  const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
+  // "10 AM to next day 10 AM", or "10 AM to next day start (Sun 12 PM)" when days differ
+  function dayWindowText() {
+    const all = new Set(DAY_START);
+    if (all.size === 1) { const t = fmtHM(DAY_START[0]); return `${t} to next day ${t}`; }
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return 'each day from ' + DAY_START.map((t, i) => `${names[i]} ${fmtHM(t)}`).join(', ');
+  }
+  function bizToday() { return bizDayOf(new Date()); }
 
   function groupFilter() {
     return document.getElementById('groupPick').value || '';
@@ -333,10 +364,11 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
   function addDays(dstr, n) { const d = new Date(dstr + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); }
-  // Business day an order belongs to (10 AM → 10 AM), same rule as Orders.
+  // Business day an order belongs to — the server sends biz_date using the
+  // Day timing setting; the local rule is the same for anything without it.
   function orderDay(o) {
     if (o.biz_date) return o.biz_date;
-    return ymd(new Date(new Date(o.created_at).getTime() - 10 * 3600 * 1000));
+    return bizDayOf(new Date(o.created_at));
   }
 
   /*
@@ -995,6 +1027,7 @@
   const closeRule = () => ruleModal.classList.remove('open');
 
   document.getElementById('btnRule').addEventListener('click', openRule);
+  { const u = api.currentUser() || {}; if (!['Admin', 'HR'].includes(u.role)) document.getElementById('btnTiming').style.display = 'none'; }
   document.getElementById('ruleCancel').addEventListener('click', closeRule);
   ruleModal.addEventListener('click', (e) => {
     if (e.target === ruleModal) { closeRule(); return; }
@@ -1060,6 +1093,49 @@
       btn.disabled = false;
     }
   });
+
+
+  // ---------- Day timing window ----------
+  const timingModal = document.getElementById('timingModal');
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function renderTiming(vals) {
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    document.getElementById('timingRows').innerHTML = `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:0 0 4px;"><span>Day</span><span>Starts at</span><span>Counts from → to</span></div>` +
+      order.map(i => { const n = (i + 1) % 7; return `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; align-items:center; padding:6px 0; border-top:1px solid var(--line); font-size:13px;">
+        <b>${DAY_NAMES[i]}</b><input type="time" class="timing-in" data-wd="${i}" value="${vals[i]}" style="padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span class="timing-win" data-wd="${i}" style="font-size:11.5px; color:var(--muted);"></span></div>`; }).join('');
+    paintWindows();
+  }
+  function timingVals() { const v = [...DAY_START]; document.querySelectorAll('.timing-in').forEach(i => { v[Number(i.dataset.wd)] = i.value || '10:00'; }); return v; }
+  function paintWindows() {
+    const v = timingVals(); const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    document.querySelectorAll('.timing-win').forEach(el => { const i = Number(el.dataset.wd), n = (i + 1) % 7;
+      el.textContent = `${names[i]} ${fmtHM(v[i])} → ${names[n]} ${fmtHM(v[n])}`; el.style.color = (v[i] !== '10:00' || v[n] !== '10:00') ? 'var(--accent)' : 'var(--muted)'; });
+  }
+  document.getElementById('btnTiming').addEventListener('click', async () => { await timingReady; document.getElementById('timingAlert').innerHTML = ''; renderTiming(DAY_START); timingModal.classList.add('open'); });
+  document.getElementById('timingCancel').addEventListener('click', () => timingModal.classList.remove('open'));
+  timingModal.addEventListener('click', (e) => { if (e.target === timingModal) timingModal.classList.remove('open'); });
+  timingModal.addEventListener('input', (e) => { if (e.target.classList.contains('timing-in')) paintWindows(); });
+  document.getElementById('timingReset').addEventListener('click', () => renderTiming(['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00']));
+  document.getElementById('timingSave').addEventListener('click', async () => {
+    const btn = document.getElementById('timingSave'); btn.disabled = true;
+    try {
+      const d = await api.post('day_timing.save', { start: timingVals() });
+      DAY_START = timingVals();
+      timingModal.classList.remove('open');
+      showAlert(d.message || 'Day timing saved.');
+      paintDayHints();
+      loadDaily();
+    } catch (err) {
+      document.getElementById('timingAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally { btn.disabled = false; }
+  });
+  // Header hint follows the setting.
+  function paintDayHints() {
+    const dp = document.getElementById('dayPick'); if (dp) dp.title = 'Daily view (' + dayWindowText() + ')';
+    const h = document.getElementById('dailyHint'); if (h) h.innerHTML = h.innerHTML.replace(/Day runs [^.]*\./, 'Day runs ' + dayWindowText() + '.');
+  }
+  timingReady.then(paintDayHints);
 
   async function init(restoreScroll) {
     currentMonth = document.getElementById('monthPick').value;

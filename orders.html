@@ -51,7 +51,7 @@
 
       <div class="card">
         <div class="card-head" style="flex-wrap:wrap;">
-          <h2>Filters <span style="font-size:11.5px; color:var(--muted); font-weight:400;">(day = 10 AM to next day 10 AM)</span></h2>
+          <h2>Filters <span id="dayNote" style="font-size:11.5px; color:var(--muted); font-weight:400;">(day = 10 AM to next day 10 AM)</span></h2>
           <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
             <div>
               <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">From</label>
@@ -211,12 +211,27 @@
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
   }
 
-  function todayStr() {
-    // Business day starts at 10AM — before that, "today" is yesterday's date.
-    const d = new Date();
-    if (d.getHours() < 10) d.setDate(d.getDate() - 1);
+
+  // ---------- Business-day timing (Admin: Targets → Day timing) ----------
+  // Start time per weekday [Sun..Sat], default 10:00. A business day runs
+  // from its start until the next day's start. Loaded once per page.
+  let DAY_START = ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+  const timingReady = api.get('day_timing.get').then(d => { if (Array.isArray(d.start) && d.start.length === 7) DAY_START = d.start; }).catch(() => {});
+  function bizDayOf(dt) {           // Date -> 'YYYY-MM-DD'
+    const d = new Date(dt);
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
+  const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
+  function dayWindowText() {
+    const all = new Set(DAY_START);
+    if (all.size === 1) { const t = fmtHM(DAY_START[0]); return `${t} to next day ${t}`; }
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return 'each day from ' + DAY_START.map((t, i) => `${names[i]} ${fmtHM(t)}`).join(', ');
+  }
+  function todayStr() { return bizDayOf(new Date()); }
+  timingReady.then(() => { const el = document.getElementById('dayNote'); if (el) el.textContent = '(day = ' + dayWindowText() + ')'; });
 
   function fmtMoney(v, cur) {
     const n = Number(v || 0);
@@ -371,12 +386,10 @@
   }
 
   function dayKey(o) {
-    // Custom-store (MySales) orders carry their panel-recorded day directly.
+    // The server stamps every order with its business day (Day timing
+    // setting); the local rule below is the same, for anything without it.
     if (o.biz_date) return o.biz_date;
-    // Business day runs 10AM->10AM: shift back 10h so a 2AM order groups
-    // under the previous day's header.
-    const d = new Date(new Date(o.created_at).getTime() - 10 * 3600 * 1000);
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return bizDayOf(new Date(o.created_at));
   }
 
   function renderPage() {
