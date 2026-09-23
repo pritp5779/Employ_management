@@ -101,10 +101,8 @@
   const MATCH_THRESHOLD = 0.45;  // euclidean distance — lower is stricter
   const MATCHES_NEEDED = 3;      // consecutive matching frames; one mismatch resets the count
   const MIN_FACE_FRAC = 0.22;    // face must span at least this share of the frame width
-  // iOS Safari runs the models on the GPU with 16-bit numbers, which blurs
-  // face fingerprints so different people can pass as the same person.
-  // On iOS the models run on the CPU instead: slower, but exact.
-  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const OTHER_MARGIN = 0.08;     // live face must be this much closer to YOU than to anyone else
+  let slowDevice = false;        // set when the models had to fall back to the CPU
 
   const alertBox = document.getElementById('alertBox');
   const video = document.getElementById('cam');
@@ -117,6 +115,7 @@
   const btnOut = document.getElementById('btnPunchOut');
 
   let enrolledDescriptor = null; // Float32Array
+  let otherDescriptors = [];     // a few other employees' fingerprints, for the look-alike check
   let enrollMode = false;
   let faceLoaded = false;        // face.get answered (decides Enroll vs Punch)
   let busy = false;
@@ -159,11 +158,20 @@
   // Loading starts as the page opens so the camera is ready quickly when a
   // button is tapped; a punch simply waits for it if it isn't done yet.
   let modelsPromise = null;
+  let modelsLoaded = false;
   function loadModels() {
     if (!modelsPromise) {
       modelsPromise = (async () => {
-        if (IS_IOS && faceapi.tf && faceapi.tf.setBackend) {
-          try { await faceapi.tf.setBackend('cpu'); await faceapi.tf.ready(); } catch (e) { /* keep default */ }
+        // Face fingerprints need 32-bit maths. Ask the graphics chip for it
+        // (fast); only if this device can't provide it, fall back to the
+        // processor (exact but slow) — never the other way round.
+        const tf = faceapi.tf;
+        if (tf && tf.env) {
+          try { tf.env().set('WEBGL_FORCE_F16_TEXTURES', false); } catch (e) {}
+          try { await tf.ready(); } catch (e) {}
+          let exact = true;
+          try { exact = tf.getBackend() !== 'webgl' || tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED'); } catch (e) {}
+          if (!exact) { try { await tf.setBackend('cpu'); await tf.ready(); slowDevice = true; } catch (e) {} }
         }
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
@@ -179,6 +187,7 @@
   async function loadFace() {
     try {
       const faceData = await api.get('face.get');
+      otherDescriptors = (faceData.others || []).map(d => { try { return new Float32Array(JSON.parse(d)); } catch (e) { return null; } }).filter(Boolean);
       if (faceData.descriptor) {
         enrolledDescriptor = new Float32Array(JSON.parse(faceData.descriptor));
         enrollMode = false;
@@ -206,6 +215,7 @@
     oval.classList.remove('ok');
     overlay.hidden = false;
     overlay.textContent = 'Starting camera…';
+    setMsg('');
     try {
       // Ask for the front camera strictly first — a loose request lets iOS
       // pick or switch cameras. Fall back to the loose form on devices
@@ -227,6 +237,16 @@
     video.srcObject = stream;
     await new Promise(r => (video.readyState >= 1 ? r() : (video.onloadedmetadata = r)));
     await video.play().catch(() => {});
+    // "Ready" arrives before the first real picture on both Android and
+    // iOS. A face check on that empty frame finds nothing — which is what
+    // closed the camera straight away on enrolment. Wait for frames first.
+    const t0 = Date.now();
+    while (!cancelled && Date.now() - t0 < 8000 && !(video.readyState >= 2 && video.videoWidth > 0)) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (cancelled) { closeCamera(); return; }
+    if (!(video.videoWidth > 0)) throw new Error('The camera started but sent no picture — close other apps using it and tap again.');
+    await new Promise(r => setTimeout(r, 350));    // let exposure settle
     overlay.hidden = true;
   }
 
@@ -252,18 +272,38 @@
   }
 
   async function enrollFlow() {
-    setMsg('Hold still, capturing your face...', 'var(--accent)');
+    setMsg('Look at the camera and hold still...', 'var(--accent)');
+    // Keep looking until three good captures are in, rather than failing
+    // on the first frame without a face (people need a moment to line up).
     const samples = [];
-    for (let i = 0; i < 3; i++) {
-      if (cancelled) return;
+    const t0 = Date.now();
+    const limit = slowDevice ? 30000 : 20000;
+    let lastHint = '';
+    while (samples.length < 3 && !cancelled && Date.now() - t0 < limit) {
       const det = await detectOnce();
-      if (!det) { setMsg('No face detected — face the camera in good light and try again.', 'var(--bad-fg)'); return; }
-      if (det.detection.box.width < MIN_FACE_FRAC * video.videoWidth) { setMsg('Come closer — your face must fill the oval.', 'var(--bad-fg)'); return; }
+      if (cancelled) return;
+      let hint = '';
+      if (!det) hint = 'No face found yet — face the camera in good light.';
+      else if (det.detection.box.width < MIN_FACE_FRAC * video.videoWidth) hint = 'Come closer — your face must fill the oval.';
+      if (hint) {
+        oval.classList.remove('ok');
+        if (hint !== lastHint) { setMsg(hint, 'var(--accent)'); lastHint = hint; }
+        await new Promise(r => setTimeout(r, 150));
+        continue;
+      }
       oval.classList.add('ok');
       samples.push(det.descriptor);
+      setMsg(`Hold still... capture ${samples.length} of 3`, 'var(--accent)');
+      lastHint = '';
       await new Promise(r => setTimeout(r, 400));
     }
     if (cancelled) return;
+    if (samples.length < 3) {
+      setMsg(lastHint === 'Come closer — your face must fill the oval.'
+        ? 'Face too far from the camera — hold the phone closer and tap Enroll again.'
+        : 'No face found — face the camera in good light and tap Enroll again.', 'var(--bad-fg)');
+      return;
+    }
     // The three captures must agree with each other; if they don't, the
     // fingerprint is unreliable (moving, poor light, GPU precision).
     for (let i = 1; i < samples.length; i++) {
@@ -274,6 +314,15 @@
     }
     const avg = new Array(128).fill(0);
     samples.forEach(s => s.forEach((v, i) => (avg[i] += v / samples.length)));
+    // A fingerprint that already matches another employee would let two
+    // people punch for each other; ask for a better capture instead.
+    const avgF = new Float32Array(avg);
+    for (const o of otherDescriptors) {
+      if (faceapi.euclideanDistance(avgF, o) < MATCH_THRESHOLD) {
+        setMsg('This capture resembles another employee too closely — move to better light, face the camera straight on, and tap Enroll again.', 'var(--bad-fg)');
+        return;
+      }
+    }
 
     await api.post('face.enroll', { descriptor: avg });
     showAlert('Face enrolled. You can punch in now.');
@@ -301,11 +350,12 @@
     let live = false;
     let noseBase = null;
     const t0 = Date.now();
-    const limit = IS_IOS ? 25000 : 15000;   // CPU checking is slower
+    const limit = slowDevice ? 30000 : 18000;
+    let lookalike = false;
 
     while (Date.now() - t0 < limit && !cancelled) {
       frame++;
-      const needDescriptor = matches < MATCHES_NEEDED && (IS_IOS || frame % 2 === 1);
+      const needDescriptor = matches < MATCHES_NEEDED && (slowDevice || frame % 2 === 1);
       let det;
       if (needDescriptor) {
         det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 256 }))
@@ -328,7 +378,14 @@
             tooFar = false;
             const dist = faceapi.euclideanDistance(det.descriptor, enrolledDescriptor);
             bestDist = Math.min(bestDist, dist);
-            matches = dist < MATCH_THRESHOLD ? matches + 1 : 0;
+            // Look-alike guard: the face must be clearly closer to YOU than
+            // to any other employee. Works whatever the phone's maths does —
+            // a stranger who scores near you scores near the others too.
+            let nearestOther = Infinity;
+            for (const o of otherDescriptors) nearestOther = Math.min(nearestOther, faceapi.euclideanDistance(det.descriptor, o));
+            const distinct = nearestOther - dist >= OTHER_MARGIN;
+            if (dist < MATCH_THRESHOLD && !distinct) lookalike = true;
+            matches = (dist < MATCH_THRESHOLD && distinct) ? matches + 1 : 0;
           }
         }
         oval.classList.toggle('ok', matches >= MATCHES_NEEDED);
@@ -351,13 +408,14 @@
         if (matches >= MATCHES_NEEDED && !live) setMsg('Face matched ✓ Blink once or turn your head slightly...', 'var(--accent)');
         if (matches >= MATCHES_NEEDED && live) break;
       }
-      await new Promise(r => setTimeout(r, IS_IOS ? 20 : 60));
+      await new Promise(r => setTimeout(r, slowDevice ? 20 : 60));
     }
     if (cancelled) return;
 
     if (matches < MATCHES_NEEDED) {
       const score = bestDist < Infinity ? ` (closest score ${bestDist.toFixed(2)}, needs under ${MATCH_THRESHOLD})` : '';
-      setMsg((tooFar ? 'Face too far from the camera' : 'Face not recognized') + ' — tap again in better light, closer to the camera.' + score, 'var(--bad-fg)');
+      if (lookalike) setMsg('Face not recognized — this face also resembles another employee, so it was refused. Re-enrol in good light if this is really you.', 'var(--bad-fg)');
+      else setMsg((tooFar ? 'Face too far from the camera' : 'Face not recognized') + ' — tap again in better light, closer to the camera.' + score, 'var(--bad-fg)');
       return;
     }
     if (!live) {
@@ -397,10 +455,17 @@
     cancelled = false;
     [btnIn, btnOut].forEach(b => (b.disabled = true));
     try {
-      setMsg('Getting the face check ready…', 'var(--accent)');
-      await loadModels();
+      // Open the camera at once (while the tap is fresh — iOS wants the
+      // video started close to the tap) and load the face models at the
+      // same time, instead of making the camera wait for a 6 MB download.
+      const camReady = openCamera();
+      const modelsReady = loadModels();
+      camReady.catch(() => {});                     // reported below, not as unhandled
+      if (!modelsLoaded) setMsg('Loading the face check… first time can take a few seconds', 'var(--accent)');
+      await modelsReady;
+      modelsLoaded = true;
       if (cancelled) return;
-      await openCamera();
+      await camReady;
       if (cancelled) return;
       if (enrollMode) await enrollFlow();
       else await verifyAndPunch(type);
@@ -435,8 +500,8 @@
 
   loadToday();
   loadFace();
-  loadModels().catch(() => { /* retried on tap, with a clear message */ });
+  loadModels().then(() => { modelsLoaded = true; }).catch(() => { /* retried on tap, with a clear message */ });
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html>
+</html> 

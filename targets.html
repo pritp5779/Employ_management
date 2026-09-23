@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Targets — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
   .tgt-chip{cursor:pointer; border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:4px 9px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px;}
   .tgt-chip.empty{color:var(--accent); font-weight:600;}
@@ -59,6 +59,7 @@
           <option value="">All groups</option>
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
+          <option value="tm4u">TM4U</option>
         </select>
         <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -71,7 +72,7 @@
       <div id="alertBox"></div>
 
       <div class="card" id="targetsCard">
-        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their orders from every house add up together. Day runs 10 AM to next day 10 AM. Only TM Perfume House and TM Fragrance store orders count. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
+        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their TM Perfume House and TM Fragrance orders add up together. Orders tagged <b>tm4u</b> count under a separate TM4U row and target. Day runs 10 AM to next day 10 AM. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
         <table>
           <thead>
             <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th title="Estimated from this day's orders against this day's target — not the month-end payable amount">Est. commission<div style="font-size:9.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">today only</div></th></tr>
@@ -113,7 +114,7 @@
 </div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('targets');
@@ -406,6 +407,9 @@
   // Matches the same mapping used server-side in targets.sync_orders /
   // performance.daily, so today's live numbers land under the right house.
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  // An order tagged "tm4u" (any case, whole tag) counts under TM4U — its own
+  // row and target — never under the store's house. Same rule as the server.
+  const isTm4u = (tags) => String(tags || '').split(',').some(t => t.trim().toLowerCase() === 'tm4u');
 
   let dailyReqId = 0;
   async function loadDaily() {
@@ -460,9 +464,9 @@
         // count toward Achieved or the averages behind automatic targets.
         if (!STORE_TO_GROUP[o.store_key]) return;
         if (!o.salesman) return;
-        // One key per person: their orders from every house add up together
-        // toward their single daily target. ('|' + '' matches row keys.)
-        const nk = o.salesman + '|';
+        // One key per person for the combined TM Perfume House + TM Fragrance
+        // row ('|' + ''); orders tagged tm4u go to the person's TM4U row.
+        const nk = o.salesman + '|' + (isTm4u(o.tags) ? 'tm4u' : '');
         const amt = Number(o.total || 0);
         const od = histDays.length ? orderDay(o) : day;
         if (od !== day) {                 // an earlier day: only feeds the average
