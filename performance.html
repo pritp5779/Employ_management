@@ -84,10 +84,10 @@
         <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Query</th><th>Orders</th><th>Ratio</th><th style="width:150px;">Add-on</th><th>Ticket size convincing</th><th>Call rating</th><th>Customer behaviour</th><th style="width:110px;">Rated</th><th style="width:150px;">Overall rating</th></tr>
+            <tr><th>Employee</th><th>Query</th><th>Orders</th><th>Ratio</th><th style="width:150px;">Add-on</th><th>Ticket size convincing</th><th style="width:150px;">Call rating</th><th style="width:150px;">Customer behaviour</th><th style="width:110px;">Rated</th></tr>
           </thead>
           <tbody id="dailyBody">
-            <tr><td colspan="10" class="loading">Loading...</td></tr>
+            <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="perfDailyCards" style="display:none; padding:10px;"></div>
@@ -101,10 +101,10 @@
         <div class="card-head"><h2>Monthly — Sales Employees</h2></div>
         <table>
           <thead>
-            <tr><th>Employee</th><th>Queries</th><th>Avg/day</th><th>Ticket size convincing</th><th>Call rating</th><th>Customer behaviour</th><th>Overall rating</th></tr>
+            <tr><th>Employee</th><th>Queries</th><th>Avg/day</th><th>Ticket size convincing</th><th>Call rating</th><th>Customer behaviour</th></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="7" class="loading">Loading...</td></tr>
+            <tr><td colspan="6" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="perfMonthCards" style="display:none; padding:10px;"></div>
@@ -254,7 +254,7 @@
   function ratingInput(empId, field, n, groupKey) {
     // Older decimal ratings (e.g. 5.6) show at the nearest half star.
     const v = n === null || n === undefined || n === '' ? 0 : Math.max(0, Math.min(10, Math.round(Number(n))));
-    const label = field === 'convincing' ? 'Convincing' : (field === 'overall' ? 'Overall' : 'Customer');
+    const label = { convincing: 'Convincing', overall: 'Customer behaviour', call: 'Call rating' }[field] || 'Customer';
     return `<span class="rs" data-emp="${empId}" data-field="${field}" data-val="${v}" data-group="${groupKey ?? ''}" tabindex="0" role="slider"
               aria-label="${label} rating" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}"
               aria-valuetext="${v ? (v / 2) + ' stars, ' + RATE_WORDS[v] : 'Not rated'}" title="${RATE_WORDS[v]}">
@@ -272,9 +272,12 @@
   }
 
   function saveStars(rs, v, starIdx) {
-    v = Math.max(1, Math.min(10, v));                          // server accepts 1–10
+    v = Math.max(1, Math.min(10, v));                          // 1–10 = half stars
+    // Tapping the value that's already set clears the rating (a mis-tap fix).
+    // Any other tap just changes the value, so a stray tap can't clear it.
+    if (Number(rs.dataset.val) === v) { v = 0; rs.title = (rs.title || '').replace(/ — .*$/, '') + ' — cleared'; setTimeout(() => { rs.title = (rs.title || '').replace(/ — cleared$/, ''); }, 1500); }
     rs.dataset.val = v;
-    paintStars(rs, v, false);                                  // show it instantly
+    paintStars(rs, v, false);                                  // show it instantly (0 = empty)
     const st = rs.querySelectorAll('.rs-star')[starIdx];
     if (st) { st.classList.remove('rs-pop'); void st.offsetWidth; st.classList.add('rs-pop'); }
     if (rs.dataset.okey) rateOrder(rs.dataset.okey, rs.dataset.field, v);   // per-order rating
@@ -298,11 +301,6 @@
     const r = Math.max(0, Math.min(10, Math.round(v)));
     return `<span class="rs rs-ro" title="${title || ''}"><span class="rs-stars">${starCells(r)}</span><span class="rs-num">${(v / 2).toFixed(1)}</span></span>`;
   }
-  function behaviourChips(o) {
-    return `<span class="beh-chips">${[['Good', 5, 'g'], ['Average', 3, 'a'], ['Bad', 1, 'b']].map(([l, val, c]) =>
-      `<span class="beh-chip ${c} ${o.behaviour === val ? 'on' : ''}" role="button" tabindex="0"
-         onclick="rateOrder('${o.order_key}', 'behaviour', ${val})">${l}</span>`).join('')}</span>`;
-  }
   const behWord = (v) => v == null ? null : (v >= 4 ? 'Good' : (v >= 2 ? 'Average' : 'Bad'));
 
   // Averages for one employee row from its rated orders; falls back to the
@@ -310,7 +308,7 @@
   function rowRatings(r) {
     const list = r.order_list || [];
     const avg = (f) => { const x = list.filter(o => o[f] != null); return x.length ? x.reduce((a, o) => a + o[f], 0) / x.length : null; };
-    const rated = list.filter(o => o.ticket != null && o.call != null && o.behaviour != null).length;
+    const rated = list.filter(o => o.ticket != null).length;   // per order only Ticket size is rated now
     const t = avg('ticket'), c = avg('call'), b = avg('behaviour');
     const anyOrderRating = list.some(o => o.ticket != null || o.call != null || o.behaviour != null);
     return {
@@ -344,8 +342,6 @@
         <span class="ord-id"><b>${o.order_name}</b> ₹${Number(o.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           <span class="ord-meta">${o.customer} · ${t}</span></span>
         <span class="ord-f"><span class="ord-lbl">Ticket size convincing</span>${orderStars(o, 'ticket')}</span>
-        <span class="ord-f"><span class="ord-lbl">Call rating</span>${orderStars(o, 'call')}</span>
-        <span class="ord-f"><span class="ord-lbl">Customer behaviour</span>${behaviourChips(o)}</span>
       </div>`;
     }).join('');
   }
@@ -359,7 +355,7 @@
     const hit = orderIndex[orderKey];
     if (!hit) return;
     const prev = hit.order[field];
-    hit.order[field] = value;              // show it straight away
+    hit.order[field] = value === 0 ? null : value;   // show it straight away (0 = cleared)
     renderDaily();
     try {
       await api.post('order_ratings.save', {
@@ -425,7 +421,7 @@
       if (![1, 3, 5].includes(value)) { renderDaily(); return; }
     } else {
       value = Math.round(value * 10) / 10;
-      if (!isFinite(value) || value < 1 || value > 10) {
+      if (!isFinite(value) || (value !== 0 && (value < 1 || value > 10))) {   // 0 = clear
         showAlert('Enter a number from 1 to 10 (one decimal allowed, e.g. 5.6).', 'error');
         renderDaily(); // reset the box back to its last known value
         return;
@@ -435,11 +431,13 @@
       await api.post('performance.rate_daily', { date: currentDay, employee_id: empId, field, value, group_key: groupKey ?? '' });
       // The Overall rating is per employee PER HOUSE — only that row changes.
       // The older daily ratings are per person, so every house-row updates.
-      dailyRows.filter(r => r.employee_id === empId && (field !== 'overall' || r.group_key === (groupKey ?? ''))).forEach(row => {
-        if (field === 'convincing') row.convincing = value;
-        else if (field === 'customer') row.customer_rating = value;
-        else if (field === 'overall') row.overall_rating = value;
-        else row.behavior_rating = value;
+      dailyRows.filter(r => r.employee_id === empId && ((field !== 'overall' && field !== 'call') || r.group_key === (groupKey ?? ''))).forEach(row => {
+        const stored = value === 0 ? null : value;
+        if (field === 'convincing') row.convincing = stored;
+        else if (field === 'customer') row.customer_rating = stored;
+        else if (field === 'overall') row.overall_rating = stored;
+        else if (field === 'call') row.call_day_rating = stored;
+        else row.behavior_rating = stored;
       });
       renderDaily();
     } catch (err) {
@@ -595,7 +593,7 @@
     document.getElementById('dailyTitle').textContent = 'Daily — ' +
       new Date(currentDay + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     const tbody = document.getElementById('dailyBody');
-    tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading day data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading day data...</td></tr>';
     try {
       const data = await api.get('performance.daily', { date: currentDay, store_group: groupFilter() });
       dailyRows = data.rows || [];
@@ -603,7 +601,7 @@
       await loadAddons();   // must land before the first render or the column reads empty
       renderDaily();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="10"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -639,7 +637,7 @@
     const shown = matched.slice(0, perfPaging.daily.limit);
     updatePerfLoadMore('daily');
     if (!shown.length) {
-      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('perfDailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
@@ -655,12 +653,12 @@
         <td>${ratioBadge}</td>
         <td>${addonCell(r)}</td>
         ${(() => { const rr = rowRatings(r); const lg = rr.legacy ? 'Daily rating (given before per-order ratings)' : 'Average of rated orders';
-          return `<td>${miniStars(rr.ticket, lg)}</td><td>${miniStars(rr.call, lg)}</td>
-            <td><div style="font-size:12.5px; font-weight:600; color:${rr.behaviour === 'Good' ? '#0f7a41' : (rr.behaviour === 'Bad' ? '#c81e1e' : (rr.behaviour ? '#b45f06' : 'var(--muted)'))};">${rr.behaviour || '—'}</div></td>
-            <td>${ratedToggle(r, rr)}</td>
-            <td>${overallCell(r)}</td>`; })()}
+          return `<td>${miniStars(rr.ticket, lg)}</td>
+            <td>${ratingInput(r.employee_id, 'call', r.call_day_rating, r.group_key)}</td>
+            <td>${overallCell(r)}</td>
+            <td>${ratedToggle(r, rr)}</td>`; })()}
       </tr>${openRows.has(r.employee_id + '|' + r.group_key) && (r.order_list || []).length
-        ? `<tr class="ord-row"><td colspan="10"><div class="ord-list">${orderRowsHtml(r)}</div></td></tr>` : ''}`;
+        ? `<tr class="ord-row"><td colspan="9"><div class="ord-list">${orderRowsHtml(r)}</div></td></tr>` : ''}`;
     }).join('');
 
     // Mobile: one card per employee/house, with the ratings as the same
@@ -685,10 +683,9 @@
         ${(() => { const rr = rowRatings(r); const k = r.employee_id + '|' + r.group_key;
           return `<div class="card-ratings">
             <div><span class="ord-lbl">Ticket size convincing</span>${miniStars(rr.ticket)}</div>
-            <div><span class="ord-lbl">Call rating</span>${miniStars(rr.call)}</div>
-            <div><span class="ord-lbl">Customer behaviour</span><b style="font-size:12.5px;">${rr.behaviour || '—'}</b></div>
             <div>${ratedToggle(r, rr)}</div>
-            <div style="grid-column:1 / -1;"><span class="ord-lbl">Overall rating</span>${overallCell(r)}</div>
+            <div style="grid-column:1 / -1;"><span class="ord-lbl">Call rating</span>${ratingInput(r.employee_id, 'call', r.call_day_rating, r.group_key)}</div>
+            <div style="grid-column:1 / -1;"><span class="ord-lbl">Customer behaviour</span>${overallCell(r)}</div>
           </div>${openRows.has(k) && rr.total ? `<div class="ord-list">${orderRowsHtml(r)}</div>` : ''}`; })()}
       </div>`;
     }).join('');
@@ -705,7 +702,7 @@
       monthRows = data.rows || [];
       renderMonthly();
     } catch (err) {
-      document.getElementById('tableBody').innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="6"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -716,7 +713,7 @@
     const shown = matched.slice(0, perfPaging.month.limit);
     updatePerfLoadMore('month');
     if (shown.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No matching employees.</td></tr>';
       document.getElementById('perfMonthCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
       return;
     }
@@ -728,14 +725,8 @@
           <td>${r.queries}<div style="font-size:11.5px; color:var(--muted);">${r.query_days} day${r.query_days === 1 ? '' : 's'} entered</div></td>
           <td>${r.avg_per_day}</td>
           <td>${numAvg(r.convincing)}</td>
-          <td>${numAvg(r.customer_rating)}</td>
-          <td>${(() => {
-            const v = r.behavior_rating;
-            if (v === null || v === undefined) return '<span style="color:var(--muted); font-size:12px;">—</span>';
-            const [label, fg, bg] = v >= 4 ? ['Good', '#0f7a41', '#e7f7ee'] : (v >= 2 ? ['Average', '#b45f06', '#fdf3e3'] : ['Bad', '#c81e1e', '#fdecec']);
-            return `<span class="badge" style="background:${bg}; color:${fg};">${label}</span>`;
-          })()}</td>
-          <td>${miniStars(r.overall_rating, 'Average of the daily Overall ratings this month')}</td>
+          <td>${miniStars(r.call_day_rating, 'Average of the daily Call ratings this month')}</td>
+          <td>${miniStars(r.overall_rating, 'Average of the daily Customer behaviour ratings this month')}</td>
         </tr>`;
       }).join('');
 
@@ -749,7 +740,7 @@
       return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
           <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13px; font-weight:600;">${r.full_name}</a>
-          ${miniStars(r.overall_rating)}
+          <span title="Customer behaviour">${miniStars(r.overall_rating)}</span>
         </div>
         <div style="font-size:11px; color:var(--muted); margin-top:1px;">${r.employee_code}${r.sales_tag ? ' · tag ' + r.sales_tag : ''} · ${houseBadge(r)}</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">

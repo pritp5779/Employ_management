@@ -27,6 +27,10 @@
   .ag-summary{font-size:12.5px; color:var(--muted); margin-top:2px;}
   .ag-summary b{color:#b45f06;}
   .ag-summary.done b{color:#0f7a41;}
+  .mail-line{font-size:11px; margin-top:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .mail-line.ok{color:#0f7a41;} .mail-line.bad{color:#c81e1e;} .mail-line.muted{color:var(--muted);}
+  .mail-resend{background:none; border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:10.5px; color:var(--accent); cursor:pointer; min-height:0;}
+  .mail-resend:disabled{opacity:.6;}
   .ns-tools{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   .ns-tools select{padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; max-width:220px;}
   .ns-code{font-size:11.5px; color:var(--muted);}
@@ -74,9 +78,15 @@
         </div>
       </div>
 
+      <div id="mailNotice" class="alert error" style="display:none;">Agreement emails are not set up: add the MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS, MAIL_FROM_NAME and APP_URL lines to <b>config.php in the same folder as api.php</b>, then click Test email.</div>
       <div class="card">
-        <div class="card-head"><h2 id="sentTitle">Sent Agreements</h2>
-          <button class="btn secondary" id="btnRetrySign" type="button" style="width:auto;" title="Try auto-signing every pending agreement again — use after fixing or re-uploading signatures">Retry auto-sign</button></div>
+        <div class="card-head"><div><h2 id="sentTitle">Sent Agreements</h2><div id="pdfWork" style="font-size:11.5px; color:var(--accent); margin-top:3px;"></div><div id="mailOutbox" style="font-size:11.5px; color:var(--muted); margin-top:2px;"></div></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <div class="search-box"><input type="text" id="agSearch" placeholder="Search employee name or code..." autocomplete="off"></div>
+            <button class="btn" id="btnPreparePdfs" type="button" style="width:auto; display:none;" title="Create the missing signed PDFs in the background and email them">Prepare PDFs &amp; email</button>
+            <button class="btn secondary" id="btnTestMail" type="button" style="width:auto;" title="Send a test email to check the mail settings">Test email</button>
+            <button class="btn secondary" id="btnRetrySign" type="button" style="width:auto;" title="Try auto-signing every pending agreement again — use after fixing or re-uploading signatures">Retry auto-sign</button>
+          </div></div>
         <table>
           <thead>
             <tr><th>Employee</th><th>Agreement</th><th>Status</th><th>Signed on</th><th>Document</th><th style="width:130px;">Actions</th></tr>
@@ -277,6 +287,21 @@
     renderEmpPick();
   };
 
+  document.getElementById('btnTestMail').addEventListener('click', async () => {
+    const to = prompt('Send a test email to which address?', (api.currentUser() || {}).email || '');
+    if (!to) return;
+    const b = document.getElementById('btnTestMail');
+    b.disabled = true; b.textContent = 'Sending…';
+    try {
+      const d = await api.post('mail.test', { to });
+      showAlert(d.message);
+    } catch (err) {
+      showAlert('Test email failed: ' + err.message, 'error');
+    } finally {
+      b.disabled = false; b.textContent = 'Test email';
+    }
+  });
+
   document.getElementById('btnRetrySign').addEventListener('click', async () => {
     const b = document.getElementById('btnRetrySign');
     b.disabled = true; b.textContent = 'Retrying…';
@@ -284,6 +309,7 @@
       const d = await api.post('agreements.retry_autosign', {});
       showAlert(d.message, d.signed ? 'success' : 'error');
       loadAgreements();
+      pumpMail(true);
     } catch (err) {
       showAlert(err.message, 'error');
     } finally {
@@ -300,7 +326,8 @@
       const d = await api.post('agreements.send', { template_id: sendTemplateId, employee_ids: ids });
       sendModal.classList.remove('open');
       showAlert(d.message);
-      loadAgreements();
+      await loadAgreements();     // the reload queues the new agreements' PDFs
+      pumpMail(true);
     } catch (err) {
       showAlert(err.message, 'error');
     } finally {
@@ -316,6 +343,98 @@
   let agLimit = AG_PAGE_SIZE;
   let agRows = [];
 
+  // Email line under the status: sent / failed (with Resend) / no email.
+  let mailConfigured = true;
+  function emailLine(a) {
+    if (!mailConfigured) return '<div class="mail-line bad" title="Add the MAIL_HOST / MAIL_PORT / MAIL_USER / MAIL_PASS / MAIL_FROM_NAME / APP_URL lines to config.php in the same folder as api.php">✉ email not set up (config.php)</div>';
+    const e = a.email;
+    const what = a.status === 'signed' ? 'signed copy' : 'sign request';
+    const resend = `<button type="button" class="mail-resend" onclick="resendEmail(${a.agreement_id}, this)">Resend</button>`;
+    if (!e) return `<div class="mail-line muted">✉ ${what} not emailed ${resend}</div>`;
+    if (e.sent_at) return `<div class="mail-line ok" title="${e.to}">✉ ${what} emailed ${new Date(e.sent_at.replace(' ', 'T')).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} ${resend}</div>`;
+    if (e.error && /Waiting for the PDF/.test(e.error)) return `<div class="mail-line muted">✉ PDF being created — emails automatically</div>`;
+    if (e.error === 'Queued') return `<div class="mail-line muted">✉ ${what} sending…</div>`;
+    return `<div class="mail-line bad" title="${(e.error || '').replace(/"/g, '&quot;')}">✉ ${e.error && /No email/.test(e.error) ? 'no email on profile' : 'email failed'} ${resend}</div>`;
+  }
+  // ---------- Outbox pump ----------
+  // Emails are queued instantly by the server; this sends them in the
+  // background: right after an action, and every 30 s while the page is
+  // open. Refreshes the ✉ lines when something changed.
+  let pumpBusy = false;
+  async function pumpMail(refresh = true) {
+    if (pumpBusy) return;
+    pumpBusy = true;
+    try {
+      const d = await api.get('mail.process');
+      const el = document.getElementById('mailOutbox');
+      if (el) el.textContent = d.waiting ? `✉ ${d.waiting} email${d.waiting === 1 ? '' : 's'} waiting to send` : '';
+      if (refresh && (d.sent || d.failed)) loadAgreements();
+      if (d.waiting) setTimeout(() => pumpMail(true), 3000);   // keep going while there's work
+    } catch (e) { /* next tick */ }
+    finally { pumpBusy = false; }
+  }
+  setInterval(() => pumpMail(true), 30000);
+
+  window.resendEmail = async function (id, btn) {
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const d = await api.post('agreements.resend_email', { agreement_id: id });
+      showAlert(d.message || 'Email sent.');
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      loadAgreements();
+    }
+  };
+
+  // ---------- Background PDF creation ----------
+  // Signed agreements whose template is a PDF/HTML file get their PDF made
+  // in the browser. To email the PDF without anyone opening each agreement,
+  // this page opens them one by one in a hidden frame; each saves its PDF
+  // and the server then emails it. Runs after Send, Retry and on load.
+  let pdfQueue = [], pdfBusy = false, pdfFrame = null, pdfTimer = null;
+  function missingPdfRows() {
+    return agRows.filter(a => a.status === 'signed' && !a.signed_file && (a.template_kind === 'html' || a.template_kind === 'pdf'));
+  }
+  function queueMissingPdfs() {
+    const need = missingPdfRows();
+    const btn = document.getElementById('btnPreparePdfs');
+    btn.style.display = need.length ? '' : 'none';
+    btn.textContent = `Prepare PDFs & email (${need.length})`;
+    need.forEach(a => { if (!pdfQueue.includes(a.agreement_id)) pdfQueue.push(a.agreement_id); });
+    runPdfQueue();
+  }
+  document.getElementById('btnPreparePdfs').addEventListener('click', () => { pdfBusy = false; clearTimeout(pdfTimer); queueMissingPdfs(); });
+  function runPdfQueue() {
+    if (pdfBusy || !pdfQueue.length) return;
+    pdfBusy = true;
+    const id = pdfQueue.shift();
+    if (!pdfFrame) {
+      pdfFrame = document.createElement('iframe');
+      pdfFrame.style.cssText = 'position:fixed; width:2px; height:2px; left:-10px; top:-10px; opacity:0; pointer-events:none;';
+      pdfFrame.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(pdfFrame);
+    }
+    document.getElementById('pdfWork').textContent = `Creating PDF for ${(agRows.find(a => a.agreement_id === id) || {}).full_name || ''}… (${pdfQueue.length} more)`;
+    pdfFrame.src = 'agreement_view.html?id=' + id + '&bg=1';
+    clearTimeout(pdfTimer);
+    pdfTimer = setTimeout(() => { document.getElementById('pdfWork').textContent = 'PDF creation timed out for one agreement — open it with View once.'; finishPdf(id, false); }, 25000);
+  }
+  function finishPdf(id, ok) {
+    clearTimeout(pdfTimer);
+    pdfBusy = false;
+    if (!pdfQueue.length) {
+      document.getElementById('pdfWork').textContent = '';
+      if (pdfFrame) { pdfFrame.src = 'about:blank'; }
+      pumpMail(true);            // send anything now ready, then refresh the ✉ lines
+    } else {
+      runPdfQueue();
+    }
+  }
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.hrmsPdfReady) finishPdf(Number(e.data.hrmsPdfReady), !!e.data.saved);
+  });
+
   function agRowHtml(a) {
         const note = a.status === 'signed'
           ? (Number(a.auto_signed) ? '<div style="font-size:11px; color:#0f7a41;">auto-signed with digital signature</div>' : '')
@@ -330,7 +449,7 @@
           <td>${a.template_name}${note}</td>
           <td>${a.status === 'signed'
             ? '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Signed</span>'
-            : '<span class="badge" style="background:#fdf3e3; color:#b45f06;">Pending</span>'}</td>
+            : '<span class="badge" style="background:#fdf3e3; color:#b45f06;">Pending</span>'}${emailLine(a)}</td>
           <td>${a.signed_at ? new Date(a.signed_at.replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
             ${a.reference ? `<div style="font-size:11px; color:var(--muted);">${a.reference}</div>` : ''}</td>
           <td>${a.status === 'signed'
@@ -344,17 +463,27 @@
     const tbody = document.getElementById('agBody');
     const label = document.getElementById('agShownCount');
     const btn = document.getElementById('btnAgLoadMore');
-    if (!agRows.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nothing sent yet.</td></tr>';
+    // Search by employee name or code (also matches the agreement name).
+    const q = (document.getElementById('agSearch').value || '').trim().toLowerCase();
+    const rows = !q ? agRows : agRows.filter(a =>
+      (a.full_name || '').toLowerCase().includes(q) || (a.employee_code || '').toLowerCase().includes(q) ||
+      (a.template_name || '').toLowerCase().includes(q));
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${agRows.length ? 'No matching agreements.' : 'Nothing sent yet.'}</td></tr>`;
       label.textContent = '';
       btn.style.display = 'none';
       return;
     }
-    const showing = Math.min(agLimit, agRows.length);
-    tbody.innerHTML = agRows.slice(0, showing).map(agRowHtml).join('');
-    label.textContent = `Showing ${showing} of ${agRows.length}`;
-    btn.style.display = showing >= agRows.length ? 'none' : 'inline-block';
+    const showing = Math.min(agLimit, rows.length);
+    tbody.innerHTML = rows.slice(0, showing).map(agRowHtml).join('');
+    label.textContent = `Showing ${showing} of ${rows.length}`;
+    btn.style.display = showing >= rows.length ? 'none' : 'inline-block';
   }
+  let agSearchTimer = null;
+  document.getElementById('agSearch').addEventListener('input', () => {
+    clearTimeout(agSearchTimer);
+    agSearchTimer = setTimeout(() => { agLimit = AG_PAGE_SIZE; renderAgreements(); }, 120);
+  });
 
   document.getElementById('btnAgLoadMore').addEventListener('click', () => {
     agLimit += AG_PAGE_SIZE;
@@ -366,12 +495,15 @@
     try {
       const data = await api.get('agreements.list');
       agRows = data.agreements || [];
+      mailConfigured = data.mail_configured !== false;
+      document.getElementById('mailNotice').style.display = mailConfigured ? 'none' : '';
       agreementsLoaded = true;
       const pending = agRows.filter(a => a.status !== 'signed').length;
       document.getElementById('sentTitle').textContent =
         agRows.length ? `Sent Agreements — ${agRows.length - pending} signed / ${pending} pending` : 'Sent Agreements';
       renderAgreements();
       renderNotSent();
+      queueMissingPdfs();
     } catch (err) {
       agRows = [];
       document.getElementById('agShownCount').textContent = '';
@@ -472,6 +604,7 @@
     const d = await api.post('agreements.send', { template_id: tid, employee_ids: ids });
     showAlert(d.message || 'Sent.');
     await loadAgreements();   // moves them from this list into Sent Agreements
+    pumpMail(true);
   }
 
   window.sendOne = async function (employeeId, btn) {
@@ -555,6 +688,7 @@
 
   loadTemplates();
   loadAgreements();
+  pumpMail(false);
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

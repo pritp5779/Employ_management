@@ -73,7 +73,7 @@
       <div id="alertBox"></div>
 
       <div class="card" id="targetsCard">
-        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their TM Perfume House and TM Fragrance orders add up together. Orders tagged <b>tm4u</b> count under a separate TM4U row and target. Day runs 10 AM to next day 10 AM. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
+        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their TM Perfume House and TM Fragrance orders add up together. A house tag on an order (<b>tmph</b>, <b>tmf</b>, <b>tm4u</b>) beats the store it came from; <b>tm4u</b> orders count under a separate TM4U row and target. Day runs 10 AM to next day 10 AM. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
         <table>
           <thead>
             <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th title="Estimated from this day's orders against this day's target — not the month-end payable amount">Est. commission<div style="font-size:9.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">today only</div></th></tr>
@@ -439,9 +439,15 @@
   // Matches the same mapping used server-side in targets.sync_orders /
   // performance.daily, so today's live numbers land under the right house.
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
-  // An order tagged "tm4u" (any case, whole tag) counts under TM4U — its own
-  // row and target — never under the store's house. Same rule as the server.
-  const isTm4u = (tags) => String(tags || '').split(',').some(t => t.trim().toLowerCase() === 'tm4u');
+  // A house tag on the order beats the store it came from — same rule as
+  // the server. tmph / tmf keep the order in the person's combined row;
+  // tm4u sends it to their TM4U row. Two house tags = store's house.
+  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
+  function orderHouse(o) {
+    if (o.house) return o.house;                       // the server already decided
+    const ht = [...new Set(String(o.tags || '').split(',').map(t => HOUSE_TAGS[t.trim().toLowerCase()]).filter(Boolean))];
+    return ht.length === 1 ? ht[0] : (STORE_TO_GROUP[o.store_key] || '');
+  }
 
   let dailyReqId = 0;
   async function loadDaily() {
@@ -498,7 +504,7 @@
         if (!o.salesman) return;
         // One key per person for the combined TM Perfume House + TM Fragrance
         // row ('|' + ''); orders tagged tm4u go to the person's TM4U row.
-        const nk = o.salesman + '|' + (isTm4u(o.tags) ? 'tm4u' : '');
+        const nk = o.salesman + '|' + (orderHouse(o) === 'tm4u' ? 'tm4u' : '');
         const amt = Number(o.total || 0);
         const od = histDays.length ? orderDay(o) : day;
         if (od !== day) {                 // an earlier day: only feeds the average

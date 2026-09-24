@@ -13,24 +13,42 @@
 <title>Assign Queries — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
-  /* Employee label colour: a rainbow dot in the name cell opens a colour
-     wheel; the chosen colour tints the cell and the dot shows it exactly. */
-  .emp-cell{position:relative; padding-right:34px !important;}
-  .color-dot{position:absolute; right:10px; top:14px; width:18px; height:18px; border-radius:50%; cursor:pointer;
-    background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line);}
-  .color-dot.on{background:var(--c);}
-  .color-dot:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
-  .cw{position:absolute; z-index:120; background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px; display:none; flex-direction:column; align-items:center; gap:8px; box-shadow:0 10px 30px rgba(0,0,0,.18); width:200px;}
-  .cw.open{display:flex;}
-  .cw-wheel{position:relative; width:160px; height:160px; border-radius:50%; cursor:crosshair; touch-action:none;
-    background:radial-gradient(circle,#fff 0,rgba(255,255,255,0) 70%),conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
-  .cw-cur{position:absolute; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.4); transform:translate(-50%,-50%); pointer-events:none;}
-  .cw-prev{display:flex; align-items:center; gap:8px; width:100%; font-size:11px;}
-  .cw-prev i{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); flex:none;}
-  .cw-prev code{flex:1; font-size:11px; color:var(--muted);}
-  .cw-acts{display:flex; gap:6px; width:100%;}
-  .cw-acts .btn{flex:1; padding:6px; font-size:12px; min-height:0;}
-  @media (max-width:820px){ .color-dot{width:22px; height:22px; top:12px;} .cw{width:220px;} .cw-wheel{width:180px; height:180px;} }
+  /* Employee label colour: two fixed colours (blue / yellow) or none,
+     picked with one click in the name cell; the cell takes a soft tint. */
+  .emp-cell{position:relative; padding-right:66px !important;}
+  .color-pick{position:absolute; right:10px; top:14px; display:flex; gap:5px;}
+  .color-pick .sw{width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid transparent; box-shadow:0 0 0 1px var(--line);}
+  .color-pick .sw.blue{background:#2563eb;} .color-pick .sw.yellow{background:#facc15;}
+  .color-pick .sw.none{background:#fff; position:relative;}
+  .color-pick .sw.none::after{content:""; position:absolute; left:2px; right:2px; top:5px; height:2px; background:#9ca3af; transform:rotate(-45deg);}
+  .color-pick .sw.on{border-color:var(--ink); transform:scale(1.15);}
+  .color-pick .sw:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  @media (max-width:820px){ .color-pick .sw{width:20px; height:20px;} .emp-cell{padding-right:82px !important;} }
+</style>
+<style>
+  .th-sub{display:block; font-size:9.5px; font-weight:400; letter-spacing:0; text-transform:none; color:var(--muted); margin-top:2px;}
+  .type-cell{vertical-align:middle; padding:8px 12px !important;}
+  .type-grid{display:grid; grid-template-columns:auto auto; gap:3px 12px; align-items:center;}
+  .type-grid .lbl{font-size:10px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted);}
+  .ctl{display:inline-flex; align-items:center; gap:5px;}
+  .ctl .minus{width:28px; height:30px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:15px; cursor:pointer; min-height:0; padding:0;}
+  .ctl .plus{width:38px; height:30px; border-radius:6px; border:none; color:#fff; font-size:12.5px; font-weight:700; cursor:pointer; min-height:0; padding:0;}
+  .ctl .cnt-in{width:50px; height:30px; font-size:16px; font-weight:700; text-align:center; border:1px solid transparent; border-radius:6px; background:transparent; padding:0;}
+  .ctl .cnt-in:focus{border-color:var(--accent); background:#fff; outline:none;}
+  .ord b{font-size:14px;} .ord small{font-size:10.5px; color:var(--muted); margin-left:4px;}
+  .rt{font-weight:700; font-size:13px;} .rt.g{color:#0f7a41;} .rt.a{color:#b45f06;} .rt.r{color:#c81e1e;} .rt.z{color:var(--muted); font-weight:400;}
+  .tot-cell{vertical-align:middle; white-space:nowrap;} .tot-cell b{font-size:16px;} .tot-cell .lbl{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  .tot-sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  @media (max-width:820px){ .type-grid{grid-template-columns:1fr 1fr;} .ctl .cnt-in{font-size:16px;} }
+  .aq-wrap{display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;}
+  .hour-card{flex:0 0 250px; margin-bottom:20px;}
+  .hour-table th{text-align:center; padding:8px 8px;}
+  .hour-table th:first-child, .hour-table td:first-child{text-align:left; padding-left:12px; white-space:nowrap;}
+  .hour-table td{text-align:center; padding:7px 8px; font-size:13px;}
+  .hour-table td.q{color:#0C447C; font-weight:700;} .hour-table td.c{color:#854F0B; font-weight:700;} .hour-table td.t{font-weight:700;}
+  .hour-table tr.cur td{background:#EEF2FF;}
+  .hour-table tfoot td{border-top:2px solid var(--line); background:#FAFBFC; font-weight:700;}
+  @media (max-width:820px){ .hour-card{flex:1 1 100%;} .hour-table{min-width:0 !important; display:table !important;} }
 </style>
 </head>
 <body>
@@ -52,12 +70,13 @@
     <div class="content">
       <div id="alertBox"></div>
 
-      <div class="card" style="max-width:860px;">
+      <div class="aq-wrap">
+      <div class="card" style="max-width:860px; flex:1 1 560px; min-width:0;">
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
           <span style="font-size:12.5px; color:var(--muted);">
-            Scout <b id="sumScout" style="color:#0C447C;">0</b> ·
-            Champion <b id="sumChamp" style="color:#854F0B;">0</b> ·
+            Query <b id="sumScout" style="color:#0C447C;">0</b> ·
+            Campaign <b id="sumChamp" style="color:#854F0B;">0</b> ·
             Total <b id="totalCount" style="color:var(--ink);">0</b>
           </span>
         </div>
@@ -66,9 +85,9 @@
             <tr>
               <th>Employee</th>
               <th style="width:150px;">House</th>
-              <th style="text-align:center; color:#0C447C; background:#F0F7FD;">Scout</th>
-              <th style="text-align:center; color:#854F0B; background:#FDF7EC;">Champion</th>
-              <th style="text-align:center;">Total</th>
+              <th style="color:#0C447C; background:#F0F7FD;">Query <span class="th-sub">count · orders tagged query · ratio</span></th>
+              <th style="color:#854F0B; background:#FDF7EC;">Campaign <span class="th-sub">count · orders tagged campaign · ratio</span></th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody id="empList">
@@ -76,14 +95,21 @@
           </tbody>
         </table>
       </div>
+
+      <!-- By hour: the team's counts grouped by the hour each +1 / − was clicked -->
+      <div class="card hour-card" id="hourCard">
+        <div class="card-head"><h2>By hour</h2><span id="hourSub" style="font-size:12px; color:var(--muted);">today</span></div>
+        <table class="no-stack hour-table">
+          <thead><tr><th>Time</th><th>Query</th><th>Campaign</th><th>Total</th></tr></thead>
+          <tbody id="hourBody"><tr><td colspan="4" class="loading" style="padding:16px;">Loading...</td></tr></tbody>
+          <tfoot id="hourFoot"></tfoot>
+        </table>
+      </div>
+      </div>
     </div>
   </main>
 </div>
 
-<div class="cw" id="colorWheel" role="dialog" aria-label="Pick a colour">
-  <div class="cw-wheel" id="cwWheel"><span class="cw-cur" id="cwCur" style="display:none;"></span></div>
-  <div class="cw-prev"><i id="cwPrev"></i><code id="cwHex">—</code></div>
-  <div class="cw-acts"><button type="button" class="btn secondary" id="cwNone">None</button><button type="button" class="btn" id="cwUse">Use colour</button></div>
 </div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
@@ -91,57 +117,28 @@
 <script>
   guardPage();
 
-  // ---------- Employee label colour ----------
+  // ---------- Employee label colour (blue / yellow / none) ----------
+  const BLUE = '#2563eb', YELLOW = '#facc15';
   const tint = (c) => c ? `background:${c}2b;` : '';
-  const cw = document.getElementById('colorWheel'), cwWheel = document.getElementById('cwWheel'), cwCur = document.getElementById('cwCur');
-  let cwEmp = 0, cwGroup = '', cwPick = '';
-  function hsvToHex(h, s, v) { const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0); return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); }
-  function cwSet(hex, x, y) {
-    cwPick = hex || '';
-    document.getElementById('cwPrev').style.background = hex || 'transparent';
-    document.getElementById('cwHex').textContent = hex || '—';
-    if (x !== undefined) { cwCur.style.display = 'block'; cwCur.style.left = x + 'px'; cwCur.style.top = y + 'px'; cwCur.style.background = hex; }
-    else cwCur.style.display = 'none';
-  }
-  function cwFromEvent(ev) {
-    const r = cwWheel.getBoundingClientRect(); const cx = r.width / 2, cy = r.height / 2;
-    let x = ev.clientX - r.left, y = ev.clientY - r.top, dx = x - cx, dy = y - cy;
-    const dist = Math.hypot(dx, dy) || 1; const sat = Math.min(1, dist / cx);
-    if (dist > cx) { dx *= cx / dist; dy *= cx / dist; x = cx + dx; y = cy + dy; }
-    const hue = ((Math.atan2(dy, dx) * 180 / Math.PI) + 90 + 360) % 360;
-    cwSet(hsvToHex(hue, sat, 1), x, y);
-  }
-  let cwDrag = false;
-  cwWheel.addEventListener('pointerdown', (e) => { cwDrag = true; cwWheel.setPointerCapture(e.pointerId); cwFromEvent(e); });
-  cwWheel.addEventListener('pointermove', (e) => { if (cwDrag) cwFromEvent(e); });
-  cwWheel.addEventListener('pointerup', () => { cwDrag = false; });
-  function openWheel(dot) {
-    cwEmp = Number(dot.dataset.emp);
-    cwGroup = dot.dataset.group || '';
-    const r = dot.getBoundingClientRect();
-    cw.style.left = Math.max(8, Math.min(r.left + window.scrollX - 90, document.documentElement.clientWidth - 212)) + 'px';
-    cw.style.top = (r.bottom + window.scrollY + 8) + 'px';
-    cw.classList.add('open');
-    cwSet(dot.dataset.color || '');
-  }
-  async function saveColor(color) {
-    cw.classList.remove('open');
+  async function saveColor(empId, groupKey, color, pick) {
     try {
-      await api.post('employees.set_color', { employee_id: cwEmp, group_key: cwGroup, color });
-      const dot = document.querySelector(`.color-dot[data-emp="${cwEmp}"][data-group="${cwGroup}"]`);
-      if (dot) { dot.dataset.color = color; dot.style.setProperty('--c', color || 'transparent'); dot.classList.toggle('on', !!color); dot.closest('td').style.background = color ? color + '2b' : ''; }
-      const row = employees.find(e => Number(e.employee_id) === cwEmp);
-      const grp = row && row.groups.find(x => x.group_key === cwGroup); if (grp) grp.color = color;
+      await api.post('employees.set_color', { employee_id: empId, group_key: groupKey, color });
+      pick.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', (b.dataset.color || '') === color));
+      pick.closest('td').style.background = color ? color + '2b' : '';
+      const row = employees.find(e => Number(e.employee_id) === empId);
+      const grp = row && row.groups.find(x => x.group_key === groupKey); if (grp) grp.color = color;
+      render();       // moves the row into its colour group
     } catch (err) { showAlert(err.message, 'error'); }
   }
-  document.getElementById('cwUse').addEventListener('click', () => saveColor(cwPick));
-  document.getElementById('cwNone').addEventListener('click', () => saveColor(''));
   document.addEventListener('click', (e) => {
-    const dot = e.target.closest('.color-dot');
-    if (dot) { e.preventDefault(); openWheel(dot); return; }
-    if (!e.target.closest('.cw')) cw.classList.remove('open');
+    const sw = e.target.closest('.color-pick .sw'); if (!sw) return;
+    const pick = sw.closest('.color-pick');
+    saveColor(Number(pick.dataset.emp), pick.dataset.group || '', sw.dataset.color || '', pick);
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cw.classList.remove('open'); const dot = e.target.closest && e.target.closest('.color-dot'); if (dot && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openWheel(dot); } });
+  document.addEventListener('keydown', (e) => {
+    const sw = e.target.closest && e.target.closest('.color-pick .sw');
+    if (sw && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); sw.click(); }
+  });
   renderSidebar('assign_queries');
 
   const alertBox = document.getElementById('alertBox');
@@ -178,17 +175,45 @@
     document.getElementById('totalCount').textContent = total;
   }
 
-  function counterCell(empId, groupKey, group, kind, color, bg) {
-    return `
-      <td style="text-align:center; background:${bg}; vertical-align:middle;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <button onclick="bump(${empId}, '${groupKey}', '${kind}', -1, this)" title="Undo one"
-            style="width:30px; height:32px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:15px; cursor:pointer;">−</button>
-          <span id="cnt-${kind}-${empId}-${groupKey}" style="font-size:18px; font-weight:700; min-width:30px; text-align:center;">${group[kind + '_count']}</span>
-          <button onclick="bump(${empId}, '${groupKey}', '${kind}', 1, this)"
-            style="width:46px; height:34px; border-radius:6px; border:none; background:${color}; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">+1</button>
+  // One block per type: the count (typed or − / +1), the orders today that
+  // carry this type's tag, and orders ÷ count.
+  const TYPE = {
+    scout:    { label: 'query',    color: '#0EA5E9', bg: '#F7FBFE', ink: '#0C447C' },
+    champion: { label: 'campaign', color: '#F59E0B', bg: '#FEFBF5', ink: '#854F0B' },
+  };
+  const ratioHtml = (o, n) => {
+    if (n === undefined || o === undefined) return '<span class="rt z">—</span>';
+    if (!n) return '<span class="rt z">—</span>';
+    const p = Math.round(o / n * 100);
+    return `<span class="rt ${p >= 25 ? 'g' : (p >= 10 ? 'a' : 'r')}">${p}%</span>`;
+  };
+  function typeBlock(e, g, kind) {
+    const t = TYPE[kind], empId = e.employee_id, groupKey = g.group_key;
+    const n = g[kind + '_count'] || 0;
+    const oc = ordersFor(e.full_name); const o = oc ? oc[kind] : undefined;
+    return `<td class="type-cell" style="background:${t.bg};">
+      <div class="type-grid">
+        <span class="lbl">Count</span>
+        <span class="ctl">
+          <button type="button" onclick="bump(${empId}, '${groupKey}', '${kind}', -1, this)" title="Take one away" class="minus">−</button>
+          <input type="number" inputmode="numeric" min="0" max="9999" id="cnt-${kind}-${empId}-${groupKey}" value="${n}"
+            data-emp="${empId}" data-group="${groupKey}" data-kind="${kind}" class="cnt-in" title="Type a number, or use − / +1">
+          <button type="button" onclick="bump(${empId}, '${groupKey}', '${kind}', 1, this)" class="plus" style="background:${t.color};">+1</button>
         </span>
-      </td>`;
+        <span class="lbl">Orders</span>
+        <span class="ord" id="ord-${kind}-${empId}-${groupKey}">${o === undefined ? (ordersLoading ? '…' : '—') : `<b>${o}</b><small>tagged ${t.label}</small>`}</span>
+        <span class="lbl">Ratio</span>
+        <span id="ratio-${kind}-${empId}-${groupKey}">${ratioHtml(o, n)}</span>
+      </div>
+    </td>`;
+  }
+  function totalCell(e, g) {
+    const tq = (g.scout_count || 0) + (g.champion_count || 0);
+    const oc = ordersFor(e.full_name);
+    const to = oc ? oc.scout + oc.champion + oc.other : undefined;
+    return `<b id="cnt-total-${e.employee_id}-${g.group_key}">${tq}</b> <span class="lbl">queries</span>
+      <div class="tot-sub">${to === undefined ? '—' : `${to} order${to === 1 ? '' : 's'}${oc && oc.other ? ` · ${oc.other} other` : ''}`}</div>
+      <div class="tot-sub">${ratioHtml(to, tq)} overall</div>`;
   }
 
   function render() {
@@ -198,7 +223,10 @@
       return;
     }
     updateSums();
-    const shown = employees.filter(matchesSearch);
+    // Order: blue first, then yellow, then no colour (for the selected
+    // house's colour); A–Z within each group.
+    const colourRank = (e) => { const g = e.groups.find(x => x.group_key === groupFilter()) || e.groups[0]; const c = g && g.color; return c === BLUE ? 0 : (c === YELLOW ? 1 : 2); };
+    const shown = employees.filter(matchesSearch).sort((a, b) => colourRank(a) - colourRank(b) || a.full_name.localeCompare(b.full_name));
     if (!shown.length) {
       list.innerHTML = '<tr><td colspan="5" class="empty-state">No matching employees.</td></tr>';
       return;
@@ -213,46 +241,186 @@
         const nameCell = i === 0
           ? `<td rowspan="${groups.length}" class="emp-cell" style="vertical-align:top; ${groups.length > 1 ? 'border-right:2px solid var(--line);' : ''} ${tint(g.color)}">
                ${e.full_name}<div style="font-size:11px; color:var(--muted);">${e.employee_code}</div>
-               <span class="color-dot ${g.color ? 'on' : ''}" style="--c:${g.color || 'transparent'};" data-emp="${e.employee_id}" data-group="${g.group_key}" data-color="${g.color || ''}" role="button" tabindex="0" title="Pick a colour for ${e.full_name} in ${g.group_label}"></span>
+               <span class="color-pick" data-emp="${e.employee_id}" data-group="${g.group_key}">
+                 <b class="sw blue ${g.color === BLUE ? 'on' : ''}" data-color="${BLUE}" role="button" tabindex="0" title="Blue"></b>
+                 <b class="sw yellow ${g.color === YELLOW ? 'on' : ''}" data-color="${YELLOW}" role="button" tabindex="0" title="Yellow"></b>
+                 <b class="sw none ${!g.color ? 'on' : ''}" data-color="" role="button" tabindex="0" title="No colour"></b>
+               </span>
              </td>`
           : '';
         const color = HOUSE_COLOR[g.group_key] || HOUSE_COLOR[''];
         return `<tr>
           ${nameCell}
           <td><span style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:${color}; background:${color}18;">${g.group_label}</span></td>
-          ${counterCell(e.employee_id, g.group_key, g, 'scout', '#0EA5E9', '#F7FBFE')}
-          ${counterCell(e.employee_id, g.group_key, g, 'champion', '#F59E0B', '#FEFBF5')}
-          <td style="text-align:center; font-size:16px; font-weight:700; vertical-align:middle;" id="cnt-total-${e.employee_id}-${g.group_key}">${g.query_count}</td>
+          ${typeBlock(e, g, 'scout')}
+          ${typeBlock(e, g, 'champion')}
+          <td class="tot-cell" id="tot-${e.employee_id}-${g.group_key}">${totalCell(e, g)}</td>
         </tr>`;
       }).join('');
     }).join('');
   }
 
-  window.bump = async function (empId, groupKey, kind, delta, btn) {
-    btn.disabled = true;
-    try {
-      const d = await api.post('queries.assign_bump', { employee_id: empId, group_key: groupKey, kind, delta, date: day() });
-      const emp = employees.find(e => e.employee_id === empId);
-      const grp = emp && emp.groups.find(g => g.group_key === groupKey);
-      if (grp) { grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count; }
-      const scoped = document.getElementById(`cnt-${kind}-${empId}-${groupKey}`);
-      if (scoped) scoped.textContent = d[kind + '_count'];
-      const total = document.getElementById(`cnt-total-${empId}-${groupKey}`);
-      if (total) total.textContent = d.query_count;
-      updateSums();
-    } catch (err) {
-      showAlert(err.message, 'error');
-    } finally {
-      btn.disabled = false;
-    }
+  // +1 / − feel instant: the number changes on the spot and the save goes
+  // in the background. Clicks on the same row are sent one after another
+  // (so the server applies them in order); if a save fails, the row is
+  // put back to the server's figures and the error shown.
+  const pendingByRow = {};
+  function paintRow(empId, groupKey, grp) {
+    const emp = employees.find(x => x.employee_id === empId);
+    ['scout', 'champion'].forEach(kind => {
+      const inp = document.getElementById(`cnt-${kind}-${empId}-${groupKey}`);
+      if (inp && document.activeElement !== inp) inp.value = grp[kind + '_count'];
+      const rc = document.getElementById(`ratio-${kind}-${empId}-${groupKey}`);
+      const oc = emp && ordersFor(emp.full_name);
+      if (rc) rc.innerHTML = ratioHtml(oc ? oc[kind] : undefined, grp[kind + '_count'] || 0);
+    });
+    const tc = document.getElementById(`tot-${empId}-${groupKey}`);
+    if (tc && emp) tc.innerHTML = totalCell(emp, grp);
+  }
+  window.bump = function (empId, groupKey, kind, delta) {
+    const emp = employees.find(e => e.employee_id === empId);
+    const grp = emp && emp.groups.find(g => g.group_key === groupKey);
+    if (!grp) return;
+    const field = kind + '_count';
+    if (delta < 0 && grp[field] <= 0) return;          // nothing to take away
+    grp[field] += delta;
+    grp.query_count = grp.scout_count + grp.champion_count;
+    paintRow(empId, groupKey, grp);
+    updateSums();
+    scheduleHourly();
+
+    const key = empId + '|' + groupKey;
+    const dateForClick = day();
+    pendingByRow[key] = (pendingByRow[key] || Promise.resolve()).then(async () => {
+      try {
+        const d = await api.post('queries.assign_bump', { employee_id: empId, group_key: groupKey, kind, delta, date: dateForClick });
+        // Server figures win once every queued click for this row is done.
+        if (pendingByRow[key] === chain) {
+          grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count;
+          paintRow(empId, groupKey, grp);
+          updateSums();
+        }
+      } catch (err) {
+        showAlert(err.message, 'error');
+        try {   // put the row back to what the server has
+          const fresh = await api.get('queries.assign_list', { date: dateForClick, store_group: groupFilter() });
+          const fe = (fresh.employees || []).find(e => e.employee_id === empId);
+          const fg = fe && fe.groups.find(g => g.group_key === groupKey);
+          if (fg) { Object.assign(grp, fg); paintRow(empId, groupKey, grp); updateSums(); }
+        } catch (e2) { /* keep the optimistic number; the next load corrects it */ }
+      }
+    });
+    const chain = pendingByRow[key];
   };
 
+  // ---------- Orders today, per employee, for the selected house ----------
+  // Today's Shopify orders with the house-tag rule (a tag beats the store),
+  // counted per salesman for the house being viewed only.
+  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
+  const STORE_HOUSE = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  const HOUSE_NAME = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  function houseOf(o) {
+    if (o.house) return o.house;
+    const ht = [...new Set(String(o.tags || '').split(',').map(t => HOUSE_TAGS[t.trim().toLowerCase()]).filter(Boolean))];
+    return ht.length === 1 ? ht[0] : (STORE_HOUSE[o.store_key] || '');
+  }
+  // salesman name -> { scout, champion, other } orders today in the selected house
+  let ordersByName = {};
+  const SCOUT_TAGS = ['query', 's'], CHAMPION_TAGS = ['campaign', 'c'];
+  function orderType(tags) {
+    const t = String(tags || '').split(',').map(x => x.trim().toLowerCase());
+    if (t.some(x => SCOUT_TAGS.includes(x))) return 'scout';
+    if (t.some(x => CHAMPION_TAGS.includes(x))) return 'champion';
+    return 'other';
+  }
+  const ordersFor = (name) => ordersByName[name];
+  let ordersLoadedFor = '';
+  let ordersLoading = false;
+  async function loadOrdersCount() {
+    const key = day() + '|' + groupFilter();
+    if (ordersLoadedFor === key) return;
+    ordersLoading = true;
+    try {
+      const d = await api.get('shopify.orders', { date_from: day(), date_to: day() });
+      const map = {};
+      (d.orders || []).forEach(o => {
+        if (!o.salesman || !STORE_HOUSE[o.store_key]) return;   // MySales / manual belong to no house
+        if (houseOf(o) !== groupFilter()) return;
+        map[o.salesman] = map[o.salesman] || { scout: 0, champion: 0, other: 0 };
+        map[o.salesman][orderType(o.tags)]++;
+      });
+      employees.forEach(e => { if (!map[e.full_name]) map[e.full_name] = { scout: 0, champion: 0, other: 0 }; });
+      ordersByName = map;
+      ordersLoadedFor = key;
+    } catch (err) {
+      ordersByName = {};
+    } finally {
+      ordersLoading = false;
+      render();
+    }
+  }
+
+  // Typing a number sets that count exactly (saved on Enter or when you
+  // leave the box). The − / +1 buttons still add or take one.
+  document.addEventListener('change', (e) => {
+    const inp = e.target.closest('.cnt-in'); if (!inp) return;
+    const empId = Number(inp.dataset.emp), groupKey = inp.dataset.group, kind = inp.dataset.kind;
+    let value = Math.max(0, Math.min(9999, Math.round(Number(inp.value) || 0)));
+    inp.value = value;
+    const emp = employees.find(x => x.employee_id === empId);
+    const grp = emp && emp.groups.find(g => g.group_key === groupKey);
+    if (!grp) return;
+    grp[kind + '_count'] = value;
+    grp.query_count = grp.scout_count + grp.champion_count;
+    paintRow(empId, groupKey, grp);
+    updateSums();
+    scheduleHourly();
+    const key = empId + '|' + groupKey, dateForClick = day();
+    pendingByRow[key] = (pendingByRow[key] || Promise.resolve()).then(async () => {
+      try {
+        const d = await api.post('queries.assign_set', { employee_id: empId, group_key: groupKey, kind, value, date: dateForClick });
+        grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count;
+        paintRow(empId, groupKey, grp); updateSums();
+      } catch (err) { showAlert(err.message, 'error'); }
+    });
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('.cnt-in')) e.target.blur(); });
+  document.addEventListener('focusin', (e) => { const i = e.target.closest('.cnt-in'); if (i) i.select(); });
+
+  // The By hour grid refreshes shortly after the last click, not on every one.
+  let hourlyTimer = null;
+  function scheduleHourly() { clearTimeout(hourlyTimer); hourlyTimer = setTimeout(loadHourly, 700); }
+
+  // ---------- By hour grid ----------
+  const fmtHour = (h) => `${((h + 11) % 12) + 1} ${h >= 12 ? 'PM' : 'AM'}`;
+  async function loadHourly() {
+    const body = document.getElementById('hourBody'), foot = document.getElementById('hourFoot');
+    try {
+      const d = await api.get('queries.hourly', { date: day(), store_group: groupFilter() });
+      const nowHour = new Date().getHours(), isToday = day() === new Date().toISOString().slice(0, 10) || day() === bizTodayStr();
+      document.getElementById('hourSub').textContent = new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      const rows = [];
+      if (d.earlier && (d.earlier.scout || d.earlier.champion)) rows.push(`<tr><td>Earlier</td><td class="q">${d.earlier.scout}</td><td class="c">${d.earlier.champion}</td><td class="t">${d.earlier.scout + d.earlier.champion}</td></tr>`);
+      (d.hours || []).forEach(h => rows.push(`<tr class="${isToday && h.hour === nowHour ? 'cur' : ''}"><td>${fmtHour(h.hour)} – ${fmtHour(h.hour + 1)}</td><td class="q">${h.scout}</td><td class="c">${h.champion}</td><td class="t">${h.scout + h.champion}</td></tr>`));
+      body.innerHTML = rows.join('') || '<tr><td colspan="4" class="empty-state" style="padding:16px;">Nothing added yet.</td></tr>';
+      const t = d.total || { scout: 0, champion: 0 };
+      foot.innerHTML = `<tr><td>Total</td><td class="q">${t.scout}</td><td class="c">${t.champion}</td><td class="t">${t.scout + t.champion}</td></tr>`;
+    } catch (err) {
+      body.innerHTML = `<tr><td colspan="4"><div class="alert error" style="margin:8px;">${err.message}</div></td></tr>`;
+      foot.innerHTML = '';
+    }
+  }
+  function bizTodayStr() { const d = new Date(); if (d.getHours() < 10) d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
   async function load() {
+    loadHourly();
+    ordersLoadedFor = ''; ordersByName = {};
     document.getElementById('cardTitle').textContent =
       new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
     try {
       const data = await api.get('queries.assign_list', { date: day(), store_group: groupFilter() });
       employees = data.employees || [];
+      loadOrdersCount();
       render();
     } catch (err) {
       document.getElementById('empList').innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;

@@ -157,10 +157,50 @@
     }
   }
 
+  // After signing a PDF/HTML-based agreement, the PDF is made in the
+  // browser. Open it once in a hidden frame so the PDF is saved and the
+  // signed copy is emailed with the PDF inside — nothing to click.
+  let pdfFrame = null;
+  function makePdfInBackground(rows) {
+    const need = (rows || []).filter(a => a.status === 'signed' && !a.signed_file && (a.template_kind === 'html' || a.template_kind === 'pdf'));
+    if (!need.length) return;
+    const next = () => {
+      const a = need.shift();
+      if (!a) { if (pdfFrame) pdfFrame.src = 'about:blank'; return; }
+      if (!pdfFrame) {
+        pdfFrame = document.createElement('iframe');
+        pdfFrame.style.cssText = 'position:fixed; width:2px; height:2px; left:-10px; top:-10px; opacity:0; pointer-events:none;';
+        pdfFrame.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(pdfFrame);
+      }
+      const timer = setTimeout(next, 60000);
+      const onMsg = (e) => { if (e.data && Number(e.data.hrmsPdfReady) === a.agreement_id) { clearTimeout(timer); window.removeEventListener('message', onMsg); setTimeout(next, 300); } };
+      window.addEventListener('message', onMsg);
+      pdfFrame.src = 'agreement_view.html?id=' + a.agreement_id + '&bg=1';
+    };
+    next();
+  }
+
+  // Employee asks for their signed copy again — sent right away with the PDF.
+  window.emailMe = async function (id, btn) {
+    btn.disabled = true; const t = btn.textContent; btn.textContent = 'Sending…';
+    try {
+      const d = await api.post('agreements.email_me', { agreement_id: id });
+      showAlert(d.message || 'Sent.');
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally { btn.disabled = false; btn.textContent = t; }
+  };
+  // Send anything waiting in the outbox (e.g. the copy queued when this
+  // agreement was signed), in the background.
+  async function pumpMail() { try { await api.get('mail.process'); } catch (e) {} }
+
   async function load() {
     const box = document.getElementById('list');
     try {
       const data = await api.get('agreements.mine');
+      pumpMail();
+      makePdfInBackground(data.agreements || []);
       savedSig = data.signature_file || null;
       renderSig();
 
@@ -183,6 +223,7 @@
         const right = signed
           ? `<span style="display:flex; gap:8px; align-items:center;">
                <a href="agreement_view.html?id=${a.agreement_id}" class="btn" style="text-decoration:none; padding:7px 14px; font-size:13px;">View</a>
+               ${a.status === 'signed' ? `<button type="button" class="btn secondary" style="width:auto;" onclick="emailMe(${a.agreement_id}, this)">Email me the PDF</button>` : ''}
              </span>`
           : '<span class="badge" style="background:#fdf3e3; color:#b45f06;">Waiting for signature</span>';
         return `

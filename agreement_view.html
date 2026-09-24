@@ -54,6 +54,11 @@
 
   const params = new URLSearchParams(location.search);
   const agreementId = Number(params.get('id') || 0);
+  // bg=1: opened in a hidden frame by the Agreements / My Agreements page
+  // just to create and save the PDF. No on-screen preview; report back when
+  // done (or failed) so the next one can start.
+  const BG = params.get('bg') === '1';
+  const reportBack = (saved) => { if (window.parent !== window) window.parent.postMessage({ hrmsPdfReady: agreementId, saved: !!saved }, '*'); };
   const paper = document.getElementById('paper');
   const statusBox = document.getElementById('hrmsStatus');
   const btnDl = document.getElementById('hrmsDownload');
@@ -262,13 +267,15 @@
     try {
       builtBlob = null;
       const blob = await buildBlob();
-      if (info.template_kind === 'pdf') await previewPdf(blob);
+      if (info.template_kind === 'pdf' && !BG) await previewPdf(blob);
       status('Saving PDF to server...', '');
       await saveToServer(blob);
       status('PDF saved — this is the archived signed agreement.', 'ok');
       setTimeout(() => status('', ''), 4000);
+      reportBack(true);
     } catch (err) {
       status('Could not generate the PDF — ' + err.message, 'err');
+      reportBack(false);
     } finally { busy = false; btnDl.disabled = false; btnRegen.disabled = false; }
   }
 
@@ -282,6 +289,7 @@
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       status('', '');
       if (info.status === 'signed' && !info.signed_file) await saveToServer(blob).catch(() => {});
+      reportBack(!!info.signed_file);
     } catch (err) { status('Download failed: ' + err.message, 'err'); }
     finally { busy = false; btnDl.disabled = false; }
   });
@@ -314,6 +322,8 @@
 
       if (info.template_kind === 'pdf') {
         if (info.status === 'signed' && info.signed_file) {
+          reportBack(true);
+          if (BG) return;                       // nothing to do in the background
           status('Loading saved PDF...', '');
           const bytes = await fetchAgreementFile('signed');
           builtBlob = new Blob([bytes], { type: 'application/pdf' });

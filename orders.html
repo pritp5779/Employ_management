@@ -385,6 +385,20 @@
     grid.style.display = 'grid';
   }
 
+  // Which house the order counts under, and why — same rule as the server:
+  // a house tag (tmph / tmf / tm4u) beats the store; two house tags = store.
+  const HOUSE_TAG = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
+  const HOUSE_LABEL = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  const STORE_HOUSE = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  function houseReason(o, tags) {
+    if (!STORE_HOUSE[o.store_key]) return '—';
+    const found = String(tags || '').split(',').map(t => t.trim()).filter(t => HOUSE_TAG[t.toLowerCase()]);
+    const houses = [...new Set(found.map(t => HOUSE_TAG[t.toLowerCase()]))];
+    if (houses.length === 1) return `<b>${HOUSE_LABEL[houses[0]]}</b> — because of the tag “${found[0]}”`;
+    if (houses.length > 1) return `<b>${HOUSE_LABEL[STORE_HOUSE[o.store_key]]}</b> — the store's house (this order has ${houses.length} house tags: ${found.join(', ')})`;
+    return `<b>${HOUSE_LABEL[STORE_HOUSE[o.store_key]]}</b> — the store's house (no house tag)`;
+  }
+
   function dayKey(o) {
     // The server stamps every order with its business day (Day timing
     // setting); the local rule below is the same, for anything without it.
@@ -427,7 +441,7 @@
         <tr>
           <td style="font-weight:600;"><a href="#" onclick="openDetail(${o._i}); return false;">${o.order_name}</a>${o.manual_order_id ? ` <button class="danger-link" title="Delete this manual order" aria-label="Delete order" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;color:var(--bad-fg);font-size:12px;padding:4px 8px;margin-left:6px;line-height:1;" onclick="deleteManual(${o.manual_order_id})">✕</button>` : ''}</td>
           <td><span style="color:var(--muted);">${o.store}</span></td>
-          <td>${o.salesman || '—'}</td>
+          <td>${o.salesman || '—'}${(o.house_tags || []).length > 1 ? '<div style="font-size:10.5px; color:#c81e1e;" title="This order has more than one house tag, so it is counted under its store\'s house">⚠ 2 house tags</div>' : ''}</td>
           <td>${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
           <td>${o.customer}</td>
           <td style="white-space:nowrap;">${o.phone || '—'}</td>
@@ -639,6 +653,7 @@
         trackingHtml +
         detailRow('Note', d.note) +
         detailRow('Tags', d.tags) +
+        detailRow('Counted under', houseReason(o, d.tags)) +
         itemsHtml +
         totalsHtml;
     } catch (err) {
