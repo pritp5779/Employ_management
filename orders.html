@@ -13,6 +13,16 @@
 <title>Orders — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
+  .plat-cards{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;}
+  .plat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 14px 10px; border-top:4px solid var(--c);}
+  .plat-card h3{margin:0 0 8px; font-size:14px; color:var(--c); display:flex; justify-content:space-between; align-items:baseline;}
+  .plat-card h3 small{font-size:11px; color:var(--muted); font-weight:400;}
+  .plat-card .li{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line); font-size:13px;}
+  .plat-card .li span{color:var(--muted);} .plat-card .li b{font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .plat-card .li.q span{color:#1d4ed8;} .plat-card .li.c span{color:#b45f06;}
+  .plat-card .li.t{border-bottom:none; background:#f9fafb; margin:3px -6px 0; padding:6px 6px; border-radius:6px;} .plat-card .li.t b{font-size:14px;}
+  .plat-card .g{color:#0f7a41;} .plat-card .a{color:#b45f06;} .plat-card .r{color:#c81e1e;}
+  @media (max-width:820px){ .plat-cards{grid-template-columns:1fr; gap:10px;} }
   /* Stat cards carry a full and a short label/amount; only one shows at a
      time. Kept here as well as in style.css so the cards render correctly
      even when a browser or local server has an older stylesheet. */
@@ -75,6 +85,12 @@
       </div>
 
       <div class="stat-grid" id="summaryGrid" style="display:none;"></div>
+
+      <!-- Platform summary: query / campaign / totals per platform for the selected dates -->
+      <div id="platformCard" style="display:none; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin:0 0 10px;"><h2 style="font-size:15px; margin:0;">Platform summary</h2><span id="platformSub" style="font-size:12px; color:var(--muted);"></span></div>
+        <div class="plat-cards" id="platCards"></div>
+      </div>
 
       <div class="card" id="ordersCard" style="display:none;">
         <div class="card-head">
@@ -280,6 +296,7 @@
     // must not overwrite the newest one's results when it finally arrives.
     const reqId = ++ordersReqId;
     try {
+      loadPlatformQueries(from, to);
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
       if (reqId !== ordersReqId) return;
       const orders = data.orders || [];
@@ -318,6 +335,7 @@
     currentPage = 1;
     document.getElementById('orderSearch').value = '';
     renderSummary();
+    renderPlatformSummary();
     applyFilters();
   }
 
@@ -348,6 +366,69 @@
     });
 
     renderPage();
+  }
+
+  // ---------- Platform summary ----------
+  // One column per platform (house). A platform is the house tag first,
+  // then the store — the same rule the server uses (o.house). Query counts
+  // come from Assign Queries for the same dates.
+  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tmf', 'TM Fragrance', 'fr'], ['tm4u', 'TM4U', 'fu']];
+  const QUERY_TAGS = ['query', 's'], CAMPAIGN_TAGS = ['campaign', 'c'];
+  const STORE_HOUSE_MAP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  function orderTagType(tags) {
+    const t = String(tags || '').split(',').map(x => x.trim().toLowerCase());
+    if (t.some(x => QUERY_TAGS.includes(x))) return 'query';
+    if (t.some(x => CAMPAIGN_TAGS.includes(x))) return 'campaign';
+    return 'other';
+  }
+  let platformQueries = {};          // house -> { query, campaign } for the loaded dates
+  let platformQueriesFor = '';
+  async function loadPlatformQueries(from, to) {
+    const key = from + '|' + to;
+    if (platformQueriesFor === key) return;
+    try {
+      const d = await api.get('queries.platform_totals', { date_from: from, date_to: to });
+      platformQueries = d.queries || {};
+      platformQueriesFor = key;
+    } catch (e) { platformQueries = {}; }
+    renderPlatformSummary();
+  }
+  function renderPlatformSummary() {
+    const card = document.getElementById('platformCard');
+    const base = scopedOrders().filter(o => STORE_HOUSE_MAP[o.store_key] || o.house);   // Shopify orders only
+    const storeSel = document.getElementById('storeFilter').value;
+    const shown = PLATFORMS.filter(([k]) => !storeSel || (STORE_HOUSE_MAP[storeSel] || storeSel) === k);
+    if (!base.length && !Object.keys(platformQueries).length) { card.style.display = 'none'; return; }
+    const stats = {};
+    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0 });
+    PLATFORMS.forEach(([k]) => { const pq = platformQueries[k] || {}; stats[k].q = pq.query || 0; stats[k].c = pq.campaign || 0; });
+    base.forEach(o => {
+      const h = o.house || STORE_HOUSE_MAP[o.store_key]; if (!stats[h]) return;
+      const t = orderTagType(o.tags), amt = Number(o.total) || 0;
+      stats[h].to++; stats[h].tc += amt;
+      if (t === 'query') { stats[h].qo++; stats[h].qc += amt; }
+      if (t === 'campaign') { stats[h].co++; stats[h].cc += amt; }
+    });
+    const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
+    const ratio = (p) => { if (!p.q) return '<b style="color:var(--muted); font-weight:400;">—</b>'; const r = Math.round(p.qo / p.q * 100); return `<b class="${r >= 25 ? 'g' : (r >= 10 ? 'a' : 'r')}">${r}%</b>`; };
+    const lines = (p) => [
+      ['q', 'Query', `<b>${p.q}</b>`],
+      ['q', 'Query order', `<b>${p.qo}</b>`],
+      ['q', 'Query ratio', ratio(p)],
+      ['q', 'Query collection', `<b>${inr(p.qc)}</b>`],
+      ['c', 'Campaign order', `<b>${p.co}</b>`],
+      ['c', 'Campaign collection', `<b>${inr(p.cc)}</b>`],
+      ['', 'Ticket size', `<b>${p.to ? inr(p.tc / p.to) : '—'}</b>`],
+      ['t', 'Total collection', `<b>${inr(p.tc)}</b>`],
+      ['t', 'Total order', `<b>${p.to}</b>`],
+    ].map(([c, l, v]) => `<div class="li ${c}"><span>${l}</span>${v}</div>`).join('');
+    const colors = { tmph: '#1d4ed8', tmf: '#b45f06', tm4u: '#7e22ce' };
+    document.getElementById('platCards').innerHTML = shown.map(([k, label]) =>
+      `<div class="plat-card" style="--c:${colors[k]};"><h3>${label}<small>${stats[k].to} order${stats[k].to === 1 ? '' : 's'}</small></h3>${lines(stats[k])}</div>`).join('');
+    const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
+    const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    document.getElementById('platformSub').textContent = from === to ? fmt(from) : `${fmt(from)} – ${fmt(to)}`;
+    card.style.display = '';
   }
 
   function renderSummary() {
