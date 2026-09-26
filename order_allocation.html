@@ -13,8 +13,9 @@
 <title>Order Allocation — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
-  .alloc-sel{padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; min-width:170px; max-width:100%;}
-  .alloc-sel.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .sel{padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; width:100%; min-width:120px; max-width:100%;}
+  .sel.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .sel.inline{width:auto;}
   .ok-btn{width:38px; height:36px; min-height:0; border:none; border-radius:6px; background:#0f7a41; color:#fff; font-size:16px; font-weight:700; cursor:pointer;}
   .ok-btn:disabled{background:#cbd5e1; cursor:not-allowed;}
   .undo-btn{background:none; border:none; padding:4px 0; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; min-height:0;}
@@ -22,19 +23,37 @@
   .house.tmph{background:#dbeafe; color:#1d4ed8;}
   .house.tmf{background:#fef3c7; color:#b45309;}
   .house.tm4u{background:#ede9fe; color:#6d28d9;}
+  .house.tmsg{background:#dcfce7; color:#15803d;}
+  .house.tmh4{background:#ffe4e6; color:#be123c;}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; border:1px solid var(--line); font-size:12.5px; cursor:pointer; background:#fff; white-space:nowrap;}
   .pill.on{background:var(--navy-900); color:#fff; border-color:var(--navy-900);}
   .pill b{font-weight:700;}
   .sub{font-size:11.5px; color:var(--muted);}
+  .src{display:inline-block; font-size:10.5px; color:#6b7280; background:#f3f4f6; border-radius:8px; padding:1px 7px; white-space:nowrap;}
   .otype{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap;}
   .otype.query{background:#e0f2fe; color:#0369a1;}
   .otype.campaign{background:#fef3c7; color:#b45309;}
-  .type-sel{padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; min-width:120px; max-width:100%;}
-  .type-sel.changed{border-color:#0369a1; box-shadow:0 0 0 2px #e0f2fe;}
   .row-done td{background:#f8fffb;}
-  .alloc-cell{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
   .stat-card .value small{font-size:13px; font-weight:500; color:var(--muted);}
-  @media (max-width:820px){ .alloc-sel{width:100%; font-size:16px;} .alloc-cell{width:100%;} .ok-btn{height:40px; flex:0 0 46px;} }
+
+  /* searchable employee dropdown */
+  .emp-pick{position:relative; min-width:180px;}
+  .emp-pick input{width:100%; padding:7px 26px 7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff;}
+  .emp-pick input.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .emp-pick .caret{position:absolute; right:9px; top:9px; font-size:11px; color:#94a3b8; pointer-events:none;}
+  .emp-menu{position:absolute; z-index:30; left:0; right:0; top:100%; margin-top:4px; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 10px 30px rgba(15,23,42,.14); max-height:280px; overflow:auto; display:none;}
+  .emp-menu.open{display:block;}
+  .emp-menu .grp{padding:7px 10px 3px; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#94a3b8; background:#f8fafc; position:sticky; top:0;}
+  .emp-menu .opt{padding:7px 10px; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; gap:8px;}
+  .emp-menu .opt:hover, .emp-menu .opt.hl{background:#eef2ff;}
+  .emp-menu .opt small{color:#94a3b8; font-size:11px;}
+  .emp-menu .none{padding:10px; font-size:12.5px; color:#94a3b8;}
+  @media (max-width:820px){
+    .sel, .emp-pick input{font-size:16px;}
+    .sel.inline{width:100%;}
+    .ok-btn{height:40px; width:100%;}
+    .emp-pick{min-width:0;}
+  }
 </style>
 </head>
 <body>
@@ -42,7 +61,7 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar">
-      <div><h1>Order Allocation</h1><div class="sub" style="margin-top:2px;">MySales (White Panel) orders — choose which business each order belongs to</div></div>
+      <div><h1>Order Allocation</h1><div class="sub" style="margin-top:2px;">All orders — set the employee, the type and the panel each order counts under</div></div>
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="date" id="dateFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="date" id="dateTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -60,17 +79,19 @@
             <span class="pill on" data-f="pending">Pending <b id="cntPending">0</b></span>
             <span class="pill" data-f="done">Allocated <b id="cntDone">0</b></span>
             <span class="pill" data-f="all">All <b id="cntAll">0</b></span>
-            <select id="typeFilter" class="type-sel" title="Filter by type">
+            <select id="sourceFilter" class="sel inline" title="Filter by source"><option value="">All sources</option></select>
+            <select id="panelFilter" class="sel inline" title="Filter by panel"><option value="">All panels</option></select>
+            <select id="typeFilter" class="sel inline" title="Filter by type">
               <option value="">All types</option>
               <option value="query">Query</option>
               <option value="campaign">Campaign</option>
               <option value="none">No type</option>
             </select>
-            <div class="search-box"><input type="text" id="search" placeholder="Search order, customer mobile, employee..."></div>
+            <div class="search-box"><input type="text" id="search" placeholder="Search order, customer, mobile, employee..."></div>
           </div>
         </div>
         <table>
-          <thead><tr><th>Order</th><th>Employee</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Business</th><th>Type</th><th style="width:70px;"></th></tr></thead>
+          <thead><tr><th>Order</th><th>Employee</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Type</th><th>Panel</th><th style="width:60px;"></th></tr></thead>
           <tbody id="tbody"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
         </table>
         <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
@@ -105,20 +126,32 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  let HOUSES = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  let HOUSES = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   let TYPES = { query: 'Query', campaign: 'Campaign' };
-  const pendingType = {};  // "source|id" -> Query / Campaign chosen, not yet confirmed
+  let SOURCES = {};
+  let EMPS = [];          // [{id, code, name, groups:[...]}]
   let orders = [];
   let filter = 'pending';
   const PAGE = 20;
   let limit = PAGE;
-  const pending = {};   // "source|id" -> house chosen in the dropdown, not yet confirmed
+  const pending = {};      // "source|id" -> {emp, house, type} chosen, not yet confirmed
 
   const key = (o) => o.store_key + '|' + o.id;
+  const pend = (k) => (pending[k] = pending[k] || {});
+  const empById = (id) => EMPS.find(e => e.id === Number(id));
+  // Effective choice for a pending row: what was picked, else what the order already says
+  // (employee from the order tag / panel salesman, panel from the store or house tag).
+  const effEmp = (o, p) => (p.emp !== undefined ? p.emp : (o.employee_id || 0));
+  const effHouse = (o, p) => (p.house !== undefined ? p.house : (o.house || ''));
+  const effType = (o, p) => (p.type !== undefined ? p.type : (o.order_type || ''));
 
   function matches(o) {
     if (filter === 'pending' && o.allocated) return false;
     if (filter === 'done' && !o.allocated) return false;
+    const sf = document.getElementById('sourceFilter').value;
+    if (sf && o.store_key !== sf) return false;
+    const pf = document.getElementById('panelFilter').value;
+    if (pf && (o.house || '') !== pf) return false;
     const tf = document.getElementById('typeFilter').value;
     if (tf === 'none' && (o.order_type || '')) return false;
     if (tf && tf !== 'none' && (o.order_type || '') !== tf) return false;
@@ -128,44 +161,48 @@
     return String(o.order_name || '').toLowerCase().includes(q)
       || (o.salesman || '').toLowerCase().includes(q)
       || (o.employee_code || '').toLowerCase().includes(q)
+      || (o.customer || '').toLowerCase().includes(q)
       || (o.store || '').toLowerCase().includes(q)
       || (qd.length >= 3 && String(o.phone || '').replace(/\D/g, '').includes(qd));
   }
 
-  function houseOptions(sel) {
-    return `<option value="">— Not allocated (MySales) —</option>` +
-      Object.entries(HOUSES).map(([k, v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
-  }
-
-  function typeOptions(sel) {
-    return `<option value="">— Type —</option>` +
-      Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
-  }
+  const options = (map, sel, blank) => `<option value="">${blank}</option>` +
+    Object.entries(map).map(([k, v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
 
   function rowHtml(o) {
     const k = key(o);
-    const chosenType = pendingType[k] || '';
+    const p = pending[k] || {};
+    const empSel = effEmp(o, p);
+    const houseSel = effHouse(o, p);
+    const empObj = empById(empSel);
+    const hint = o.employee_from ? `${esc(o.employee_from)}: ${esc(o.salesman || '')}` : (o.broadcast ? 'broadcast ' + esc(o.broadcast) : 'no employee on order');
+    const empCell = o.allocated
+      ? `${esc(o.salesman || '—')}<div class="sub">${esc(o.employee_code || '')}</div>`
+      : `<div class="emp-pick" data-k="${k}">
+           <input type="text" placeholder="Search employee..." value="${empObj ? esc(empObj.name) : ''}" data-id="${empObj ? empObj.id : ''}" class="${p.emp !== undefined ? 'changed' : ''}" autocomplete="off">
+           <span class="caret">▼</span>
+           <div class="emp-menu"></div>
+         </div><div class="sub">${hint}</div>`;
     const typeCell = o.allocated
       ? (o.order_type ? `<span class="otype ${o.order_type}">${esc(TYPES[o.order_type] || o.order_type)}</span>` : '<span class="sub">—</span>')
-      : `<select class="type-sel ${chosenType ? 'changed' : ''}" onchange="pickType('${k}', this.value)">${typeOptions(chosenType)}</select>`;
-    const chosen = pending[k] || '';
-    const business = o.allocated
+      : `<select class="sel ${p.type ? 'changed' : ''}" onchange="pickType('${k}', this.value)">${options(TYPES, effType(o, p), '— Type —')}</select>`;
+    const panelCell = o.allocated
       ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
          <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>`
-      : `<div class="alloc-cell">
-           <select class="alloc-sel ${chosen ? 'changed' : ''}" onchange="pick('${k}', this.value)">${houseOptions(chosen)}</select>
-           <button type="button" class="ok-btn" title="Confirm" ${chosen ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>
-         </div>`;
-    const action = o.allocated ? `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>` : '';
+      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
+    const ready = !o.allocated && houseSel && empSel;
+    const action = o.allocated
+      ? `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`
+      : `<button type="button" class="ok-btn" title="${ready ? 'Confirm' : 'Choose employee and panel first'}" ${ready ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>`;
     return `<tr class="${o.allocated ? 'row-done' : ''}" data-k="${k}">
-      <td><b>${esc(o.order_name)}</b><div class="sub">${fmtT(o.created_at)} · ${esc(o.store_src || o.store)}</div></td>
-      <td>${o.salesman ? esc(o.salesman) : '<span class="sub">— (shared broadcast)</span>'}<div class="sub">${esc(o.employee_code || '')}${o.broadcast ? (o.employee_code ? ' · ' : '') + esc(o.broadcast) : ''}</div></td>
+      <td><b>${esc(o.order_name)}</b><div class="sub">${fmtT(o.created_at)} <span class="src">${esc(o.source_label || o.store_src || o.store)}</span></div></td>
+      <td>${empCell}</td>
       <td>${esc(o.customer || 'Guest')}<div class="sub">${esc(o.phone || '')}</div></td>
       <td>${o.items}</td>
       <td><b>${inr(o.total)}</b></td>
       <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${esc(o.financial_status || '—')}</span></td>
-      <td>${business}</td>
       <td>${typeCell}</td>
+      <td>${panelCell}</td>
       <td>${action}</td>
     </tr>`;
   }
@@ -179,12 +216,13 @@
     document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.f === filter));
     const tbody = document.getElementById('tbody');
     if (!shown.length) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">${orders.length ? (filter === 'pending' ? 'Every order for these dates is allocated ✓' : 'No matching orders.') : 'No MySales orders for these dates.'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">${orders.length ? (filter === 'pending' ? 'Every order for these dates is allocated ✓' : 'No matching orders.') : 'No orders for these dates.'}</td></tr>`;
       document.getElementById('shownCount').textContent = '';
       document.getElementById('btnMore').style.display = 'none';
     } else {
       const n = Math.min(limit, shown.length);
       tbody.innerHTML = shown.slice(0, n).map(rowHtml).join('');
+      tbody.querySelectorAll('.emp-pick').forEach(initEmpPick);
       document.getElementById('shownCount').textContent = `Showing ${n} of ${shown.length}`;
       document.getElementById('btnMore').style.display = n >= shown.length ? 'none' : 'inline-block';
     }
@@ -194,41 +232,102 @@
   function renderStats() {
     const grid = document.getElementById('statGrid');
     const sum = (list) => list.reduce((t, o) => t + Number(o.total || 0), 0);
-    const notYet = orders.filter(o => !o.allocated);
-    const per = Object.keys(HOUSES).map(h => orders.filter(o => o.allocated && o.allocated_house === h));
-    const colors = { tmph: '#1d4ed8', tmf: '#b45309', tm4u: '#6d28d9' };
+    // "Not allocated yet" = orders still missing an employee or a panel.
+    // A Shopify order that already carries an employee tag and its store's
+    // panel is complete as it is, so it is not counted here.
+    const notYet = orders.filter(o => !o.allocated && !(o.employee_id && o.house));
+    const colors = { tmph: '#1d4ed8', tmf: '#b45309', tm4u: '#6d28d9', tmsg: '#15803d', tmh4: '#be123c' };
     grid.innerHTML = `
-      <div class="stat-card"><div class="label">MySales orders</div><div class="value">${orders.length} <small>/ ${inr(sum(orders))}</small></div></div>
+      <div class="stat-card"><div class="label">Orders</div><div class="value">${orders.length} <small>/ ${inr(sum(orders))}</small></div></div>
       <div class="stat-card"><div class="label">Not allocated yet</div><div class="value" style="color:#b45309;">${notYet.length} <small>/ ${inr(sum(notYet))}</small></div></div>
-      ${Object.keys(HOUSES).map((h, i) => `<div class="stat-card"><div class="label">Moved to ${esc(HOUSES[h])}</div><div class="value" style="color:${colors[h]};">${per[i].length} <small>/ ${inr(sum(per[i]))}</small></div></div>`).join('')}`;
+      ${Object.keys(HOUSES).map(h => { const l = orders.filter(o => (o.house || '') === h); return `<div class="stat-card"><div class="label">${esc(HOUSES[h])}</div><div class="value" style="color:${colors[h] || '#111'};">${l.length} <small>/ ${inr(sum(l))}</small></div></div>`; }).join('')}`;
     grid.style.display = 'grid';
   }
 
-  window.pickType = function (k, t) {
-    if (t) pendingType[k] = t; else delete pendingType[k];
+  // ---- searchable employee dropdown, grouped panel-wise
+  function empMenuHtml(q) {
+    q = (q || '').toLowerCase().trim();
+    const hit = (e) => !q || e.name.toLowerCase().includes(q) || String(e.code || '').toLowerCase().includes(q);
+    const opt = (e) => `<div class="opt" data-id="${e.id}"><span>${esc(e.name)}</span><small>${esc(e.code || '')}</small></div>`;
+    let html = '';
+    Object.keys(HOUSES).forEach(h => {
+      const rows = EMPS.filter(e => (e.groups || []).includes(h) && hit(e));
+      if (rows.length) html += `<div class="grp">${esc(HOUSES[h])}</div>` + rows.map(opt).join('');
+    });
+    const other = EMPS.filter(e => !(e.groups || []).some(g => HOUSES[g]) && hit(e));
+    if (other.length) html += `<div class="grp">Other employees</div>` + other.map(opt).join('');
+    return html || '<div class="none">No employee matches</div>';
+  }
+
+  function initEmpPick(box) {
+    const k = box.dataset.k, inp = box.querySelector('input'), menu = box.querySelector('.emp-menu');
+    const open = () => { menu.innerHTML = empMenuHtml(inp.value === (empById(inp.dataset.id) || {}).name ? '' : inp.value); menu.classList.add('open'); };
+    inp.addEventListener('focus', () => { inp.select(); open(); });
+    inp.addEventListener('input', () => { inp.dataset.id = ''; menu.innerHTML = empMenuHtml(inp.value); menu.classList.add('open'); });
+    inp.addEventListener('keydown', (e) => {
+      const opts = [...menu.querySelectorAll('.opt')];
+      let i = opts.findIndex(o => o.classList.contains('hl'));
+      if (e.key === 'ArrowDown') { e.preventDefault(); i = Math.min(opts.length - 1, i + 1); opts.forEach(o => o.classList.remove('hl')); if (opts[i]) { opts[i].classList.add('hl'); opts[i].scrollIntoView({ block: 'nearest' }); } }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); i = Math.max(0, i - 1); opts.forEach(o => o.classList.remove('hl')); if (opts[i]) { opts[i].classList.add('hl'); opts[i].scrollIntoView({ block: 'nearest' }); } }
+      else if (e.key === 'Enter') { e.preventDefault(); const o = opts[i] || opts[0]; if (o) choose(o.dataset.id); }
+      else if (e.key === 'Escape') { menu.classList.remove('open'); inp.blur(); }
+    });
+    menu.addEventListener('mousedown', (e) => { const o = e.target.closest('.opt'); if (!o) return; e.preventDefault(); choose(o.dataset.id); });
+    inp.addEventListener('blur', () => setTimeout(() => {
+      menu.classList.remove('open');
+      // Typed text that wasn't picked: fall back to the last chosen employee.
+      const e = empById(inp.dataset.id);
+      inp.value = e ? e.name : '';
+      if (!e) { pend(k).emp = 0; refreshOk(k); }
+    }, 120));
+    function choose(id) {
+      const e = empById(id);
+      if (!e) return;
+      inp.value = e.name; inp.dataset.id = e.id; inp.classList.add('changed');
+      menu.classList.remove('open');
+      pend(k).emp = e.id;
+      refreshOk(k);
+      inp.blur();
+    }
+  }
+
+  function refreshOk(k) {
     const tr = document.querySelector(`tr[data-k="${k}"]`);
-    if (tr) tr.querySelector('.type-sel').classList.toggle('changed', !!t);
+    const o = orders.find(x => key(x) === k);
+    if (!tr || !o) return;
+    const p = pending[k] || {};
+    tr.querySelector('.ok-btn').disabled = !(effHouse(o, p) && effEmp(o, p));
+  }
+
+  window.pickType = function (k, t) {
+    pend(k).type = t || '';
+    const tr = document.querySelector(`tr[data-k="${k}"]`);
+    if (tr) tr.querySelectorAll('select.sel')[0].classList.toggle('changed', !!t);
   };
 
-  window.pick = function (k, house) {
-    if (house) pending[k] = house; else delete pending[k];
+  window.pickHouse = function (k, house) {
+    pend(k).house = house || '';
     const tr = document.querySelector(`tr[data-k="${k}"]`);
-    if (!tr) return;
-    tr.querySelector('.alloc-sel').classList.toggle('changed', !!house);
-    tr.querySelector('.ok-btn').disabled = !house;
+    if (tr) tr.querySelectorAll('select.sel')[1].classList.toggle('changed', !!house);
+    refreshOk(k);
   };
 
   window.confirmAlloc = async function (k, btn) {
-    const house = pending[k];
     const o = orders.find(x => key(x) === k);
-    if (!house || !o) return;
+    if (!o) return;
+    const p = pending[k] || {};
+    const emp = effEmp(o, p), house = effHouse(o, p);
+    if (!house || !emp) return;
     btn.disabled = true;
     try {
-      const type = pendingType[k] || '';
-      const d = await api.post('allocation.set', { source: o.store_key, order_id: String(o.id), house, order_type: type });
-      o.allocated = 1; o.allocated_house = house; o.order_type = type; o.allocated_by = d.allocated_by; o.allocated_at = d.allocated_at;
+      const type = effType(o, p);
+      const d = await api.post('allocation.set', { source: o.store_key, order_id: String(o.id), house, order_type: type, employee_id: emp });
+      const e = empById(emp);
+      o.allocated = 1; o.allocated_house = house; o.house = house; o.order_type = type;
+      o.allocated_emp = emp; o.employee_id = emp; o.salesman = d.employee_name || (e ? e.name : o.salesman); o.employee_code = e ? e.code : o.employee_code;
+      o.allocated_by = d.allocated_by; o.allocated_at = d.allocated_at;
       o.store_src = o.store_src || o.store; o.store = HOUSES[house];
-      delete pending[k]; delete pendingType[k];
+      delete pending[k];
       showAlert(d.message);
       render();
     } catch (err) {
@@ -240,19 +339,25 @@
   window.undoAlloc = async function (k, btn) {
     const o = orders.find(x => key(x) === k);
     if (!o) return;
-    if (!confirm(`Put ${o.order_name} back under MySales?`)) return;
+    if (!confirm(`Remove the allocation of ${o.order_name}?`)) return;
     btn.disabled = true;
     try {
       const d = await api.post('allocation.set', { source: o.store_key, order_id: String(o.id), house: '' });
-      o.allocated = 0; o.allocated_house = ''; o.order_type = ''; o.allocated_by = ''; o.allocated_at = '';
-      if (o.store_src) o.store = o.store_src;
       showAlert(d.message);
-      render();
+      await load();   // re-read: employee / panel go back to what the order itself says
     } catch (err) {
       btn.disabled = false;
       showAlert(err.message, 'error');
     }
   };
+
+  function fillFilters() {
+    const sf = document.getElementById('sourceFilter'), pf = document.getElementById('panelFilter');
+    const sv = sf.value, pv = pf.value;
+    sf.innerHTML = '<option value="">All sources</option>' + Object.entries(SOURCES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    pf.innerHTML = '<option value="">All panels</option>' + Object.entries(HOUSES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    sf.value = sv; pf.value = pv;
+  }
 
   async function load() {
     const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
@@ -266,6 +371,9 @@
       orders = d.orders || [];
       if (d.houses) HOUSES = d.houses;
       if (d.types) TYPES = d.types;
+      if (d.sources) SOURCES = d.sources;
+      if (d.employees) EMPS = d.employees;
+      fillFilters();
       (d.errors || []).forEach(e => showAlert(e, 'error'));
       limit = PAGE;
       render();
@@ -277,7 +385,7 @@
   document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => { filter = p.dataset.f; limit = PAGE; render(); }));
   let searchTimer = null;
   document.getElementById('search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { limit = PAGE; render(); }, 150); });
-  document.getElementById('typeFilter').addEventListener('change', () => { limit = PAGE; render(); });
+  ['sourceFilter', 'panelFilter', 'typeFilter'].forEach(id => document.getElementById(id).addEventListener('change', () => { limit = PAGE; render(); }));
   document.getElementById('btnMore').addEventListener('click', () => { limit += PAGE; render(); });
   document.getElementById('dateFrom').addEventListener('change', load);
   document.getElementById('dateTo').addEventListener('change', load);
