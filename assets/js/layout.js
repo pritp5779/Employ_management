@@ -12,6 +12,7 @@ function renderSidebar(active) {
   const PAGES_FOR_PERM = {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
     orders: [['orders.html', 'Shopify Orders', 'orders']],
+    allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
@@ -157,6 +158,7 @@ function renderSidebar(active) {
     { key: 'main', label: 'Main', defaultOpen: true, links: [
       ['dashboard.html', 'Dashboard', 'dashboard'],
       ['orders.html', 'Shopify Orders', 'orders'],
+      ['order_allocation.html', 'Order Allocation', 'order_allocation'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
       ['targets.html', 'Targets', 'targets'],
       ['performance.html', 'Performance', 'performance'],

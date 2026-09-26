@@ -66,7 +66,7 @@
     <div class="topbar">
       <h1 id="pageTitle">Performance</h1>
       <div style="display:flex; gap:10px; align-items:center;">
-        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
+        <input type="text" id="empSearch" placeholder="Search employee or order #..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
         <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
           <option value="">All houses</option>
           <option value="tmph">TM Perfume House</option>
@@ -206,11 +206,22 @@
   let dailyRows = [];
   let currentDay = '';
 
+  // Search matches the employee's name/code, or an order number in their
+  // day's order list (e.g. "369910" or "#369910"). A row found through an
+  // order opens its order panel so the order is on screen.
+  function searchQ() { return (document.getElementById('empSearch').value || '').trim().toLowerCase(); }
+  function orderMatches(r, q) {
+    const qd = q.replace(/^#/, '');
+    return qd.length >= 3 && (r.order_list || []).some(o =>
+      String(o.order_name || '').toLowerCase().replace(/^#/, '').includes(qd)
+      || String(o.order_key || '').toLowerCase().includes(qd));
+  }
   function matchesSearch(r) {
-    const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
+    const q = searchQ();
     if (!q) return true;
     return (r.full_name || '').toLowerCase().includes(q)
-      || (r.employee_code || '').toLowerCase().includes(q);
+      || (r.employee_code || '').toLowerCase().includes(q)
+      || orderMatches(r, q);
   }
   function groupFilter() { return document.getElementById('groupPick').value || ''; }
 
@@ -633,6 +644,9 @@
   function renderDaily() {
     const tbody = document.getElementById('dailyBody');
     const matched = dailyRows.filter(matchesSearch);
+    // Rows found by order number: open their order panel automatically.
+    const q = searchQ();
+    if (q) matched.forEach(r => { if (orderMatches(r, q)) openRows.add(r.employee_id + '|' + r.group_key); });
     perfPaging.daily.matched = matched.length;
     const shown = matched.slice(0, perfPaging.daily.limit);
     updatePerfLoadMore('daily');

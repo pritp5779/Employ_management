@@ -499,8 +499,9 @@
       (data.orders || []).forEach(o => {
         // Only Shopify orders from a house's own store count here. MySales,
         // MySales 4P and manual orders belong to no house, so they don't
-        // count toward Achieved or the averages behind automatic targets.
-        if (!STORE_TO_GROUP[o.store_key]) return;
+        // count toward Achieved or the averages behind automatic targets —
+        // except a MySales order moved to a house on Order Allocation.
+        if (!STORE_TO_GROUP[o.store_key] && !(o.allocated && o.house)) return;
         if (!o.salesman) return;
         // One key per person for the combined TM Perfume House + TM Fragrance
         // row ('|' + ''); orders tagged tm4u go to the person's TM4U row.

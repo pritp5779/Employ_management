@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Employees — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=1">
+<style>
+  .pager{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:12px 20px; border-top:1px solid var(--line); font-size:13px; color:var(--muted);}
+  .pager .pages{display:flex; align-items:center; gap:4px; flex-wrap:wrap;}
+  .pager button{min-width:34px; height:32px; padding:0 10px; border:1px solid var(--line); border-radius:6px; background:#fff; color:inherit; font-size:13px; cursor:pointer;}
+  .pager button.on{background:var(--navy-900, #0f172a); color:#fff; border-color:var(--navy-900, #0f172a); font-weight:600;}
+  .pager button:disabled{opacity:.45; cursor:not-allowed;}
+  .pager .dots{padding:0 4px;}
+  .pager select{padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -13,7 +22,7 @@
     <div class="topbar"><h1>Employees</h1></div>
     <div class="content">
       <div id="alertBox"></div>
-      <div class="card" id="empCard">
+      <div class="card">
         <div class="card-head">
           <h2 id="cardTitle">Employees</h2>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -42,10 +51,17 @@
             <tr><td colspan="8" class="loading">Loading...</td></tr>
           </tbody>
         </table>
-        <div id="empCards" style="display:none; padding:10px;"></div>
-        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px;">
-          <span id="empShownCount" style="font-size:12.5px; color:var(--muted);"></span>
-          <button class="btn secondary" id="btnEmpLoadMore" style="width:auto; display:none;">Load more</button>
+        <div class="pager" id="pager" style="display:none;">
+          <div id="pagerInfo"></div>
+          <div class="pages" id="pagerPages"></div>
+          <div>Rows per page
+            <select id="pageSize">
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="all">All</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -110,13 +126,6 @@
           <input type="text" id="salesTag" maxlength="50" placeholder="e.g. ir">
         </div>
         <div></div>
-      </div>
-
-      <div class="field">
-        <label>Store Groups</label>
-        <div id="storeGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
-          <span style="color:#888; font-size:13px;">Loading...</span>
-        </div>
       </div>
 
       <div class="field">
@@ -224,19 +233,11 @@ Amit Shah	9123456780		web management		"></textarea>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="assets/js/config.js?v=2"></script>
-<script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
 <script>
   guardPage();
-
-  // Link to an uploaded file through the file viewer (api.php files.view),
-  // with the login carried in the link. Direct /uploads/ links 404 on this
-  // hosting, and this needs no other script to run.
-  function fileUrl(rel) {
-    return API_BASE_URL + '?action=files.view&path=' + encodeURIComponent(String(rel || '').replace(/^\/+/, ''))
-      + '&token=' + encodeURIComponent(api.token() || '');
-  }
   renderSidebar('employees');
 
   const tableBody = document.getElementById('tableBody');
@@ -249,15 +250,6 @@ Amit Shah	9123456780		web management		"></textarea>
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
-  }
-
-  const STORE_GROUPS = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
-  function renderStoreGroups() {
-    const box = document.getElementById('storeGroupsBox');
-    box.innerHTML = Object.entries(STORE_GROUPS).map(([key, label]) => `
-      <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
-        <input type="checkbox" class="store-group-cb" value="${key}" style="width:auto; margin:0;"> ${label}
-      </label>`).join('');
   }
 
   async function loadWaGroups() {
@@ -476,9 +468,6 @@ Amit Shah	9123456780		web management		"></textarea>
     const empGroupIds = new Set(((emp && emp.whatsapp_groups) || []).map(g => String(g.group_id)));
     document.querySelectorAll('.wa-group-cb').forEach(cb => { cb.checked = empGroupIds.has(cb.value); });
 
-    const empStoreGroups = new Set((emp && emp.store_groups) || []);
-    document.querySelectorAll('.store-group-cb').forEach(cb => { cb.checked = empStoreGroups.has(cb.value); });
-
     const empFileIds = new Set(((emp && emp.excel_files) || []).map(f => String(f.file_id)));
     document.querySelectorAll('.excel-file-cb').forEach(cb => { cb.checked = empFileIds.has(cb.value); });
     setTimeout(updateSalaryLabel, 0);
@@ -688,25 +677,81 @@ Amit Shah	9123456780		web management		"></textarea>
     return sorted;
   }
 
-  const EMP_PAGE_SIZE = 20;
-  let empSortedRows = [];
-  let empShown = 0;
+  // ---- pagination (client side; search / department / sort reset to page 1)
+  let page = 1;
+  const pager = document.getElementById('pager');
+  const pageSizeSel = document.getElementById('pageSize');
+  try { const ps = localStorage.getItem('hrms_emp_page_size'); if (ps) pageSizeSel.value = ps; } catch (e) {}
 
-  function empRowHtml(r) {
-    const photoHtml = r.photo
-      ? `<img src="${fileUrl(r.photo)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;">
+  function pageSize() {
+    const v = pageSizeSel.value;
+    return v === 'all' ? Infinity : (parseInt(v, 10) || 20);
+  }
+
+  function renderPager(total) {
+    const size = pageSize();
+    const pages = size === Infinity ? 1 : Math.max(1, Math.ceil(total / size));
+    if (page > pages) page = pages;
+    if (total === 0) { pager.style.display = 'none'; return; }
+    pager.style.display = '';
+    const from = size === Infinity ? 1 : (page - 1) * size + 1;
+    const to = size === Infinity ? total : Math.min(total, page * size);
+    document.getElementById('pagerInfo').textContent = `Showing ${from}–${to} of ${total}`;
+
+    // page numbers: 1 … (page-1) page (page+1) … last
+    const nums = [];
+    for (let i = 1; i <= pages; i++) {
+      if (i === 1 || i === pages || Math.abs(i - page) <= 1) nums.push(i);
+      else if (nums[nums.length - 1] !== '…') nums.push('…');
+    }
+    let html = `<button data-p="${page - 1}" ${page <= 1 ? 'disabled' : ''} title="Previous">‹</button>`;
+    html += nums.map(n => n === '…'
+      ? `<span class="dots">…</span>`
+      : `<button data-p="${n}" class="${n === page ? 'on' : ''}">${n}</button>`).join('');
+    html += `<button data-p="${page + 1}" ${page >= pages ? 'disabled' : ''} title="Next">›</button>`;
+    document.getElementById('pagerPages').innerHTML = html;
+  }
+
+  document.getElementById('pagerPages').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-p]');
+    if (!btn || btn.disabled) return;
+    page = parseInt(btn.dataset.p, 10);
+    renderTable(currentRows);
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  pageSizeSel.addEventListener('change', () => {
+    try { localStorage.setItem('hrms_emp_page_size', pageSizeSel.value); } catch (e) {}
+    page = 1;
+    renderTable(currentRows);
+  });
+
+  function renderTable(rows) {
+    rows = sortRows(rows);
+    document.getElementById('cardTitle').textContent = `Employees (${rows.length})`;
+    if (rows.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8" class="empty-state">No employees found.</td></tr>';
+      renderPager(0);
+      return;
+    }
+    renderPager(rows.length);
+    const size = pageSize();
+    if (size !== Infinity) rows = rows.slice((page - 1) * size, page * size);
+    tableBody.innerHTML = rows.map(r => {
+      const photoHtml = r.photo
+        ? `<img src="${API_BASE_URL.replace('/api.php','')}/${r.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+        : `<div style="width:36px;height:36px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;">
              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
            </div>`;
-    const pending = Number(r.pending_count || 0);
-    const pendingHtml = pending > 0
-      ? `<span class="badge inactive">${pending} missing</span>`
-      : `<span class="badge">All complete</span>`;
-    const nameSuffix = r.status === 'pending'
-      ? ' <span class="badge inactive" title="Added by HR, waiting for Admin approval">Pending Approval</span>'
-      : '';
+      const pending = Number(r.pending_count || 0);
+      const pendingHtml = pending > 0
+        ? `<span class="badge inactive">${pending} missing</span>`
+        : `<span class="badge">All complete</span>`;
+      const nameSuffix = r.status === 'pending'
+        ? ' <span class="badge inactive" title="Added by HR, waiting for Admin approval">Pending Approval</span>'
+        : '';
 
-    return `
+      return `
       <tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${photoHtml}</a></td>
         <td><a href="employee_detail.html?id=${r.employee_id}"><span class="badge">${r.employee_code}</span></a></td>
@@ -722,95 +767,10 @@ Amit Shah	9123456780		web management		"></textarea>
           </div>
         </td>
       </tr>`;
+    }).join('');
   }
-
-  function updateEmpLoadMoreUi() {
-    const label = document.getElementById('empShownCount');
-    const btn = document.getElementById('btnEmpLoadMore');
-    if (empSortedRows.length === 0) { label.textContent = ''; btn.style.display = 'none'; return; }
-    label.textContent = `Showing ${empShown} of ${empSortedRows.length}`;
-    btn.style.display = empShown >= empSortedRows.length ? 'none' : 'inline-block';
-  }
-
-  // Mobile card for one employee — same data and same actions as the table
-  // row, stacked so eight columns don't have to fit a phone screen.
-  function empCardHtml(r) {
-    const photoHtml = r.photo
-      ? `<img src="${fileUrl(r.photo)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;">`
-      : `<div style="width:42px;height:42px;border-radius:50%;background:#f2f2f4;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#999;flex:none;">
-           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-         </div>`;
-    const pending = Number(r.pending_count || 0);
-    const pendingHtml = pending > 0
-      ? `<span class="badge inactive">${pending} missing</span>`
-      : `<span class="badge">All complete</span>`;
-    const nameSuffix = r.status === 'pending'
-      ? ' <span class="badge inactive" title="Added by HR, waiting for Admin approval">Pending</span>'
-      : '';
-    const joined = r.joining_date
-      ? new Date(r.joining_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-      : '—';
-
-    return `
-      <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
-        <div style="display:flex; align-items:center; gap:11px;">
-          <a href="employee_detail.html?id=${r.employee_id}" style="flex:none;">${photoHtml}</a>
-          <div style="flex:1; min-width:0;">
-            <a href="employee_detail.html?id=${r.employee_id}" style="font-size:13.5px; font-weight:600; color:inherit; text-decoration:none;">${r.full_name}</a>${nameSuffix}
-            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">
-              ${r.employee_code}${r.department_name ? ' · ' + r.department_name : ''}
-            </div>
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-          <div>
-            <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">Mobile</div>
-            <div style="font-size:13px; margin-top:1px;">${r.mobile ? `<a href="tel:${r.mobile}">${r.mobile}</a>` : '—'}</div>
-          </div>
-          <div>
-            <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">Joined</div>
-            <div style="font-size:13px; margin-top:1px;">${joined}</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:10px; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);">
-          ${pendingHtml}
-          <span class="row-actions" style="margin-left:auto;">
-            <button onclick='editEmployee(${r.employee_id})'>Edit</button>
-            <button class="danger-link" onclick="deleteEmployee(${r.employee_id}, '${(r.full_name||'').replace(/'/g,"\\'")}')">Delete</button>
-          </span>
-        </div>
-      </div>`;
-  }
-
-  function renderEmpNextPage() {
-    const next = empSortedRows.slice(empShown, empShown + EMP_PAGE_SIZE);
-    tableBody.insertAdjacentHTML('beforeend', next.map(empRowHtml).join(''));
-    document.getElementById('empCards').insertAdjacentHTML('beforeend', next.map(empCardHtml).join(''));
-    empShown += next.length;
-    updateEmpLoadMoreUi();
-  }
-
-  function renderTable(rows) {
-    empSortedRows = sortRows(rows);
-    empShown = 0;
-    document.getElementById('cardTitle').textContent = `Employees (${empSortedRows.length})`;
-    if (empSortedRows.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="8" class="empty-state">No employees found.</td></tr>';
-      document.getElementById('empCards').innerHTML = '<div class="empty-state">No employees found.</div>';
-      updateEmpLoadMoreUi();
-      return;
-    }
-    tableBody.innerHTML = '';
-    document.getElementById('empCards').innerHTML = '';
-    renderEmpNextPage();
-  }
-
-  document.getElementById('btnEmpLoadMore').addEventListener('click', renderEmpNextPage);
 
   let currentRows = [];
-  // True when this page was opened via ?edit=N from an employee detail page,
-  // which means saving should return the user to wherever they started.
-  let cameFromEditLink = false;
 
   async function loadEmployees() {
     const search = document.getElementById('tableSearch').value.trim();
@@ -822,9 +782,11 @@ Amit Shah	9123456780		web management		"></textarea>
     try {
       const data = await api.get('employees.list', params);
       currentRows = data.employees;
+      page = 1;
       renderTable(currentRows);
     } catch (err) {
       tableBody.innerHTML = `<tr><td colspan="8"><div class="alert error">${err.message}</div></td></tr>`;
+      pager.style.display = 'none';
     }
   }
 
@@ -874,9 +836,6 @@ Amit Shah	9123456780		web management		"></textarea>
       whatsapp_group_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
       ),
-      store_group_keys: JSON.stringify(
-        Array.from(document.querySelectorAll('.store-group-cb:checked')).map(cb => cb.value)
-      ),
       excel_file_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.excel-file-cb:checked')).map(cb => Number(cb.value))
       ),
@@ -914,17 +873,6 @@ Amit Shah	9123456780		web management		"></textarea>
       }
 
       closeModal();
-
-      // Opened from a detail page that itself came from Targets /
-      // Performance / Attendance? Go back there instead of leaving the user
-      // stranded on the Employees list they never meant to visit.
-      const returnTo = sessionStorage.getItem('hrmsReturnTo');
-      if (id && cameFromEditLink && returnTo) {
-        sessionStorage.removeItem('hrmsReturnTo');
-        location.href = returnTo;
-        return;
-      }
-
       showAlert(id ? 'Employee updated.' : `Employee added (code: ${res.employee_code}).`);
       loadEmployees();
     } catch (err) {
@@ -946,7 +894,7 @@ Amit Shah	9123456780		web management		"></textarea>
   };
 
   document.getElementById('deptFilter').addEventListener('change', loadEmployees);
-  document.getElementById('sortFilter').addEventListener('change', () => renderTable(currentRows));
+  document.getElementById('sortFilter').addEventListener('change', () => { page = 1; renderTable(currentRows); });
 
   /*
    * Export the currently filtered + sorted rows (whatever's on screen right
@@ -982,7 +930,6 @@ Amit Shah	9123456780		web management		"></textarea>
   (async function init() {
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
-    renderStoreGroups();
     await loadWaGroups();
     await loadExcelFiles();
 
@@ -997,7 +944,6 @@ Amit Shah	9123456780		web management		"></textarea>
 
     const editId = urlParams.get('edit');
     if (editId) {
-      cameFromEditLink = true;
       window.editEmployee(editId);
     }
 

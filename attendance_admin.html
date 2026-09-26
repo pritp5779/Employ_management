@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body>
 <div class="app">
@@ -26,6 +26,7 @@
         <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
         <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <button class="btn secondary" id="btnToday">Today</button>
+        <button class="btn secondary" id="btnTiming" type="button" title="Set when each attendance day starts (same rule as Orders and Targets)">Day timing</button>
       </div>
     </div>
     <div class="content">
@@ -51,6 +52,20 @@
 </div>
 
 
+<div class="modal-overlay" id="timingModal">
+  <div class="modal" style="max-width:440px;">
+    <h3>Day timing</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">An attendance day runs from its start time until the next day's start time — a punch out after midnight still belongs to the day the shift started. This is the same rule Orders and Targets use. Default is 10:00 AM every day.</p>
+    <div id="timingAlert"></div>
+    <div id="timingRows"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="timingReset">Reset to 10:00 AM</button>
+      <button type="button" class="btn secondary" id="timingCancel">Cancel</button>
+      <button type="button" class="btn" id="timingSave">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="photoModal">
   <div class="modal" style="max-width:440px;">
     <h3 id="photoTitle">Punch photo</h3>
@@ -62,7 +77,7 @@
 </div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
 <script>
   guardPage();
   renderSidebar('attendance_admin');
@@ -73,8 +88,24 @@
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
   }
 
+  // Start time per weekday [Sun..Sat], default 10:00. An attendance day runs
+  // from its start until the next day's start (shifts past midnight stay on
+  // the day they started). Shared with Orders and Targets (day_timing).
+  let DAY_START = ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+  const timingReady = api.get('day_timing.get').then(d => { if (Array.isArray(d.start) && d.start.length === 7) DAY_START = d.start; }).catch(() => {});
+  const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
+  function dayWindowText() {
+    const all = new Set(DAY_START);
+    if (all.size === 1) { const t = fmtHM(DAY_START[0]); return `${t} to next day ${t}`; }
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return 'each day from ' + DAY_START.map((t, i) => `${names[i]} ${fmtHM(t)}`).join(', ');
+  }
+  // "Today" = the current attendance day: before the day-start time it is
+  // still yesterday's date (matching how api.php files the punches).
   function todayStr() {
     const d = new Date();
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
   const fmtT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
@@ -203,11 +234,19 @@
   // <a href> can't send the token, so the bytes are fetched and shown here.
   const photoModal = document.getElementById('photoModal');
   let photoObjectUrl = null;
+  // Where the list was scrolled to when the popup opened. Opening/closing
+  // an overlay can make the browser snap the page to the top (an older
+  // cached style.css also locked body scroll); restoring the position
+  // keeps the user on the row they were looking at.
+  let photoScrollY = 0;
 
   function closePhoto() {
     photoModal.classList.remove('open');
     if (photoObjectUrl) { URL.revokeObjectURL(photoObjectUrl); photoObjectUrl = null; }
     document.getElementById('photoBody').innerHTML = '';
+    const y = photoScrollY;
+    window.scrollTo(0, y);
+    requestAnimationFrame(() => window.scrollTo(0, y));
   }
   document.getElementById('photoClose').addEventListener('click', closePhoto);
   photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhoto(); });
@@ -217,7 +256,9 @@
     document.getElementById('photoTitle').textContent =
       `${name} — punch ${which === 'out' ? 'out' : 'in'}`;
     body.innerHTML = '<div class="loading" style="padding:30px 0;">Loading photo...</div>';
+    photoScrollY = window.scrollY;
     photoModal.classList.add('open');
+    if (window.scrollY !== photoScrollY) window.scrollTo(0, photoScrollY);
     try {
       const res = await fetch(api.buildUrl('attendance.photo', {
         employee_id: empId, date: currentAttDate, which,
@@ -257,7 +298,7 @@
       const present = allRows.filter(r => r.punch_in).length;
       const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
       document.getElementById('attSummary').textContent =
-        `${present} present · ${allRows.length - present} absent · ${dateLabel}`;
+        `${present} present · ${allRows.length - present} absent · ${dateLabel} · day = ${dayWindowText()}`;
       renderTable();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
@@ -275,7 +316,53 @@
     }
   };
 
-  document.getElementById('datePick').value = todayStr();
+  // ---- Day timing window (Admin/HR) ----
+  { const u = api.currentUser() || {}; if (!['Admin', 'HR'].includes(u.role)) document.getElementById('btnTiming').style.display = 'none'; }
+  const timingModal = document.getElementById('timingModal');
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let timingScrollY = 0;
+  function renderTiming(vals) {
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    document.getElementById('timingRows').innerHTML = `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:0 0 4px;"><span>Day</span><span>Starts at</span><span>Counts from → to</span></div>` +
+      order.map(i => `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; align-items:center; padding:6px 0; border-top:1px solid var(--line); font-size:13px;">
+        <b>${DAY_NAMES[i]}</b><input type="time" class="timing-in" data-wd="${i}" value="${vals[i]}" style="padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span class="timing-win" data-wd="${i}" style="font-size:11.5px; color:var(--muted);"></span></div>`).join('');
+    paintWindows();
+  }
+  function timingVals() { const v = [...DAY_START]; document.querySelectorAll('.timing-in').forEach(i => { v[Number(i.dataset.wd)] = i.value || '10:00'; }); return v; }
+  function paintWindows() {
+    const v = timingVals(); const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    document.querySelectorAll('.timing-win').forEach(el => { const i = Number(el.dataset.wd), n = (i + 1) % 7;
+      el.textContent = `${names[i]} ${fmtHM(v[i])} → ${names[n]} ${fmtHM(v[n])}`; el.style.color = (v[i] !== '10:00' || v[n] !== '10:00') ? 'var(--accent)' : 'var(--muted)'; });
+  }
+  function closeTiming() {
+    timingModal.classList.remove('open');
+    const y = timingScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+  }
+  document.getElementById('btnTiming').addEventListener('click', async () => {
+    await timingReady;
+    document.getElementById('timingAlert').innerHTML = '';
+    renderTiming(DAY_START);
+    timingScrollY = window.scrollY;
+    timingModal.classList.add('open');
+  });
+  document.getElementById('timingCancel').addEventListener('click', closeTiming);
+  timingModal.addEventListener('click', (e) => { if (e.target === timingModal) closeTiming(); });
+  timingModal.addEventListener('input', (e) => { if (e.target.classList.contains('timing-in')) paintWindows(); });
+  document.getElementById('timingReset').addEventListener('click', () => renderTiming(['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00']));
+  document.getElementById('timingSave').addEventListener('click', async () => {
+    const btn = document.getElementById('timingSave'); btn.disabled = true;
+    try {
+      const d = await api.post('day_timing.save', { start: timingVals() });
+      DAY_START = timingVals();
+      closeTiming();
+      showAlert(d.message || 'Day timing saved.');
+      load();
+    } catch (err) {
+      document.getElementById('timingAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally { btn.disabled = false; }
+  });
+
   document.getElementById('datePick').addEventListener('change', load);
   document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('datePick').value = todayStr(); load(); });
   let searchTimer = null;
@@ -283,7 +370,8 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(renderTable, 150);
   });
-  load();
+  // The day-start rule decides which date is "today", so wait for it first.
+  timingReady.then(() => { document.getElementById('datePick').value = todayStr(); load(); });
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
