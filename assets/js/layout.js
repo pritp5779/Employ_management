@@ -66,15 +66,16 @@ function renderSidebar(active) {
     api.get('me.flags').then((d) => {
       if (syncRole(d)) return;
       const perms = d.permissions || [];
-      // If the current page isn't allowed for this role, go to their first
-      // allowed page instead (e.g. login lands on Dashboard by default).
+      // If the current page isn't allowed for this role, say so in the menu
+      // instead of silently jumping away (the page's own data calls are
+      // refused by the server anyway, with the same explanation).
       const activePerm = Object.keys(PAGES_FOR_PERM).find(p => PAGES_FOR_PERM[p].some(d => d[2] === active));
-      if (perms.length && activePerm && !perms.includes(activePerm)) {
-        window.location.replace(PAGES_FOR_PERM[perms[0]][0][0]);
-        return;
-      }
       const nav = document.getElementById('customNav');
       if (!nav) return;
+      if (perms.length && activePerm && !perms.includes(activePerm)) {
+        const label = (PAGES_FOR_PERM[activePerm].find(d => d[2] === active) || PAGES_FOR_PERM[activePerm][0])[1];
+        nav.insertAdjacentHTML('beforeend', `<span style="display:block; padding:8px 20px; font-size:12px; color:#fca5a5; line-height:1.5;">Your role "${user.role}" doesn't include <b>${label}</b>. Ask an Admin to tick it on the Roles page.</span>`);
+      }
       perms.forEach((p) => {
         (PAGES_FOR_PERM[p] || []).forEach((def) => {
           nav.insertAdjacentHTML('beforeend', `<a href="${def[0]}" class="${active === def[2] ? 'active' : ''}">${def[1]}</a>`);
