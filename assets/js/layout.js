@@ -8,6 +8,18 @@ function renderSidebar(active) {
   const linkClass = (key) => (active === key ? 'active' : '');
   const isAdmin = user.role === 'Admin';
 
+  // The role saved at login can go stale when Admin changes it on the Users
+  // page. me.flags returns the live role: store it and rebuild the page so
+  // the new access applies without logging out and in.
+  const syncRole = (d) => {
+    if (d && d.role && d.role !== user.role) {
+      api.setUser(Object.assign({}, user, { role: d.role }));
+      window.location.reload();
+      return true;
+    }
+    return false;
+  };
+
   // Each permission can unlock one or more pages.
   const PAGES_FOR_PERM = {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
@@ -52,6 +64,7 @@ function renderSidebar(active) {
   `;
     addMobileMenu();
     api.get('me.flags').then((d) => {
+      if (syncRole(d)) return;
       const perms = d.permissions || [];
       // If the current page isn't allowed for this role, go to their first
       // allowed page instead (e.g. login lands on Dashboard by default).
@@ -103,6 +116,7 @@ function renderSidebar(active) {
     addMobileMenu();
 
     api.get('me.flags').then((d) => {
+      if (syncRole(d)) return;
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
       const allowed = ['attendance', 'my_salary', 'my_agreements'].concat(grantedActives);
@@ -211,6 +225,7 @@ function renderSidebar(active) {
   initNavCategories(categories, active);
 
   if (isAdmin) {
+    api.get('me.flags').then(syncRole).catch(() => {});
     api.get('approvals.count').then((d) => {
       const badge = document.getElementById('approvalBadge');
       if (badge && d.count > 0) {
