@@ -226,6 +226,8 @@
   }
 
   const allowBtn = '<div style="margin-top:8px;"><button type="button" class="btn" style="width:auto; min-height:40px;" onclick="recheckLocation()">📍 Allow location access</button></div>';
+  const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const STANDALONE = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   function locError(err) {
     inside = false; applyGate();
     if (!offices.length) return;
@@ -233,6 +235,14 @@
     let why;
     if (!window.isSecureContext) {
       why = 'This page was opened over http:// — phones only share location with https:// pages. Open the site with <b style="display:inline;">https://</b> and try again.';
+    } else if (IS_IOS) {
+      // iPhone: Safari never shows a popup when Location Services are off
+      // for Safari — it just fails. Give the exact Settings path.
+      why = (err && err.code === 3)
+        ? 'The iPhone took too long to find you — go near a window, keep Wi-Fi on, then tap again.'
+        : 'iPhone location is off for this site. Open <b style="display:inline;">Settings → Privacy &amp; Security → Location Services</b> (ON) → <b style="display:inline;">Safari Websites</b> → "While Using the App" and Precise Location ON. Then <b style="display:inline;">Settings → Safari → Location → Ask</b> (or Allow). '
+          + (STANDALONE ? 'Home-screen app: also check Settings → HRMS → Location. ' : '')
+          + 'Come back and tap the button.';
     } else if (err && err.code === 1) {
       why = 'Location is blocked for this site or off on the phone. Tap the button below (the phone asks once). If nothing appears: phone Settings → Location ON; browser → Site settings → Location → Allow for this site; if you opened this from WhatsApp/Instagram, open it in Chrome/Safari instead.';
     } else if (err && err.code === 3) {
@@ -243,6 +253,15 @@
     locBox.innerHTML = `<b>📡 Location needed</b>${why}${allowBtn}`;
   }
 
+  // One-shot fix with an automatic retry: iPhones sometimes time out on the
+  // high-accuracy request but answer at once to a normal one.
+  function getFix(onOk, onErr, timeout) {
+    navigator.geolocation.getCurrentPosition(onOk, (e1) => {
+      if (e1 && e1.code === 1) return onErr(e1);
+      navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: false, maximumAge: 15000, timeout: timeout });
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: timeout });
+  }
+
   function startWatch() {
     if (!navigator.geolocation) { locError({ code: 0 }); return; }
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
@@ -251,7 +270,7 @@
     watchId = navigator.geolocation.watchPosition((pos) => {
       fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy, at: Date.now() };
       paintLoc();
-    }, locError, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+    }, (err) => { if (!fix || (err && err.code === 1)) locError(err); }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
   }
   // From a tap: a one-shot request first (this is what makes the browser
   // show its permission popup), then the live watch.
@@ -260,11 +279,11 @@
     if (!navigator.geolocation) { locError({ code: 0 }); return; }
     locBox.className = 'loc';
     locBox.innerHTML = '<b>📡 Finding your location…</b>Tap <b style="display:inline;">Allow</b> when the phone asks.';
-    navigator.geolocation.getCurrentPosition((pos) => {
+    getFix((pos) => {
       fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy, at: Date.now() };
       paintLoc();
       startWatch();
-    }, locError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    }, locError, 20000);
   };
 
   // On load: only start silently when the site is already allowed; otherwise
@@ -299,10 +318,10 @@
   function currentFix() {
     return new Promise((resolve) => {
       if (!navigator.geolocation) return resolve(fix);
-      navigator.geolocation.getCurrentPosition(
+      getFix(
         (pos) => { fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy, at: Date.now() }; paintLoc(); if (watchId === null) startWatch(); resolve(fix); },
         (err) => { if (!fix) locError(err); resolve(fix); },
-        { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 });
+        15000);
     });
   }
 
