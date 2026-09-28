@@ -13,7 +13,7 @@
 <title>Orders — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
-  .plat-cards{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;}
+  .plat-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;}
   .plat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 14px 10px; border-top:4px solid var(--c);}
   .plat-card h3{margin:0 0 8px; font-size:14px; color:var(--c); display:flex; justify-content:space-between; align-items:baseline;}
   .plat-card h3 small{font-size:11px; color:var(--muted); font-weight:400;}
@@ -289,6 +289,8 @@
       sel.innerHTML = '<option value="">All Stores</option>' +
         (data.stores || []).map(s => `<option value="${s.key}">${s.label}</option>`).join('') +
         '<option value="tm4u">TM4U (orders tagged tm4u)</option>' +
+        '<option value="tmsg">TM Shower Gel</option>' +
+        '<option value="tmh4">TM House 4th</option>' +
         '<option value="manual">Manual</option>';
     } catch (err) {
       showAlert(err.message, 'error');
@@ -385,7 +387,7 @@
   // One column per platform (house). A platform is the house tag first,
   // then the store — the same rule the server uses (o.house). Query counts
   // come from Assign Queries for the same dates.
-  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tmf', 'TM Fragrance', 'fr'], ['tm4u', 'TM4U', 'fu']];
+  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tmf', 'TM Fragrance', 'fr'], ['tm4u', 'TM4U', 'fu'], ['tmsg', 'TM Shower Gel', 'sg'], ['tmh4', 'TM House 4th', 'h4']];
   const QUERY_TAGS = ['query', 's'], CAMPAIGN_TAGS = ['campaign', 'c'];
   const STORE_HOUSE_MAP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
   function orderTagType(tags) {
@@ -435,7 +437,7 @@
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`],
       ['t', 'Total order', `<b>${p.to}</b>`],
     ].map(([c, l, v]) => `<div class="li ${c}"><span>${l}</span>${v}</div>`).join('');
-    const colors = { tmph: '#1d4ed8', tmf: '#b45f06', tm4u: '#7e22ce' };
+    const colors = { tmph: '#1d4ed8', tmf: '#b45f06', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
     document.getElementById('platCards').innerHTML = shown.map(([k, label]) =>
       `<div class="plat-card" style="--c:${colors[k]};"><h3>${label}<small>${stats[k].to} order${stats[k].to === 1 ? '' : 's'}</small></h3><div class="plat-lines">${lines(stats[k])}</div></div>`).join('');
     const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
@@ -481,8 +483,8 @@
 
   // Which house the order counts under, and why — same rule as the server:
   // a house tag (tmph / tmf / tm4u) beats the store; two house tags = store.
-  const HOUSE_TAG = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
-  const HOUSE_LABEL = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  const HOUSE_TAG = { tm4u: 'tm4u', tmforu: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf', tmsg: 'tmsg', 'tm shower gel': 'tmsg', tmh4: 'tmh4', 'tm house 4th': 'tmh4' };
+  const HOUSE_LABEL = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   const STORE_HOUSE = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
   function houseReason(o, tags) {
     if (!STORE_HOUSE[o.store_key]) return '—';

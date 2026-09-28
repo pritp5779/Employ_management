@@ -27,6 +27,7 @@
         <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <button class="btn secondary" id="btnToday">Today</button>
         <button class="btn secondary" id="btnTiming" type="button" title="Set when each attendance day starts (same rule as Orders and Targets)">Day timing</button>
+        <button class="btn secondary" id="btnRefused" type="button" title="Punch tries refused because the employee was outside their office area">Refused <span id="refusedCount" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
       </div>
     </div>
     <div class="content">
@@ -66,6 +67,16 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="refusedModal">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="refusedTitle">Refused punches</h3>
+    <div style="font-size:12.5px; color:var(--muted); margin-bottom:10px;">Punch In / Out tries that were refused because the employee was outside their office area (or had no office / no GPS). Nothing was saved for these.</div>
+    <div id="refusedBody" style="max-height:60vh; overflow:auto;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="refusedClose">Close</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="photoModal">
   <div class="modal" style="max-width:440px;">
     <h3 id="photoTitle">Punch photo</h3>
@@ -77,7 +88,7 @@
 </div>
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/layout.js?v=4"></script>
 <script>
   guardPage();
   renderSidebar('attendance_admin');
@@ -150,12 +161,18 @@
     return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn };
   }
 
+  // "Adajan Office · 40 m" under a punch time (where the punch was made).
+  function locLine(office, dist) {
+    if (!office && (dist === null || dist === undefined)) return '';
+    return `<div style="font-size:10.5px; color:var(--muted); white-space:nowrap;">${office || ''}${dist !== null && dist !== undefined ? ' · ' + dist + ' m' : ''}</div>`;
+  }
+
   function attRowHtml(r) {
     const v = prep(r);
     return `<tr>
         <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
-        <td>${fmtT(r.punch_in)}</td>
-        <td>${fmtT(r.punch_out)}</td>
+        <td>${fmtT(r.punch_in)}${locLine(r.in_office, r.in_distance_m)}</td>
+        <td>${fmtT(r.punch_out)}${locLine(r.out_office, r.out_distance_m)}</td>
         <td>${v.hours}</td>
         <td>${v.status}</td>
         <td>${v.photos}</td>
@@ -176,8 +193,8 @@
           <span style="font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;">${r.employee_code}</span>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
-          ${field('Punch in', fmtT(r.punch_in))}
-          ${field('Punch out', fmtT(r.punch_out))}
+          ${field('Punch in', fmtT(r.punch_in) + locLine(r.in_office, r.in_distance_m))}
+          ${field('Punch out', fmtT(r.punch_out) + locLine(r.out_office, r.out_distance_m))}
           ${field('Hours', v.hours)}
           ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>`)}
         </div>
@@ -288,6 +305,44 @@
 
   let currentAttDate = '';
 
+  // ---- Refused punches (outside the office area) ----
+  let refusedRows = [];
+  async function loadRefused(date) {
+    try {
+      const d = await api.get('attendance.attempts', { date, result: 'refused' });
+      refusedRows = d.attempts || [];
+    } catch (e) { refusedRows = []; }
+    const badge = document.getElementById('refusedCount');
+    badge.textContent = refusedRows.length;
+    badge.style.display = refusedRows.length ? 'inline-block' : 'none';
+  }
+  const refusedModal = document.getElementById('refusedModal');
+  let refusedScrollY = 0;
+  document.getElementById('btnRefused').addEventListener('click', () => {
+    const fmtDT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const dist = (m) => m === null || m === undefined ? '—' : (m >= 1000 ? (m / 1000).toFixed(1) + ' km' : m + ' m');
+    document.getElementById('refusedTitle').textContent = `Refused punches — ${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}`;
+    document.getElementById('refusedBody').innerHTML = refusedRows.length
+      ? `<table><thead><tr><th>Time</th><th>Employee</th><th>Type</th><th>Office</th><th>Distance</th><th>Reason</th></tr></thead><tbody>` +
+        refusedRows.map(a => `<tr>
+          <td>${fmtDT(a.created_at)}</td>
+          <td>${a.full_name} <span class="badge">${a.employee_code || ''}</span></td>
+          <td>${a.punch_type === 'in' ? 'In' : 'Out'}</td>
+          <td>${a.office_name || '<span style="color:var(--muted);">none</span>'}</td>
+          <td>${dist(a.distance_m)}${a.accuracy_m ? `<div style="font-size:10.5px; color:var(--muted);">±${a.accuracy_m} m</div>` : ''}</td>
+          <td style="font-size:12px;">${a.reason || ''}</td>
+        </tr>`).join('') + '</tbody></table>'
+      : '<div class="empty-state">No refused punches on this day ✓</div>';
+    refusedScrollY = window.scrollY;
+    refusedModal.classList.add('open');
+  });
+  function closeRefused() {
+    refusedModal.classList.remove('open');
+    const y = refusedScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+  }
+  document.getElementById('refusedClose').addEventListener('click', closeRefused);
+  refusedModal.addEventListener('click', (e) => { if (e.target === refusedModal) closeRefused(); });
+
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();
     currentAttDate = date;
@@ -300,6 +355,7 @@
       document.getElementById('attSummary').textContent =
         `${present} present · ${allRows.length - present} absent · ${dateLabel} · day = ${dayWindowText()}`;
       renderTable();
+      loadRefused(date);
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }

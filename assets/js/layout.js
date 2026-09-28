@@ -3,6 +3,8 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
+const LAYOUT_BUILD = '260928.1';   // shown under your name in the sidebar
+
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
   const linkClass = (key) => (active === key ? 'active' : '');
@@ -12,6 +14,8 @@ function renderSidebar(active) {
   // page. me.flags returns the live role: store it and rebuild the page so
   // the new access applies without logging out and in.
   const syncRole = (d) => {
+    const tag = document.getElementById('buildTag');
+    if (tag && d && d.build) tag.textContent = 'layout ' + LAYOUT_BUILD + ' · api ' + d.build;
     if (d && d.role && d.role !== user.role) {
       api.setUser(Object.assign({}, user, { role: d.role }));
       window.location.reload();
@@ -26,6 +30,7 @@ function renderSidebar(active) {
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
+    offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
     performance: [['performance.html', 'Performance', 'performance']],
@@ -59,6 +64,7 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
+        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
@@ -111,6 +117,7 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
+        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
@@ -184,6 +191,7 @@ function renderSidebar(active) {
     ]},
     { key: 'masters', label: 'Masters', defaultOpen: false, links: [
       ['departments.html', 'Departments', 'departments'],
+      ['offices.html', 'Office Locations', 'offices'],
     ]},
     { key: 'people', label: 'People', defaultOpen: false, links: [
       ['employees.html', 'Employees', 'employees'],
@@ -218,6 +226,7 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
+        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
