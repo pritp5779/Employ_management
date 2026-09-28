@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260928.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '260928.2';   // shown under your name in the sidebar
 
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
@@ -182,6 +182,7 @@ function renderSidebar(active) {
       ['orders.html', 'Shopify Orders', 'orders'],
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
+      ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],
       ['performance.html', 'Performance', 'performance'],
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
@@ -191,7 +192,6 @@ function renderSidebar(active) {
     ]},
     { key: 'masters', label: 'Masters', defaultOpen: false, links: [
       ['departments.html', 'Departments', 'departments'],
-      ['offices.html', 'Office Locations', 'offices'],
     ]},
     { key: 'people', label: 'People', defaultOpen: false, links: [
       ['employees.html', 'Employees', 'employees'],
