@@ -3,8 +3,93 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260928.6';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '260930.1';   // shown under your name in the sidebar
 
+
+/**
+ * Punch-in reminder pop-up (employee logins, every page).
+ *
+ * About once a minute the page asks the server whether a "you haven't
+ * punched in" reminder is due (at the office N minutes without punching in,
+ * or N minutes after the day started). When it is, a pop-up appears on top
+ * of whatever page is open, with a Punch In button. If the employee allowed
+ * notifications, the phone also shows one while the app is in the
+ * background. When the HRMS is closed, the server pushes the same reminder
+ * to the phone (see sw.js) — that only needs the one-time "Allow
+ * notifications" tap. Nothing is sent by WhatsApp / SMS; no keys involved.
+ */
+async function hrmsPushSubscribe(interactive) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || !window.isSecureContext) return false;
+  const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+  await navigator.serviceWorker.ready;
+  if (Notification.permission !== 'granted') {
+    if (!interactive) return false;
+    if ((await Notification.requestPermission()) !== 'granted') return false;
+  }
+  const k = await api.get('push.key');
+  const toKey = (b64) => { const pad = '='.repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(k.key) });
+  const j = sub.toJSON();
+  await api.post('push.subscribe', { endpoint: j.endpoint, keys: j.keys, device: navigator.userAgent.slice(0, 160) });
+  try { localStorage.setItem('hrms_push_day', new Date().toDateString()); } catch (e) {}
+  return true;
+}
+
+function startPunchReminder() {
+  if (window.__punchReminderOn) return;
+  window.__punchReminderOn = true;
+  const onPunchPage = /(^|\/)attendance\.html$/.test(location.pathname);
+  let box = null;
+  // Phone already allowed notifications → keep its subscription fresh (once a day, silently).
+  try {
+    if ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('hrms_push_day') !== new Date().toDateString()) hrmsPushSubscribe(false).catch(() => {});
+  } catch (e) {}
+  function show(d) {
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'punchReminder';
+      box.style.cssText = 'position:fixed; inset:0; background:rgba(17,24,39,.55); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;';
+      document.body.appendChild(box);
+    }
+    const since = d.since ? new Date(String(d.since).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+    const canAsk = ('Notification' in window) && Notification.permission === 'default';
+    box.innerHTML = `<div style="background:#fff; border-radius:16px; max-width:420px; width:100%; padding:22px 20px; box-shadow:0 24px 60px rgba(0,0,0,.35); font-family:inherit;">
+        <div style="font-size:34px; line-height:1; margin-bottom:8px;">${d.seq >= d.max ? '🚨' : '⏰'}</div>
+        <div style="font-size:17px; font-weight:700; color:#111827; margin-bottom:6px;">${d.title || "You haven't punched in yet"}</div>
+        <div style="font-size:13.5px; color:#374151; line-height:1.5;">${d.message || ''}</div>
+        <div style="font-size:11.5px; color:#6b7280; margin-top:8px;">Reminder ${d.seq} of ${d.max}${since ? ' · since ' + since : ''}</div>
+        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+          ${onPunchPage ? '<button type="button" class="btn" id="prPunch" style="flex:1; min-height:44px;">OK, punching in</button>' : '<a class="btn" href="attendance.html" style="flex:1; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">Punch In</a>'}
+          <button type="button" class="btn secondary" id="prLater" style="flex:1; min-height:44px;">Later</button>
+        </div>
+        ${canAsk ? '<button type="button" id="prAllow" style="margin-top:12px; background:none; border:none; color:#2563eb; font-size:12.5px; cursor:pointer; padding:0; min-height:0; text-decoration:underline;">🔔 Also remind me on this phone when HRMS is closed</button>' : ''}
+      </div>`;
+    box.style.display = 'flex';
+    const close = () => { box.style.display = 'none'; };
+    const later = document.getElementById('prLater'); if (later) later.onclick = close;
+    const punch = document.getElementById('prPunch'); if (punch) punch.onclick = close;
+    const allow = document.getElementById('prAllow'); if (allow) allow.onclick = () => { allow.disabled = true; hrmsPushSubscribe(true).then(() => { allow.remove(); }).catch(() => { allow.remove(); }); };
+    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+    // Phone notification too, when allowed and the app is not in front.
+    try {
+      if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+        const n = new Notification(d.title || "You haven't punched in yet", { body: d.message || '', tag: 'hrms-punch', renotify: true });
+        n.onclick = () => { window.focus(); if (!onPunchPage) location.href = 'attendance.html'; };
+      }
+    } catch (e) {}
+  }
+  async function poll() {
+    try {
+      const d = await api.get('me.reminder_status');
+      if (d && d.show) show(d);
+      else if (d && d.punched_in && box) box.style.display = 'none';
+    } catch (e) {}
+  }
+  poll();
+  setInterval(poll, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
+}
 
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
@@ -17,6 +102,12 @@ function renderSidebar(active) {
   const syncRole = (d) => {
     const tag = document.getElementById('buildTag');
     if (tag && d && d.build) tag.textContent = 'layout ' + LAYOUT_BUILD + ' · api ' + d.build;
+    // The server knows which layout.js has every current page in its menu.
+    // An older one still loaded here means a stale upload or cache — say so
+    // instead of silently missing links.
+    if (tag && d && d.layout_min && LAYOUT_BUILD < d.layout_min) {
+      tag.insertAdjacentHTML('afterend', `<span style="display:block; margin-top:6px; font-size:11px; color:#fca5a5; line-height:1.4;">Old menu file loaded (layout ${LAYOUT_BUILD}, server needs ${d.layout_min}). Upload the latest assets/js/layout.js and reload.</span>`);
+    }
     if (d && d.role && d.role !== user.role) {
       api.setUser(Object.assign({}, user, { role: d.role }));
       window.location.reload();
@@ -134,6 +225,7 @@ function renderSidebar(active) {
   `;
     addMobileMenu();
 
+    startPunchReminder();
     api.get('me.flags').then((d) => {
       if (syncRole(d)) return;
       const perms = d.permissions || [];

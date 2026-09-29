@@ -87,6 +87,8 @@
           </div>
           <canvas id="snap" style="display:none;"></canvas>
 
+          <div id="remindBox" style="display:none; margin-bottom:10px; background:#fff3cd; border:1px solid #f0c36d; color:#7a4b00; border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5;"></div>
+          <div id="pushBox" style="display:none; margin-bottom:10px; background:#eef2ff; border:1px solid #c7d2fe; color:#1e3a8a; border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.5;"></div>
           <div id="locBox" class="loc"><b>📡 Checking your location…</b>Punching is allowed only inside an office area.</div>
 
           <div class="punch-btns">
@@ -159,6 +161,7 @@
         btnOut.style.display = (a && a.punch_in && !a.punch_out) ? '' : 'none';
       }
       const done = !!(a && a.punch_in && a.punch_out);
+      if (a && a.punch_in) { document.getElementById('remindBox').style.display = 'none'; document.title = 'Attendance — HRMS'; clearTimeout(presenceTimer); }
       document.getElementById('doneNote').hidden = !done;
       if (!stream) idle.style.display = done ? 'none' : '';   // don't show "camera off" while it's on
     } catch (err) {
@@ -213,6 +216,7 @@
       if (od <= o.radius_m + tol && !inside) { inside = true; office = o; d = od; }
       else if (!inside && od < d) { office = o; d = od; }
     });
+    reportPresence(inside);
     const pct = Math.max(4, Math.min(100, Math.round(d / office.radius_m * 100)));
     const age = Math.round((Date.now() - fix.at) / 1000);
     locBox.className = 'loc ' + (inside ? 'ok' : 'bad');
@@ -223,6 +227,35 @@
          <div class="meter"><i style="width:100%"></i></div><small>GPS accuracy ±${Math.round(fix.acc || 0)} m · updated ${age < 5 ? 'just now' : age + ' s ago'}</small>
          <div><button type="button" class="recheck" onclick="recheckLocation()">↻ Re-check my location</button></div>`;
     applyGate();
+  }
+
+  // ---------- "At the office, not punched in" reminder ----------
+  // The phone's position is reported to the server (at most every 2 min
+  // while inside an office). If the employee has been here N minutes without
+  // punching in, a yellow reminder shows above the location box and the
+  // server sends the WhatsApp reminder.
+  let presenceAt = 0, presenceInside = null, presenceTimer = null;
+  async function reportPresence(isInside) {
+    if (!fix) return;
+    const now = Date.now();
+    if (presenceInside === isInside && now - presenceAt < 120000) return;
+    presenceInside = isInside; presenceAt = now;
+    try {
+      const d = await api.post('presence.report', { lat: fix.lat, lng: fix.lng, accuracy: fix.acc });
+      paintReminder(d);
+      clearTimeout(presenceTimer);
+      if (!d.punched_in && d.at_office_since) presenceTimer = setTimeout(() => reportPresence(isInside), 60000);
+    } catch (e) { /* the reminder is a courtesy; punching still works */ }
+  }
+  function paintReminder(d) {
+    const box = document.getElementById('remindBox');
+    if (!d || d.punched_in || enrollMode || !d.at_office_since) { box.style.display = 'none'; document.title = 'Attendance — HRMS'; return; }
+    const since = new Date(String(d.at_office_since).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const late = d.minutes_here >= (d.remind_after || 20);
+    box.style.display = '';
+    box.style.background = late ? '#fdecec' : '#fff3cd'; box.style.borderColor = late ? '#f5b5b5' : '#f0c36d'; box.style.color = late ? '#8a1f1f' : '#7a4b00';
+    box.innerHTML = `<b style="display:block; font-size:14px; margin-bottom:2px;">${late ? '⚠️' : '⏱'} You are at ${d.at_office_name || 'the office'} and not punched in</b>Here since ${since} · ${d.minutes_here} min${late ? ' — please punch in now so today is counted.' : '. Punch in when you are ready.'}`;
+    document.title = late ? '⚠️ Punch in! — HRMS' : 'Attendance — HRMS';
   }
 
   const allowBtn = '<div style="margin-top:8px;"><button type="button" class="btn" style="width:auto; min-height:40px;" onclick="recheckLocation()">📍 Allow location access</button></div>';
@@ -686,6 +719,58 @@
   loadOffice();
   loadModels().then(() => { modelsLoaded = true; }).catch(() => { /* retried on tap, with a clear message */ });
 </script>
-<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+<script>
+  // ---------- Phone notifications when the HRMS is closed ----------
+  // One tap on "Allow notifications" and this phone gets the punch-in
+  // reminder even when the HRMS is not open. No number, no key: the
+  // browser's own push service delivers it; the server signs each one.
+  (function () {
+    const box = document.getElementById('pushBox');
+    const SUPPORTED = ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window) && window.isSecureContext;
+    const IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const HOME = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const user = api.currentUser() || {};
+    function paint(html, ok) {
+      box.style.display = '';
+      box.style.background = ok ? '#e7f7ee' : '#eef2ff'; box.style.borderColor = ok ? '#bfe6cf' : '#c7d2fe'; box.style.color = ok ? '#0f7a41' : '#1e3a8a';
+      box.innerHTML = html;
+    }
+    function toKey(b64) { const pad = '='.repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
+    async function subscribe(interactive) {
+      const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+      await navigator.serviceWorker.ready;
+      if (Notification.permission !== 'granted') {
+        if (!interactive) return false;
+        const p = await Notification.requestPermission();
+        if (p !== 'granted') return false;
+      }
+      const k = await api.get('push.key');
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(k.key) });
+      const j = sub.toJSON();
+      await api.post('push.subscribe', { endpoint: j.endpoint, keys: j.keys, device: navigator.userAgent.slice(0, 160) });
+      try { localStorage.setItem('hrms_push_ok', '1'); } catch (e) {}
+      return true;
+    }
+    async function init() {
+      if (!SUPPORTED) { if (IOS && !HOME) paint('<b style="display:block; font-size:14px; margin-bottom:2px;">🔔 Get punch-in reminders on this iPhone</b>Tap <b style="display:inline;">Share</b> → <b style="display:inline;">Add to Home Screen</b>, then open HRMS from the new icon and tap Allow. Reminders then reach you even when HRMS is closed.'); return; }
+      if (Notification.permission === 'denied') { paint('<b style="display:block; font-size:14px; margin-bottom:2px;">🔕 Notifications are blocked for HRMS</b>Allow them in your browser\'s site settings (tap the lock icon in the address bar) to get punch-in reminders when HRMS is closed.'); return; }
+      if (Notification.permission === 'granted') {
+        try { await subscribe(false); paint('🔔 Punch-in reminders are on for this phone — you get them even when HRMS is closed.', true); } catch (e) {}
+        return;
+      }
+      paint('<b style="display:block; font-size:14px; margin-bottom:2px;">🔔 Get punch-in reminders</b>Even when HRMS is closed, this phone will remind you if you have not punched in after the day starts.<div style="margin-top:8px;"><button type="button" class="btn" id="pushAllow" style="width:auto; min-height:40px;">Allow notifications</button></div>');
+      document.getElementById('pushAllow').onclick = async () => {
+        const b = document.getElementById('pushAllow'); b.disabled = true; b.textContent = 'Please wait…';
+        try {
+          const ok = await subscribe(true);
+          if (ok) paint('🔔 Done — this phone will remind you if you forget to punch in, even when HRMS is closed.', true);
+          else paint('Notifications were not allowed. Tap the lock icon in the address bar → Notifications → Allow, then reload.');
+        } catch (e) { paint('Could not turn on reminders: ' + (e.message || e) + '. Please try again later.'); }
+      };
+    }
+    if (user.role === 'Employee' || user.employee_id) init(); else if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+  })();
+</script>
 </body>
 </html>

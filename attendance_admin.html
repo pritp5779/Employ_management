@@ -28,6 +28,7 @@
         <button class="btn secondary" id="btnToday">Today</button>
         <button class="btn secondary" id="btnTiming" type="button" title="Set when each attendance day starts (same rule as Orders and Targets)">Day timing</button>
         <button class="btn secondary" id="btnRefused" type="button" title="Punch tries refused because the employee was outside their office area">Refused <span id="refusedCount" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
+        <button class="btn secondary" id="btnReminders" type="button" title="Pop-up reminder on the employee's phone when they are at the office / past day start but not punched in">Reminders <span id="remindCount" style="display:none; background:#b45f06; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
       </div>
     </div>
     <div class="content">
@@ -74,6 +75,34 @@
     <div id="refusedBody" style="max-height:60vh; overflow:auto;"></div>
     <div class="actions">
       <button type="button" class="btn secondary" id="refusedClose">Close</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="remModal">
+  <div class="modal" style="max-width:760px;">
+    <h3 id="remTitle">Punch-in reminders</h3>
+    <div style="display:flex; gap:6px; margin:-8px 0 12px;">
+      <button type="button" class="btn secondary rem-tab on" data-t="list" style="width:auto; padding:6px 12px; min-height:0;">Not punched in</button>
+      <button type="button" class="btn secondary rem-tab" data-t="set" style="width:auto; padding:6px 12px; min-height:0;">Settings</button>
+    </div>
+    <div id="remAlert"></div>
+    <div id="remList" style="max-height:60vh; overflow:auto;"></div>
+    <div id="remSet" style="display:none;">
+      <div style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">An employee who is <b>at an office</b> (their punch page saw the phone inside the office area) or whose <b>day has started</b>, and who has not punched in, gets a <b>pop-up on whatever HRMS page is open on their phone</b>. If HRMS is <b>closed</b>, the same reminder reaches the phone as a <b>notification</b> (the employee taps "Allow notifications" once on the punch page). Repeats until the limit; the list here shows who is still not in. Stops the moment they punch in. Nothing is sent by WhatsApp or SMS, no keys involved.</div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:8px;"><input type="checkbox" id="remEnabled" style="width:16px; height:16px; min-height:0; margin:0;"> Reminders on</label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:12px;"><input type="checkbox" id="remPush" style="width:16px; height:16px; min-height:0; margin:0;"> Phone notification when HRMS is closed <span id="remPushInfo" style="font-weight:400; font-size:12px; color:var(--muted);"></span></label>
+      <div class="field-grid">
+        <div class="field"><label>Remind after arriving at office (min)</label><input type="number" id="remAfterArrive" min="1" max="240" value="20"></div>
+        <div class="field"><label>If location unknown: remind after day start (min, 0 = off)</label><input type="number" id="remAfterShift" min="0" max="600" value="20"></div>
+        <div class="field"><label>Repeat every (min)</label><input type="number" id="remRepeat" min="5" max="240" value="20"></div>
+        <div class="field"><label>Max reminders per day</label><input type="number" id="remMax" min="1" max="10" value="3"></div>
+        <div class="field"><label>Never remind before (HH:MM, optional)</label><input type="text" id="remQuiet" placeholder="10:00"></div>
+      </div>
+      <div style="font-size:11.5px; color:var(--muted); line-height:1.5;">With HRMS closed the phone cannot tell us "at the office", so the closed-app notification goes by time: day start + the minutes above. iPhone gets it only when HRMS was added to the Home Screen. <button type="button" id="remPushTest" style="background:none; border:none; color:#2563eb; font-size:11.5px; cursor:pointer; padding:0; min-height:0; text-decoration:underline;">Send a test notification to my phone</button></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="remClose">Close</button>
+      <button type="button" class="btn" id="remSave" style="display:none;">Save settings</button>
     </div>
   </div>
 </div>
@@ -343,6 +372,88 @@
   document.getElementById('refusedClose').addEventListener('click', closeRefused);
   refusedModal.addEventListener('click', (e) => { if (e.target === refusedModal) closeRefused(); });
 
+  // ---- Punch-in reminders (pop-up on the employee's phone) ----
+  const remModal = document.getElementById('remModal');
+  let remScrollY = 0, remData = null;
+  const remTab = (t) => {
+    document.querySelectorAll('.rem-tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    document.querySelectorAll('.rem-tab').forEach(b => { b.style.background = b.dataset.t === t ? '#111827' : ''; b.style.color = b.dataset.t === t ? '#fff' : ''; });
+    document.getElementById('remList').style.display = t === 'list' ? '' : 'none';
+    document.getElementById('remSet').style.display = t === 'set' ? '' : 'none';
+    document.getElementById('remSave').style.display = t === 'set' ? '' : 'none';
+  };
+  document.querySelectorAll('.rem-tab').forEach(b => b.addEventListener('click', () => remTab(b.dataset.t)));
+  async function loadReminders(date) {
+    try {
+      remData = await api.get('reminders.today', { date });
+      const due = remData.rows.filter(r => !r.punch_in && !r.mark && (r.at_office_since || r.reminders.length)).length;
+      const badge = document.getElementById('remindCount');
+      badge.textContent = due; badge.style.display = due && remData.settings.enabled ? 'inline-block' : 'none';
+    } catch (e) { remData = null; }
+  }
+  function renderRemList() {
+    const el = document.getElementById('remList');
+    if (!remData) { el.innerHTML = '<div class="empty-state">Could not load.</div>'; return; }
+    const fmtT = (t) => t ? new Date(String(t).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const s = remData.settings;
+    const rows = remData.rows.filter(r => !r.mark && !r.punch_in);
+    const note = `<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">${s.enabled ? 'Reminders are <b style="color:#0f7a41;">on</b>' : 'Reminders are <b style="color:#c81e1e;">off</b> — turn them on in Settings'} · day start ${remData.day_start} · reminder after ${s.after_arrive} min at office${s.after_shift ? ` / ${s.after_shift} min after day start` : ''} · repeats every ${s.repeat_every} min, max ${s.max_reminders}${s.push_enabled ? ' · phone notification when HRMS is closed' : ''}</div>`;
+    el.innerHTML = note + (rows.length
+      ? `<table><thead><tr><th>Employee</th><th>At office since</th><th>Reminded</th><th>Status</th></tr></thead><tbody>` + rows.map(r => {
+          const mins = r.at_office_since ? Math.floor((Date.now() - new Date(String(r.at_office_since).replace(' ', 'T')).getTime()) / 60000) : null;
+          const sent = r.reminders.filter(x => x.channel === 'app' || (x.channel === 'push' && x.ok));
+          const pushErr = r.reminders.filter(x => x.channel === 'push' && !x.ok).slice(-1)[0];
+          const how = (x) => x.channel === 'push' ? '📱' : '🖥';
+          return `<tr>
+            <td>${r.full_name}<div style="font-size:11px; color:var(--muted);">${r.employee_code || ''}</div></td>
+            <td>${r.at_office_since ? `${r.office || 'Office'} · ${fmtT(r.at_office_since)}<div style="font-size:11px; color:var(--muted);">${mins} min · last seen ${fmtT(r.last_seen)}</div>` : '<span style="color:var(--muted);">no location yet</span>'}</td>
+            <td>${sent.length ? sent.map(x => how(x) + ' ' + fmtT(x.at)).join(', ') + (sent.length >= s.max_reminders ? ' <span style="color:#b45f06; font-size:11px;">(limit reached)</span>' : '') : (r.phones ? '<span style="color:var(--muted);">not yet</span>' : '<span style="color:#b45f06;">no phone allowed notifications</span>')}${pushErr ? `<div style="font-size:11px; color:#c81e1e;" title="${(pushErr.error || '').replace(/"/g, '&quot;')}">phone notification failed</div>` : ''}<div style="font-size:11px; color:var(--muted);">${r.phones ? r.phones + ' phone' + (r.phones > 1 ? 's' : '') + ' · 📱 phone, 🖥 pop-up' : 'pop-up only while HRMS is open'}</div></td>
+            <td><span class="badge" style="background:${r.at_office_since ? '#fdecec' : '#fdf3e3'}; color:${r.at_office_since ? '#c81e1e' : '#b45f06'};">Not punched in${mins !== null ? ' · ' + mins + ' min' : ''}</span></td>
+          </tr>`; }).join('') + '</tbody></table>'
+      : '<div class="empty-state">Everyone has punched in (or is on leave / week off) ✓</div>');
+  }
+  function fillRemSettings() {
+    if (!remData) return;
+    const s = remData.settings;
+    document.getElementById('remEnabled').checked = !!s.enabled;
+    document.getElementById('remAfterArrive').value = s.after_arrive; document.getElementById('remAfterShift').value = s.after_shift;
+    document.getElementById('remRepeat').value = s.repeat_every; document.getElementById('remMax').value = s.max_reminders;
+    document.getElementById('remQuiet').value = s.quiet_until || '';
+    document.getElementById('remPush').checked = !!s.push_enabled;
+    document.getElementById('remPushInfo').textContent = remData.push_ready ? `— ${remData.phones_total} of ${remData.employees_total} employees have a phone allowed` : '— this server cannot sign notifications (OpenSSL)';
+  }
+  document.getElementById('remPushTest').addEventListener('click', async () => {
+    const b = document.getElementById('remPushTest'); b.disabled = true;
+    try { const d = await api.post('push.test', {}); document.getElementById('remAlert').innerHTML = `<div class="alert success">${d.message}</div>`; }
+    catch (err) { document.getElementById('remAlert').innerHTML = `<div class="alert error">${err.message} — open attendance.html on this phone and tap "Allow notifications" first.</div>`; }
+    finally { b.disabled = false; }
+  });
+  document.getElementById('btnReminders').addEventListener('click', async () => {
+    document.getElementById('remAlert').innerHTML = '';
+    document.getElementById('remTitle').textContent = `Punch-in reminders — ${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}`;
+    document.getElementById('remList').innerHTML = '<div class="loading">Loading...</div>';
+    remScrollY = window.scrollY; remModal.classList.add('open'); remTab('list');
+    await loadReminders(currentAttDate); renderRemList(); fillRemSettings();
+  });
+  function closeRem() { remModal.classList.remove('open'); const y = remScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('remClose').addEventListener('click', closeRem);
+  remModal.addEventListener('click', (e) => { if (e.target === remModal) closeRem(); });
+  document.getElementById('remSave').addEventListener('click', async () => {
+    const btn = document.getElementById('remSave'); btn.disabled = true;
+    try {
+      const d = await api.post('reminders.settings_save', {
+        enabled: document.getElementById('remEnabled').checked ? 1 : 0,
+        after_arrive: Number(document.getElementById('remAfterArrive').value || 20), after_shift: Number(document.getElementById('remAfterShift').value || 0),
+        repeat_every: Number(document.getElementById('remRepeat').value || 20), max_reminders: Number(document.getElementById('remMax').value || 3),
+        quiet_until: document.getElementById('remQuiet').value.trim(),
+        push_enabled: document.getElementById('remPush').checked ? 1 : 0,
+      });
+      document.getElementById('remAlert').innerHTML = `<div class="alert success">${d.message}</div>`;
+      await loadReminders(currentAttDate); fillRemSettings();
+    } catch (err) { document.getElementById('remAlert').innerHTML = `<div class="alert error">${err.message}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();
     currentAttDate = date;
@@ -356,6 +467,7 @@
         `${present} present · ${allRows.length - present} absent · ${dateLabel} · day = ${dayWindowText()}`;
       renderTable();
       loadRefused(date);
+      loadReminders(date);
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }

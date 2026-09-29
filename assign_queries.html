@@ -40,8 +40,34 @@
   .tot-cell{vertical-align:middle; white-space:nowrap;} .tot-cell b{font-size:16px;} .tot-cell .lbl{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
   .tot-sub{font-size:11px; color:var(--muted); margin-top:2px;}
   @media (max-width:820px){ .type-grid{grid-template-columns:1fr 1fr;} .ctl .cnt-in{font-size:16px;} }
+  /* Hour view: chips for each hour of the day + a banner saying which hour is shown */
+  .hr-chips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; align-items:center;}
+  .hr-chip{padding:6px 12px; border:1px solid var(--line); border-radius:20px; font-size:12.5px; background:#fff; cursor:pointer; user-select:none; white-space:nowrap;}
+  .hr-chip.on{background:#111827; color:#fff; border-color:#111827;}
+  .hr-chip.empty{color:var(--muted);}
+  .hr-chip b{margin-left:6px;}
+  .hr-chip.day{margin-left:auto; border-style:dashed;}
+  .hr-banner{margin:0 0 12px; padding:9px 14px; border-radius:8px; font-size:12.5px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .hr-banner.cur{background:#EEF2FF; color:#3730a3;} .hr-banner.past{background:#FFF8E6; color:#8a5a00;} .hr-banner.dayv{background:#F3F4F6; color:#374151;}
+  .hr-banner .btn{width:auto; margin-left:auto; padding:5px 12px; min-height:0; font-size:12px;}
+  .hour-table tbody tr{cursor:pointer;} .hour-table tbody tr:hover td{background:#F5F7FF;}
+  .hour-table tr.sel td{background:#EEF2FF; box-shadow:inset 3px 0 0 #3730a3;}
+  @media (max-width:820px){ .hr-chip.day{margin-left:0;} }
   .aq-wrap{display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;}
-  .hour-card{flex:0 0 250px; margin-bottom:20px;}
+  .aq-wrap > .card{min-width:0;}
+  /* The employee table scrolls sideways inside its card when the window is
+     narrower than its columns — it never runs past the card's edge. */
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  #empTable{min-width:640px;}
+  #empTable th, #empTable td{padding-left:10px; padding-right:10px;}
+  #empTable th:first-child, #empTable td:first-child{padding-left:20px;}
+  /* Hour view: compact counter with the day figure underneath */
+  .hr-ctl{display:flex; flex-direction:column; align-items:flex-start; gap:3px;}
+  .hr-day{font-size:11px; color:var(--muted); white-space:nowrap;} .hr-day b{color:var(--ink); font-size:12px;}
+  .tot-cell.hr{white-space:normal;} .tot-cell.hr .tot-sub{white-space:nowrap;}
+  @media (max-width:820px){ .tscroll{overflow:visible;} #empTable{min-width:0;} #empTable th, #empTable td{padding-left:0; padding-right:0;} }
+  .hour-card{flex:0 0 300px; margin-bottom:20px; overflow:hidden;}
+  .hour-table{width:100%; min-width:0;}
   .hour-table th{text-align:center; padding:8px 8px;}
   .hour-table th:first-child, .hour-table td:first-child{text-align:left; padding-left:12px; white-space:nowrap;}
   .hour-table td{text-align:center; padding:7px 8px; font-size:13px;}
@@ -69,9 +95,11 @@
     </div>
     <div class="content">
       <div id="alertBox"></div>
+      <div class="hr-chips" id="hourChips"></div>
+      <div class="hr-banner cur" id="hourBanner" style="display:none;"></div>
 
       <div class="aq-wrap">
-      <div class="card" style="max-width:860px; flex:1 1 560px; min-width:0;">
+      <div class="card" style="max-width:900px; flex:1 1 520px; min-width:0;">
         <div class="card-head">
           <h2 id="cardTitle">Today</h2>
           <span style="font-size:12.5px; color:var(--muted);">
@@ -80,13 +108,14 @@
             Total <b id="totalCount" style="color:var(--ink);">0</b>
           </span>
         </div>
-        <table>
+        <div class="tscroll">
+        <table id="empTable">
           <thead>
             <tr>
               <th>Employee</th>
               <th style="width:150px;">House</th>
-              <th style="color:#0C447C; background:#F0F7FD;">Query <span class="th-sub">count · orders tagged query · ratio</span></th>
-              <th style="color:#854F0B; background:#FDF7EC;">Campaign <span class="th-sub">count · orders tagged campaign · ratio</span></th>
+              <th style="color:#0C447C; background:#F0F7FD;">Query <span class="th-sub" id="thQ">count · orders tagged query · ratio</span></th>
+              <th style="color:#854F0B; background:#FDF7EC;">Campaign <span class="th-sub" id="thC">count · orders tagged campaign · ratio</span></th>
               <th>Total</th>
             </tr>
           </thead>
@@ -94,11 +123,12 @@
             <tr><td colspan="5" class="loading">Loading...</td></tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- By hour: the team's counts grouped by the hour each +1 / − was clicked -->
       <div class="card hour-card" id="hourCard">
-        <div class="card-head"><h2>By hour</h2><span id="hourSub" style="font-size:12px; color:var(--muted);">today</span></div>
+        <div class="card-head"><h2>By hour</h2><span id="hourSub" style="font-size:12px; color:var(--muted);">click a time</span></div>
         <table class="no-stack hour-table">
           <thead><tr><th>Time</th><th>Query</th><th>Campaign</th><th>Total</th></tr></thead>
           <tbody id="hourBody"><tr><td colspan="4" class="loading" style="padding:16px;">Loading...</td></tr></tbody>
@@ -158,6 +188,24 @@
   // house's employees, one row each, and colours are per employee per house.
   function groupFilter() { return document.getElementById('groupPick').value || 'tmph'; }
 
+  // ---------- Which hour the table shows ----------
+  // null = whole day (the old view); a number = that clock hour only. Today
+  // opens on the running hour, and every row starts that hour at 0.
+  let viewHour = null;
+  let nowHour = new Date().getHours();
+  let bizToday = bizTodayStr();
+  const isBizToday = () => day() === bizToday;
+  const hourMode = () => viewHour !== null;
+  const isCurHour = () => hourMode() && isBizToday() && viewHour === nowHour;
+  const hourRange = (h) => `${fmtHour(h)} – ${fmtHour(h + 1)}`;
+  // Which type-count a row shows: the hour's count in hour mode, else the day's.
+  const shownCount = (g, kind) => hourMode() ? (g['hour_' + kind] || 0) : (g[kind + '_count'] || 0);
+  function defaultHour() { return isBizToday() ? nowHour : null; }
+  window.setHour = function (h) {
+    viewHour = (h === null || h === undefined || h === '') ? null : Number(h);
+    load();
+  };
+
   function matchesSearch(e) {
     const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
     if (!q) return true;
@@ -169,7 +217,7 @@
     // Sums reflect every employee/house shown for the day, regardless of
     // the search box — only which ROWS are visible is filtered by search.
     let scout = 0, champ = 0, total = 0;
-    employees.forEach(e => e.groups.forEach(g => { scout += g.scout_count; champ += g.champion_count; total += g.query_count; }));
+    employees.forEach(e => e.groups.forEach(g => { scout += shownCount(g, 'scout'); champ += shownCount(g, 'champion'); total += shownCount(g, 'scout') + shownCount(g, 'champion'); }));
     document.getElementById('sumScout').textContent = scout;
     document.getElementById('sumChamp').textContent = champ;
     document.getElementById('totalCount').textContent = total;
@@ -189,8 +237,22 @@
   };
   function typeBlock(e, g, kind) {
     const t = TYPE[kind], empId = e.employee_id, groupKey = g.group_key;
-    const n = g[kind + '_count'] || 0;
+    const n = shownCount(g, kind);
     const oc = ordersFor(e.full_name); const o = oc ? oc[kind] : undefined;
+    if (hourMode()) {
+      // One hour: just the counter for that hour, with the day's figure under it.
+      return `<td class="type-cell" style="background:${t.bg};">
+      <div class="hr-ctl">
+        <span class="ctl">
+          <button type="button" onclick="bump(${empId}, '${groupKey}', '${kind}', -1, this)" title="Take one away from this hour" class="minus">−</button>
+          <input type="number" inputmode="numeric" min="0" max="9999" id="cnt-${kind}-${empId}-${groupKey}" value="${n}"
+            data-emp="${empId}" data-group="${groupKey}" data-kind="${kind}" class="cnt-in" title="Type a number, or use − / +1">
+          <button type="button" onclick="bump(${empId}, '${groupKey}', '${kind}', 1, this)" class="plus" style="background:${t.color};">+1</button>
+        </span>
+        <span class="hr-day" id="ord-${kind}-${empId}-${groupKey}">Day <b>${g[kind + '_count'] || 0}</b></span>
+      </div>
+    </td>`;
+    }
     return `<td class="type-cell" style="background:${t.bg};">
       <div class="type-grid">
         <span class="lbl">Count</span>
@@ -208,6 +270,13 @@
     </td>`;
   }
   function totalCell(e, g) {
+    if (hourMode()) {
+      const th = shownCount(g, 'scout') + shownCount(g, 'champion');
+      const td = (g.scout_count || 0) + (g.champion_count || 0);
+      return `<b id="cnt-total-${e.employee_id}-${g.group_key}">${th}</b> <span class="lbl">${isCurHour() ? 'this hour' : 'in hour'}</span>
+        <div class="tot-sub"><b style="font-size:13px; color:var(--ink);">${td}</b> day</div>
+        <div class="tot-sub"><span style="color:#0C447C;">Q ${g.scout_count || 0}</span> · <span style="color:#854F0B;">C ${g.champion_count || 0}</span></div>`;
+    }
     const tq = (g.scout_count || 0) + (g.champion_count || 0);
     const oc = ordersFor(e.full_name);
     const to = oc ? oc.scout + oc.champion + oc.other : undefined;
@@ -254,7 +323,7 @@
           <td><span style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; color:${color}; background:${color}18;">${g.group_label}</span></td>
           ${typeBlock(e, g, 'scout')}
           ${typeBlock(e, g, 'champion')}
-          <td class="tot-cell" id="tot-${e.employee_id}-${g.group_key}">${totalCell(e, g)}</td>
+          <td class="tot-cell ${hourMode() ? 'hr' : ''}" id="tot-${e.employee_id}-${g.group_key}">${totalCell(e, g)}</td>
         </tr>`;
       }).join('');
     }).join('');
@@ -269,10 +338,12 @@
     const emp = employees.find(x => x.employee_id === empId);
     ['scout', 'champion'].forEach(kind => {
       const inp = document.getElementById(`cnt-${kind}-${empId}-${groupKey}`);
-      if (inp && document.activeElement !== inp) inp.value = grp[kind + '_count'];
+      if (inp && document.activeElement !== inp) inp.value = shownCount(grp, kind);
       const rc = document.getElementById(`ratio-${kind}-${empId}-${groupKey}`);
       const oc = emp && ordersFor(emp.full_name);
       if (rc) rc.innerHTML = ratioHtml(oc ? oc[kind] : undefined, grp[kind + '_count'] || 0);
+      const od = document.getElementById(`ord-${kind}-${empId}-${groupKey}`);
+      if (od && hourMode()) od.innerHTML = `Day <b>${grp[kind + '_count'] || 0}</b>`;
     });
     const tc = document.getElementById(`tot-${empId}-${groupKey}`);
     if (tc && emp) tc.innerHTML = totalCell(emp, grp);
@@ -281,29 +352,31 @@
     const emp = employees.find(e => e.employee_id === empId);
     const grp = emp && emp.groups.find(g => g.group_key === groupKey);
     if (!grp) return;
-    const field = kind + '_count';
-    if (delta < 0 && grp[field] <= 0) return;          // nothing to take away
-    grp[field] += delta;
+    const field = kind + '_count', hField = 'hour_' + kind;
+    if (delta < 0 && shownCount(grp, kind) <= 0) return;   // nothing to take away
+    if (hourMode()) grp[hField] = (grp[hField] || 0) + delta;
+    grp[field] = Math.max(0, (grp[field] || 0) + delta);
     grp.query_count = grp.scout_count + grp.champion_count;
     paintRow(empId, groupKey, grp);
     updateSums();
     scheduleHourly();
 
     const key = empId + '|' + groupKey;
-    const dateForClick = day();
+    const dateForClick = day(), hourForClick = viewHour;
     pendingByRow[key] = (pendingByRow[key] || Promise.resolve()).then(async () => {
       try {
-        const d = await api.post('queries.assign_bump', { employee_id: empId, group_key: groupKey, kind, delta, date: dateForClick });
+        const d = await api.post('queries.assign_bump', { employee_id: empId, group_key: groupKey, kind, delta, date: dateForClick, hour: hourForClick });
         // Server figures win once every queued click for this row is done.
         if (pendingByRow[key] === chain) {
           grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count;
+          if (d.hour_scout !== undefined && hourForClick === viewHour) { grp.hour_scout = d.hour_scout; grp.hour_champion = d.hour_champion; }
           paintRow(empId, groupKey, grp);
           updateSums();
         }
       } catch (err) {
         showAlert(err.message, 'error');
         try {   // put the row back to what the server has
-          const fresh = await api.get('queries.assign_list', { date: dateForClick, store_group: groupFilter() });
+          const fresh = await api.get('queries.assign_list', { date: dateForClick, store_group: groupFilter(), hour: hourForClick === null ? '' : hourForClick });
           const fe = (fresh.employees || []).find(e => e.employee_id === empId);
           const fg = fe && fe.groups.find(g => g.group_key === groupKey);
           if (fg) { Object.assign(grp, fg); paintRow(empId, groupKey, grp); updateSums(); }
@@ -370,16 +443,23 @@
     const emp = employees.find(x => x.employee_id === empId);
     const grp = emp && emp.groups.find(g => g.group_key === groupKey);
     if (!grp) return;
-    grp[kind + '_count'] = value;
+    if (hourMode()) {
+      const diff = value - (grp['hour_' + kind] || 0);
+      grp['hour_' + kind] = value;
+      grp[kind + '_count'] = Math.max(0, (grp[kind + '_count'] || 0) + diff);
+    } else {
+      grp[kind + '_count'] = value;
+    }
     grp.query_count = grp.scout_count + grp.champion_count;
     paintRow(empId, groupKey, grp);
     updateSums();
     scheduleHourly();
-    const key = empId + '|' + groupKey, dateForClick = day();
+    const key = empId + '|' + groupKey, dateForClick = day(), hourForClick = viewHour;
     pendingByRow[key] = (pendingByRow[key] || Promise.resolve()).then(async () => {
       try {
-        const d = await api.post('queries.assign_set', { employee_id: empId, group_key: groupKey, kind, value, date: dateForClick });
+        const d = await api.post('queries.assign_set', { employee_id: empId, group_key: groupKey, kind, value, date: dateForClick, hour: hourForClick });
         grp.query_count = d.query_count; grp.scout_count = d.scout_count; grp.champion_count = d.champion_count;
+        if (d.hour_scout !== undefined && hourForClick === viewHour) { grp.hour_scout = d.hour_scout; grp.hour_champion = d.hour_champion; }
         paintRow(empId, groupKey, grp); updateSums();
       } catch (err) { showAlert(err.message, 'error'); }
     });
@@ -400,9 +480,13 @@
       const nowHour = new Date().getHours(), isToday = day() === new Date().toISOString().slice(0, 10) || day() === bizTodayStr();
       document.getElementById('hourSub').textContent = new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
       const rows = [];
-      if (d.earlier && (d.earlier.scout || d.earlier.champion)) rows.push(`<tr><td>Earlier</td><td class="q">${d.earlier.scout}</td><td class="c">${d.earlier.champion}</td><td class="t">${d.earlier.scout + d.earlier.champion}</td></tr>`);
-      (d.hours || []).forEach(h => rows.push(`<tr class="${isToday && h.hour === nowHour ? 'cur' : ''}"><td>${fmtHour(h.hour)} – ${fmtHour(h.hour + 1)}</td><td class="q">${h.scout}</td><td class="c">${h.champion}</td><td class="t">${h.scout + h.champion}</td></tr>`));
+      if (d.earlier && (d.earlier.scout || d.earlier.champion)) rows.push(`<tr onclick="setHour(null)" title="Counts entered before the hour log existed — shown in the whole-day view"><td>Earlier</td><td class="q">${d.earlier.scout}</td><td class="c">${d.earlier.champion}</td><td class="t">${d.earlier.scout + d.earlier.champion}</td></tr>`);
+      const hoursList = (d.hours || []).slice();
+      // Today: the running hour is always listed, even before its first click.
+      if (isToday && !hoursList.some(h => h.hour === nowHour)) { hoursList.push({ hour: nowHour, scout: 0, champion: 0 }); hoursList.sort((a, b) => a.hour - b.hour); }
+      hoursList.forEach(h => rows.push(`<tr class="${isToday && h.hour === nowHour ? 'cur' : ''} ${viewHour === h.hour ? 'sel' : ''}" onclick="setHour(${h.hour})" title="Click to view / edit this hour per employee"><td>${hourRange(h.hour)}${isToday && h.hour === nowHour ? ' <span style="font-size:10px; color:#3730a3;">● now</span>' : ''}</td><td class="q">${h.scout}</td><td class="c">${h.champion}</td><td class="t">${h.scout + h.champion}</td></tr>`));
       body.innerHTML = rows.join('') || '<tr><td colspan="4" class="empty-state" style="padding:16px;">Nothing added yet.</td></tr>';
+      renderChips(hoursList, d.total || { scout: 0, champion: 0 }, isToday);
       const t = d.total || { scout: 0, champion: 0 };
       foot.innerHTML = `<tr><td>Total</td><td class="q">${t.scout}</td><td class="c">${t.champion}</td><td class="t">${t.scout + t.champion}</td></tr>`;
     } catch (err) {
@@ -410,16 +494,48 @@
       foot.innerHTML = '';
     }
   }
+  // Chips above the table: one per hour with data (plus the running hour),
+  // and "Whole day" for the old all-hours view.
+  function renderChips(hoursList, total, isToday) {
+    const el = document.getElementById('hourChips');
+    const chips = hoursList.map(h => `<span class="hr-chip ${viewHour === h.hour ? 'on' : ''} ${!(h.scout + h.champion) && !(isToday && h.hour === nowHour) ? 'empty' : ''}" onclick="setHour(${h.hour})">${hourRange(h.hour)}${isToday && h.hour === nowHour ? ' · now' : ''}<b>${h.scout + h.champion}</b></span>`);
+    chips.push(`<span class="hr-chip day ${viewHour === null ? 'on' : ''}" onclick="setHour(null)">Whole day<b>${total.scout + total.champion}</b></span>`);
+    el.innerHTML = chips.join('');
+  }
+  function renderBanner() {
+    const b = document.getElementById('hourBanner');
+    b.style.display = '';
+    if (!hourMode()) {
+      b.className = 'hr-banner dayv';
+      b.innerHTML = `<b>Whole day</b> · counts for the full day (all hours together) · click a time in By hour to work hour-wise${isBizToday() ? ` <button type="button" class="btn secondary" onclick="setHour(${nowHour})">Go to current hour</button>` : ''}`;
+    } else if (isCurHour()) {
+      b.className = 'hr-banner cur';
+      b.innerHTML = `<b>Current hour ${hourRange(viewHour)}</b> · every row started this hour at 0 · each +1 / − is saved under this hour · at ${fmtHour(viewHour + 1)} the rows start from 0 again (day total keeps counting)`;
+    } else {
+      b.className = 'hr-banner past';
+      b.innerHTML = `<b>Editing ${hourRange(viewHour)}</b> · the numbers given in that hour · − / +1 or typing changes that hour (day total moves too) ${isBizToday() ? `<button type="button" class="btn secondary" onclick="setHour(${nowHour})">← Back to current hour</button>` : `<button type="button" class="btn secondary" onclick="setHour(null)">Whole day</button>`}`;
+    }
+    document.getElementById('thQ').textContent = hourMode() ? (isCurHour() ? 'this hour · day total' : 'in this hour · day total') : 'count · orders tagged query · ratio';
+    document.getElementById('thC').textContent = hourMode() ? (isCurHour() ? 'this hour · day total' : 'in this hour · day total') : 'count · orders tagged campaign · ratio';
+  }
   function bizTodayStr() { const d = new Date(); if (d.getHours() < 10) d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 
+  let loadedFor = '';
   async function load() {
+    nowHour = new Date().getHours(); bizToday = bizTodayStr();
+    // A new date opens on its default view: today = the running hour, any other day = whole day.
+    const dayKey = day() + '|' + groupFilter();
+    if (loadedFor !== dayKey) { viewHour = defaultHour(); loadedFor = dayKey; }
     loadHourly();
     ordersLoadedFor = ''; ordersByName = {};
-    document.getElementById('cardTitle').textContent =
-      new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
+    const dateTxt = new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'short' });
+    document.getElementById('cardTitle').textContent = hourMode() ? `${hourRange(viewHour)} · ${dateTxt}${isCurHour() ? ' · current hour' : ''}` : dateTxt;
+    renderBanner();
+    document.getElementById('empList').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
     try {
-      const data = await api.get('queries.assign_list', { date: day(), store_group: groupFilter() });
+      const data = await api.get('queries.assign_list', { date: day(), store_group: groupFilter(), hour: viewHour === null ? '' : viewHour });
       employees = data.employees || [];
+      if (data.biz_today) bizToday = data.biz_today;
       loadOrdersCount();
       render();
     } catch (err) {
@@ -437,6 +553,13 @@
     searchTimer = setTimeout(render, 150);
   });
   load();
+  // When the clock moves to the next hour while the running hour is open,
+  // switch to the new hour so the rows start again from 0.
+  setInterval(() => {
+    const h = new Date().getHours();
+    if (h !== nowHour && isBizToday() && viewHour === nowHour) { nowHour = h; viewHour = h; load(); }
+    else nowHour = h;
+  }, 30000);
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
