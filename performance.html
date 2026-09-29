@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Performance — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=4">
+<link rel="stylesheet" href="assets/css/style.css?v=260929d">
 <style>
   .rs{display:inline-flex; align-items:center; gap:6px; outline:none; border-radius:6px; vertical-align:middle;}
   .rs:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.35);}
@@ -51,6 +51,30 @@
   .beh-chip.on.a{background:#fdf3e3; color:#b45f06; border-color:#b45f06;}
   .beh-chip.on.b{background:#fdecec; color:#c81e1e; border-color:#c81e1e;}
   .card-ratings{display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);}
+  /* Order code (Order Codes page / Shopify tag) on each order */
+  .ocode{display:inline-flex; align-items:center; padding:1px 7px; border-radius:10px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:10.5px; font-family:ui-monospace,Menlo,Consolas,monospace; white-space:nowrap; vertical-align:middle; margin-left:4px;}
+  .ocode.none{background:#fff7ed; color:#b45f06; font-family:inherit; font-weight:600;}
+  /* Date-range view (From < To) */
+  .rg-exp{cursor:pointer; color:var(--accent); font-weight:600; background:none; border:none; padding:0; font-size:13px; min-height:0; text-align:left;}
+  .rg-exp .chev{display:inline-block; transition:transform .15s; margin-right:5px; font-size:11px;} .rg-exp.open .chev{transform:rotate(90deg);}
+  tr.rg-days > td{background:#fafbfd; padding:6px 14px 10px 28px !important;}
+  .rg-tbl{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .rg-tbl th{font-size:10.5px; text-transform:uppercase; color:var(--muted); text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); font-weight:600; background:transparent;}
+  .rg-tbl td{padding:7px 8px; border-bottom:1px dashed var(--line); background:transparent;} .rg-tbl tr:last-child td{border-bottom:none;}
+  .rg-tbl .dt{font-weight:600; white-space:nowrap;} .rg-tbl .rg-edit{color:var(--accent); font-size:12px; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; min-height:0;}
+  .rg-tbl tr.tot td{font-weight:700; background:#f8fafc;}
+  .rg-pill{display:inline-flex; gap:6px; align-items:center; padding:4px 10px; border-radius:20px; background:#eef2ff; color:#3730a3; font-size:12px; font-weight:600; margin-left:8px; vertical-align:middle;}
+  .rg-beh{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-right:3px;} .rg-beh.g{background:#e7f7ee; color:#0f7a41;} .rg-beh.a{background:#fdf3e3; color:#b45f06;} .rg-beh.b{background:#fdecec; color:#c81e1e;}
+  .stat-card .value small{font-size:12px; font-weight:500; color:var(--muted);}
+  #rangeStats{display:none;}
+  @media (max-width:820px){
+    .rg-lbl{width:100%; margin:0 0 -6px; font-size:11px;}
+    #perfDailyCard #perfDailyCards .rg-tbl{display:block;}
+    .rg-tbl, .rg-tbl thead, .rg-tbl tbody, .rg-tbl tr, .rg-tbl td{display:block;}
+    .rg-tbl thead{display:none;}
+    .rg-tbl tr{border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:6px; background:#fff;}
+    .rg-tbl td{padding:3px 0; border:none;} .rg-tbl td[data-l]::before{content:attr(data-l) ": "; color:var(--muted); font-size:11px;}
+  }
   .card-ratings .ord-lbl{display:block;}
   @media (max-width:820px){
     .ord-list{margin-top:8px;}
@@ -72,13 +96,20 @@
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
+          <option value="tmsg">TM Shower Gel</option>
+          <option value="tmh4">TM House 4th</option>
         </select>
-        <input type="date" id="dayPick" title="Daily ratings" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span class="rg-lbl" style="font-size:11.5px; color:var(--muted);">From</span>
+        <input type="date" id="dayPick" title="From date" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span class="rg-lbl" style="font-size:11.5px; color:var(--muted);">To</span>
+        <input type="date" id="dayTo" title="To date (same as From = single day)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <button class="btn secondary" id="btnPerfToday" type="button" style="width:auto;">Today</button>
         <input type="month" id="monthPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
       </div>
     </div>
     <div class="content">
       <div id="alertBox"></div>
+      <div class="stat-grid" id="rangeStats"></div>
 
       <div class="card" id="perfDailyCard">
         <div class="card-head"><h2 id="dailyTitle">Daily</h2></div>
@@ -175,16 +206,16 @@
   </div>
 </div>
 
-<script src="assets/js/config.js?v=2"></script>
-<script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/config.js?v=260929d"></script>
+<script src="assets/js/api.js?v=260929d"></script>
+<script src="assets/js/layout.js?v=260929d"></script>
 <script>
   guardPage();
   renderSidebar('performance');
 
   const alertBox = document.getElementById('alertBox');
   let currentMonth = '';
-  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', tmsg: '#0891B2', tmh4: '#DB2777', '': '#6B7280' };
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -350,11 +381,19 @@
       orderIndex[o.order_key] = { row: r, order: o };
       const t = new Date(o.created_at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
       return `<div class="ord-line">
-        <span class="ord-id"><b>${o.order_name}</b> ₹${Number(o.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+        <span class="ord-id"><b>${o.order_name}</b> ₹${Number(o.total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}${o.code ? `<span class="ocode">${o.code}</span>` : '<span class="ocode none">no code</span>'}
           <span class="ord-meta">${o.customer} · ${t}</span></span>
         <span class="ord-f"><span class="ord-lbl">Ticket size convincing</span>${orderStars(o, 'ticket')}</span>
       </div>`;
     }).join('');
+  }
+
+  // "6 coded" under the order count (only when the day has orders).
+  function codedNote(r) {
+    const list = r.order_list || [];
+    if (!list.length) return '';
+    const n = list.filter(o => o.code).length;
+    return n === list.length ? `<span style="color:#0f7a41;">${n} coded</span>` : `<span style="color:${n ? '#b45f06' : '#c81e1e'};">${n} coded</span>`;
   }
 
   window.toggleOrders = function (k) {
@@ -598,9 +637,207 @@
     }
   };
 
+  // ---------- Date range (From < To): totals + averages per employee ----------
+  // Each day is fetched with the same performance.daily call the single-day
+  // view uses (a few at a time), then added up here. Ratings stay per day:
+  // the range view is read-only, "Edit rating" jumps to that one day.
+  let rangeMode = false;
+  let rangeDays = [];          // ['2026-09-20', ...]
+  let rangeRows = [];          // aggregated rows
+  const openRange = new Set(); // "emp|group" rows whose day table is open
+  const RANGE_MAX_DAYS = 31;
+  const fmtD = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+  const fmtShort = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+
+  function daysBetween(a, b) {
+    const out = []; const d = new Date(a + 'T00:00:00'); const end = new Date(b + 'T00:00:00');
+    while (d <= end) { out.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')); d.setDate(d.getDate() + 1); }
+    return out;
+  }
+
+  async function loadRange(from, to) {
+    rangeMode = true; rangeDays = daysBetween(from, to);
+    const tbody = document.getElementById('dailyBody');
+    document.getElementById('dailyTitle').innerHTML = `Daily <span class="rg-pill">${fmtShort(from)} → ${fmtShort(to)} · ${rangeDays.length} days</span>`;
+    document.getElementById('perfDailyCards').innerHTML = '';
+    document.getElementById('rangeStats').style.display = 'none';
+    const perDay = {};   // date -> { rows, addons }
+    let done = 0;
+    const paint = () => { tbody.innerHTML = `<tr><td colspan="9" class="loading">Loading ${done} of ${rangeDays.length} days…</td></tr>`; };
+    paint();
+    const errors = [];
+    const fetchDay = async (date) => {
+      try {
+        const [d, a] = await Promise.all([
+          api.get('performance.daily', { date, store_group: groupFilter() }),
+          api.get('addons.list', { date }).catch(() => ({ by_employee: {} })),
+        ]);
+        (d.errors || []).forEach(e => errors.push(fmtShort(date) + ': ' + e));
+        perDay[date] = { rows: d.rows || [], addons: a.by_employee || {} };
+      } catch (err) { errors.push(fmtShort(date) + ': ' + err.message); perDay[date] = { rows: [], addons: {} }; }
+      done++; paint();
+    };
+    for (let i = 0; i < rangeDays.length; i += 4) await Promise.all(rangeDays.slice(i, i + 4).map(fetchDay));
+    if (!rangeMode) return;   // user switched back to a single day meanwhile
+    errors.slice(0, 3).forEach(e => showAlert(e, 'error'));
+
+    // Aggregate per employee|house.
+    const agg = {};
+    rangeDays.forEach(date => {
+      const { rows, addons } = perDay[date];
+      rows.forEach(r => {
+        const k = r.employee_id + '|' + r.group_key;
+        if (!agg[k]) agg[k] = { employee_id: r.employee_id, full_name: r.full_name, employee_code: r.employee_code, group_key: r.group_key, group_label: r.group_label,
+          queries: 0, qDays: 0, orders: 0, sales: 0, addonCount: 0, addonTotal: 0, order_list: [], days: [], tickets: [], calls: [], behs: [], ratedDays: 0 };
+        const g = agg[k];
+        const rr = rowRatings(r);
+        const ad = addons[r.employee_id] || null;
+        const dayRated = r.call_day_rating != null || r.overall_rating != null || rr.rated > 0;
+        if (r.queries !== null) { g.queries += Number(r.queries); g.qDays++; }
+        g.orders += Number(r.orders || 0); g.sales += Number(r.sales || 0);
+        if (ad) { g.addonCount += Number(ad.count || 0); g.addonTotal += Number(ad.total || 0); }
+        g.order_list = g.order_list.concat(r.order_list || []);
+        if (rr.ticket != null) g.tickets.push(Number(rr.ticket));
+        if (r.call_day_rating != null) g.calls.push(Number(r.call_day_rating));
+        if (r.overall_rating != null) g.behs.push(Number(r.overall_rating));
+        if (dayRated) g.ratedDays++;
+        g.days.push({ date, queries: r.queries, orders: r.orders, sales: r.sales, ratio: r.ratio, addon: ad, ticket: rr.ticket, call: r.call_day_rating, beh: behWord(r.overall_rating), rated: dayRated,
+          convincing: r.convincing, customer_rating: r.customer_rating, behavior_rating: r.behavior_rating });
+      });
+    });
+    rangeRows = Object.values(agg).map(g => {
+      g.ratio = g.queries > 0 ? Math.round(g.orders / g.queries * 1000) / 10 : null;
+      g.ticket = g.tickets.length ? g.tickets.reduce((a, b) => a + b, 0) / g.tickets.length : null;   // average of the days' ticket averages
+      g.call = g.calls.length ? g.calls.reduce((a, b) => a + b, 0) / g.calls.length : null;
+      g.behCounts = { Good: 0, Average: 0, Bad: 0 }; g.behs.forEach(v => { const w = behWord(v); if (w) g.behCounts[w]++; });
+      g.unratedDays = g.days.filter(d => !d.rated).map(d => d.date);
+      return g;
+    }).sort((a, b) => a.full_name.localeCompare(b.full_name) || a.group_key.localeCompare(b.group_key));
+    resetPerfLimit('daily');
+    renderRange();
+  }
+
+  const ratioBadgeHtml = (ratio) => ratio === null
+    ? '<span style="color:var(--muted); font-size:12px;">—</span>'
+    : `<span class="badge" style="background:${ratio >= 9 ? '#e7f7ee' : (ratio >= 6 ? '#fdf3e3' : '#fdecec')}; color:${ratio >= 9 ? '#0f7a41' : (ratio >= 6 ? '#b45f06' : '#c81e1e')};">${ratio}%</span>`;
+  const behChips = (c) => (c.Good || c.Average || c.Bad)
+    ? `${c.Good ? `<span class="rg-beh g">Good ×${c.Good}</span>` : ''}${c.Average ? `<span class="rg-beh a">Avg ×${c.Average}</span>` : ''}${c.Bad ? `<span class="rg-beh b">Bad ×${c.Bad}</span>` : ''}`
+    : '<span style="color:var(--muted);">—</span>';
+  const behOne = (w) => w ? `<span class="rg-beh ${w === 'Good' ? 'g' : (w === 'Average' ? 'a' : 'b')}">${w}</span>` : '<span style="color:var(--muted);">—</span>';
+
+  function rangeMatches(g) {
+    const q = searchQ();
+    if (!q) return true;
+    return (g.full_name || '').toLowerCase().includes(q) || (g.employee_code || '').toLowerCase().includes(q) || orderMatches({ order_list: g.order_list }, q);
+  }
+
+  window.toggleRange = function (k) { openRange.has(k) ? openRange.delete(k) : openRange.add(k); renderRange(); };
+  window.editRangeDay = function (date) {
+    document.getElementById('dayPick').value = date; document.getElementById('dayTo').value = date;
+    loadDaily();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  function dayTableHtml(g) {
+    return `<table class="rg-tbl"><thead><tr><th>Date</th><th>Query</th><th>Orders</th><th>Ratio</th><th>Add-on</th><th>Ticket size</th><th>Call</th><th>Behaviour</th><th></th></tr></thead><tbody>
+      ${g.days.map(d => `<tr>
+        <td class="dt">${fmtD(d.date)}</td>
+        <td data-l="Query">${d.queries !== null ? d.queries : '—'}</td>
+        <td data-l="Orders">${d.orders} · ${inrShort(d.sales)}</td>
+        <td data-l="Ratio">${ratioBadgeHtml(d.ratio)}</td>
+        <td data-l="Add-on">${d.addon ? `${d.addon.count} · ${inrShort(d.addon.total)}` : '—'}</td>
+        <td data-l="Ticket size">${miniStars(d.ticket)}</td>
+        <td data-l="Call">${miniStars(d.call)}</td>
+        <td data-l="Behaviour">${behOne(d.beh)}</td>
+        <td><button type="button" class="rg-edit" onclick="editRangeDay('${d.date}')">${d.rated ? 'Edit rating' : 'Rate this day'}</button></td>
+      </tr>`).join('')}
+      <tr class="tot"><td>Total / avg</td><td data-l="Query">${g.queries}</td><td data-l="Orders">${g.orders} · ${inrShort(g.sales)}</td><td data-l="Ratio">${g.ratio === null ? '—' : g.ratio + '%'}</td><td data-l="Add-on">${g.addonCount} · ${inrShort(g.addonTotal)}</td><td data-l="Ticket size">${g.ticket == null ? '—' : (g.ticket / 2).toFixed(1)}</td><td data-l="Call">${g.call == null ? '—' : (g.call / 2).toFixed(1)}</td><td data-l="Behaviour">${behChips(g.behCounts)}</td><td></td></tr>
+    </tbody></table>`;
+  }
+
+  function renderRange() {
+    const tbody = document.getElementById('dailyBody');
+    const matched = rangeRows.filter(rangeMatches);
+    const q = searchQ();
+    if (q) matched.forEach(g => { if (orderMatches({ order_list: g.order_list }, q)) openRange.add(g.employee_id + '|' + g.group_key); });
+    perfPaging.daily.matched = matched.length;
+    const shown = matched.slice(0, perfPaging.daily.limit);
+    updatePerfLoadMore('daily');
+
+    // Summary cards for the whole range.
+    const sum = (f) => rangeRows.reduce((t, g) => t + (g[f] || 0), 0);
+    const totQ = sum('queries'), totO = sum('orders'), totS = sum('sales');
+    const ratedAll = rangeRows.length ? Math.round(rangeRows.reduce((t, g) => t + g.ratedDays, 0) / rangeRows.length) : 0;
+    const stats = document.getElementById('rangeStats');
+    stats.innerHTML = `
+      <div class="stat-card"><div class="label">Days in range</div><div class="value">${rangeDays.length} <small>${fmtShort(rangeDays[0])} – ${fmtShort(rangeDays[rangeDays.length - 1])}</small></div></div>
+      <div class="stat-card"><div class="label">Queries</div><div class="value">${totQ.toLocaleString('en-IN')}</div></div>
+      <div class="stat-card"><div class="label">Orders</div><div class="value">${totO.toLocaleString('en-IN')} <small>/ ${inrShort(totS)}</small></div></div>
+      <div class="stat-card"><div class="label">Avg ratio</div><div class="value" style="color:${totQ ? (totO / totQ * 100 >= 9 ? '#0f7a41' : '#b45f06') : 'inherit'};">${totQ ? (Math.round(totO / totQ * 1000) / 10) + '%' : '—'}</div></div>
+      <div class="stat-card"><div class="label">Days rated</div><div class="value">${ratedAll} <small>/ ${rangeDays.length}</small></div></div>`;
+    stats.style.display = 'grid';
+
+    if (!shown.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
+      document.getElementById('perfDailyCards').innerHTML = '<div class="empty-state">No matching employees.</div>';
+      return;
+    }
+    tbody.innerHTML = shown.map(g => {
+      const k = g.employee_id + '|' + g.group_key;
+      const open = openRange.has(k);
+      return `<tr>
+        <td><button type="button" class="rg-exp ${open ? 'open' : ''}" onclick="toggleRange('${k}')" aria-expanded="${open}"><span class="chev">▶</span>${g.full_name}</button>
+          <div style="font-size:11.5px; color:var(--muted);">${g.employee_code}</div><div style="margin-top:4px;">${houseBadge(g)}</div></td>
+        <td><b>${g.queries}</b><div style="font-size:11.5px; color:var(--muted);">${g.qDays ? Math.round(g.queries / g.qDays) + ' / day' : 'not entered'}</div></td>
+        <td><b>${g.orders}</b><div style="font-size:11.5px; color:var(--muted);">${inrShort(g.sales)}</div></td>
+        <td>${ratioBadgeHtml(g.ratio)}</td>
+        <td>${g.addonCount ? `<b>${inrShort(g.addonTotal)}</b> <span style="color:var(--muted);">· ${g.addonCount}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+        <td>${miniStars(g.ticket, 'Average of rated orders in the range')}</td>
+        <td>${miniStars(g.call, 'Average of the daily Call ratings')}</td>
+        <td>${behChips(g.behCounts)}</td>
+        <td><b>${g.ratedDays}</b> / ${rangeDays.length} days${g.unratedDays.length && g.unratedDays.length < rangeDays.length ? `<div style="font-size:11px; color:#b45f06;">${g.unratedDays.map(fmtShort).join(', ')} not rated</div>` : ''}</td>
+      </tr>${open ? `<tr class="rg-days"><td colspan="9">${dayTableHtml(g)}</td></tr>` : ''}`;
+    }).join('');
+
+    // Mobile cards.
+    document.getElementById('perfDailyCards').innerHTML = shown.map(g => {
+      const k = g.employee_id + '|' + g.group_key;
+      const open = openRange.has(k);
+      return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <button type="button" class="rg-exp ${open ? 'open' : ''}" onclick="toggleRange('${k}')"><span class="chev">▶</span>${g.full_name}</button>
+          <span style="font-size:13px; font-weight:700; white-space:nowrap;">${g.ratio === null ? '—' : g.ratio + '%'}</span>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:1px;">${g.employee_code} · ${houseBadge(g)}</div>
+        <div style="display:flex; gap:14px; margin-top:9px; font-size:12px; flex-wrap:wrap;">
+          <span><span style="color:var(--muted);">Query</span> ${g.queries}</span>
+          <span><span style="color:var(--muted);">Orders</span> ${g.orders}</span>
+          <span><span style="color:var(--muted);">Sales</span> ${inrShort(g.sales)}</span>
+          <span><span style="color:var(--muted);">Add-on</span> ${g.addonCount ? inrShort(g.addonTotal) : '—'}</span>
+        </div>
+        <div class="card-ratings">
+          <div><span class="ord-lbl">Ticket size convincing</span>${miniStars(g.ticket)}</div>
+          <div><span class="ord-lbl">Call rating</span>${miniStars(g.call)}</div>
+          <div><span class="ord-lbl">Customer behaviour</span>${behChips(g.behCounts)}</div>
+          <div><span class="ord-lbl">Rated</span><b>${g.ratedDays}</b> / ${rangeDays.length} days</div>
+        </div>
+        ${open ? `<div style="margin-top:10px;">${dayTableHtml(g)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
   async function loadDaily() {
     currentDay = document.getElementById('dayPick').value;
+    const toEl = document.getElementById('dayTo');
     if (!currentDay) return;
+    if (!toEl.value || toEl.value < currentDay) toEl.value = currentDay;
+    const to = toEl.value;
+    if (to !== currentDay) {
+      if (daysBetween(currentDay, to).length > RANGE_MAX_DAYS) { showAlert('Pick a range of up to ' + RANGE_MAX_DAYS + ' days.', 'error'); return; }
+      return loadRange(currentDay, to);
+    }
+    rangeMode = false;
+    document.getElementById('rangeStats').style.display = 'none';
     document.getElementById('dailyTitle').textContent = 'Daily — ' +
       new Date(currentDay + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     const tbody = document.getElementById('dailyBody');
@@ -642,6 +879,7 @@
   }
 
   function renderDaily() {
+    if (rangeMode) return renderRange();
     const tbody = document.getElementById('dailyBody');
     const matched = dailyRows.filter(matchesSearch);
     // Rows found by order number: open their order panel automatically.
@@ -663,7 +901,7 @@
         <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a><div style="font-size:11.5px; color:var(--muted);">${r.employee_code}</div><div style="margin-top:4px;">${houseBadge(r)}</div></td>
         <td>${r.queries !== null ? r.queries : '<span style="color:var(--muted);">—</span>'}
           <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0;" onclick="editDayQueries(${r.employee_id}, '${r.group_key}', ${r.queries === null ? 'null' : r.queries})">✎</button></td>
-        <td>${r.orders}<div style="font-size:11.5px; color:var(--muted);">${'₹' + Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div></td>
+        <td>${r.orders}<div style="font-size:11.5px; color:var(--muted);">${'₹' + Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}${codedNote(r) ? ' · ' + codedNote(r) : ''}</div></td>
         <td>${ratioBadge}</td>
         <td>${addonCell(r)}</td>
         ${(() => { const rr = rowRatings(r); const lg = rr.legacy ? 'Daily rating (given before per-order ratings)' : 'Average of rated orders';
@@ -691,7 +929,7 @@
             ${r.queries !== null ? r.queries : '—'}
             <button style="background:none; border:none; cursor:pointer; color:var(--accent); font-size:12px; padding:0 0 0 2px;" onclick="editDayQueries(${r.employee_id}, '${r.group_key}', ${r.queries === null ? 'null' : r.queries})">✎</button>
           </span>
-          <span><span style="color:var(--muted);">Orders</span> ${r.orders}</span>
+          <span><span style="color:var(--muted);">Orders</span> ${r.orders}${codedNote(r) ? ' <span style="font-size:11px;">(' + codedNote(r) + ')</span>' : ''}</span>
           <span><span style="color:var(--muted);">Sales</span> ₹${Number(r.sales).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
         </div>
         ${(() => { const rr = rowRatings(r); const k = r.employee_id + '|' + r.group_key;
@@ -775,7 +1013,22 @@
   document.getElementById('monthPick').addEventListener('change', () => { resetPerfLimit('month'); load(); });
   document.getElementById('groupPick').addEventListener('change', () => { resetPerfLimit('month', 'daily'); load(); loadDaily(); });
   document.getElementById('dayPick').value = bizToday();
-  document.getElementById('dayPick').addEventListener('change', () => { resetPerfLimit('daily'); loadDaily(); });
+  document.getElementById('dayTo').value = bizToday();
+  document.getElementById('dayPick').addEventListener('change', () => {
+    // Moving From past To drags To along, so a single day stays a single day.
+    const toEl = document.getElementById('dayTo');
+    if (!toEl.value || toEl.value < document.getElementById('dayPick').value) toEl.value = document.getElementById('dayPick').value;
+    resetPerfLimit('daily'); loadDaily();
+  });
+  document.getElementById('dayTo').addEventListener('change', () => {
+    const fromEl = document.getElementById('dayPick');
+    if (document.getElementById('dayTo').value < fromEl.value) fromEl.value = document.getElementById('dayTo').value;
+    resetPerfLimit('daily'); loadDaily();
+  });
+  document.getElementById('btnPerfToday').addEventListener('click', () => {
+    document.getElementById('dayPick').value = bizToday(); document.getElementById('dayTo').value = bizToday();
+    resetPerfLimit('daily'); loadDaily();
+  });
   document.getElementById('perfDailyLoadMore').addEventListener('click', () => {
     perfPaging.daily.limit += PERF_PAGE_SIZE; renderDaily();
   });

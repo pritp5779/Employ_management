@@ -129,6 +129,13 @@
       </div>
 
       <div class="field">
+        <label>Store / Panel (which businesses this employee sells for)</label>
+        <div id="storeGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
+          <span style="color:#888; font-size:13px;">Loading stores...</span>
+        </div>
+      </div>
+
+      <div class="field">
         <label>WhatsApp Groups</label>
         <div id="waGroupsBox" style="display:flex; flex-wrap:wrap; gap:6px 18px; padding:6px 0;">
           <span style="color:#888; font-size:13px;">Loading groups...</span>
@@ -250,6 +257,20 @@ Amit Shah	9123456780		web management		"></textarea>
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     setTimeout(() => (alertBox.innerHTML = ''), 4000);
+  }
+
+  async function loadStoreGroups() {
+    const box = document.getElementById('storeGroupsBox');
+    try {
+      const data = await api.get('store_groups.options');
+      const groups = data.groups || [];
+      box.innerHTML = groups.map(g => `
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; font-weight:normal;">
+          <input type="checkbox" class="store-group-cb" value="${g.key}" style="width:auto; margin:0;"> ${g.label}
+        </label>`).join('') || '<span style="color:#888; font-size:13px;">No stores configured.</span>';
+    } catch (err) {
+      box.innerHTML = `<span style="color:#c0392b; font-size:13px;">${err.message}</span>`;
+    }
   }
 
   async function loadWaGroups() {
@@ -467,6 +488,9 @@ Amit Shah	9123456780		web management		"></textarea>
 
     const empGroupIds = new Set(((emp && emp.whatsapp_groups) || []).map(g => String(g.group_id)));
     document.querySelectorAll('.wa-group-cb').forEach(cb => { cb.checked = empGroupIds.has(cb.value); });
+
+    const empStores = new Set((emp && emp.store_groups) || []);
+    document.querySelectorAll('.store-group-cb').forEach(cb => { cb.checked = empStores.has(cb.value); });
 
     const empFileIds = new Set(((emp && emp.excel_files) || []).map(f => String(f.file_id)));
     document.querySelectorAll('.excel-file-cb').forEach(cb => { cb.checked = empFileIds.has(cb.value); });
@@ -836,6 +860,9 @@ Amit Shah	9123456780		web management		"></textarea>
       whatsapp_group_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.wa-group-cb:checked')).map(cb => Number(cb.value))
       ),
+      store_group_keys: JSON.stringify(
+        Array.from(document.querySelectorAll('.store-group-cb:checked')).map(cb => cb.value)
+      ),
       excel_file_ids: JSON.stringify(
         Array.from(document.querySelectorAll('.excel-file-cb:checked')).map(cb => Number(cb.value))
       ),
@@ -930,6 +957,7 @@ Amit Shah	9123456780		web management		"></textarea>
   (async function init() {
     await loadDepartmentsIntoSelects();
     await loadManagerOptions();
+    await loadStoreGroups();
     await loadWaGroups();
     await loadExcelFiles();
 
@@ -952,7 +980,7 @@ Amit Shah	9123456780		web management		"></textarea>
       sessionStorage.removeItem('resubmitEmployee');
       history.replaceState(null, '', 'employees.html');
       if (raw) {
-        try {
+        try { 
           const payload = JSON.parse(raw);
           openModal(); // fresh "Add Employee" mode
           document.getElementById('fullName').value = payload.full_name || '';

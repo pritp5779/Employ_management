@@ -3,7 +3,8 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260928.2';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '260928.6';   // shown under your name in the sidebar
+
 
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
@@ -29,6 +30,7 @@ function renderSidebar(active) {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
+    order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
     offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
@@ -55,7 +57,10 @@ function renderSidebar(active) {
   };
 
   if (user.role !== 'Admin' && user.role !== 'Employee') {
-    // Custom role: sidebar built from its granted permissions.
+    // Custom role: sidebar built from its granted permissions. The page
+    // stays hidden until me.flags confirms this role may open it, so a
+    // refused page never flashes its "no permission" errors.
+    document.documentElement.style.visibility = 'hidden';
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
       <div class="brand">HR<span>MS</span></div>
@@ -78,10 +83,15 @@ function renderSidebar(active) {
       const activePerm = Object.keys(PAGES_FOR_PERM).find(p => PAGES_FOR_PERM[p].some(d => d[2] === active));
       const nav = document.getElementById('customNav');
       if (!nav) return;
-      if (perms.length && activePerm && !perms.includes(activePerm)) {
+      if (activePerm && !perms.includes(activePerm)) {
+        // Not allowed here (e.g. login sent them to the Dashboard): go to
+        // the first page this role IS allowed, instead of showing an error.
+        const home = perms.map(p => (PAGES_FOR_PERM[p] || [])[0]).find(Boolean);
+        if (home) { window.location.replace(home[0]); return; }
         const label = (PAGES_FOR_PERM[activePerm].find(d => d[2] === active) || PAGES_FOR_PERM[activePerm][0])[1];
         nav.insertAdjacentHTML('beforeend', `<span style="display:block; padding:8px 20px; font-size:12px; color:#fca5a5; line-height:1.5;">Your role "${user.role}" doesn't include <b>${label}</b>. Ask an Admin to tick it on the Roles page.</span>`);
       }
+      document.documentElement.style.visibility = '';
       perms.forEach((p) => {
         (PAGES_FOR_PERM[p] || []).forEach((def) => {
           nav.insertAdjacentHTML('beforeend', `<a href="${def[0]}" class="${active === def[2] ? 'active' : ''}">${def[1]}</a>`);
@@ -91,6 +101,7 @@ function renderSidebar(active) {
         nav.insertAdjacentHTML('beforeend', '<span style="display:block; padding:8px 20px; font-size:12.5px; color:#8a93a6;">No access granted yet — ask Admin.</span>');
       }
     }).catch((err) => {
+      document.documentElement.style.visibility = '';
       const nav = document.getElementById('customNav');
       if (nav) nav.insertAdjacentHTML('beforeend', `<span style="display:block; padding:8px 20px; font-size:12px; color:#e08585;">Menu failed to load: ${err.message}</span>`);
     });
@@ -181,6 +192,7 @@ function renderSidebar(active) {
       ['dashboard.html', 'Dashboard', 'dashboard'],
       ['orders.html', 'Shopify Orders', 'orders'],
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
+      ['order_codes.html', 'Order Codes', 'order_codes'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
       ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],
