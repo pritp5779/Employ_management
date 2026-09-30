@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Retail Shops — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  .sub{font-size:11.5px; color:var(--muted);}
+  .chip{display:inline-block; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap;}
+  .c-blue{background:#eef2ff; color:#3730a3;} .c-green{background:#e7f7ee; color:#0f7a41;} .c-amber{background:#fdf3e3; color:#b45f06;} .c-red{background:#fdecec; color:#c81e1e;} .c-grey{background:#f3f4f6; color:#6b7280;}
+  .stat-card .value small{font-size:13px; font-weight:500; color:var(--muted);}
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  #rsShopsCard table{min-width:1080px;} #rsOrdersCard table{min-width:820px;}
+  .lmap{width:100%; height:220px; border-radius:8px; border:1px solid var(--line); background:#f1f5f9; z-index:0;}
+  .lmap.big{height:520px; border-radius:0; border:none;}
+  .grid2{display:grid; grid-template-columns:1.1fr 1fr; gap:16px; align-items:start; margin-bottom:16px;}
+  .kv{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:#374151;} .kv b{color:#111827;}
+  .loc-btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .loc-btns .btn, .loc-btns a.btn{width:auto; padding:7px 12px; font-size:12.5px; min-height:0; text-decoration:none; display:inline-flex; align-items:center;}
+  .loc-note{font-size:12px; padding:8px 10px; border-radius:8px; background:#f8fafc; border:1px solid var(--line); color:#475569; line-height:1.5; margin-top:8px;}
+  .loc-note.ok{background:#ecfdf5; border-color:#a7f3d0; color:#065f46;} .loc-note.bad{background:#fef2f2; border-color:#fecaca; color:#991b1b;}
+  .dl{display:grid; grid-template-columns:2fr 60px 50px 80px 70px; gap:8px; font-size:13px; align-items:center; padding:6px 0; border-bottom:1px dashed var(--line);}
+  .dl.h{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line);}
+  .ol{display:grid; grid-template-columns:1fr 58px 52px 62px 74px 76px 26px; gap:6px; align-items:center; margin-bottom:6px;}
+  .ol .l-del{border-color:#bfe6cf; background:#f4fbf7;}
+  .dbar{height:7px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:3px; width:74px;}
+  .dbar i{display:block; height:100%; background:#16a34a;}
+  .dbar.part i{background:#f59e0b;} .dbar.none i{background:#e5e7eb;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .seg button{padding:8px 14px; font-size:13px; font-weight:600; color:var(--muted); background:#fff; border:none; min-height:0; cursor:pointer;}
+  .seg button.on{background:#111827; color:#fff;}
+  .mchart{display:flex; align-items:flex-end; gap:12px; height:140px; padding:14px 20px 0;}
+  .mchart .mb{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; cursor:pointer;}
+  .mchart i{display:block; width:100%; flex:none; background:#93b4f7; border-radius:6px 6px 0 0; min-height:3px; transition:background .15s;}
+  .mchart .mb.on i, .mchart .mb:hover i{background:#2563eb;}
+  .mchart b{font-size:11px; font-weight:600; color:#111827;} .mchart span{font-size:10.5px; color:var(--muted);}
+  #totShopsCard table{min-width:820px;} #totTodayCard table{min-width:760px;}
+  tr.totrow{background:#f8fafc; font-weight:700;} tr.totrow td{border-top:2px solid var(--line);}
+  .ol input{width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:0;}
+  .ol .tot{font-size:13px; font-weight:600; text-align:right; white-space:nowrap;}
+  .ol .rm{background:none; border:none; color:#c81e1e; font-size:16px; cursor:pointer; padding:0; min-height:0; line-height:1;}
+  .ol.h{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:600;}
+  .link{background:none; border:none; color:#2563eb; cursor:pointer; padding:0; min-height:0; font-size:12.5px; font-weight:600;}
+  .pill-btn{background:none; border:1px solid var(--line); border-radius:12px; padding:2px 9px; font-size:11px; cursor:pointer; min-height:0; color:#374151; white-space:nowrap;}
+  .pill-btn:hover{background:#f9fafb;}
+  .view-toggle .btn{width:auto;}
+  .gal{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; padding:14px 20px;}
+  .gal .ph{position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:#f3f4f6;}
+  .gal .ph a{display:block;} .gal img{width:100%; height:130px; object-fit:cover; display:block; background:#e5e7eb;}
+  .gal .cap{font-size:11px; color:#374151; padding:6px 8px; line-height:1.4;} .gal .cap b{display:block; color:#111827;}
+  .gal .del{position:absolute; top:6px; right:6px; background:rgba(17,24,39,.75); color:#fff; border:none; border-radius:8px; font-size:12px; padding:3px 7px; cursor:pointer; min-height:0;}
+  .thumb{width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid var(--line); display:block; background:#e5e7eb;}
+  #phPreview{width:100%; max-height:280px; object-fit:contain; border-radius:10px; border:1px solid var(--line); background:#f3f4f6; display:none;}
+  .cam-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:110px; border:2px dashed #c7d2fe; border-radius:12px; background:#eef2ff; color:#1e3a8a; font-weight:600; cursor:pointer; font-size:14px;}
+  .leaflet-container{font:inherit;}
+  @media (max-width:820px){
+    .grid2{grid-template-columns:1fr;}
+    .tscroll{overflow:visible;} #rsShopsCard table, #rsOrdersCard table{min-width:0;}
+    .ol{grid-template-columns:46px 42px 50px 1fr 58px 22px; row-gap:4px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line);} .ol input{font-size:16px; padding:6px 4px;}
+    .ol .l-name{grid-column:1 / -1;} .ol.h{display:none;}
+    #totShopsCard table, #totTodayCard table{min-width:0;}
+    .mchart{gap:6px; padding:14px 10px 0;}
+    .dl{grid-template-columns:2fr 48px 34px 60px 52px; font-size:12px;}
+    .field input, .field select, .field textarea{font-size:16px;}
+    .lmap.big{height:70vh;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <div><h1>Retail Shops</h1><div class="sub" style="margin-top:2px;">Partner shops that keep our perfumes on display — shop, contact, pinned location and their orders</div></div>
+      <div class="view-toggle" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnTotals">📊 Totals</button>
+        <button class="btn secondary" id="btnMapView">📍 Map view</button>
+        <button class="btn" id="btnAddShop">+ Add Shop</button>
+      </div>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <!-- ===== LIST ===== -->
+      <div id="viewList">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Shops</div><div class="value" id="stShops">—</div></div>
+          <div class="stat-card"><div class="label">Orders this month</div><div class="value" id="stMonth">—</div></div>
+          <div class="stat-card"><div class="label">Display bottles out</div><div class="value" id="stDisplay">—</div></div>
+          <div class="stat-card"><div class="label">Payment pending</div><div class="value" id="stPending" style="color:#c81e1e;">—</div></div>
+        </div>
+        <div class="card" id="rsShopsCard">
+          <div class="card-head"><h2>Shops</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <select id="areaSel" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
+              <div class="search-box"><input type="text" id="q" placeholder="Search shop / owner / mobile..."></div>
+            </div>
+          </div>
+          <div class="tscroll">
+          <table>
+            <thead><tr><th>Shop</th><th>Mobile</th><th>Location</th><th>Display</th><th>Last order</th><th>Last visit</th><th>Pending</th><th style="width:250px;">Actions</th></tr></thead>
+            <tbody id="shopsBody"><tr><td colspan="8"><div class="loading">Loading...</div></td></tr></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SHOP ===== -->
+      <div id="viewShop" style="display:none;">
+        <div style="margin-bottom:12px;"><button class="link" id="btnBack">← All shops</button></div>
+        <div class="grid2">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button></div></div>
+            <div style="padding:14px 20px;">
+              <div class="kv" id="shMeta"></div>
+              <div id="shopMap" class="lmap" style="margin-top:12px;"></div>
+              <div class="loc-btns" id="shLocBtns"></div>
+              <div class="sub" id="shAddr" style="margin-top:10px;"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head"><h2>Display perfumes at this shop</h2><span class="chip c-blue" id="shDisplayCount">—</span></div>
+            <div style="padding:8px 20px 12px;" id="shDisplay"></div>
+          </div>
+        </div>
+        <div class="card" id="rsPhotosCard">
+          <div class="card-head"><h2>Display photos</h2><div style="display:flex; gap:8px; align-items:center;"><span class="sub" id="shPhotoCount"></span><button class="btn" id="btnAddPhoto" style="width:auto;">📷 Add photo</button></div></div>
+          <div id="shGallery"></div>
+        </div>
+        <div class="card" id="rsOrdersCard">
+          <div class="card-head"><h2>Orders</h2><button class="btn" id="btnNewOrder" style="width:auto;">+ New order</button></div>
+          <div class="tscroll">
+          <table>
+            <thead><tr><th>Order</th><th>Date</th><th>Type</th><th>Items</th><th>Qty</th><th>Delivered</th><th>Total</th><th>Payment</th><th>Added by</th><th style="width:130px;">Actions</th></tr></thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TOTALS ===== -->
+      <div id="viewTotals" style="display:none;">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
+          <span class="seg"><button type="button" data-per="today">Today</button><button type="button" data-per="month" class="on">This month</button><button type="button" data-per="custom">Custom</button></span>
+          <input type="month" id="tMonth" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+          <span id="tCustom" style="display:none; gap:6px; align-items:center;"><input type="date" id="tFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><span class="sub">to</span><input type="date" id="tTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"></span>
+          <select id="tArea" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
+          <span class="sub" id="tRange"></span>
+        </div>
+        <div class="stat-grid" id="tCards"></div>
+        <div class="card">
+          <div class="card-head"><h2>Month by month — all shops</h2><span class="sub">tap a bar to open that month</span></div>
+          <div class="mchart" id="tChart"></div>
+          <div style="padding:8px 20px 14px;" class="sub" id="tChartNote"></div>
+        </div>
+        <div class="card" id="totShopsCard">
+          <div class="card-head"><h2 id="tShopsTitle">Shop-wise total</h2><button class="btn secondary" id="btnTExport" style="width:auto; padding:7px 12px; font-size:12.5px;">⬇ Excel</button></div>
+          <div class="tscroll">
+          <table>
+            <thead><tr><th>Shop</th><th>Orders</th><th>Qty</th><th>Delivered</th><th>Pending</th><th>Total amount</th><th>Paid</th><th>Due</th></tr></thead>
+            <tbody id="tShopsBody"><tr><td colspan="8"><div class="loading">Loading...</div></td></tr></tbody>
+          </table>
+          </div>
+        </div>
+        <div class="card" id="totTodayCard">
+          <div class="card-head"><h2 id="tTodayTitle">Today</h2><span class="sub" id="tTodayNote"></span></div>
+          <div class="tscroll">
+          <table>
+            <thead><tr><th>Shop</th><th>Order</th><th>Items</th><th>Qty</th><th>Delivered</th><th>Amount</th><th>By</th></tr></thead>
+            <tbody id="tTodayBody"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MAP ===== -->
+      <div id="viewMap" style="display:none;">
+        <div class="card">
+          <div class="card-head"><h2>All shops on the map</h2><span class="sub" id="mapNote">tap a pin to open the shop · grey = no order for 60+ days</span></div>
+          <div id="allMap" class="lmap big"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add / edit shop -->
+<div class="modal-overlay" id="shopModal">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="shopModalTitle">Add Retail Shop</h3>
+    <div id="shopAlert"></div>
+    <form id="shopForm">
+      <input type="hidden" id="fShopId">
+      <div class="field"><label>Shop name *</label><input id="fName" required></div>
+      <div class="field-grid">
+        <div class="field"><label>Owner / contact person</label><input id="fOwner"></div>
+        <div class="field"><label>Mobile</label><input id="fMobile" inputmode="tel" placeholder="98250 00000"></div>
+        <div class="field"><label>Area</label><input id="fArea" list="areaList" placeholder="Adajan"><datalist id="areaList"></datalist></div>
+        <div class="field"><label>Note (commission, timing…)</label><input id="fNote" placeholder="e.g. 20% on sale"></div>
+      </div>
+      <div class="field"><label>Address</label><input id="fAddr" placeholder="Near …, road, city"></div>
+      <div class="field">
+        <label>Shop location</label>
+        <div id="pinMap" class="lmap" style="height:190px;"></div>
+        <div class="loc-btns">
+          <button type="button" class="btn" id="btnPinHere">📍 Pin my current location</button>
+          <button type="button" class="btn secondary" id="btnPasteLink">Paste Google Maps link</button>
+          <button type="button" class="btn secondary" id="btnClearPin" style="display:none;">Remove pin</button>
+        </div>
+        <div class="loc-note" id="pinNote">Standing in the shop? Tap "Pin my current location". Or paste a Google Maps share link / "21.19…, 72.79…". You can drag the pin to adjust.</div>
+        <input type="hidden" id="fLat"><input type="hidden" id="fLng"><input type="hidden" id="fAcc">
+      </div>
+      <div class="field" id="fStatusWrap" style="display:none;"><label>Status</label><select id="fStatus"><option value="active">Active</option><option value="inactive">Inactive (no longer displays)</option></select></div>
+      <div class="actions"><button type="button" class="btn secondary" id="btnShopCancel">Cancel</button><button type="submit" class="btn" id="btnShopSave">Save shop</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- New / edit order -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="orderTitle">New order</h3>
+    <div class="sub" id="orderSub" style="margin:-8px 0 12px;"></div>
+    <div id="orderAlert"></div>
+    <input type="hidden" id="oId"><input type="hidden" id="oShop">
+    <div class="field-grid">
+      <div class="field"><label>Order type</label><select id="oType"><option value="display">Display stock (perfumes kept at shop)</option><option value="sale">Sale order (shop buys)</option><option value="replacement">Replacement</option><option value="return">Return (taken back)</option></select></div>
+      <div class="field"><label>Payment</label><select id="oPay"><option value="pending">Pending</option><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
+      <div class="field"><label>Date</label><input type="date" id="oDate"></div>
+      <div class="field" id="oPaidWrap"><label>Paid so far (₹)</label><input type="number" id="oPaid" min="0" step="1" placeholder="0"></div>
+    </div>
+    <div class="ol h"><span>Perfume name</span><span>ML</span><span>Qty</span><span>Deliv.</span><span>Price ₹</span><span style="text-align:right;">Total</span><span></span></div>
+    <div id="oLines"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:4px 0 8px; font-size:13px; flex-wrap:wrap;"><button type="button" class="link" id="btnAddLine">+ Add line</button><span><span id="oQty">0</span> pcs ordered · <b style="color:#0f7a41;" id="oDel">0</b> delivered<span id="oPendWrap"> · <b style="color:#b45f06;" id="oPend">0</b> pending</span> · <b style="font-size:15px;" id="oTotal">₹0</b></span></div>
+    <div id="oPartBox" style="display:none; background:#fdf3e3; border:1px solid #f0c36d; color:#8a5a00; border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin-bottom:10px;">
+      <b>Partly delivered</b> — <span id="oPartTxt"></span> still to deliver. Update the Deliv. box later and the order turns green.
+      <div style="margin-top:6px;"><label style="font-weight:600; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="oBillDel" style="width:14px; height:14px; min-height:0; margin:0;"> Bill only delivered pieces (<span id="oBillAmt">₹0</span>)</label></div>
+    </div>
+    <div class="field"><label>Note</label><input id="oNote" placeholder="e.g. delivered by Gopal, 2 testers"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnOrderCancel">Cancel</button><button type="button" class="btn" id="btnOrderSave">Save order</button></div>
+  </div>
+</div>
+
+<!-- Display photo (shop visit) -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal" style="max-width:460px;">
+    <h3 id="photoTitle">Display photo</h3>
+    <div class="sub" id="photoSub" style="margin:-8px 0 12px;">Photo of our perfumes on display at this shop</div>
+    <div id="photoAlert"></div>
+    <input type="hidden" id="phShop">
+    <input type="file" id="phFile" accept="image/*" style="display:none;">
+    <label class="cam-btn" for="phFile" id="phPick">📷 Take / choose photo</label>
+    <img id="phPreview" alt="">
+    <div class="sub" id="phInfo" style="margin-top:6px;"></div>
+    <div class="field" style="margin-top:12px;"><label>Note (optional)</label><input id="phNote" placeholder="e.g. 8 bottles on counter, 2 sold"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnPhotoCancel">Cancel</button><button type="button" class="btn" id="btnPhotoSave" disabled>Save photo</button></div>
+  </div>
+</div>
+
+<!-- Delivery -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal" style="max-width:480px;">
+    <h3 id="delTitle">Update delivery</h3>
+    <div class="sub" id="delSub" style="margin:-8px 0 12px;"></div>
+    <div id="delAlert"></div>
+    <input type="hidden" id="dId">
+    <div id="delLines"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0; font-size:13px;">
+      <button type="button" class="link" id="btnDelAll">✓ All delivered</button>
+      <span><b id="dDel">0</b> / <span id="dQty">0</span> delivered</span>
+    </div>
+    <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#374151;"><input type="checkbox" id="dBill" style="width:14px; height:14px; min-height:0; margin:0;"> Bill only delivered pieces</label>
+    <div class="actions"><button type="button" class="btn secondary" id="btnDelCancel">Cancel</button><button type="button" class="btn" id="btnDelSave">Save</button></div>
+  </div>
+</div>
+
+<!-- Payment -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal" style="max-width:400px;">
+    <h3>Payment</h3>
+    <div class="sub" id="paySub" style="margin:-8px 0 12px;"></div>
+    <div id="payAlert"></div>
+    <input type="hidden" id="pId">
+    <div class="field"><label>Status</label><select id="pPay"><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="pending">Pending (part paid)</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
+    <div class="field" id="pAmtWrap" style="display:none;"><label>Paid so far (₹)</label><input type="number" id="pAmt" min="0" step="1"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnPayCancel">Cancel</button><button type="button" class="btn" id="btnPaySave">Save</button></div>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  guardPage();
+  renderSidebar('retail_shops');
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const inr = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+  const fmtD = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  const fmtDS = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—';
+  const alertBox = document.getElementById('alertBox');
+  function showAlert(msg, type = 'success') { alertBox.innerHTML = `<div class="alert ${type}">${esc(msg)}</div>`; setTimeout(() => { if (alertBox.firstChild) alertBox.innerHTML = ''; }, 4000); }
+  const mapsUrl = (s) => `https://www.google.com/maps?q=${s.lat},${s.lng}`;
+  const dirUrl = (s) => `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
+  const waUrl = (m) => { const d = String(m || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length === 10 ? '91' + d : d) : '#'; };
+  const PAY_LABEL = { pending: 'Pending', cash: 'Paid · cash', upi: 'Paid · UPI', on_sale: 'Pay on sale', free: 'Free' };
+  const TYPE_LABEL = { display: 'Display', sale: 'Sale', replacement: 'Replacement', return: 'Return' };
+  const fileUrl = (path) => api.buildUrl('files.view', { path, token: api.token() });
+  const fmtDT = (d) => d ? new Date(String(d).replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+  const HAS_L = typeof L !== 'undefined';
+  if (HAS_L) L.Icon.Default.imagePath = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/';
+  const tiles = (map) => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+
+  let shops = [], areas = [], currentShop = null, view = 'list';
+  // Shared hosting drops a request now and then ("Failed to fetch") — try once more before showing an error.
+  async function withRetry(fn, tries = 2) {
+    let last;
+    for (let i = 0; i < tries; i++) {
+      try { return await fn(); }
+      catch (e) {
+        last = e;
+        if (!/failed to fetch|load failed|network/i.test(e.message || '') || i === tries - 1) throw e;
+        await new Promise(r => setTimeout(r, 800));
+      }
+    }
+    throw last;
+  }
+  const itemLabel = (i) => esc(i.product_name) + (i.ml ? ' ' + esc(i.ml) : '');
+
+  // ---------- views ----------
+  function showView(v) {
+    view = v;
+    document.getElementById('viewList').style.display = v === 'list' ? '' : 'none';
+    document.getElementById('viewShop').style.display = v === 'shop' ? '' : 'none';
+    document.getElementById('viewMap').style.display = v === 'map' ? '' : 'none';
+    document.getElementById('viewTotals').style.display = v === 'totals' ? '' : 'none';
+    document.getElementById('btnMapView').textContent = v === 'map' ? '☰ List view' : '📍 Map view';
+    document.getElementById('btnTotals').textContent = v === 'totals' ? '☰ List view' : '📊 Totals';
+    if (v !== 'shop') history.replaceState(null, '', location.pathname);
+    window.scrollTo(0, 0);
+  }
+  document.getElementById('btnMapView').addEventListener('click', () => { if (view === 'map') showView('list'); else { showView('map'); renderAllMap(); } });
+  document.getElementById('btnTotals').addEventListener('click', () => { if (view === 'totals') showView('list'); else { showView('totals'); loadTotals(); } });
+  document.getElementById('btnBack').addEventListener('click', () => showView('list'));
+
+  // ---------- list ----------
+  async function loadShops() {
+    try {
+      const d = await withRetry(() => api.get('retail.shops', { area: document.getElementById('areaSel').value, q: document.getElementById('q').value.trim() }));
+      shops = d.shops || []; areas = d.areas || [];
+      const t = d.totals || {};
+      document.getElementById('stShops').textContent = t.shops ?? shops.length;
+      document.getElementById('stMonth').textContent = t.month_orders ?? 0;
+      document.getElementById('stDisplay').textContent = t.display_qty ?? 0;
+      document.getElementById('stPending').textContent = inr(t.pending || 0);
+      const sel = document.getElementById('areaSel'); const cur = sel.value;
+      sel.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+      sel.value = cur;
+      document.getElementById('areaList').innerHTML = areas.map(a => `<option value="${esc(a)}">`).join('');
+      renderShops();
+    } catch (err) {
+      document.getElementById('shopsBody').innerHTML = `<tr><td colspan="8"><div class="alert error">${esc(err.message)}</div></td></tr>`;
+    }
+  }
+  function renderShops() {
+    const tb = document.getElementById('shopsBody');
+    if (!shops.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-state">No shops yet — tap “+ Add Shop”.</div></td></tr>'; return; }
+    tb.innerHTML = shops.map(s => {
+      const st = s.stats || {};
+      const pinned = s.lat !== null && s.lat !== undefined;
+      const pending = Number(st.pending || 0);
+      return `<tr${s.status === 'inactive' ? ' style="opacity:.6;"' : ''}>
+        <td><b>${esc(s.shop_name)}</b>${s.status === 'inactive' ? ' <span class="chip c-grey">inactive</span>' : ''}<div class="sub">${esc([s.area, s.owner_name].filter(Boolean).join(' · '))}</div></td>
+        <td>${s.mobile ? `${esc(s.mobile)}<div class="sub"><a href="${waUrl(s.mobile)}" target="_blank" rel="noopener" style="color:#25d366;">WhatsApp</a> · <a href="tel:${esc(s.mobile)}">Call</a></div>` : '<span class="sub">—</span>'}</td>
+        <td>${pinned ? `<span class="chip c-green">📍 Pinned</span>` : `<span class="chip c-amber">No pin yet</span>`}<div class="sub">${esc(s.address || '')}${pinned ? `${s.address ? ' · ' : ''}<a href="${mapsUrl(s)}" target="_blank" rel="noopener">Open in Maps</a>` : ` <button class="link" data-pin="${s.shop_id}" style="font-size:11.5px;">Pin now</button>`}</div></td>
+        <td>${st.orders_count ? `<b>${st.display_qty}</b> perfumes<div class="sub">${inr(st.amount)} · ${st.orders_count} order${st.orders_count === 1 ? '' : 's'}</div>${st.to_deliver > 0 ? `<span class="chip c-amber">${st.to_deliver} to deliver</span>` : ''}` : '<span class="sub">no order yet</span>'}</td>
+        <td>${st.last_date ? `${fmtDS(st.last_date)}<div class="sub">${st.last_qty} pcs · ${inr(st.last_total)}</div>` : '<span class="sub">—</span>'}</td>
+        <td>${st.visits ? `<div style="display:flex; gap:8px; align-items:center;">${st.last_photo ? `<a href="${fileUrl(st.last_photo)}" target="_blank" rel="noopener"><img class="thumb" src="${fileUrl(st.last_photo)}" alt=""></a>` : ''}<div>${fmtDS(st.last_visit)}<div class="sub">${esc(st.last_visit_by || '')}${st.visits > 1 ? ` · ${st.visits} photos` : ''}</div></div></div>` : '<span class="sub">no photo yet</span>'}</td>
+        <td>${pending > 0 ? `<span class="chip c-red">${inr(pending)} due</span>` : (st.orders_count ? '<span class="chip c-green">Paid</span>' : '<span class="chip c-grey">—</span>')}</td>
+        <td><div class="row-actions"><button data-photo="${s.shop_id}">📷 Photo</button><button data-order="${s.shop_id}" style="color:#2563eb; font-weight:600;">+ New order</button><button data-open="${s.shop_id}">Open</button><button data-edit="${s.shop_id}">Edit</button></div></td>
+      </tr>`; }).join('');
+  }
+  document.getElementById('shopsBody').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.open) openShop(Number(b.dataset.open));
+    else if (b.dataset.edit) openShopModal(shops.find(s => s.shop_id == b.dataset.edit));
+    else if (b.dataset.order) openOrderModal(Number(b.dataset.order));
+    else if (b.dataset.pin) pinNow(Number(b.dataset.pin));
+    else if (b.dataset.photo) openPhotoModal(Number(b.dataset.photo));
+  });
+  document.getElementById('areaSel').addEventListener('change', loadShops);
+  let qT; document.getElementById('q').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(loadShops, 300); });
+
+  // "Pin now" straight from the list: phone GPS → shop pin.
+  function pinNow(shopId) {
+    if (!navigator.geolocation) { showAlert('This browser cannot read the location.', 'error'); return; }
+    showAlert('Reading your location…');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const d = await api.post('retail.shop_pin', { shop_id: shopId, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
+        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)`); loadShops();
+      } catch (err) { showAlert(err.message, 'error'); }
+    }, () => showAlert('Could not read the location — allow location for this site and try again, or open the shop and paste a Google Maps link.', 'error'), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  }
+
+  // ---------- shop page ----------
+  let shopMap = null, shopMarker = null;
+  async function openShop(id) {
+    showView('shop');
+    history.replaceState(null, '', location.pathname + '?shop=' + id);
+    document.getElementById('shName').textContent = 'Loading…';
+    document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8"><div class="loading sm">Loading...</div></td></tr>';
+    try {
+      const d = await withRetry(() => api.get('retail.shop', { id }));
+      currentShop = d.shop;
+      const s = d.shop, st = d.stats || {};
+      document.getElementById('shName').textContent = s.shop_name;
+      document.getElementById('shMeta').innerHTML = [
+        s.owner_name ? `<span>👤 <b>${esc(s.owner_name)}</b></span>` : '',
+        s.mobile ? `<span>📞 <b>${esc(s.mobile)}</b> · <a href="${waUrl(s.mobile)}" target="_blank" rel="noopener" style="color:#25d366;">WhatsApp</a> · <a href="tel:${esc(s.mobile)}">Call</a></span>` : '',
+        s.area ? `<span>🏷 <b>${esc(s.area)}</b></span>` : '',
+        `<span>Added <b>${fmtD(s.created_at)}</b></span>`,
+        s.note ? `<span>📝 ${esc(s.note)}</span>` : '',
+        s.status === 'inactive' ? '<span class="chip c-grey">inactive</span>' : '',
+      ].filter(Boolean).join('');
+      document.getElementById('shAddr').textContent = s.address || '';
+      const pinned = s.lat !== null;
+      document.getElementById('shLocBtns').innerHTML = pinned
+        ? `<a class="btn secondary" href="${mapsUrl(s)}" target="_blank" rel="noopener">Open in Google Maps</a><a class="btn secondary" href="${dirUrl(s)}" target="_blank" rel="noopener">Directions</a><button class="btn secondary" id="btnRepin">📍 Re-pin here</button>`
+        : `<button class="btn" id="btnRepin">📍 Pin my current location</button><button class="btn secondary" id="btnLinkPin">Paste Google Maps link</button>`;
+      document.getElementById('btnRepin').addEventListener('click', () => pinNowShop());
+      const lk = document.getElementById('btnLinkPin'); if (lk) lk.addEventListener('click', () => linkPinShop());
+      drawShopMap(s);
+      // display list
+      const disp = d.display || [];
+      document.getElementById('shDisplayCount').textContent = disp.reduce((a, x) => a + x.qty, 0) + ' bottles';
+      document.getElementById('shDisplay').innerHTML = disp.length
+        ? '<div class="dl h"><span>Perfume</span><span>ML</span><span>Qty</span><span>Price</span><span>Since</span></div>' + disp.map(x => `<div class="dl"><span>${esc(x.product_name)}</span><span>${esc(x.ml || '—')}</span><span>${x.qty}</span><span>${inr(x.price)}</span><span class="sub">${fmtDS(x.since)}</span></div>`).join('')
+        : '<div class="empty-state" style="padding:20px;">Nothing on display yet — add a “Display stock” order.</div>';
+      renderOrders(d.orders || []);
+      renderVisits(d.visits || []);
+    } catch (err) { document.getElementById('shName').textContent = 'Shop'; showAlert(err.message, 'error'); }
+  }
+  function drawShopMap(s) {
+    const el = document.getElementById('shopMap');
+    if (!HAS_L) { el.innerHTML = '<div class="empty-state">Map could not load (no internet?)</div>'; return; }
+    if (!shopMap) { shopMap = L.map(el, { scrollWheelZoom: false }); tiles(shopMap); }
+    if (shopMarker) { shopMap.removeLayer(shopMarker); shopMarker = null; }
+    if (s.lat !== null && s.lat !== undefined) {
+      shopMarker = L.marker([s.lat, s.lng]).addTo(shopMap).bindPopup(`<b>${esc(s.shop_name)}</b><br>${esc(s.address || '')}<br><span style="font-size:11px;color:#6b7280;">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}${s.pinned_by_name ? ' · pinned by ' + esc(s.pinned_by_name) : ''}${s.pinned_at ? ' on ' + fmtDS(s.pinned_at) : ''}</span>`);
+      shopMap.setView([s.lat, s.lng], 16);
+    } else shopMap.setView([21.1702, 72.8311], 12);
+    setTimeout(() => shopMap.invalidateSize(), 50);
+  }
+  function pinNowShop() {
+    if (!currentShop) return;
+    if (!navigator.geolocation) { showAlert('This browser cannot read the location.', 'error'); return; }
+    showAlert('Reading your location…');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
+        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)`); openShop(currentShop.shop_id);
+      } catch (err) { showAlert(err.message, 'error'); }
+    }, () => showAlert('Could not read the location — allow location for this site and try again.', 'error'), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  }
+  async function linkPinShop() {
+    const link = prompt('Paste the Google Maps link or "lat, lng":'); if (!link) return;
+    try { const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, link }); showAlert(d.message); openShop(currentShop.shop_id); }
+    catch (err) { showAlert(err.message, 'error'); }
+  }
+  function renderOrders(orders) {
+    const tb = document.getElementById('ordersBody');
+    if (!orders.length) { tb.innerHTML = '<tr><td colspan="10"><div class="empty-state">No orders yet.</div></td></tr>'; return; }
+    tb.innerHTML = orders.map(o => {
+      const billed = o.billed_total !== undefined ? o.billed_total : o.total;
+      const due = o.payment === 'pending' ? Math.max(0, billed - o.paid_amount) : 0;
+      const del = o.delivered_qty || 0, pend = Math.max(0, o.qty - del);
+      const dk = o.delivery || (del >= o.qty ? 'delivered' : (del ? 'partial' : 'not_delivered'));
+      const dCol = dk === 'delivered' ? '#0f7a41' : (dk === 'partial' ? '#b45f06' : '#c81e1e');
+      const dCell = `<b style="color:${dCol};">${del} / ${o.qty}</b><div class="dbar ${dk === 'delivered' ? '' : (dk === 'partial' ? 'part' : 'none')}"><i style="width:${o.qty ? Math.round(del / o.qty * 100) : 0}%"></i></div><div class="sub">${dk === 'delivered' ? 'all delivered' : (pend + ' pending')}</div><div style="margin-top:4px;"><button class="pill-btn" data-deliver="${o.order_id}">${dk === 'delivered' ? 'Change' : 'Update delivery'}</button></div>`;
+      const payChip = o.payment === 'pending' ? `<span class="chip c-red">Due ${inr(due)}</span>${o.paid_amount > 0 ? `<div class="sub">paid ${inr(o.paid_amount)}</div>` : ''}` : `<span class="chip ${o.payment === 'on_sale' ? 'c-amber' : 'c-green'}">${PAY_LABEL[o.payment] || o.payment}</span>`;
+      const items = o.items.map(i => `${itemLabel(i)} ×${i.qty}${(i.delivered !== undefined && i.delivered < i.qty) ? ` <span style="color:#b45f06;">(${i.delivered} del.)</span>` : ''}`).join(', ');
+      return `<tr>
+        <td><b>${esc(o.order_no)}</b>${o.note ? `<div class="sub">${esc(o.note)}</div>` : ''}</td>
+        <td>${fmtD(o.order_date)}</td>
+        <td><span class="chip ${o.order_type === 'display' ? 'c-blue' : (o.order_type === 'return' ? 'c-amber' : 'c-grey')}">${TYPE_LABEL[o.order_type] || o.order_type}</span></td>
+        <td>${items}</td>
+        <td>${o.qty}</td>
+        <td>${dCell}</td>
+        <td><b>${inr(billed)}</b>${o.bill_delivered && o.delivered_total !== o.total ? `<div class="sub">ordered ${inr(o.total)}</div>` : (pend > 0 ? `<div class="sub">delivered ${inr(o.delivered_total || 0)}</div>` : '')}</td>
+        <td>${payChip}<div style="margin-top:4px;"><button class="pill-btn" data-pay="${o.order_id}">${o.payment === 'pending' ? 'Mark paid' : 'Change'}</button></div></td>
+        <td>${esc(o.created_by_name || '—')}${o.employee_code ? `<div class="sub">${esc(o.employee_code)}</div>` : ''}</td>
+        <td><div class="row-actions"><button data-oedit="${o.order_id}">Edit</button><button class="danger-link" data-odel="${o.order_id}">Delete</button></div></td>
+      </tr>`; }).join('');
+    tb.dataset.orders = JSON.stringify(orders);
+  }
+  document.getElementById('ordersBody').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const orders = JSON.parse(document.getElementById('ordersBody').dataset.orders || '[]');
+    if (b.dataset.deliver) openDeliverModal(orders.find(o => o.order_id == b.dataset.deliver));
+    else if (b.dataset.pay) openPayModal(orders.find(o => o.order_id == b.dataset.pay));
+    else if (b.dataset.oedit) openOrderModal(currentShop.shop_id, orders.find(o => o.order_id == b.dataset.oedit));
+    else if (b.dataset.odel) {
+      const o = orders.find(x => x.order_id == b.dataset.odel);
+      if (!confirm(`Delete order ${o.order_no} (${inr(o.total)})?`)) return;
+      try { const d = await api.post('retail.order_delete', { order_id: o.order_id }); showAlert(d.message); openShop(currentShop.shop_id); } catch (err) { showAlert(err.message, 'error'); }
+    }
+  });
+  function renderVisits(visits) {
+    const g = document.getElementById('shGallery');
+    document.getElementById('shPhotoCount').textContent = visits.length ? `${visits.length} photo${visits.length === 1 ? '' : 's'}` : '';
+    if (!visits.length) { g.innerHTML = '<div class="empty-state" style="padding:24px;">No display photo yet — when you visit the shop, tap “📷 Add photo”.</div>'; return; }
+    const me = api.currentUser() || {};
+    g.innerHTML = '<div class="gal">' + visits.map(v => `<div class="ph">
+        <a href="${fileUrl(v.photo)}" target="_blank" rel="noopener"><img src="${fileUrl(v.photo)}" alt="Display photo" loading="lazy"></a>
+        <div class="cap"><b>${fmtDT(v.visit_at)}</b>${esc(v.employee_name || '—')}${v.distance_m !== null && v.distance_m !== undefined ? ` · ${v.distance_m} m from pin` : ''}${v.note ? `<div>${esc(v.note)}</div>` : ''}</div>
+        ${(me.role === 'Admin' || me.role === 'HR' || (me.employee_id && me.employee_id == v.employee_id)) ? `<button class="del" data-vdel="${v.visit_id}" title="Delete photo">✕</button>` : ''}
+      </div>`).join('') + '</div>';
+  }
+  document.getElementById('shGallery').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-vdel]'); if (!b) return;
+    if (!confirm('Delete this photo?')) return;
+    try { const d = await api.post('retail.visit_delete', { visit_id: Number(b.dataset.vdel) }); showAlert(d.message); openShop(currentShop.shop_id); } catch (err) { showAlert(err.message, 'error'); }
+  });
+  document.getElementById('btnAddPhoto').addEventListener('click', () => openPhotoModal(currentShop.shop_id));
+  document.getElementById('btnEditShop').addEventListener('click', () => openShopModal(currentShop));
+  document.getElementById('btnNewOrder').addEventListener('click', () => openOrderModal(currentShop.shop_id));
+  document.getElementById('btnNewOrderTop').addEventListener('click', () => openOrderModal(currentShop.shop_id));
+
+  // ---------- all-shops map ----------
+  let allMap = null, allLayer = null;
+  async function renderAllMap() {
+    const el = document.getElementById('allMap');
+    if (!HAS_L) { el.innerHTML = '<div class="empty-state">Map could not load (no internet?)</div>'; return; }
+    if (!allMap) { allMap = L.map(el); tiles(allMap); allMap.setView([21.1702, 72.8311], 12); }
+    setTimeout(() => allMap.invalidateSize(), 50);
+    try {
+      const d = await api.get('retail.map');
+      if (allLayer) allMap.removeLayer(allLayer);
+      allLayer = L.layerGroup().addTo(allMap);
+      const pts = [];
+      const cutoff = Date.now() - 60 * 86400000;
+      (d.shops || []).forEach(s => {
+        const stale = !s.last_date || new Date(s.last_date + 'T00:00:00').getTime() < cutoff;
+        const icon = L.divIcon({ className: '', html: `<div style="font-size:26px; line-height:1; filter:${stale ? 'grayscale(1)' : 'none'}; opacity:${stale ? '.6' : '1'}; transform:translate(-50%,-100%);">📍</div>`, iconSize: [0, 0] });
+        L.marker([s.lat, s.lng], { icon }).addTo(allLayer).bindPopup(`<b>${esc(s.shop_name)}</b><br>${esc([s.area, s.owner_name, s.mobile].filter(Boolean).join(' · '))}<br><span style="font-size:11px;color:#6b7280;">${s.orders_count} order${s.orders_count === 1 ? '' : 's'} · last ${s.last_date ? fmtDS(s.last_date) : '—'}</span><br><a href="#" data-open-shop="${s.shop_id}" style="font-weight:600;">Open shop →</a>`);
+        pts.push([s.lat, s.lng]);
+      });
+      document.getElementById('mapNote').textContent = `${pts.length} pinned shop${pts.length === 1 ? '' : 's'} · tap a pin to open · grey = no order for 60+ days`;
+      if (pts.length) allMap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
+    } catch (err) { showAlert(err.message, 'error'); }
+  }
+  document.getElementById('allMap').addEventListener('click', (e) => { const a = e.target.closest('a[data-open-shop]'); if (a) { e.preventDefault(); openShop(Number(a.dataset.openShop)); } });
+
+  // ---------- add / edit shop ----------
+  const shopModal = document.getElementById('shopModal');
+  let pinMap = null, pinMarker = null, modalScrollY = 0;
+  function setPin(lat, lng, acc, msg, kind) {
+    document.getElementById('fLat').value = lat ?? ''; document.getElementById('fLng').value = lng ?? ''; document.getElementById('fAcc').value = acc ?? '';
+    document.getElementById('btnClearPin').style.display = lat ? '' : 'none';
+    const note = document.getElementById('pinNote'); note.className = 'loc-note' + (kind ? ' ' + kind : '');
+    note.textContent = msg || (lat ? `Pinned at ${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}. Drag the pin to adjust.` : 'Standing in the shop? Tap "Pin my current location". Or paste a Google Maps share link / "21.19…, 72.79…". You can drag the pin to adjust.');
+    if (!HAS_L) return;
+    if (!pinMap) {
+      pinMap = L.map(document.getElementById('pinMap'), { scrollWheelZoom: false }); tiles(pinMap);
+      pinMap.on('click', (ev) => setPin(ev.latlng.lat, ev.latlng.lng, '', `Pinned where you tapped: ${ev.latlng.lat.toFixed(5)}, ${ev.latlng.lng.toFixed(5)}.`, 'ok'));
+    }
+    if (pinMarker) { pinMap.removeLayer(pinMarker); pinMarker = null; }
+    if (lat) {
+      pinMarker = L.marker([lat, lng], { draggable: true }).addTo(pinMap);
+      pinMarker.on('dragend', () => { const p = pinMarker.getLatLng(); setPin(p.lat, p.lng, '', `Pin moved to ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}.`, 'ok'); });
+      pinMap.setView([lat, lng], 17);
+    } else pinMap.setView([21.1702, 72.8311], 12);
+    setTimeout(() => pinMap.invalidateSize(), 60);
+  }
+  function openShopModal(s) {
+    document.getElementById('shopAlert').innerHTML = '';
+    document.getElementById('shopModalTitle').textContent = s ? 'Edit shop' : 'Add Retail Shop';
+    document.getElementById('fShopId').value = s ? s.shop_id : '';
+    document.getElementById('fName').value = s ? s.shop_name : '';
+    document.getElementById('fOwner').value = s ? s.owner_name || '' : '';
+    document.getElementById('fMobile').value = s ? s.mobile || '' : '';
+    document.getElementById('fArea').value = s ? s.area || '' : '';
+    document.getElementById('fNote').value = s ? s.note || '' : '';
+    document.getElementById('fAddr').value = s ? s.address || '' : '';
+    document.getElementById('fStatusWrap').style.display = s ? '' : 'none';
+    document.getElementById('fStatus').value = s ? (s.status || 'active') : 'active';
+    modalScrollY = window.scrollY; shopModal.classList.add('open');
+    setPin(s && s.lat !== null ? s.lat : '', s && s.lat !== null ? s.lng : '', s ? s.accuracy_m : '');
+    setTimeout(() => document.getElementById('fName').focus(), 100);
+  }
+  function closeShopModal() { shopModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnAddShop').addEventListener('click', () => openShopModal(null));
+  document.getElementById('btnShopCancel').addEventListener('click', closeShopModal);
+  shopModal.addEventListener('click', (e) => { if (e.target === shopModal) closeShopModal(); });
+  document.getElementById('btnClearPin').addEventListener('click', () => setPin('', '', ''));
+  document.getElementById('btnPinHere').addEventListener('click', () => {
+    const b = document.getElementById('btnPinHere');
+    if (!navigator.geolocation) { setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', 'This browser cannot read the location — paste a Google Maps link instead.', 'bad'); return; }
+    if (!window.isSecureContext) { setPin('', '', '', 'Location needs https:// — open the site with https and try again.', 'bad'); return; }
+    b.disabled = true; b.textContent = 'Reading GPS…';
+    navigator.geolocation.getCurrentPosition((pos) => {
+      b.disabled = false; b.textContent = '📍 Pin my current location';
+      const acc = Math.round(pos.coords.accuracy);
+      setPin(pos.coords.latitude, pos.coords.longitude, acc, `Location captured (GPS ±${acc} m).${acc > 60 ? ' Accuracy is poor — step outside the shop door, wait a few seconds and tap again, or drag the pin onto the shop.' : ' Drag the pin if it is not exactly on the shop.'}`, acc > 60 ? 'bad' : 'ok');
+    }, (err) => {
+      b.disabled = false; b.textContent = '📍 Pin my current location';
+      setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', err.code === 1 ? 'Location permission is blocked for this site — allow it in the browser settings, then tap again.' : 'Could not read the location — try again, or paste a Google Maps link.', 'bad');
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+  document.getElementById('btnPasteLink').addEventListener('click', async () => {
+    const txt = prompt('Paste a Google Maps link or "lat, lng":'); if (!txt) return;
+    try { const d = await api.post('retail.parse_link', { link: txt }); setPin(d.lat, d.lng, '', `Coordinates set from the link: ${d.lat}, ${d.lng}. Drag the pin if needed.`, 'ok'); }
+    catch (err) { setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', err.message, 'bad'); }
+  });
+  document.getElementById('shopForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnShopSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.shop_save', {
+        shop_id: document.getElementById('fShopId').value || 0,
+        shop_name: document.getElementById('fName').value.trim(), owner_name: document.getElementById('fOwner').value.trim(), mobile: document.getElementById('fMobile').value.trim(),
+        area: document.getElementById('fArea').value.trim(), address: document.getElementById('fAddr').value.trim(), note: document.getElementById('fNote').value.trim(),
+        lat: document.getElementById('fLat').value, lng: document.getElementById('fLng').value, accuracy_m: document.getElementById('fAcc').value,
+        status: document.getElementById('fStatus').value,
+      });
+      closeShopModal(); showAlert(d.message);
+      await loadShops();
+      if (view === 'shop' && currentShop && currentShop.shop_id == d.shop_id) openShop(d.shop_id);
+    } catch (err) { document.getElementById('shopAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- order modal ----------
+  const orderModal = document.getElementById('orderModal');
+  function lineHtml(it) {
+    return `<div class="ol"><input class="l-name" placeholder="Perfume name…" value="${esc(it ? it.product_name : '')}" autocomplete="off"><input class="l-ml" placeholder="ML" inputmode="decimal" value="${esc(it ? String(it.ml || '').replace(/\s*ml$/i, '') : '')}" autocomplete="off"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-del" type="number" min="0" step="1" inputmode="numeric" placeholder="Deliv." title="How many actually reached the shop — leave empty if all did" value="${it && it.delivered !== undefined && it.delivered !== null ? it.delivered : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button></div>`;
+  }
+  function addLine(it) { document.getElementById('oLines').insertAdjacentHTML('beforeend', lineHtml(it)); recalc(); }
+  function recalc() {
+    let qty = 0, total = 0, del = 0, delTotal = 0;
+    document.querySelectorAll('#oLines .ol').forEach(r => {
+      const q = Number(r.querySelector('.l-qty').value) || 0, p = Number(r.querySelector('.l-price').value) || 0;
+      const dRaw = r.querySelector('.l-del').value;
+      const d = Math.max(0, Math.min(dRaw === '' ? q : (Number(dRaw) || 0), q));
+      r.querySelector('.tot').textContent = q && p ? inr(q * p) : '';
+      qty += q; total += q * p; del += d; delTotal += d * p;
+    });
+    const pend = Math.max(0, qty - del);
+    document.getElementById('oQty').textContent = qty;
+    document.getElementById('oDel').textContent = del;
+    document.getElementById('oPend').textContent = pend;
+    document.getElementById('oPendWrap').style.display = pend ? '' : 'none';
+    const billDel = document.getElementById('oBillDel').checked && pend > 0;
+    document.getElementById('oTotal').textContent = inr(billDel ? delTotal : total);
+    document.getElementById('oBillAmt').textContent = inr(delTotal);
+    document.getElementById('oPartBox').style.display = pend ? '' : 'none';
+    document.getElementById('oPartTxt').textContent = pend + ' pc' + (pend === 1 ? '' : 's');
+    document.getElementById('oPaidWrap').style.display = document.getElementById('oPay').value === 'pending' ? '' : 'none';
+  }
+  document.getElementById('oBillDel').addEventListener('change', recalc);
+  document.getElementById('oLines').addEventListener('input', recalc);
+  document.getElementById('oLines').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.ol').remove(); if (!document.querySelector('#oLines .ol')) addLine(); recalc(); } });
+  document.getElementById('btnAddLine').addEventListener('click', () => { addLine(); const rows = document.querySelectorAll('#oLines .l-name'); rows[rows.length - 1].focus(); });
+  document.getElementById('oPay').addEventListener('change', recalc);
+  async function openOrderModal(shopId, o) {
+    const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
+    document.getElementById('orderAlert').innerHTML = '';
+    document.getElementById('orderTitle').textContent = (o ? 'Edit order ' + o.order_no : 'New order') + (s ? ' — ' + s.shop_name : '');
+    document.getElementById('orderSub').textContent = o ? `${fmtD(o.order_date)} · by ${o.created_by_name || '—'}` : 'Perfumes given to the shop today';
+    document.getElementById('oId').value = o ? o.order_id : ''; document.getElementById('oShop').value = shopId;
+    document.getElementById('oType').value = o ? o.order_type : 'display';
+    document.getElementById('oPay').value = o ? o.payment : 'pending';
+    document.getElementById('oDate').value = o ? String(o.order_date).slice(0, 10) : new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    document.getElementById('oPaid').value = o && o.paid_amount ? o.paid_amount : '';
+    document.getElementById('oNote').value = o ? o.note || '' : '';
+    document.getElementById('oBillDel').checked = o ? !!o.bill_delivered : false;
+    document.getElementById('oLines').innerHTML = '';
+    if (o && o.items.length) o.items.forEach(addLine); else { addLine(); addLine(); }
+    recalc();
+    modalScrollY = window.scrollY; orderModal.classList.add('open');
+    setTimeout(() => { const f = document.querySelector('#oLines .l-name'); if (f && !o) f.focus(); }, 100);
+  }
+  function closeOrderModal() { orderModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnOrderCancel').addEventListener('click', closeOrderModal);
+  orderModal.addEventListener('click', (e) => { if (e.target === orderModal) closeOrderModal(); });
+  document.getElementById('btnOrderSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnOrderSave'); btn.disabled = true;
+    const items = [...document.querySelectorAll('#oLines .ol')].map(r => ({ product_name: r.querySelector('.l-name').value.trim(), ml: r.querySelector('.l-ml').value.trim(), qty: Number(r.querySelector('.l-qty').value) || 0, delivered: r.querySelector('.l-del').value === '' ? null : Number(r.querySelector('.l-del').value) || 0, price: Number(r.querySelector('.l-price').value) || 0 })).filter(i => i.product_name && i.qty > 0);
+    try {
+      if (!items.length) throw new Error('Add at least one perfume line (name and quantity).');
+      const d = await api.post('retail.order_save', {
+        order_id: document.getElementById('oId').value || 0, shop_id: Number(document.getElementById('oShop').value),
+        order_type: document.getElementById('oType').value, payment: document.getElementById('oPay').value, order_date: document.getElementById('oDate').value,
+        paid_amount: Number(document.getElementById('oPaid').value) || 0, note: document.getElementById('oNote').value.trim(),
+        bill_delivered: document.getElementById('oBillDel').checked ? 1 : 0, items,
+      });
+      closeOrderModal(); showAlert(d.message);
+      const sid = Number(document.getElementById('oShop').value);
+      await loadShops();
+      if (view === 'shop') openShop(sid);
+    } catch (err) { document.getElementById('orderAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- display photo (visit) ----------
+  const photoModal = document.getElementById('photoModal');
+  let phBlob = null, phPos = null;
+  function openPhotoModal(shopId) {
+    const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
+    document.getElementById('photoAlert').innerHTML = ''; document.getElementById('phShop').value = shopId;
+    document.getElementById('photoTitle').textContent = 'Display photo' + (s ? ' — ' + s.shop_name : '');
+    document.getElementById('phFile').value = ''; document.getElementById('phNote').value = ''; document.getElementById('phInfo').textContent = '';
+    const pv = document.getElementById('phPreview'); pv.style.display = 'none'; pv.src = '';
+    document.getElementById('phPick').style.display = ''; document.getElementById('btnPhotoSave').disabled = true;
+    phBlob = null; phPos = null;
+    modalScrollY = window.scrollY; photoModal.classList.add('open');
+    // Where the phone is right now (silent; the pin distance is shown with the photo).
+    if (navigator.geolocation) navigator.geolocation.getCurrentPosition((p) => { phPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy) }; }, () => {}, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+  }
+  function closePhotoModal() { photoModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnPhotoCancel').addEventListener('click', closePhotoModal);
+  photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhotoModal(); });
+  // Shrink on the phone before upload (max 1600px, JPEG) — fast even on slow data.
+  function shrinkImage(file) {
+    return new Promise((resolve) => {
+      const img = new Image(); const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const max = 1600; let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > max || h > max) { const sc = max / Math.max(w, h); w = Math.round(w * sc); h = Math.round(h * sc); }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => resolve(b || file), 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  document.getElementById('phFile').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    document.getElementById('phInfo').textContent = 'Preparing photo…';
+    phBlob = await shrinkImage(f);
+    const pv = document.getElementById('phPreview'); pv.src = URL.createObjectURL(phBlob); pv.style.display = 'block';
+    document.getElementById('phPick').style.display = 'none';
+    document.getElementById('phInfo').innerHTML = `${Math.round(phBlob.size / 1024)} KB · <button type="button" class="link" id="phRetake">Retake / choose another</button>`;
+    document.getElementById('phRetake').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
+    document.getElementById('btnPhotoSave').disabled = false;
+  });
+  document.getElementById('btnPhotoSave').addEventListener('click', async () => {
+    if (!phBlob) return;
+    const btn = document.getElementById('btnPhotoSave'); btn.disabled = true; btn.textContent = 'Uploading…';
+    try {
+      const fd = new FormData();
+      fd.append('photo', phBlob, 'display.jpg'); fd.append('shop_id', document.getElementById('phShop').value); fd.append('note', document.getElementById('phNote').value.trim());
+      if (phPos) { fd.append('lat', phPos.lat); fd.append('lng', phPos.lng); fd.append('accuracy_m', phPos.acc); }
+      const d = await api.upload('retail.visit_add', fd);
+      closePhotoModal(); showAlert(d.message + (d.distance_m !== null && d.distance_m !== undefined ? ` (${d.distance_m} m from the shop pin)` : ''));
+      const sid = Number(document.getElementById('phShop').value);
+      await loadShops(); if (view === 'shop' && currentShop && currentShop.shop_id == sid) openShop(sid);
+    } catch (err) { document.getElementById('photoAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = !phBlob; btn.textContent = 'Save photo'; }
+  });
+
+  // ---------- delivery modal ----------
+  const delModal = document.getElementById('delModal');
+  let delOrder = null;
+  function delRecalc() {
+    let q = 0, d = 0;
+    document.querySelectorAll('#delLines .dl-row').forEach(r => {
+      const qq = Number(r.dataset.qty) || 0;
+      let v = r.querySelector('input').value; v = v === '' ? 0 : (Number(v) || 0);
+      v = Math.max(0, Math.min(v, qq)); q += qq; d += v;
+    });
+    document.getElementById('dQty').textContent = q; document.getElementById('dDel').textContent = d;
+  }
+  function openDeliverModal(o) {
+    if (!o) return;
+    delOrder = o;
+    document.getElementById('delAlert').innerHTML = '';
+    document.getElementById('dId').value = o.order_id;
+    document.getElementById('delTitle').textContent = 'Delivery — ' + o.order_no;
+    document.getElementById('delSub').textContent = fmtD(o.order_date) + ' · how many pieces actually reached the shop';
+    document.getElementById('dBill').checked = !!o.bill_delivered;
+    document.getElementById('delLines').innerHTML = o.items.map(i => `
+      <div class="dl-row" data-qty="${i.qty}" data-item="${i.item_id}" style="display:grid; grid-template-columns:1fr 54px 64px; gap:8px; align-items:center; padding:7px 0; border-bottom:1px dashed var(--line); font-size:13px;">
+        <span>${itemLabel(i)}</span><span class="sub">of ${i.qty}</span>
+        <input type="number" min="0" max="${i.qty}" step="1" inputmode="numeric" value="${i.delivered !== undefined ? i.delivered : i.qty}" style="width:100%; padding:6px 8px; border:1px solid #bfe6cf; background:#f4fbf7; border-radius:6px; font-size:13px;">
+      </div>`).join('');
+    delRecalc();
+    modalScrollY = window.scrollY; delModal.classList.add('open');
+  }
+  function closeDelModal() { delModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('delLines').addEventListener('input', delRecalc);
+  document.getElementById('btnDelAll').addEventListener('click', () => { document.querySelectorAll('#delLines .dl-row').forEach(r => { r.querySelector('input').value = r.dataset.qty; }); delRecalc(); });
+  document.getElementById('btnDelCancel').addEventListener('click', closeDelModal);
+  delModal.addEventListener('click', (e) => { if (e.target === delModal) closeDelModal(); });
+  document.getElementById('btnDelSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnDelSave'); btn.disabled = true;
+    try {
+      const items = [...document.querySelectorAll('#delLines .dl-row')].map(r => ({ item_id: Number(r.dataset.item), delivered: Number(r.querySelector('input').value) || 0 }));
+      const d = await api.post('retail.order_deliver', { order_id: Number(document.getElementById('dId').value), items, bill_delivered: document.getElementById('dBill').checked ? 1 : 0 });
+      closeDelModal(); showAlert(d.message);
+      await loadShops(); if (currentShop) openShop(currentShop.shop_id);
+    } catch (err) { document.getElementById('delAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- totals ----------
+  let tPeriod = 'month', tData = null;
+  const thisMonth = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 7);
+  const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById('tMonth').value = thisMonth();
+  document.getElementById('tFrom').value = thisMonth() + '-01';
+  document.getElementById('tTo').value = todayStr();
+  document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+    tPeriod = btn.dataset.per;
+    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b === btn));
+    document.getElementById('tMonth').style.display = tPeriod === 'month' ? '' : 'none';
+    document.getElementById('tCustom').style.display = tPeriod === 'custom' ? 'inline-flex' : 'none';
+    loadTotals();
+  }));
+  ['tMonth', 'tFrom', 'tTo', 'tArea'].forEach(id => document.getElementById(id).addEventListener('change', loadTotals));
+  async function loadTotals() {
+    document.getElementById('tShopsBody').innerHTML = '<tr><td colspan="8"><div class="loading">Loading...</div></td></tr>';
+    try {
+      const d = await withRetry(() => api.get('retail.totals', { period: tPeriod, month: document.getElementById('tMonth').value, from: document.getElementById('tFrom').value, to: document.getElementById('tTo').value, area: document.getElementById('tArea').value }));
+      tData = d;
+      const sel = document.getElementById('tArea'); const cur = sel.value;
+      sel.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+      sel.value = cur;
+      renderTotals(d);
+    } catch (err) {
+      document.getElementById('tShopsBody').innerHTML = `<tr><td colspan="8"><div class="alert error">${esc(err.message)}${/failed to fetch/i.test(err.message) ? ' — the server closed the connection. Tap 📊 Totals again; if it keeps happening, open <b>api.php?action=retail.totals&period=month</b> in a new tab and send me what it shows.' : ''}</div></td></tr>`;
+      document.getElementById('tCards').innerHTML = ''; document.getElementById('tChart').innerHTML = ''; document.getElementById('tTodayBody').innerHTML = '';
+    }
+  }
+  function renderTotals(d) {
+    const c = d.cards, r = d.range;
+    document.getElementById('tRange').textContent = `${fmtD(r.from)} – ${fmtD(r.to)} · ${d.shop_count} shops`;
+    const pct = c.range.qty ? Math.round(c.range.delivered_qty / c.range.qty * 100) : 0;
+    document.getElementById('tCards').innerHTML = `
+      <div class="stat-card"><div class="label">Today — all shops</div><div class="value">${inr(c.today.amount)}</div><div class="sub">${c.today.orders} order${c.today.orders === 1 ? '' : 's'} · ${c.today.qty} pcs</div></div>
+      <div class="stat-card"><div class="label">${esc(r.label)} — all shops</div><div class="value">${inr(c.range.amount)}</div><div class="sub">${c.range.orders} orders · ${c.range.qty} pcs</div></div>
+      <div class="stat-card"><div class="label">Delivered in ${esc(r.label)}</div><div class="value" style="color:#0f7a41;">${c.range.delivered_qty} pcs</div><div class="sub">${inr(c.range.delivered_amount)} · ${pct}%</div></div>
+      <div class="stat-card"><div class="label">Pending delivery (all time)</div><div class="value" style="color:#b45f06;">${c.pending_delivery.qty} pcs</div><div class="sub">${inr(c.pending_delivery.amount)} · ${c.pending_delivery.orders} orders</div></div>
+      <div class="stat-card"><div class="label">Payment pending (all time)</div><div class="value" style="color:#c81e1e;">${inr(c.pending_payment.amount)}</div><div class="sub">${c.pending_payment.orders} orders</div></div>`;
+    // month bars
+    const max = Math.max(1, ...d.months.map(m => m.amount));
+    document.getElementById('tChart').innerHTML = d.months.map(m => `
+      <div class="mb ${m.month === r.month && r.period === 'month' ? 'on' : ''}" data-m="${m.month}" title="${m.orders} orders · ${m.qty} pcs">
+        <b>${m.amount ? inr(m.amount) : ''}</b><i style="height:${Math.round(m.amount / max * 86)}px"></i><span>${esc(m.label)}</span></div>`).join('');
+    document.getElementById('tChartNote').textContent = `Last 6 months up to ${d.months[d.months.length - 1].label} · amount billed`;
+    // shop-wise
+    document.getElementById('tShopsTitle').textContent = 'Shop-wise total — ' + r.label;
+    const tb = document.getElementById('tShopsBody');
+    if (!d.shops.length) tb.innerHTML = '<tr><td colspan="8"><div class="empty-state">No orders in this period.</div></td></tr>';
+    else {
+      const sum = d.shops.reduce((a, x) => ({ orders: a.orders + x.orders, qty: a.qty + x.qty, delivered: a.delivered + x.delivered, to_deliver: a.to_deliver + x.to_deliver, amount: a.amount + x.amount, paid: a.paid + x.paid, due: a.due + x.due }), { orders: 0, qty: 0, delivered: 0, to_deliver: 0, amount: 0, paid: 0, due: 0 });
+      tb.innerHTML = d.shops.map(x => `<tr>
+        <td><b><a href="#" data-tshop="${x.shop_id}">${esc(x.shop_name)}</a></b><div class="sub">${esc(x.area || '')}</div></td>
+        <td>${x.orders}</td><td>${x.qty}</td>
+        <td><b style="color:#0f7a41;">${x.delivered}</b></td>
+        <td>${x.to_deliver ? `<span class="chip c-amber">${x.to_deliver}</span>` : '<span class="chip c-grey">—</span>'}</td>
+        <td><b>${inr(x.amount)}</b></td><td>${inr(x.paid)}</td>
+        <td>${x.due > 0 ? `<span class="chip c-red">${inr(x.due)}</span>` : '<span class="chip c-green">Paid</span>'}</td>
+      </tr>`).join('') + `<tr class="totrow">
+        <td>TOTAL — ${d.shops.length} shop${d.shops.length === 1 ? '' : 's'}</td><td>${sum.orders}</td><td>${sum.qty}</td>
+        <td style="color:#0f7a41;">${sum.delivered}</td><td style="color:#b45f06;">${sum.to_deliver || '—'}</td>
+        <td>${inr(sum.amount)}</td><td>${inr(sum.paid)}</td><td style="color:#c81e1e;">${inr(sum.due)}</td></tr>`;
+    }
+    // today
+    document.getElementById('tTodayTitle').textContent = 'Today — ' + fmtD(d.today_date);
+    const shopsToday = new Set(d.today.map(x => x.shop_id));
+    document.getElementById('tTodayNote').textContent = `${d.today.length} order${d.today.length === 1 ? '' : 's'} in ${shopsToday.size} shop${shopsToday.size === 1 ? '' : 's'}`;
+    const tt = document.getElementById('tTodayBody');
+    if (!d.today.length) tt.innerHTML = '<tr><td colspan="7"><div class="empty-state">No order today yet.</div></td></tr>';
+    else {
+      const s2 = d.today.reduce((a, x) => ({ qty: a.qty + x.qty, delivered: a.delivered + x.delivered, amount: a.amount + x.amount }), { qty: 0, delivered: 0, amount: 0 });
+      tt.innerHTML = d.today.map(x => `<tr>
+        <td><a href="#" data-tshop="${x.shop_id}">${esc(x.shop_name)}</a></td><td><b>${esc(x.order_no)}</b></td>
+        <td>${esc(x.items)}</td><td>${x.qty}</td>
+        <td><b style="color:${x.delivered >= x.qty ? '#0f7a41' : '#b45f06'};">${x.delivered}</b></td>
+        <td><b>${inr(x.amount)}</b></td><td>${esc(x.by || '—')}</td>
+      </tr>`).join('') + `<tr class="totrow"><td colspan="3">TOTAL TODAY</td><td>${s2.qty}</td><td style="color:#0f7a41;">${s2.delivered}</td><td>${inr(s2.amount)}</td><td></td></tr>`;
+    }
+  }
+  document.getElementById('tChart').addEventListener('click', (e) => {
+    const b = e.target.closest('.mb'); if (!b) return;
+    tPeriod = 'month'; document.getElementById('tMonth').value = b.dataset.m; document.getElementById('tMonth').style.display = ''; document.getElementById('tCustom').style.display = 'none';
+    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x.dataset.per === 'month'));
+    loadTotals();
+  });
+  document.getElementById('viewTotals').addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-tshop]'); if (!a) return;
+    e.preventDefault(); openShop(Number(a.dataset.tshop));
+  });
+  document.getElementById('btnTExport').addEventListener('click', () => {
+    if (!tData) return;
+    const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const rows = [['Shop', 'Area', 'Orders', 'Qty', 'Delivered', 'Pending', 'Total amount', 'Paid', 'Due']];
+    tData.shops.forEach(x => rows.push([x.shop_name, x.area, x.orders, x.qty, x.delivered, x.to_deliver, x.amount, x.paid, x.due]));
+    const sum = tData.shops.reduce((a, x) => ({ orders: a.orders + x.orders, qty: a.qty + x.qty, delivered: a.delivered + x.delivered, to_deliver: a.to_deliver + x.to_deliver, amount: a.amount + x.amount, paid: a.paid + x.paid, due: a.due + x.due }), { orders: 0, qty: 0, delivered: 0, to_deliver: 0, amount: 0, paid: 0, due: 0 });
+    rows.push(['TOTAL', '', sum.orders, sum.qty, sum.delivered, sum.to_deliver, sum.amount, sum.paid, sum.due]);
+    const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = 'retail-shops-' + tData.range.from + '-to-' + tData.range.to + '.csv';
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  });
+
+  // ---------- payment modal ----------
+  const payModal = document.getElementById('payModal');
+  function openPayModal(o) {
+    document.getElementById('payAlert').innerHTML = '';
+    document.getElementById('pId').value = o.order_id;
+    document.getElementById('paySub').textContent = `${o.order_no} · ${inr(o.total)}${o.paid_amount ? ' · paid ' + inr(o.paid_amount) : ''}`;
+    document.getElementById('pPay').value = o.payment === 'pending' ? 'cash' : o.payment;
+    document.getElementById('pAmt').value = o.paid_amount || '';
+    document.getElementById('pAmtWrap').style.display = document.getElementById('pPay').value === 'pending' ? '' : 'none';
+    modalScrollY = window.scrollY; payModal.classList.add('open');
+  }
+  document.getElementById('pPay').addEventListener('change', () => { document.getElementById('pAmtWrap').style.display = document.getElementById('pPay').value === 'pending' ? '' : 'none'; });
+  function closePayModal() { payModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnPayCancel').addEventListener('click', closePayModal);
+  payModal.addEventListener('click', (e) => { if (e.target === payModal) closePayModal(); });
+  document.getElementById('btnPaySave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnPaySave'); btn.disabled = true;
+    try {
+      const pay = document.getElementById('pPay').value;
+      const d = await api.post('retail.order_pay', { order_id: Number(document.getElementById('pId').value), payment: pay, paid_amount: pay === 'pending' ? (Number(document.getElementById('pAmt').value) || 0) : '' });
+      closePayModal(); showAlert(d.message); await loadShops(); if (currentShop) openShop(currentShop.shop_id);
+    } catch (err) { document.getElementById('payAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- start ----------
+  loadShops().then(() => {
+    const id = Number(new URLSearchParams(location.search).get('shop'));
+    if (id) openShop(id);
+  });
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

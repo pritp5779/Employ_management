@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260930.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '260930.5';   // shown under your name in the sidebar
 
 
 /**
@@ -122,6 +122,7 @@ function renderSidebar(active) {
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
     order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
+    retail: [['retail_shops.html', 'Retail Shops', 'retail_shops']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
     offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
@@ -152,6 +153,9 @@ function renderSidebar(active) {
     // stays hidden until me.flags confirms this role may open it, so a
     // refused page never flashes its "no permission" errors.
     document.documentElement.style.visibility = 'hidden';
+    // Safety net: a slow or stuck server reply must never leave the page
+    // invisible — after 6 s the page shows regardless.
+    setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000);
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
       <div class="brand">HR<span>MS</span></div>
@@ -205,7 +209,7 @@ function renderSidebar(active) {
     // the Employee role was granted that module on the Roles page.
     const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_agreements', 'my_sales', 'orders'];
     const needsCheck = !EMPLOYEE_PAGES.includes(active);
-    if (needsCheck) document.documentElement.style.visibility = 'hidden';
+    if (needsCheck) { document.documentElement.style.visibility = 'hidden'; setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000); }
 
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
@@ -285,6 +289,7 @@ function renderSidebar(active) {
       ['orders.html', 'Shopify Orders', 'orders'],
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
       ['order_codes.html', 'Order Codes', 'order_codes'],
+      ['retail_shops.html', 'Retail Shops', 'retail_shops'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
       ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],

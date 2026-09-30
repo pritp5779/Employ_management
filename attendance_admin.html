@@ -33,6 +33,7 @@
     </div>
     <div class="content">
       <div id="alertBox"></div>
+      <div id="earlyBox" style="display:none; margin-bottom:14px; background:#fff3cd; border:1px solid #f0c36d; color:#7a4b00; border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.55;"></div>
 
       <div class="card" id="attCard">
         <table>
@@ -86,6 +87,7 @@
       <button type="button" class="btn secondary rem-tab" data-t="set" style="width:auto; padding:6px 12px; min-height:0;">Settings</button>
     </div>
     <div id="remAlert"></div>
+    <div id="remDiag" style="margin-bottom:12px;"></div>
     <div id="remList" style="max-height:60vh; overflow:auto;"></div>
     <div id="remSet" style="display:none;">
       <div style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">An employee who is <b>at an office</b> (their punch page saw the phone inside the office area) or whose <b>day has started</b>, and who has not punched in, gets a <b>pop-up on whatever HRMS page is open on their phone</b>. If HRMS is <b>closed</b>, the same reminder reaches the phone as a <b>notification</b> (the employee taps "Allow notifications" once on the punch page). Repeats until the limit; the list here shows who is still not in. Stops the moment they punch in. Nothing is sent by WhatsApp or SMS, no keys involved.</div>
@@ -408,10 +410,35 @@
             <td>${r.full_name}<div style="font-size:11px; color:var(--muted);">${r.employee_code || ''}</div></td>
             <td>${r.at_office_since ? `${r.office || 'Office'} · ${fmtT(r.at_office_since)}<div style="font-size:11px; color:var(--muted);">${mins} min · last seen ${fmtT(r.last_seen)}</div>` : '<span style="color:var(--muted);">no location yet</span>'}</td>
             <td>${sent.length ? sent.map(x => how(x) + ' ' + fmtT(x.at)).join(', ') + (sent.length >= s.max_reminders ? ' <span style="color:#b45f06; font-size:11px;">(limit reached)</span>' : '') : (r.phones ? '<span style="color:var(--muted);">not yet</span>' : '<span style="color:#b45f06;">no phone allowed notifications</span>')}${pushErr ? `<div style="font-size:11px; color:#c81e1e;" title="${(pushErr.error || '').replace(/"/g, '&quot;')}">phone notification failed</div>` : ''}<div style="font-size:11px; color:var(--muted);">${r.phones ? r.phones + ' phone' + (r.phones > 1 ? 's' : '') + ' · 📱 phone, 🖥 pop-up' : 'pop-up only while HRMS is open'}</div></td>
-            <td><span class="badge" style="background:${r.at_office_since ? '#fdecec' : '#fdf3e3'}; color:${r.at_office_since ? '#c81e1e' : '#b45f06'};">Not punched in${mins !== null ? ' · ' + mins + ' min' : ''}</span></td>
+            <td><span class="badge" style="background:${r.at_office_since ? '#fdecec' : '#fdf3e3'}; color:${r.at_office_since ? '#c81e1e' : '#b45f06'};">Not punched in${mins !== null ? ' · ' + mins + ' min' : ''}</span><div style="margin-top:4px;"><button type="button" class="rem-test" data-emp="${r.employee_id}" style="background:none; border:1px solid var(--line); border-radius:12px; padding:2px 9px; font-size:11px; cursor:pointer; min-height:0;">Send test</button></div></td>
           </tr>`; }).join('') + '</tbody></table>'
       : '<div class="empty-state">Everyone has punched in (or is on leave / week off) ✓</div>');
   }
+  async function loadRemDiag() {
+    const box = document.getElementById('remDiag');
+    box.innerHTML = '<div class="loading sm">Checking…</div>';
+    try {
+      const d = await api.get('reminders.diag');
+      const c = d.counts;
+      const line = (t, col) => `<div style="font-size:12.5px; color:${col}; line-height:1.5;">${t}</div>`;
+      box.innerHTML = `
+        <div style="border:1px solid ${d.ok ? '#bfe6cf' : '#f0c36d'}; background:${d.ok ? '#f4fbf7' : '#fff8e6'}; border-radius:10px; padding:10px 12px;">
+          <b style="display:block; font-size:13px; margin-bottom:4px; color:${d.ok ? '#0f7a41' : '#8a5a00'};">${d.ok ? '✓ Reminders are set up correctly' : '⚠️ Why nothing is going out'}</b>
+          ${d.problems.map(t => line('• ' + t, '#8a1f1f')).join('')}
+          ${d.notes.map(t => line('• ' + t, '#6b7280')).join('')}
+          ${line(`Server time ${d.server_time.slice(11, 16)} · day start ${d.day_start} · <b>${c.due_now}</b> due now · ${c.punched_in} punched in · ${c.waiting} not due yet${c.on_leave ? ' · ' + c.on_leave + ' on leave' : ''}${c.limit_reached ? ' · ' + c.limit_reached + ' at the daily limit' : ''}`, '#374151')}
+          ${line(`Phones allowed: <b>${d.phones}</b>${d.last_pass ? ' · last phone pass ' + d.last_pass.slice(11, 16) : ' · phone pass has not run yet'}`, '#374151')}
+        </div>`;
+    } catch (err) { box.innerHTML = `<div class="alert error">${err.message}</div>`; }
+  }
+  document.getElementById('remList').addEventListener('click', async (e) => {
+    const b = e.target.closest('button.rem-test'); if (!b) return;
+    b.disabled = true; b.textContent = 'Sending…';
+    try { const d = await api.post('reminders.test_one', { employee_id: Number(b.dataset.emp) }); document.getElementById('remAlert').innerHTML = `<div class="alert ${d.sent ? 'success' : 'error'}">${d.message}</div>`; }
+    catch (err) { document.getElementById('remAlert').innerHTML = `<div class="alert error">${err.message}</div>`; }
+    finally { b.disabled = false; b.textContent = 'Send test'; }
+  });
+
   function fillRemSettings() {
     if (!remData) return;
     const s = remData.settings;
@@ -433,7 +460,7 @@
     document.getElementById('remTitle').textContent = `Punch-in reminders — ${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}`;
     document.getElementById('remList').innerHTML = '<div class="loading">Loading...</div>';
     remScrollY = window.scrollY; remModal.classList.add('open'); remTab('list');
-    await loadReminders(currentAttDate); renderRemList(); fillRemSettings();
+    await loadReminders(currentAttDate); renderRemList(); fillRemSettings(); loadRemDiag();
   });
   function closeRem() { remModal.classList.remove('open'); const y = remScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('remClose').addEventListener('click', closeRem);
@@ -449,10 +476,34 @@
         push_enabled: document.getElementById('remPush').checked ? 1 : 0,
       });
       document.getElementById('remAlert').innerHTML = `<div class="alert success">${d.message}</div>`;
-      await loadReminders(currentAttDate); fillRemSettings();
+      await loadReminders(currentAttDate); fillRemSettings(); renderRemList(); loadRemDiag();
     } catch (err) { document.getElementById('remAlert').innerHTML = `<div class="alert error">${err.message}</div>`; }
     finally { btn.disabled = false; }
   });
+
+  // Punches that the old rule filed on the previous day: someone who reached
+  // the office before the day start time (e.g. 9:30 for a 10:00 start) was
+  // counted on yesterday, so today showed them absent. This offers to move them.
+  async function loadEarly() {
+    const box = document.getElementById('earlyBox');
+    try {
+      const d = await api.get('attendance.early_check');
+      if (!d.count) { box.style.display = 'none'; return; }
+      const list = d.rows.slice(0, 6).map(r => `${r.full_name} — punched in ${new Date(String(r.punch_in).replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} (${r.minutes_early} min early), filed on ${new Date(r.stored_on + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`).join('<br>');
+      const stuck = d.rows.filter(r => !r.can_move).length;
+      box.style.display = '';
+      box.innerHTML = `<b style="display:block; font-size:14px; margin-bottom:4px;">⚠️ ${d.count} punch${d.count === 1 ? ' is' : 'es are'} on the wrong day</b>
+        They arrived before the day start time, so the old rule counted them on the previous day and this page showed them absent.<br>
+        <div style="margin:6px 0; font-size:12px;">${list}${d.count > 6 ? `<br>…and ${d.count - 6} more` : ''}</div>
+        ${stuck ? `<div style="font-size:12px;">${stuck} cannot be moved — that day already has a punch in.</div>` : ''}
+        <button type="button" class="btn" id="btnFixEarly" style="width:auto; min-height:38px; margin-top:8px;">Move them to the right day</button>`;
+      document.getElementById('btnFixEarly').addEventListener('click', async () => {
+        const b = document.getElementById('btnFixEarly'); b.disabled = true; b.textContent = 'Moving…';
+        try { const r = await api.post('attendance.early_check', {}); showAlert(r.message); box.style.display = 'none'; load(); }
+        catch (err) { showAlert(err.message, 'error'); b.disabled = false; b.textContent = 'Move them to the right day'; }
+      });
+    } catch (e) { box.style.display = 'none'; }
+  }
 
   async function load() {
     const date = document.getElementById('datePick').value || todayStr();
@@ -468,6 +519,7 @@
       renderTable();
       loadRefused(date);
       loadReminders(date);
+      loadEarly();
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
     }
