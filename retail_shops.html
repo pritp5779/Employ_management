@@ -119,7 +119,7 @@
         <div style="margin-bottom:12px;"><button class="link" id="btnBack">← All shops</button></div>
         <div class="grid2">
           <div class="card" style="margin-bottom:0;">
-            <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button></div></div>
+            <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button><button class="danger-link" id="btnDelShop">Delete</button></div></div>
             <div style="padding:14px 20px;">
               <div class="kv" id="shMeta"></div>
               <div id="shopMap" class="lmap" style="margin-top:12px;"></div>
@@ -220,7 +220,10 @@
         <input type="hidden" id="fLat"><input type="hidden" id="fLng"><input type="hidden" id="fAcc">
       </div>
       <div class="field" id="fStatusWrap" style="display:none;"><label>Status</label><select id="fStatus"><option value="active">Active</option><option value="inactive">Inactive (no longer displays)</option></select></div>
-      <div class="actions"><button type="button" class="btn secondary" id="btnShopCancel">Cancel</button><button type="submit" class="btn" id="btnShopSave">Save shop</button></div>
+      <div class="actions" style="justify-content:space-between;">
+        <button type="button" class="btn secondary danger" id="btnShopDelete" style="display:none; width:auto; color:#c81e1e; border-color:#f3c9c9;">Delete shop</button>
+        <span style="display:flex; gap:10px;"><button type="button" class="btn secondary" id="btnShopCancel">Cancel</button><button type="submit" class="btn" id="btnShopSave">Save shop</button></span>
+      </div>
     </form>
   </div>
 </div>
@@ -336,6 +339,33 @@
     throw last;
   }
   const itemLabel = (i) => esc(i.product_name) + (i.ml ? ' ' + esc(i.ml) : '');
+  // Page access gives every control on the page: anyone who can open Retail
+  // Shops can delete one too (the server allows the Retail module the same
+  // way). Employees without the module never reach this page.
+
+  // Delete a shop. A shop with orders is kept (inactive) unless you confirm
+  // a second time that its orders and photos should go too.
+  async function deleteShop(shop) {
+    if (!shop) return;
+    const st = shop.stats || {};
+    const hasHistory = (st.orders_count || 0) > 0 || (st.visits || 0) > 0;
+    const what = [(st.orders_count || 0) ? `${st.orders_count} order${st.orders_count === 1 ? '' : 's'}` : '', (st.visits || 0) ? `${st.visits} photo${st.visits === 1 ? '' : 's'}` : ''].filter(Boolean).join(' and ');
+    if (!confirm(`Delete "${shop.shop_name}"?` + (hasHistory ? `\n\nIt has ${what}.` : ''))) return;
+    try {
+      let d = await api.post('retail.shop_delete', { shop_id: shop.shop_id });
+      if (d.kept) {
+        if (!confirm(`${shop.shop_name} was only hidden because it has ${what}.\n\nDelete it for good, together with its orders and photos? This cannot be undone.`)) {
+          showAlert(d.message); await loadShops(); if (view === 'shop') showView('list');
+          return;
+        }
+        d = await api.post('retail.shop_delete', { shop_id: shop.shop_id, force: 1 });
+      }
+      showAlert(d.message);
+      currentShop = null;
+      await loadShops();
+      if (view === 'shop') showView('list');
+    } catch (err) { showAlert(err.message, 'error'); }
+  }
 
   // ---------- views ----------
   function showView(v) {
@@ -387,7 +417,7 @@
         <td>${st.last_date ? `${fmtDS(st.last_date)}<div class="sub">${st.last_qty} pcs · ${inr(st.last_total)}</div>` : '<span class="sub">—</span>'}</td>
         <td>${st.visits ? `<div style="display:flex; gap:8px; align-items:center;">${st.last_photo ? `<a href="${fileUrl(st.last_photo)}" target="_blank" rel="noopener"><img class="thumb" src="${fileUrl(st.last_photo)}" alt=""></a>` : ''}<div>${fmtDS(st.last_visit)}<div class="sub">${esc(st.last_visit_by || '')}${st.visits > 1 ? ` · ${st.visits} photos` : ''}</div></div></div>` : '<span class="sub">no photo yet</span>'}</td>
         <td>${pending > 0 ? `<span class="chip c-red">${inr(pending)} due</span>` : (st.orders_count ? '<span class="chip c-green">Paid</span>' : '<span class="chip c-grey">—</span>')}</td>
-        <td><div class="row-actions"><button data-photo="${s.shop_id}">📷 Photo</button><button data-order="${s.shop_id}" style="color:#2563eb; font-weight:600;">+ New order</button><button data-open="${s.shop_id}">Open</button><button data-edit="${s.shop_id}">Edit</button></div></td>
+        <td><div class="row-actions"><button data-photo="${s.shop_id}">📷 Photo</button><button data-order="${s.shop_id}" style="color:#2563eb; font-weight:600;">+ New order</button><button data-open="${s.shop_id}">Open</button><button data-edit="${s.shop_id}">Edit</button><button class="danger-link" data-del="${s.shop_id}">Delete</button></div></td>
       </tr>`; }).join('');
   }
   document.getElementById('shopsBody').addEventListener('click', (e) => {
@@ -396,6 +426,7 @@
     else if (b.dataset.edit) openShopModal(shops.find(s => s.shop_id == b.dataset.edit));
     else if (b.dataset.order) openOrderModal(Number(b.dataset.order));
     else if (b.dataset.pin) pinNow(Number(b.dataset.pin));
+    else if (b.dataset.del) deleteShop(shops.find(x => x.shop_id == b.dataset.del));
     else if (b.dataset.photo) openPhotoModal(Number(b.dataset.photo));
   });
   document.getElementById('areaSel').addEventListener('change', loadShops);
@@ -524,7 +555,7 @@
     g.innerHTML = '<div class="gal">' + visits.map(v => `<div class="ph">
         <a href="${fileUrl(v.photo)}" target="_blank" rel="noopener"><img src="${fileUrl(v.photo)}" alt="Display photo" loading="lazy"></a>
         <div class="cap"><b>${fmtDT(v.visit_at)}</b>${esc(v.employee_name || '—')}${v.distance_m !== null && v.distance_m !== undefined ? ` · ${v.distance_m} m from pin` : ''}${v.note ? `<div>${esc(v.note)}</div>` : ''}</div>
-        ${(me.role === 'Admin' || me.role === 'HR' || (me.employee_id && me.employee_id == v.employee_id)) ? `<button class="del" data-vdel="${v.visit_id}" title="Delete photo">✕</button>` : ''}
+        <button class="del" data-vdel="${v.visit_id}" title="Delete photo">✕</button>
       </div>`).join('') + '</div>';
   }
   document.getElementById('shGallery').addEventListener('click', async (e) => {
@@ -534,6 +565,7 @@
   });
   document.getElementById('btnAddPhoto').addEventListener('click', () => openPhotoModal(currentShop.shop_id));
   document.getElementById('btnEditShop').addEventListener('click', () => openShopModal(currentShop));
+  document.getElementById('btnDelShop').addEventListener('click', () => deleteShop(currentShop));
   document.getElementById('btnNewOrder').addEventListener('click', () => openOrderModal(currentShop.shop_id));
   document.getElementById('btnNewOrderTop').addEventListener('click', () => openOrderModal(currentShop.shop_id));
 
@@ -595,6 +627,7 @@
     document.getElementById('fAddr').value = s ? s.address || '' : '';
     document.getElementById('fStatusWrap').style.display = s ? '' : 'none';
     document.getElementById('fStatus').value = s ? (s.status || 'active') : 'active';
+    document.getElementById('btnShopDelete').style.display = s ? '' : 'none';
     modalScrollY = window.scrollY; shopModal.classList.add('open');
     setPin(s && s.lat !== null ? s.lat : '', s && s.lat !== null ? s.lng : '', s ? s.accuracy_m : '');
     setTimeout(() => document.getElementById('fName').focus(), 100);
@@ -602,6 +635,12 @@
   function closeShopModal() { shopModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnAddShop').addEventListener('click', () => openShopModal(null));
   document.getElementById('btnShopCancel').addEventListener('click', closeShopModal);
+  document.getElementById('btnShopDelete').addEventListener('click', () => {
+    const id = Number(document.getElementById('fShopId').value);
+    const shop = (currentShop && currentShop.shop_id === id) ? currentShop : shops.find(x => x.shop_id === id);
+    closeShopModal();
+    deleteShop(shop);
+  });
   shopModal.addEventListener('click', (e) => { if (e.target === shopModal) closeShopModal(); });
   document.getElementById('btnClearPin').addEventListener('click', () => setPin('', '', ''));
   document.getElementById('btnPinHere').addEventListener('click', () => {

@@ -25,10 +25,14 @@ const api = {
     const token = this.token();
     if (token) headers['Authorization'] = 'Bearer ' + token;
 
-    const res = await fetch(this.buildUrl(action, params), {
+    // GET calls carry a one-off value and skip every cache, so a change that was
+    // just saved is what the next read returns (no stale copy from the browser / CDN).
+    const isGet = (options.method || 'GET') === 'GET';
+    const res = await fetch(this.buildUrl(action, isGet ? Object.assign({}, params, { _t: Date.now() }) : params), {
       method: options.method || 'GET',
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: 'no-store',
     });
 
     let data = {};

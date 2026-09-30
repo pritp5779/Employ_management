@@ -27,7 +27,16 @@
   .rs-pop{animation:rsPop .35s cubic-bezier(.34,1.56,.64,1);} @keyframes rsPop{50%{transform:scale(1.35);}}
   .rs-num{font-size:12px; color:var(--muted); min-width:18px; font-variant-numeric:tabular-nums;}
   .rs.off .rs-stars{cursor:not-allowed; opacity:.45;}
+  .rs.ro .rs-stars{cursor:default;}
   @media (max-width:820px){ .rs-star, .rs-star svg{width:24px; height:24px;} }
+  /* Product colour counts (DG / LG / WH / Other) — small, plain text */
+  .clr-totals{display:flex; flex-wrap:wrap; align-items:center; gap:2px 14px; font-size:12.5px; font-weight:600; color:#334155;}
+  .clr-totals span, .clr-line span{display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
+  .clr-totals i, .clr-line i{width:8px; height:8px; border-radius:50%; border:1px solid rgba(0,0,0,.25); display:inline-block; flex:0 0 auto;}
+  .clr-line{display:flex; flex-wrap:wrap; gap:1px 8px; margin-top:3px; font-size:11px; color:var(--muted);}
+  .clr-line i{width:7px; height:7px;}
+  .clr-dg{background:#14532d;} .clr-lg{background:#86efac;} .clr-wh{background:#fff;} .clr-ot{background:#94a3b8;}
+  @media (max-width:820px){ .clr-totals{width:100%; font-size:12px; gap:2px 12px;} }
   /* Ten columns: compact controls so the table fits a laptop screen, and a
      sideways scroll inside the card (never past its edge) when it doesn't. */
   .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
@@ -52,7 +61,6 @@
   .otype.query{background:#e0f2fe; color:#0369a1;}
   .otype.campaign{background:#fef3c7; color:#b45309;}
   .row-done td{background:#f8fffb;}
-  .stat-card .value small{font-size:13px; font-weight:500; color:var(--muted);}
 
   /* searchable employee dropdown */
   .emp-pick{position:relative; min-width:150px;}
@@ -79,7 +87,7 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar">
-      <div><h1>Order Allocation</h1><div class="sub" style="margin-top:2px;">All orders — set the employee, the type and the panel each order counts under</div></div>
+      <div><h1>Order Allocation</h1><div class="sub" style="margin-top:2px;">All orders — set the employee, the type and the panel each order counts under</div><div class="clr-totals" id="clrTotals" style="margin-top:6px;"></div></div>
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="date" id="dateFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="date" id="dateTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -88,8 +96,6 @@
     </div>
     <div class="content">
       <div id="alertBox"></div>
-      <div class="stat-grid" id="statGrid" style="display:none;"></div>
-
       <div class="card" id="allocCard">
         <div class="card-head">
           <h2 id="cardTitle">Orders</h2>
@@ -191,6 +197,9 @@
 
   // ---------- Per-order rating (Ticket size convincing, half stars = 1–10) ----------
   const STAR_PATH = '<path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/>';
+  // The Employee role can only set Employee, Type and Panel on pending orders — no rating, no Undo,
+  // allocated rows locked. Admin / HR / Sales Head / other roles keep everything.
+  const IS_EMP = String((api.currentUser() || {}).role || '').trim().toLowerCase() === 'employee';
   const RATE_WORDS = ['Not rated','Very poor','Poor','Weak','Fair','Okay','Good','Very good','Great','Excellent','Outstanding'];
   function starCells(v) {
     return Array.from({ length: 5 }, (_, i) => {
@@ -200,6 +209,7 @@
   }
   function ratingCell(o, empSel) {
     const v = o.ticket_rating == null ? 0 : Math.max(0, Math.min(10, Math.round(Number(o.ticket_rating))));
+    if (IS_EMP) return `<span class="rs ro" title="${v ? v / 2 + ' of 5' : 'Not rated'}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
     const off = !empSel;
     return `<span class="rs ${off ? 'off' : ''}" data-k="${key(o)}" data-val="${v}" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}"
       title="${off ? 'Choose the employee first' : RATE_WORDS[v]}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
@@ -245,27 +255,43 @@
     }
     document.addEventListener('mousemove', (e) => {
       const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
-      const rs = stars.closest('.rs'); if (rs.classList.contains('off')) return;
+      const rs = stars.closest('.rs'); if (rs.classList.contains('off') || rs.classList.contains('ro')) return;
       paintStars(rs, stepAt(rs, e.clientX).v, true);
     });
     document.addEventListener('mouseout', (e) => {
       const rs = e.target.closest && e.target.closest('.rs');
-      if (!rs || (e.relatedTarget && rs.contains(e.relatedTarget))) return;
+      if (!rs || rs.classList.contains('ro') || (e.relatedTarget && rs.contains(e.relatedTarget))) return;
       paintStars(rs, Number(rs.dataset.val), false);
     });
     document.addEventListener('click', (e) => {
       const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
       const rs = stars.closest('.rs');
+      if (rs.classList.contains('ro')) return;
       if (rs.classList.contains('off')) { showAlert('Choose the employee first, then rate the order.', 'error'); return; }
       const { i, v } = stepAt(rs, e.clientX); saveStars(rs, v, i);
     });
     document.addEventListener('keydown', (e) => {
-      const rs = e.target.closest && e.target.closest('.rs'); if (!rs || rs.classList.contains('off')) return;
+      const rs = e.target.closest && e.target.closest('.rs'); if (!rs || rs.classList.contains('off') || rs.classList.contains('ro')) return;
       const v = Number(rs.dataset.val);
       if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); saveStars(rs, v + 1, Math.ceil((v + 1) / 2) - 1); }
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); if (v > 1) saveStars(rs, v - 1, Math.ceil((v - 1) / 2) - 1); }
     });
   })();
+
+  // ---- Product colour (from the product name: DG / LG / WH, anything else = Other)
+  const CLR = [['dg', 'DG', 'Dark Green'], ['lg', 'LG', 'Light Green'], ['wh', 'WH', 'White'], ['other', 'Other', 'Other']];
+  const clrCls = (k) => (k === 'other' ? 'clr-ot' : 'clr-' + k);
+  const clrOf = (o) => o.colors || { dg: 0, lg: 0, wh: 0, other: 0 };
+  function clrLine(o) {
+    const c = clrOf(o);
+    const h = CLR.filter(([k]) => c[k] > 0).map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${c[k]}</span>`).join('');
+    return h ? `<div class="clr-line">${h}</div>` : '';
+  }
+  function renderColorTotals(list) {
+    const tot = { dg: 0, lg: 0, wh: 0, other: 0 };
+    list.forEach(o => { const c = clrOf(o); CLR.forEach(([k]) => { tot[k] += Number(c[k] || 0); }); });
+    document.getElementById('clrTotals').innerHTML = CLR.map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${tot[k]}</span>`).join('');
+  }
 
   function rowHtml(o) {
     const k = key(o);
@@ -274,29 +300,33 @@
     const houseSel = effHouse(o, p);
     const empObj = empById(empSel);
     const hint = o.employee_from ? `${esc(o.employee_from)}: ${esc(o.salesman || '')}` : (o.broadcast ? 'broadcast ' + esc(o.broadcast) : 'no employee on order');
-    const empCell = o.allocated
-      ? `${esc(o.salesman || '—')}<div class="sub">${esc(o.employee_code || '')}</div>`
+    // Employee role on the "All" tab: every row is view-only, like Allocated (edit on the Pending tab).
+    const lock = o.allocated || (IS_EMP && filter === 'all');
+    const empCell = lock
+      ? (o.allocated ? `${esc(o.salesman || '—')}<div class="sub">${esc(o.employee_code || '')}</div>` : `${esc(empObj ? empObj.name : (o.salesman || '—'))}<div class="sub">${hint}</div>`)
       : `<div class="emp-pick" data-k="${k}">
            <input type="text" placeholder="Search employee..." value="${empObj ? esc(empObj.name) : ''}" data-id="${empObj ? empObj.id : ''}" class="${p.emp !== undefined ? 'changed' : ''}" autocomplete="off">
            <span class="caret">▼</span>
            <div class="emp-menu"></div>
          </div><div class="sub">${hint}</div>`;
-    const typeCell = o.allocated
-      ? (o.order_type ? `<span class="otype ${o.order_type}">${esc(TYPES[o.order_type] || o.order_type)}</span>` : '<span class="sub">—</span>')
+    const shownType = o.allocated ? o.order_type : effType(o, p);
+    const typeCell = lock
+      ? (shownType ? `<span class="otype ${shownType}">${esc(TYPES[shownType] || shownType)}</span>` : '<span class="sub">—</span>')
       : `<select class="sel ${p.type ? 'changed' : ''}" onchange="pickType('${k}', this.value)">${options(TYPES, effType(o, p), '— Type —')}</select>`;
-    const panelCell = o.allocated
-      ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
-         <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>`
+    const panelCell = lock
+      ? (o.allocated ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
+         <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>` : (houseSel ? `<span class="house ${houseSel}">${esc(HOUSES[houseSel] || houseSel)}</span>` : '<span class="sub">—</span>'))
       : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
     const ready = !o.allocated && houseSel && empSel;
     const action = o.allocated
-      ? `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`
+      ? (IS_EMP ? '' : `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`)
+      : lock ? ''
       : `<button type="button" class="ok-btn" title="${ready ? 'Confirm' : 'Choose employee and panel first'}" ${ready ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>`;
     return `<tr class="${o.allocated ? 'row-done' : ''}" data-k="${k}">
       <td><b>${esc(o.order_name)}</b><div class="sub">${fmtT(o.created_at)} <span class="src">${esc(o.source_label || o.store_src || o.store)}</span></div></td>
       <td>${empCell}</td>
       <td>${esc(o.customer || 'Guest')}<div class="sub">${esc(o.phone || '')}</div></td>
-      <td>${o.items}</td>
+      <td>${o.items}${clrLine(o)}</td>
       <td><b>${inr(o.total)}</b></td>
       <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${esc(o.financial_status || '—')}</span></td>
       <td>${typeCell}</td>
@@ -311,6 +341,7 @@
 
   function render() {
     const shown = orders.filter(matches);
+    renderColorTotals(shown);
     const done = orders.filter(o => o.allocated).length;
     document.getElementById('cntPending').textContent = orders.length - done;
     document.getElementById('cntDone').textContent = done;
@@ -328,22 +359,6 @@
       document.getElementById('shownCount').textContent = `Showing ${n} of ${shown.length}`;
       document.getElementById('btnMore').style.display = n >= shown.length ? 'none' : 'inline-block';
     }
-    renderStats();
-  }
-
-  function renderStats() {
-    const grid = document.getElementById('statGrid');
-    const sum = (list) => list.reduce((t, o) => t + Number(o.total || 0), 0);
-    // "Not allocated yet" = orders still missing an employee or a panel.
-    // A Shopify order that already carries an employee tag and its store's
-    // panel is complete as it is, so it is not counted here.
-    const notYet = orders.filter(o => !o.allocated && !(o.employee_id && o.house));
-    const colors = { tmph: '#1d4ed8', tmf: '#b45309', tm4u: '#6d28d9', tmsg: '#15803d', tmh4: '#be123c' };
-    grid.innerHTML = `
-      <div class="stat-card"><div class="label">Orders</div><div class="value">${orders.length} <small>/ ${inr(sum(orders))}</small></div></div>
-      <div class="stat-card"><div class="label">Not allocated yet</div><div class="value" style="color:#b45309;">${notYet.length} <small>/ ${inr(sum(notYet))}</small></div></div>
-      ${Object.keys(HOUSES).map(h => { const l = orders.filter(o => (o.house || '') === h); return `<div class="stat-card"><div class="label">${esc(HOUSES[h])}</div><div class="value" style="color:${colors[h] || '#111'};">${l.length} <small>/ ${inr(sum(l))}</small></div></div>`; }).join('')}`;
-    grid.style.display = 'grid';
   }
 
   // ---- searchable employee dropdown, grouped panel-wise

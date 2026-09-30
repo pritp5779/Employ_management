@@ -38,10 +38,10 @@
       <div class="card" id="attCard">
         <table>
           <thead>
-            <tr><th>Employee</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th>Photos</th><th style="width:110px;">Face</th></tr>
+            <tr><th>Employee</th><th style="width:118px;">Shift</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th style="width:190px;">Opening checklist</th><th>Photos</th><th style="width:110px;">Face</th></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="7" class="loading">Loading...</td></tr>
+            <tr><td colspan="9" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="attCards" style="display:none; padding:10px;"></div>
@@ -90,21 +90,95 @@
     <div id="remDiag" style="margin-bottom:12px;"></div>
     <div id="remList" style="max-height:60vh; overflow:auto;"></div>
     <div id="remSet" style="display:none;">
-      <div style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">An employee who is <b>at an office</b> (their punch page saw the phone inside the office area) or whose <b>day has started</b>, and who has not punched in, gets a <b>pop-up on whatever HRMS page is open on their phone</b>. If HRMS is <b>closed</b>, the same reminder reaches the phone as a <b>notification</b> (the employee taps "Allow notifications" once on the punch page). Repeats until the limit; the list here shows who is still not in. Stops the moment they punch in. Nothing is sent by WhatsApp or SMS, no keys involved.</div>
+      <div style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">An employee who is <b>inside an office area</b> when the <b>punch-in time has passed</b> and who has <b>not punched in</b> gets a <b>pop-up on whatever HRMS page is open on their phone</b>. If HRMS is <b>closed</b>, the same reminder reaches the phone as a <b>notification</b> (the employee taps "Allow notifications" once on the punch page). Repeats until the limit; the list here shows who is still not in. Stops the moment they punch in. Nothing is sent by WhatsApp or SMS, no keys involved.</div>
       <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:8px;"><input type="checkbox" id="remEnabled" style="width:16px; height:16px; min-height:0; margin:0;"> Reminders on</label>
-      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:12px;"><input type="checkbox" id="remPush" style="width:16px; height:16px; min-height:0; margin:0;"> Phone notification when HRMS is closed <span id="remPushInfo" style="font-weight:400; font-size:12px; color:var(--muted);"></span></label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:8px;"><input type="checkbox" id="remPush" style="width:16px; height:16px; min-height:0; margin:0;"> Phone notification when HRMS is closed <span id="remPushInfo" style="font-weight:400; font-size:12px; color:var(--muted);"></span></label>
+      <label style="display:flex; align-items:flex-start; gap:8px; font-size:13.5px; font-weight:600; margin-bottom:12px;"><input type="checkbox" id="remOfficeOnly" style="width:16px; height:16px; min-height:0; margin:2px 0 0;"> <span>Only when the employee is at the office <span style="font-weight:400; font-size:12px; color:var(--muted); display:block; margin-top:2px;">Recommended. Nobody gets a reminder at home — the phone must have been seen inside an office area.</span></span></label>
       <div class="field-grid">
-        <div class="field"><label>Remind after arriving at office (min)</label><input type="number" id="remAfterArrive" min="1" max="240" value="20"></div>
-        <div class="field"><label>If location unknown: remind after day start (min, 0 = off)</label><input type="number" id="remAfterShift" min="0" max="600" value="20"></div>
+        <div class="field" id="remShiftWrap"><label>Remind this long after the punch-in time (min)</label><input type="number" id="remAfterShift" min="0" max="600" value="20"></div>
+        <div class="field"><label>Grace after entering the office area (min)</label><input type="number" id="remAfterArrive" min="1" max="240" value="5"></div>
+        <div class="field"><label>Office position must be newer than (min)</label><input type="number" id="remFresh" min="5" max="240" value="30"></div>
         <div class="field"><label>Repeat every (min)</label><input type="number" id="remRepeat" min="5" max="240" value="20"></div>
         <div class="field"><label>Max reminders per day</label><input type="number" id="remMax" min="1" max="10" value="3"></div>
         <div class="field"><label>Never remind before (HH:MM, optional)</label><input type="text" id="remQuiet" placeholder="10:00"></div>
       </div>
-      <div style="font-size:11.5px; color:var(--muted); line-height:1.5;">With HRMS closed the phone cannot tell us "at the office", so the closed-app notification goes by time: day start + the minutes above. iPhone gets it only when HRMS was added to the Home Screen. <button type="button" id="remPushTest" style="background:none; border:none; color:#2563eb; font-size:11.5px; cursor:pointer; padding:0; min-height:0; text-decoration:underline;">Send a test notification to my phone</button></div>
+      <div style="font-size:11.5px; color:var(--muted); line-height:1.5;" id="remRuleNote"></div>
+      <div style="font-size:11.5px; color:var(--muted); line-height:1.5; margin-top:6px;">iPhone gets the closed-app notification only when HRMS was added to the Home Screen. <button type="button" id="remPushTest" style="background:none; border:none; color:#2563eb; font-size:11.5px; cursor:pointer; padding:0; min-height:0; text-decoration:underline;">Send a test notification to my phone</button></div>
     </div>
     <div class="actions">
       <button type="button" class="btn secondary" id="remClose">Close</button>
       <button type="button" class="btn" id="remSave" style="display:none;">Save settings</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="ckModal">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="ckTitle">Opening checklist</h3>
+    <div id="ckSub" style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;"></div>
+    <div id="ckAdminAlert"></div>
+    <div id="ckBody" style="max-height:62vh; overflow:auto;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="ckReopen" style="display:none;">Reopen for edits</button>
+      <button type="button" class="btn secondary" id="ckCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shiftModal">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="shiftTitle">Working time</h3>
+    <div style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">This employee's own punch-in time. Leave the start empty to keep the Day timing start. Store staff also get an opening checklist they must photograph after punching in.</div>
+    <div id="shiftAlert"></div>
+    <div class="field-grid">
+      <div class="field"><label>Shift starts</label><input type="time" id="shStart"></div>
+      <div class="field"><label>Shift ends</label><input type="time" id="shEnd"></div>
+      <div class="field"><label>Late after (min)</label><input type="number" id="shLate" min="0" max="240" value="15"></div>
+    </div>
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:13.5px; font-weight:600; margin:4px 0 12px;">
+      <input type="checkbox" id="shStore" style="width:16px; height:16px; min-height:0; margin:2px 0 0;">
+      <span>Store employee — opening checklist on
+        <span style="font-weight:400; font-size:12px; color:var(--muted); display:block; margin-top:2px;">Photos required after punch in · Punch Out stays locked until the checklist is submitted.</span></span>
+    </label>
+    <div id="shTasksWrap" style="display:none;">
+      <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;">Checklist for this employee</label>
+      <div id="shTasks" style="border:1px solid var(--line); border-radius:9px; overflow:hidden;"></div>
+      <div style="display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+        <button type="button" class="btn secondary" id="shAddTask" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px;">+ Add task</button>
+        <button type="button" class="btn secondary" id="shDefaults" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px;">Use the standard 6 tasks</button>
+        <label style="display:flex; align-items:center; gap:7px; font-size:12.5px; margin-left:auto;"><input type="checkbox" id="shApplyAll" style="width:15px; height:15px; min-height:0; margin:0;"> Apply this list to every store employee</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="shCancel">Cancel</button>
+      <button type="button" class="btn" id="shSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<style>
+#monthBody table { width:100%; }
+@media (max-width:600px) {
+  #monthModal .modal { padding:16px 12px; }
+  #monthBody th, #monthBody td { padding:7px 4px; font-size:11.5px; }
+  #monthBody th { font-size:9.5px; letter-spacing:0; }
+  #monthBody .badge { font-size:10px; padding:2px 6px; }
+}
+</style>
+<div class="modal-overlay" id="monthModal">
+  <div class="modal" style="max-width:760px; width:100%;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+      <h3 id="monthTitle" style="margin:0;">Month</h3>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button type="button" class="btn secondary" id="monthPrev" style="width:auto; min-height:34px; padding:0 12px;">‹</button>
+        <input type="month" id="monthPick" style="padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <button type="button" class="btn secondary" id="monthNext" style="width:auto; min-height:34px; padding:0 12px;">›</button>
+      </div>
+    </div>
+    <div id="monthSummary" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 8px;"></div>
+    <div id="monthBody" style="max-height:58vh; overflow:auto;"></div>
+    <div class="actions">
+      <a id="monthProfile" href="#" class="btn secondary" style="width:auto; text-decoration:none;">Open profile</a>
+      <button type="button" class="btn secondary" id="monthClose">Close</button>
     </div>
   </div>
 </div>
@@ -142,12 +216,17 @@
     const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return 'each day from ' + DAY_START.map((t, i) => `${names[i]} ${fmtHM(t)}`).join(', ');
   }
-  // "Today" = the current attendance day: before the day-start time it is
-  // still yesterday's date (matching how api.php files the punches).
+  // "Today" = the current attendance day, using the SAME rule as api.php
+  // punch_in_day(): before the day-start time it is still yesterday's date,
+  // EXCEPT within EARLY_WINDOW minutes of the start — someone arriving early
+  // (9:30 for a 10:00 start) is filed on today, so today must show them.
+  const EARLY_WINDOW = 240;
   function todayStr() {
     const d = new Date();
     const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
+    const [sh, sm] = String(DAY_START[d.getDay()]).split(':').map(Number);
+    const early = (sh * 60 + (sm || 0)) - (d.getHours() * 60 + d.getMinutes());
+    if (hm < DAY_START[d.getDay()] && !(early > 0 && early <= EARLY_WINDOW)) d.setDate(d.getDate() - 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
   const fmtT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
@@ -189,7 +268,36 @@
     const faceBtn = Number(r.face_enrolled)
       ? `<button class="danger-link" style="background:none;border:1px solid #f3c9c9;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--bad-fg);padding:6px 12px;line-height:1.3;" onclick="resetFace(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}')">Reset face</button>`
       : '<span style="color:var(--muted); font-size:12.5px;">Not enrolled</span>';
-    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn };
+    // Own working time, and how late that punch in was against it.
+    const shift = r.shift_start
+      ? `${fmtHM(r.shift_start)}${r.shift_end ? ' – ' + fmtHM(r.shift_end) : ''}`
+      : '—';
+    const shiftSub = Number(r.own_shift) ? 'own timing' : 'day start';
+    let lateTag = '';
+    if (r.punch_in && r.late_minutes !== null && r.late_minutes !== undefined) {
+      lateTag = Number(r.late_minutes) > 0
+        ? `<span class="badge" style="background:#FFF4DB; color:#8a5a00;">Late ${r.late_minutes} m</span>`
+        : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">On time</span>';
+    }
+    // Store staff only: how far the opening checklist got today.
+    const c = r.checklist;
+    let checklist = '<span style="color:var(--muted); font-size:12.5px;">—</span>';
+    if (c) {
+      const squares = Array.from({ length: c.tasks_total }, (_, i) =>
+        `<i style="display:inline-block; width:13px; height:13px; border-radius:3px; background:${i < c.tasks_done ? '#16a34a' : '#e2e6ec'};"></i>`).join(' ');
+      const colour = Number(c.complete) ? '#0f7a41' : (c.tasks_done ? '#8a5a00' : 'var(--muted)');
+      const sub = c.submitted_at
+        ? `<div style="font-size:10.5px; color:var(--muted);">submitted ${fmtT(c.submitted_at)} · ${c.photos_have} photos</div>`
+        : `<div style="font-size:10.5px; color:var(--muted);">${c.photos_have} of ${c.photos_need} photos${c.tasks_total ? ' · not submitted' : ''}</div>`;
+      checklist = c.tasks_total
+        ? `<a href="#" onclick="viewChecklist(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="text-decoration:none;">
+             <span style="font-weight:700; color:${colour};">${c.tasks_done} / ${c.tasks_total}</span>
+             <span style="margin-left:6px; white-space:nowrap;">${squares}</span>${sub}</a>`
+        : '<span style="color:var(--muted); font-size:12.5px;">no tasks set</span>';
+    } else if (!Number(r.is_store)) {
+      checklist = '<span style="color:var(--muted); font-size:12px;">not store staff</span>';
+    }
+    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn, shift, shiftSub, lateTag, checklist };
   }
 
   // "Adajan Office · 40 m" under a punch time (where the punch was made).
@@ -201,11 +309,13 @@
   function attRowHtml(r) {
     const v = prep(r);
     return `<tr>
-        <td><a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a> <span class="badge">${r.employee_code}</span></td>
+        <td><a href="#" onclick="viewMonth(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="Open full month">${r.full_name}</a> <span class="badge">${r.employee_code}</span>${Number(r.is_store) ? ' <span class="badge" style="background:#EEF2FF; color:#3730a3;">Store</span>' : ''}</td>
+        <td><a href="#" onclick="editShift(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="font-weight:600; text-decoration:none;">${v.shift}</a><div style="font-size:10.5px; color:var(--muted);">${v.shiftSub}</div></td>
         <td>${fmtT(r.punch_in)}${locLine(r.in_office, r.in_distance_m)}</td>
         <td>${fmtT(r.punch_out)}${locLine(r.out_office, r.out_distance_m)}</td>
         <td>${v.hours}</td>
-        <td>${v.status}</td>
+        <td>${v.status}${v.lateTag ? '<div style="margin-top:3px;">' + v.lateTag + '</div>' : ''}</td>
+        <td>${v.checklist}</td>
         <td>${v.photos}</td>
         <td>${v.faceBtn}</td>
       </tr>`;
@@ -220,14 +330,16 @@
     const v = prep(r);
     return `<div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 13px; margin-bottom:8px;">
         <div style="font-size:13px; font-weight:600;">
-          <a href="employee_detail.html?id=${r.employee_id}">${r.full_name}</a>
+          <a href="#" onclick="viewMonth(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="Open full month">${r.full_name}</a>
           <span style="font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;">${r.employee_code}</span>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
           ${field('Punch in', fmtT(r.punch_in) + locLine(r.in_office, r.in_distance_m))}
           ${field('Punch out', fmtT(r.punch_out) + locLine(r.out_office, r.out_distance_m))}
           ${field('Hours', v.hours)}
-          ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>`)}
+          ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>${v.lateTag ? ' ' + v.lateTag : ''}`)}
+          ${field('Shift', `<a href="#" onclick="editShift(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="font-weight:600; text-decoration:none;">${v.shift}</a> <span style="font-size:10.5px; color:var(--muted);">${v.shiftSub}</span>`)}
+          ${r.checklist ? field('Opening checklist', v.checklist) : ''}
         </div>
         ${(v.photoLinks.length || Number(r.face_enrolled))
           ? `<div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);">
@@ -263,7 +375,7 @@
     attShown = 0;
 
     if (!attFiltered.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
       cardsEl.innerHTML = '<div class="empty-state">No matching employees.</div>';
       updateAttLoadMoreUi();
       return;
@@ -334,7 +446,209 @@
     }
   };
 
+  // ---- Full month for one employee (click a name) ----
+  const monthModal = document.getElementById('monthModal');
+  let monthEmp = 0, monthName = '', monthScrollY = 0;
+  function closeMonth() {
+    monthModal.classList.remove('open');
+    const y = monthScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+  }
+  document.getElementById('monthClose').addEventListener('click', closeMonth);
+  monthModal.addEventListener('click', (e) => { if (e.target === monthModal) closeMonth(); });
+  const monthPick = document.getElementById('monthPick');
+  function shiftMonth(delta) {
+    const [y, m] = monthPick.value.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    monthPick.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    loadMonth();
+  }
+  document.getElementById('monthPrev').addEventListener('click', () => shiftMonth(-1));
+  document.getElementById('monthNext').addEventListener('click', () => shiftMonth(1));
+  monthPick.addEventListener('change', loadMonth);
+
+  window.viewMonth = function (empId, name) {
+    monthEmp = empId; monthName = name;
+    monthPick.value = (currentAttDate || todayStr()).slice(0, 7);
+    document.getElementById('monthProfile').href = 'employee_detail.html?id=' + empId;
+    monthScrollY = window.scrollY;
+    monthModal.classList.add('open');
+    loadMonth();
+  };
+
+  async function loadMonth() {
+    const month = monthPick.value;
+    if (!month) return;
+    const body = document.getElementById('monthBody');
+    document.getElementById('monthTitle').textContent = monthName;
+    document.getElementById('monthSummary').innerHTML = '';
+    body.innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    try {
+      const d = await api.get('attendance.month', { employee_id: monthEmp, month });
+      if (month !== monthPick.value) return;
+      const s = d.summary;
+      const chip = (label, val, bg, fg) => `<span style="background:${bg}; color:${fg}; border-radius:8px; padding:6px 10px; font-size:12.5px;"><b>${val}</b> ${label}</span>`;
+      document.getElementById('monthSummary').innerHTML =
+        chip('present', s.present, '#e7f7ee', '#0f7a41') + chip('absent', s.absent, '#fde8e8', '#c81e1e') +
+        chip('late' + (s.late ? ` (${s.late_minutes} min)` : ''), s.late, '#FFF4DB', '#8a5a00') + chip('hours', s.hours, '#EEF2FF', '#3730a3');
+      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      body.innerHTML = `<table style="width:100%;"><thead><tr><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th></tr></thead><tbody>` +
+        d.days.map(r => {
+          const dt = new Date(r.date + 'T00:00:00');
+          const label = `${String(dt.getDate()).padStart(2, '0')} ${dt.toLocaleDateString('en-IN', { month: 'short' })} · ${wd[r.weekday]}`;
+          let status;
+          if (r.punch_in) {
+            status = r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>';
+            status += Number(r.late_minutes) > 0 ? ` <span class="badge" style="background:#FFF4DB; color:#8a5a00;">Late ${r.late_minutes} m</span>` : ' <span class="badge" style="background:#e7f7ee; color:#0f7a41;">On time</span>';
+          } else status = Number(r.future) ? '<span style="color:var(--muted);">—</span>' : '<span class="badge inactive">Absent</span>';
+          return `<tr${Number(r.future) ? ' style="opacity:.45;"' : ''}><td style="white-space:nowrap;">${label}</td><td>${fmtT(r.punch_in)}</td><td>${fmtT(r.punch_out)}</td><td>${r.hours !== null ? r.hours + ' h' : '—'}</td><td>${status}</td></tr>`;
+        }).join('') + '</tbody></table>';
+    } catch (err) {
+      body.innerHTML = `<div class="alert error">${err.message}</div>`;
+    }
+  }
+
   let currentAttDate = '';
+
+  // ---- Store opening checklist: the day's photos, task by task ----
+  const ckModal = document.getElementById('ckModal');
+  const ckPhotoUrl = (p) => api.buildUrl('files.view', { path: p, token: api.token() || '' });
+  let ckEmpId = 0;
+  function closeCk() { ckModal.classList.remove('open'); document.getElementById('ckBody').innerHTML = ''; }
+  document.getElementById('ckCloseBtn').addEventListener('click', closeCk);
+  ckModal.addEventListener('click', (e) => { if (e.target === ckModal) closeCk(); });
+
+  window.viewChecklist = async function (empId, name) {
+    ckEmpId = empId;
+    document.getElementById('ckTitle').textContent = `${name} — opening checklist`;
+    document.getElementById('ckSub').textContent = new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+    document.getElementById('ckBody').innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    document.getElementById('ckAdminAlert').innerHTML = '';
+    document.getElementById('ckReopen').style.display = 'none';
+    ckModal.classList.add('open');
+    try {
+      const d = await api.get('store_tasks.day', { employee_id: empId, date: currentAttDate });
+      document.getElementById('ckSub').textContent =
+        `${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })} · ${d.tasks_done} of ${d.tasks_total} tasks · ${d.photos_have} of ${d.photos_need} photos`
+        + (d.submitted_at ? ` · submitted ${fmtT(d.submitted_at)}` : ' · not submitted');
+      document.getElementById('ckReopen').style.display = d.submitted_at ? '' : 'none';
+      document.getElementById('ckBody').innerHTML = (d.tasks || []).map((t, i) => `
+        <div style="display:flex; gap:10px; align-items:flex-start; padding:10px 2px; border-bottom:1px solid var(--line);">
+          <span style="width:20px; height:20px; border-radius:50%; flex:0 0 auto; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
+                       background:${t.done ? '#16a34a' : '#e2e6ec'}; color:${t.done ? '#fff' : 'var(--muted)'};">${t.done ? '✓' : (i + 1)}</span>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600;">${t.title}</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:1px;">${t.photos.length} of ${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}${t.photos.length ? ' · ' + fmtT(t.photos[t.photos.length - 1].taken_at) : ''}</div>
+            ${t.photos.length ? `<div style="display:flex; gap:6px; margin-top:7px; flex-wrap:wrap;">${t.photos.map(p =>
+              `<a href="${ckPhotoUrl(p.photo)}" target="_blank" rel="noopener" title="Open full size"><img src="${ckPhotoUrl(p.photo)}" alt="" style="width:64px; height:64px; object-fit:cover; border-radius:7px; display:block;"></a>`).join('')}</div>` : ''}
+          </div>
+        </div>`).join('') || '<div class="empty-state">No tasks set for this employee.</div>';
+    } catch (err) {
+      document.getElementById('ckBody').innerHTML = `<div class="alert error">${err.message}</div>`;
+    }
+  };
+
+  document.getElementById('ckReopen').addEventListener('click', async () => {
+    const btn = document.getElementById('ckReopen');
+    btn.disabled = true;
+    try {
+      const d = await api.upload('store_tasks.reopen', (() => { const f = new FormData(); f.append('employee_id', ckEmpId); f.append('date', currentAttDate); return f; })());
+      document.getElementById('ckAdminAlert').innerHTML = `<div class="alert success" style="margin-bottom:10px;">${d.message}</div>`;
+      btn.style.display = 'none';
+      load();
+    } catch (err) {
+      document.getElementById('ckAdminAlert').innerHTML = `<div class="alert error" style="margin-bottom:10px;">${err.message}</div>`;
+    } finally { btn.disabled = false; }
+  });
+
+  // ---- Working time + checklist setup for one employee ----
+  const shiftModal = document.getElementById('shiftModal');
+  let shEmpId = 0;
+  let shTasks = [];
+  let shDefaultTasks = [];
+
+  function shRenderTasks() {
+    const wrap = document.getElementById('shTasks');
+    wrap.innerHTML = shTasks.length ? shTasks.map((t, i) => `
+      <div style="display:flex; align-items:center; gap:8px; padding:7px 9px; border-bottom:1px solid var(--line);">
+        <span style="display:flex; flex-direction:column; gap:1px;">
+          <button type="button" onclick="shMove(${i}, -1)" ${i === 0 ? 'disabled' : ''} style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▲</button>
+          <button type="button" onclick="shMove(${i}, 1)" ${i === shTasks.length - 1 ? 'disabled' : ''} style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▼</button>
+        </span>
+        <input type="text" value="${(t.title || '').replace(/"/g, '&quot;')}" oninput="shSetTitle(${i}, this.value)" placeholder="What has to be done"
+               style="flex:1; min-width:0; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <input type="number" min="1" max="10" value="${t.photos_required}" oninput="shSetNeed(${i}, this.value)" title="Photos needed"
+               style="width:56px; padding:7px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;">
+        <span style="font-size:11px; color:var(--muted);">photo</span>
+        <button type="button" onclick="shDelete(${i})" title="Remove" style="border:none; background:none; color:var(--bad-fg); font-size:15px; cursor:pointer; min-height:0; padding:2px 4px;">🗑</button>
+      </div>`).join('') : '<div style="padding:12px; font-size:12.5px; color:var(--muted);">No tasks yet — add one, or use the standard six.</div>';
+  }
+  window.shSetTitle = (i, v) => { shTasks[i].title = v; };
+  window.shSetNeed = (i, v) => { shTasks[i].photos_required = Math.max(1, Math.min(10, Number(v) || 1)); };
+  window.shDelete = (i) => { shTasks.splice(i, 1); shRenderTasks(); };
+  window.shMove = (i, d) => { const j = i + d; if (j < 0 || j >= shTasks.length) return; const t = shTasks[i]; shTasks[i] = shTasks[j]; shTasks[j] = t; shRenderTasks(); };
+  document.getElementById('shAddTask').addEventListener('click', () => { shTasks.push({ task_id: 0, title: '', photos_required: 1 }); shRenderTasks(); });
+  document.getElementById('shDefaults').addEventListener('click', () => { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required })); shRenderTasks(); });
+  document.getElementById('shStore').addEventListener('change', (e) => {
+    document.getElementById('shTasksWrap').style.display = e.target.checked ? '' : 'none';
+    if (e.target.checked && !shTasks.length) { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required })); shRenderTasks(); }
+  });
+
+  window.editShift = async function (empId, name) {
+    shEmpId = empId;
+    shTasks = [];
+    document.getElementById('shiftTitle').textContent = `${name} — working time`;
+    document.getElementById('shiftAlert').innerHTML = '';
+    document.getElementById('shApplyAll').checked = false;
+    document.getElementById('shTasksWrap').style.display = 'none';
+    document.getElementById('shTasks').innerHTML = '<div class="loading" style="padding:14px;">Loading...</div>';
+    shiftModal.classList.add('open');
+    try {
+      const d = await api.get('store_tasks.list', { employee_id: empId });
+      shDefaultTasks = d.defaults || [];
+      document.getElementById('shStart').value = Number(d.shift.own) ? d.shift.shift_start : '';
+      document.getElementById('shEnd').value = d.shift.shift_end || '';
+      document.getElementById('shLate').value = d.shift.late_after;
+      document.getElementById('shStore').checked = !!Number(d.shift.is_store);
+      document.getElementById('shTasksWrap').style.display = Number(d.shift.is_store) ? '' : 'none';
+      shTasks = (d.tasks || []).map(t => ({ task_id: t.task_id, title: t.title, photos_required: t.photos_required }));
+      if (Number(d.shift.is_store) && !shTasks.length) shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required }));
+      shRenderTasks();
+      document.getElementById('shStart').placeholder = d.day_start;
+    } catch (err) {
+      document.getElementById('shiftAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+      document.getElementById('shTasks').innerHTML = '';
+    }
+  };
+  function closeShift() { shiftModal.classList.remove('open'); }
+  document.getElementById('shCancel').addEventListener('click', closeShift);
+  shiftModal.addEventListener('click', (e) => { if (e.target === shiftModal) closeShift(); });
+
+  document.getElementById('shSave').addEventListener('click', async () => {
+    const btn = document.getElementById('shSave');
+    const isStore = document.getElementById('shStore').checked;
+    const list = shTasks.filter(t => (t.title || '').trim() !== '');
+    if (isStore && !list.length) {
+      document.getElementById('shiftAlert').innerHTML = '<div class="alert error">A store employee needs at least one task.</div>';
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const fd = new FormData();
+      fd.append('employee_id', shEmpId);
+      fd.append('shift_start', document.getElementById('shStart').value || '');
+      fd.append('shift_end', document.getElementById('shEnd').value || '');
+      fd.append('late_after', document.getElementById('shLate').value || 15);
+      fd.append('is_store', isStore ? 1 : 0);
+      fd.append('tasks', JSON.stringify(list));
+      if (document.getElementById('shApplyAll').checked) fd.append('apply_all', 1);
+      const d = await api.upload('shift.save', fd);
+      closeShift();
+      showAlert(d.message || 'Saved.');
+      load();
+    } catch (err) {
+      document.getElementById('shiftAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally { btn.disabled = false; btn.textContent = 'Save'; }
+  });
 
   // ---- Refused punches (outside the office area) ----
   let refusedRows = [];
@@ -399,7 +713,7 @@
     const fmtT = (t) => t ? new Date(String(t).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
     const s = remData.settings;
     const rows = remData.rows.filter(r => !r.mark && !r.punch_in);
-    const note = `<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">${s.enabled ? 'Reminders are <b style="color:#0f7a41;">on</b>' : 'Reminders are <b style="color:#c81e1e;">off</b> — turn them on in Settings'} · day start ${remData.day_start} · reminder after ${s.after_arrive} min at office${s.after_shift ? ` / ${s.after_shift} min after day start` : ''} · repeats every ${s.repeat_every} min, max ${s.max_reminders}${s.push_enabled ? ' · phone notification when HRMS is closed' : ''}</div>`;
+    const note = `<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">${s.enabled ? 'Reminders are <b style="color:#0f7a41;">on</b>' : 'Reminders are <b style="color:#c81e1e;">off</b> — turn them on in Settings'} · day start ${remData.day_start} · reminder after ${s.after_arrive} min at office${s.office_only ? ' (office only)' : (s.after_shift ? ` / ${s.after_shift} min after day start` : '')} · repeats every ${s.repeat_every} min, max ${s.max_reminders}${s.push_enabled ? ' · phone notification when HRMS is closed' : ''}</div>`;
     el.innerHTML = note + (rows.length
       ? `<table><thead><tr><th>Employee</th><th>At office since</th><th>Reminded</th><th>Status</th></tr></thead><tbody>` + rows.map(r => {
           const mins = r.at_office_since ? Math.floor((Date.now() - new Date(String(r.at_office_since).replace(' ', 'T')).getTime()) / 60000) : null;
@@ -414,6 +728,20 @@
           </tr>`; }).join('') + '</tbody></table>'
       : '<div class="empty-state">Everyone has punched in (or is on leave / week off) ✓</div>');
   }
+  // The two rules exclude each other: office-only means the time rule is unused.
+  function paintRuleNote() {
+    const on = document.getElementById('remOfficeOnly').checked;
+    const arrive = document.getElementById('remAfterArrive').value || 20;
+    const fresh = document.getElementById('remFresh').value || 30;
+    const shift = document.getElementById('remAfterShift').value || 0;
+    document.getElementById('remShiftWrap').style.opacity = '1';
+    document.getElementById('remAfterShift').disabled = false;
+    document.getElementById('remRuleNote').innerHTML = on
+      ? `<b>Now:</b> a reminder goes out only when <b>all three</b> are true — the phone is <b>inside an office area</b> (position not older than ${fresh} min), the <b>punch-in time has passed by ${shift} min</b>, and there is <b>still no punch in</b> (after ${arrive} min inside). Outside the area: nothing, ever.<br><b>Note:</b> the position is known only while the employee has HRMS open (the punch page reports it every couple of minutes). If they leave the area, reminders stop.`
+      : `<b>Now:</b> everyone without a punch in is reminded ${shift} min after the day starts, <b>wherever they are</b> — including at home. Tick the box above to limit it to the office.`;
+  }
+  ['remOfficeOnly', 'remAfterArrive', 'remFresh', 'remAfterShift'].forEach(id => document.getElementById(id).addEventListener('input', paintRuleNote));
+
   async function loadRemDiag() {
     const box = document.getElementById('remDiag');
     box.innerHTML = '<div class="loading sm">Checking…</div>';
@@ -444,6 +772,9 @@
     const s = remData.settings;
     document.getElementById('remEnabled').checked = !!s.enabled;
     document.getElementById('remAfterArrive').value = s.after_arrive; document.getElementById('remAfterShift').value = s.after_shift;
+    document.getElementById('remOfficeOnly').checked = s.office_only === undefined ? true : !!s.office_only;
+    document.getElementById('remFresh').value = s.presence_fresh || 30;
+    paintRuleNote();
     document.getElementById('remRepeat').value = s.repeat_every; document.getElementById('remMax').value = s.max_reminders;
     document.getElementById('remQuiet').value = s.quiet_until || '';
     document.getElementById('remPush').checked = !!s.push_enabled;
@@ -471,6 +802,7 @@
       const d = await api.post('reminders.settings_save', {
         enabled: document.getElementById('remEnabled').checked ? 1 : 0,
         after_arrive: Number(document.getElementById('remAfterArrive').value || 20), after_shift: Number(document.getElementById('remAfterShift').value || 0),
+        office_only: document.getElementById('remOfficeOnly').checked ? 1 : 0, presence_fresh: Number(document.getElementById('remFresh').value || 30),
         repeat_every: Number(document.getElementById('remRepeat').value || 20), max_reminders: Number(document.getElementById('remMax').value || 3),
         quiet_until: document.getElementById('remQuiet').value.trim(),
         push_enabled: document.getElementById('remPush').checked ? 1 : 0,
@@ -521,7 +853,7 @@
       loadReminders(date);
       loadEarly();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -536,8 +868,11 @@
     }
   };
 
-  // ---- Day timing window (Admin/HR) ----
-  { const u = api.currentUser() || {}; if (!['Admin', 'HR'].includes(u.role)) document.getElementById('btnTiming').style.display = 'none'; }
+  // ---- Day timing window ----
+  // No extra role check: whoever can open this page can use everything on
+  // it. The server applies the same rule (the Attendance module grants the
+  // page's actions), so a Sales Head with Attendance ticked can set the
+  // timing exactly like an Admin.
   const timingModal = document.getElementById('timingModal');
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let timingScrollY = 0;

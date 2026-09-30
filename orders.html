@@ -15,6 +15,14 @@
 <style>
   .plat-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;}
   .plat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 14px 10px; border-top:4px solid var(--c);}
+  /* Product colour counts (DG / LG / WH / Other) — small, plain text */
+  .clr-totals{display:flex; flex-wrap:wrap; align-items:center; gap:2px 14px; font-size:12.5px; font-weight:600; color:#334155;}
+  .clr-totals span, .clr-line span{display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
+  .clr-totals i, .clr-line i{width:8px; height:8px; border-radius:50%; border:1px solid rgba(0,0,0,.25); display:inline-block; flex:0 0 auto;}
+  .clr-line{display:flex; flex-wrap:wrap; gap:1px 8px; margin-top:3px; font-size:11px; color:var(--muted);}
+  .clr-line i{width:7px; height:7px;}
+  .clr-dg{background:#14532d;} .clr-lg{background:#86efac;} .clr-wh{background:#fff;} .clr-ot{background:#94a3b8;}
+  @media (max-width:820px){ .clr-totals{width:100%; font-size:12px; gap:2px 12px;} }
   .plat-card h3{margin:0 0 8px; font-size:14px; color:var(--c); display:flex; justify-content:space-between; align-items:baseline;}
   .plat-card h3 small{font-size:11px; color:var(--muted); font-weight:400;}
   .plat-card .li{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line); font-size:13px;}
@@ -68,6 +76,7 @@
         </button>
         <h1>Shopify Orders</h1>
       </div>
+      <div class="clr-totals" id="clrTotals"></div>
     </div>
     <div class="content">
       <div id="alertBox"></div>
@@ -350,6 +359,7 @@
     currentPage = 1;
     document.getElementById('orderSearch').value = '';
     renderSummary();
+    renderColorTotals(scopedOrders());
     renderPlatformSummary();
     applyFilters();
   }
@@ -444,6 +454,21 @@
     const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
     document.getElementById('platformSub').textContent = from === to ? fmt(from) : `${fmt(from)} – ${fmt(to)}`;
     card.style.display = '';
+  }
+
+  // ---- Product colour (from the product name: DG / LG / WH, anything else = Other)
+  const CLR = [['dg', 'DG', 'Dark Green'], ['lg', 'LG', 'Light Green'], ['wh', 'WH', 'White'], ['other', 'Other', 'Other']];
+  const clrCls = (k) => (k === 'other' ? 'clr-ot' : 'clr-' + k);
+  const clrOf = (o) => o.colors || { dg: 0, lg: 0, wh: 0, other: 0 };
+  function clrLine(o) {
+    const c = clrOf(o);
+    const h = CLR.filter(([k]) => c[k] > 0).map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${c[k]}</span>`).join('');
+    return h ? `<div class="clr-line">${h}</div>` : '';
+  }
+  function renderColorTotals(list) {
+    const tot = { dg: 0, lg: 0, wh: 0, other: 0 };
+    list.forEach(o => { const c = clrOf(o); CLR.forEach(([k]) => { tot[k] += Number(c[k] || 0); }); });
+    document.getElementById('clrTotals').innerHTML = CLR.map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${tot[k]}</span>`).join('');
   }
 
   function renderSummary() {
@@ -541,7 +566,7 @@
           <td>${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
           <td>${o.customer}</td>
           <td style="white-space:nowrap;">${o.phone || '—'}</td>
-          <td>${o.items}</td>
+          <td>${o.items}${clrLine(o)}</td>
           <td style="font-weight:600;">${fmtMoney(o.total, o.currency)}</td>
           <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
           <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
@@ -562,6 +587,7 @@
             <span style="font-size:12px; color:var(--muted);">${o.store}</span>
             <span style="font-size:12px; color:var(--muted);">${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · ${o.items} item${o.items === 1 ? '' : 's'}</span>
           </div>
+          ${clrLine(o)}
           <div style="display:flex; gap:6px; margin-top:8px;">
             <span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span>
             <span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span>

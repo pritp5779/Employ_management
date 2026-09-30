@@ -3,128 +3,17 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260930.5';   // shown under your name in the sidebar
-
-
-/**
- * Punch-in reminder pop-up (employee logins, every page).
- *
- * About once a minute the page asks the server whether a "you haven't
- * punched in" reminder is due (at the office N minutes without punching in,
- * or N minutes after the day started). When it is, a pop-up appears on top
- * of whatever page is open, with a Punch In button. If the employee allowed
- * notifications, the phone also shows one while the app is in the
- * background. When the HRMS is closed, the server pushes the same reminder
- * to the phone (see sw.js) — that only needs the one-time "Allow
- * notifications" tap. Nothing is sent by WhatsApp / SMS; no keys involved.
- */
-async function hrmsPushSubscribe(interactive) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || !window.isSecureContext) return false;
-  const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
-  await navigator.serviceWorker.ready;
-  if (Notification.permission !== 'granted') {
-    if (!interactive) return false;
-    if ((await Notification.requestPermission()) !== 'granted') return false;
-  }
-  const k = await api.get('push.key');
-  const toKey = (b64) => { const pad = '='.repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
-  let sub = await reg.pushManager.getSubscription();
-  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(k.key) });
-  const j = sub.toJSON();
-  await api.post('push.subscribe', { endpoint: j.endpoint, keys: j.keys, device: navigator.userAgent.slice(0, 160) });
-  try { localStorage.setItem('hrms_push_day', new Date().toDateString()); } catch (e) {}
-  return true;
-}
-
-function startPunchReminder() {
-  if (window.__punchReminderOn) return;
-  window.__punchReminderOn = true;
-  const onPunchPage = /(^|\/)attendance\.html$/.test(location.pathname);
-  let box = null;
-  // Phone already allowed notifications → keep its subscription fresh (once a day, silently).
-  try {
-    if ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('hrms_push_day') !== new Date().toDateString()) hrmsPushSubscribe(false).catch(() => {});
-  } catch (e) {}
-  function show(d) {
-    if (!box) {
-      box = document.createElement('div');
-      box.id = 'punchReminder';
-      box.style.cssText = 'position:fixed; inset:0; background:rgba(17,24,39,.55); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;';
-      document.body.appendChild(box);
-    }
-    const since = d.since ? new Date(String(d.since).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
-    const canAsk = ('Notification' in window) && Notification.permission === 'default';
-    box.innerHTML = `<div style="background:#fff; border-radius:16px; max-width:420px; width:100%; padding:22px 20px; box-shadow:0 24px 60px rgba(0,0,0,.35); font-family:inherit;">
-        <div style="font-size:34px; line-height:1; margin-bottom:8px;">${d.seq >= d.max ? '🚨' : '⏰'}</div>
-        <div style="font-size:17px; font-weight:700; color:#111827; margin-bottom:6px;">${d.title || "You haven't punched in yet"}</div>
-        <div style="font-size:13.5px; color:#374151; line-height:1.5;">${d.message || ''}</div>
-        <div style="font-size:11.5px; color:#6b7280; margin-top:8px;">Reminder ${d.seq} of ${d.max}${since ? ' · since ' + since : ''}</div>
-        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-          ${onPunchPage ? '<button type="button" class="btn" id="prPunch" style="flex:1; min-height:44px;">OK, punching in</button>' : '<a class="btn" href="attendance.html" style="flex:1; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">Punch In</a>'}
-          <button type="button" class="btn secondary" id="prLater" style="flex:1; min-height:44px;">Later</button>
-        </div>
-        ${canAsk ? '<button type="button" id="prAllow" style="margin-top:12px; background:none; border:none; color:#2563eb; font-size:12.5px; cursor:pointer; padding:0; min-height:0; text-decoration:underline;">🔔 Also remind me on this phone when HRMS is closed</button>' : ''}
-      </div>`;
-    box.style.display = 'flex';
-    const close = () => { box.style.display = 'none'; };
-    const later = document.getElementById('prLater'); if (later) later.onclick = close;
-    const punch = document.getElementById('prPunch'); if (punch) punch.onclick = close;
-    const allow = document.getElementById('prAllow'); if (allow) allow.onclick = () => { allow.disabled = true; hrmsPushSubscribe(true).then(() => { allow.remove(); }).catch(() => { allow.remove(); }); };
-    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
-    // Phone notification too, when allowed and the app is not in front.
-    try {
-      if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
-        const n = new Notification(d.title || "You haven't punched in yet", { body: d.message || '', tag: 'hrms-punch', renotify: true });
-        n.onclick = () => { window.focus(); if (!onPunchPage) location.href = 'attendance.html'; };
-      }
-    } catch (e) {}
-  }
-  async function poll() {
-    try {
-      const d = await api.get('me.reminder_status');
-      if (d && d.show) show(d);
-      else if (d && d.punched_in && box) box.style.display = 'none';
-    } catch (e) {}
-  }
-  poll();
-  setInterval(poll, 60000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
-}
-
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
   const linkClass = (key) => (active === key ? 'active' : '');
   const isAdmin = user.role === 'Admin';
-
-  // The role saved at login can go stale when Admin changes it on the Users
-  // page. me.flags returns the live role: store it and rebuild the page so
-  // the new access applies without logging out and in.
-  const syncRole = (d) => {
-    const tag = document.getElementById('buildTag');
-    if (tag && d && d.build) tag.textContent = 'layout ' + LAYOUT_BUILD + ' · api ' + d.build;
-    // The server knows which layout.js has every current page in its menu.
-    // An older one still loaded here means a stale upload or cache — say so
-    // instead of silently missing links.
-    if (tag && d && d.layout_min && LAYOUT_BUILD < d.layout_min) {
-      tag.insertAdjacentHTML('afterend', `<span style="display:block; margin-top:6px; font-size:11px; color:#fca5a5; line-height:1.4;">Old menu file loaded (layout ${LAYOUT_BUILD}, server needs ${d.layout_min}). Upload the latest assets/js/layout.js and reload.</span>`);
-    }
-    if (d && d.role && d.role !== user.role) {
-      api.setUser(Object.assign({}, user, { role: d.role }));
-      window.location.reload();
-      return true;
-    }
-    return false;
-  };
 
   // Each permission can unlock one or more pages.
   const PAGES_FOR_PERM = {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
-    order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
-    retail: [['retail_shops.html', 'Retail Shops', 'retail_shops']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
-    offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
     performance: [['performance.html', 'Performance', 'performance']],
@@ -149,13 +38,7 @@ function renderSidebar(active) {
   };
 
   if (user.role !== 'Admin' && user.role !== 'Employee') {
-    // Custom role: sidebar built from its granted permissions. The page
-    // stays hidden until me.flags confirms this role may open it, so a
-    // refused page never flashes its "no permission" errors.
-    document.documentElement.style.visibility = 'hidden';
-    // Safety net: a slow or stuck server reply must never leave the page
-    // invisible — after 6 s the page shows regardless.
-    setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000);
+    // Custom role: sidebar built from its granted permissions.
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
       <div class="brand">HR<span>MS</span></div>
@@ -164,29 +47,21 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
-        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
     addMobileMenu();
     api.get('me.flags').then((d) => {
-      if (syncRole(d)) return;
       const perms = d.permissions || [];
-      // If the current page isn't allowed for this role, say so in the menu
-      // instead of silently jumping away (the page's own data calls are
-      // refused by the server anyway, with the same explanation).
+      // If the current page isn't allowed for this role, go to their first
+      // allowed page instead (e.g. login lands on Dashboard by default).
       const activePerm = Object.keys(PAGES_FOR_PERM).find(p => PAGES_FOR_PERM[p].some(d => d[2] === active));
+      if (perms.length && activePerm && !perms.includes(activePerm)) {
+        window.location.replace(PAGES_FOR_PERM[perms[0]][0][0]);
+        return;
+      }
       const nav = document.getElementById('customNav');
       if (!nav) return;
-      if (activePerm && !perms.includes(activePerm)) {
-        // Not allowed here (e.g. login sent them to the Dashboard): go to
-        // the first page this role IS allowed, instead of showing an error.
-        const home = perms.map(p => (PAGES_FOR_PERM[p] || [])[0]).find(Boolean);
-        if (home) { window.location.replace(home[0]); return; }
-        const label = (PAGES_FOR_PERM[activePerm].find(d => d[2] === active) || PAGES_FOR_PERM[activePerm][0])[1];
-        nav.insertAdjacentHTML('beforeend', `<span style="display:block; padding:8px 20px; font-size:12px; color:#fca5a5; line-height:1.5;">Your role "${user.role}" doesn't include <b>${label}</b>. Ask an Admin to tick it on the Roles page.</span>`);
-      }
-      document.documentElement.style.visibility = '';
       perms.forEach((p) => {
         (PAGES_FOR_PERM[p] || []).forEach((def) => {
           nav.insertAdjacentHTML('beforeend', `<a href="${def[0]}" class="${active === def[2] ? 'active' : ''}">${def[1]}</a>`);
@@ -196,7 +71,6 @@ function renderSidebar(active) {
         nav.insertAdjacentHTML('beforeend', '<span style="display:block; padding:8px 20px; font-size:12.5px; color:#8a93a6;">No access granted yet — ask Admin.</span>');
       }
     }).catch((err) => {
-      document.documentElement.style.visibility = '';
       const nav = document.getElementById('customNav');
       if (nav) nav.insertAdjacentHTML('beforeend', `<span style="display:block; padding:8px 20px; font-size:12px; color:#e08585;">Menu failed to load: ${err.message}</span>`);
     });
@@ -209,7 +83,7 @@ function renderSidebar(active) {
     // the Employee role was granted that module on the Roles page.
     const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_agreements', 'my_sales', 'orders'];
     const needsCheck = !EMPLOYEE_PAGES.includes(active);
-    if (needsCheck) { document.documentElement.style.visibility = 'hidden'; setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000); }
+    if (needsCheck) document.documentElement.style.visibility = 'hidden';
 
     document.getElementById('sidebar').outerHTML = `
     <aside class="sidebar">
@@ -223,15 +97,12 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
-        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
     addMobileMenu();
 
-    startPunchReminder();
     api.get('me.flags').then((d) => {
-      if (syncRole(d)) return;
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
       const allowed = ['attendance', 'my_salary', 'my_agreements'].concat(grantedActives);
@@ -257,10 +128,14 @@ function renderSidebar(active) {
         links += `
         <a href="my_agreements.html" class="${linkClass('my_agreements')}">My Agreements</a>`;
         // Admin-side pages granted to the Employee role via Roles page.
-        if (perms.length) {
+        // 'punch' is skipped: every employee already has "Attendance" above,
+        // which is the same Punch In / Out page — listing it again showed two
+        // highlighted links for one page.
+        const morePerms = perms.filter(p => p !== 'punch');
+        if (morePerms.length) {
           links += `
         <div class="nav-label">More</div>`;
-          perms.forEach((p) => {
+          morePerms.forEach((p) => {
             (PAGES_FOR_PERM[p] || []).forEach((def) => {
               links += `
         <a href="${def[0]}" class="${active === def[2] ? 'active' : ''}">${def[1]}</a>`;
@@ -288,10 +163,7 @@ function renderSidebar(active) {
       ['dashboard.html', 'Dashboard', 'dashboard'],
       ['orders.html', 'Shopify Orders', 'orders'],
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
-      ['order_codes.html', 'Order Codes', 'order_codes'],
-      ['retail_shops.html', 'Retail Shops', 'retail_shops'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
-      ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],
       ['performance.html', 'Performance', 'performance'],
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
@@ -335,7 +207,6 @@ function renderSidebar(active) {
         <span class="name">${user.username}</span>
         <span class="role">${user.role}</span>
         <button onclick="logout()">Log out</button>
-        <span class="build" id="buildTag" style="display:block; margin-top:6px; font-size:10px; color:#64748b; cursor:pointer;" title="layout.js build · api.php build — click for an access check" onclick="window.open(api.buildUrl('diag.access', { token: api.token() }), '_blank')">layout ${LAYOUT_BUILD}</span>
       </div>
     </aside>
   `;
@@ -344,7 +215,6 @@ function renderSidebar(active) {
   initNavCategories(categories, active);
 
   if (isAdmin) {
-    api.get('me.flags').then(syncRole).catch(() => {});
     api.get('approvals.count').then((d) => {
       const badge = document.getElementById('approvalBadge');
       if (badge && d.count > 0) {

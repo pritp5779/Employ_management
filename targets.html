@@ -1062,7 +1062,8 @@
   const closeRule = () => ruleModal.classList.remove('open');
 
   document.getElementById('btnRule').addEventListener('click', openRule);
-  { const u = api.currentUser() || {}; if (!['Admin', 'HR'].includes(u.role)) document.getElementById('btnTiming').style.display = 'none'; }
+  // Day timing is open to anyone who can open this page — page access gives
+  // every control on the page (the server checks the same module).
   document.getElementById('ruleCancel').addEventListener('click', closeRule);
   ruleModal.addEventListener('click', (e) => {
     if (e.target === ruleModal) { closeRule(); return; }
