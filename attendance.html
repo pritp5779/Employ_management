@@ -26,24 +26,6 @@
   .cam-oval{position:absolute; left:50%; top:47%; width:52%; aspect-ratio:3/4; transform:translate(-50%,-50%); border-radius:50%;
     border:3px dashed rgba(255,255,255,.6); box-shadow:0 0 0 999px rgba(0,0,0,.28); transition:border-color .25s, box-shadow .25s, left .3s, width .3s; pointer-events:none;}
   .cam-oval.ok{border:3px solid #22c55e; box-shadow:0 0 0 999px rgba(0,0,0,.2), 0 0 16px #22c55e;}
-  .cam-panel.rear .cam-oval{display:none;}
-  /* ID card step: the oval slides left and a card-shaped box appears on the
-     right, both in the same front camera. */
-  .cam-panel.cardmode .cam-oval{left:27%; width:40%; box-shadow:0 0 0 999px rgba(0,0,0,.18);}
-  .cam-card{position:absolute; right:4%; top:32%; width:46%; aspect-ratio:1.586; border:3px dashed rgba(255,255,255,.75); border-radius:8px; display:none; pointer-events:none;
-    transition:border-color .25s;}
-  .cam-card::after{content:'ID card here'; position:absolute; left:0; right:0; top:100%; margin-top:6px; text-align:center; color:#fff; font-size:11px; font-weight:600; text-shadow:0 1px 2px #000;}
-  .cam-panel.cardmode .cam-card{display:block;}
-  .cam-card.seen{border-color:#facc15;}
-  .cam-card.ok{border:3px solid #22c55e; box-shadow:0 0 14px #22c55e;}
-  .cam-card.ok::after{content:'Card matched ✓';}
-  .cam-card.bad{border-color:#ef4444;}
-  /* Shoes step: a floor-level frame to fill with both shoes. */
-  .cam-shoes{position:absolute; left:8%; right:8%; top:18%; bottom:14%; border:3px dashed rgba(255,255,255,.7); border-radius:12px; display:none; pointer-events:none;}
-  .cam-shoes::after{content:'Both shoes inside the frame'; position:absolute; left:0; right:0; bottom:-24px; text-align:center; color:#fff; font-size:11.5px; font-weight:600; text-shadow:0 1px 2px #000;}
-  .cam-panel.rear .cam-shoes{display:block;}
-  .cam-shoes.ok{border:3px solid #22c55e;}
-  .cam-shoes.bad{border:3px solid #ef4444;}
   .cam-live{position:absolute; top:10px; left:10px; display:flex; align-items:center; gap:6px; color:#fff; font-size:11.5px; font-weight:600;
     background:rgba(0,0,0,.35); padding:4px 9px; border-radius:12px;}
   .cam-live b{width:8px; height:8px; border-radius:50%; background:#ef4444; animation:camBlink 1s infinite;}
@@ -72,15 +54,34 @@
   .steps li.bad i::before{content:'✕';}
   .steps li i:empty::before{content:attr(data-n);}
   .steps li.done i, .steps li.skip i, .steps li.bad i{content:none;}
-  .cap-btn{display:none; margin:12px auto 0;}
-  .cap-btn.show{display:inline-flex;}
+  /* Step 1: ask before checking the location */
+  .locbox{border:1px solid var(--line); border-radius:14px; padding:20px 16px; text-align:center; background:var(--surface,#fff);}
+  .locbox[hidden]{display:none;}
+  .loc-pin{position:relative; width:58px; height:58px; margin:0 auto 10px; border-radius:50%; background:#dbeafe; color:#1d4ed8; display:flex; align-items:center; justify-content:center;}
+  .loc-pin svg{width:29px; height:29px;}
+  .loc-pin.busy::after{content:''; position:absolute; inset:-6px; border-radius:50%; border:3px solid #bfdbfe; border-top-color:#2563eb; animation:locSpin .8s linear infinite;}
+  .loc-pin.ok{background:#dcfce7; color:#15803d;}
+  @keyframes locSpin{to{transform:rotate(360deg);}}
+  .loc-t{font-size:16px; font-weight:700; margin-bottom:4px;}
+  .loc-s{font-size:12.5px; color:var(--muted); line-height:1.5;}
+  .loc-btns{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+  .loc-btns[hidden]{display:none;}
   /* Reminder switch */
   .rem-row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
   .rem-row .sw{position:relative; width:46px; height:26px; flex:none; border-radius:13px; background:#cbd5e1; border:none; cursor:pointer; transition:background .2s; padding:0; min-height:0;}
   .rem-row .sw::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .2s; box-shadow:0 1px 2px rgba(0,0,0,.3);}
   .rem-row .sw.on{background:#22c55e;}
   .rem-row .sw.on::after{left:23px;}
-  .rem-row .sw:disabled{opacity:.5; cursor:wait;}
+  .rem-row .sw:disabled{opacity:.75; cursor:not-allowed;}
+  .rem-req{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:10px; background:#e0e7ff; color:#3730a3; margin-left:6px; vertical-align:middle;}
+  .rem-note.ok{color:#0f7a41; font-weight:600;}
+  .rem-note.bad{color:#c81e1e; font-weight:600;}
+  .rem-steps{margin:8px 0 0; padding-left:18px; font-size:12px; line-height:1.6; color:var(--ink,#374151);}
+  .rem-steps[hidden]{display:none;}
+  .rem-big{width:100%; margin-top:10px;}
+  .rem-lock{margin-top:10px; background:#fff4db; color:#8a5a00; border-radius:9px; padding:9px 11px; font-size:12.5px; line-height:1.45; font-weight:600;}
+  .rem-lock.bad{background:#fdecec; color:#8a1f1f;}
+  .rem-lock[hidden]{display:none;}
   .rem-note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.45;}
   /* Store opening checklist: tasks with their photos, shown after punch in */
   .ck-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
@@ -110,7 +111,7 @@
   .ck-shift{font-size:12px; color:var(--muted); margin-top:8px;}
   .ck-shift b{color:var(--ink);}
   @media (max-width:820px){ .punch-btns .btn{flex:1 1 140px; min-height:48px; font-size:15px;} .steps li{font-size:11.5px; padding:6px 6px;} }
-  @media (prefers-reduced-motion: reduce){ .cam-panel{animation:none;} .cam-live b{animation:none;} .cam-oval{transition:none;} }
+  @media (prefers-reduced-motion: reduce){ .cam-panel{animation:none;} .cam-live b{animation:none;} .cam-oval{transition:none;} .loc-pin.busy::after{animation-duration:2s;} }
 </style>
 </head>
 <body>
@@ -143,14 +144,22 @@
       <div class="card" style="max-width:560px;">
         <div class="card-head"><h2 id="camTitle">Punch</h2></div>
         <div style="padding:16px 20px;">
-          <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Tap Punch In or Punch Out — the camera opens only then, and closes when you're done.</div>
+          <div id="camHint" style="font-size:13px; color:var(--muted); margin-bottom:10px;">Tap Punch In or Punch Out — we check your location first, then your face on the back camera. The camera opens only then and closes as soon as you're done.</div>
 
           <ol class="steps" id="steps" hidden>
             <li data-k="loc"><i data-n="1"></i>Location</li>
             <li data-k="face"><i data-n="2"></i>Face</li>
-            <li data-k="card"><i data-n="3"></i>ID card</li>
-            <li data-k="shoes"><i data-n="4"></i>Shoes</li>
           </ol>
+
+          <div id="locBox" class="locbox" hidden>
+            <div class="loc-pin" id="locPin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.6"/></svg></div>
+            <div class="loc-t" id="locTitle">Check your location?</div>
+            <div class="loc-s" id="locSub">We confirm you are at your office before the face check. Allow location when your phone asks.</div>
+            <div class="loc-btns" id="locBtns">
+              <button type="button" class="btn" id="btnLocYes">Yes, check location</button>
+              <button type="button" class="btn secondary" id="btnLocNo">Cancel</button>
+            </div>
+          </div>
 
           <div id="camIdle" class="cam-idle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M9.5 5H15l1.5 2H20a1 1 0 0 1 1 1v9.5M17 19H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h2"/><path d="M9.9 10.3A3 3 0 0 0 14 14.4"/></svg>
@@ -160,35 +169,39 @@
           <div id="camPanel" class="cam-panel" hidden>
             <video id="cam" playsinline muted></video>
             <div id="camOval" class="cam-oval" aria-hidden="true"></div>
-            <div id="camCard" class="cam-card" aria-hidden="true"></div>
-            <div id="camShoes" class="cam-shoes" aria-hidden="true"></div>
             <div class="cam-live" aria-hidden="true"><b></b>Camera on</div>
             <button type="button" class="cam-cancel" id="btnCancel" aria-label="Cancel and turn the camera off">✕</button>
             <div id="camOverlay" class="cam-overlay">Starting camera…</div>
           </div>
           <canvas id="snap" style="display:none;"></canvas>
-          <button type="button" class="btn cap-btn" id="btnCapture">Check shoes 📷</button>
 
           <div class="punch-btns">
             <button class="btn" id="btnPunchIn" disabled>Punch In</button>
             <button class="btn secondary" id="btnPunchOut" disabled>Punch Out</button>
           </div>
+          <div id="remLock" class="rem-lock" hidden></div>
           <div id="doneNote" class="done-note" hidden>You're done for today ✓</div>
           <div id="verifyMsg" role="status" aria-live="polite" style="text-align:center; margin-top:10px; font-size:13.5px; min-height:20px;"></div>
         </div>
       </div>
 
       <div class="card" style="max-width:560px;" id="remCard">
-        <div class="card-head"><h2>Punch-in reminder</h2></div>
+        <div class="card-head"><h2>Punch-in reminder <span class="rem-req">Required</span></h2></div>
         <div style="padding:14px 20px;">
           <div class="rem-row">
             <div>
               <div style="font-size:13.5px; font-weight:600;" id="remTitle">Remind me if I haven't punched in</div>
               <div style="font-size:12px; color:var(--muted);" id="remWhen">A notification on this phone at shift start + 20 min.</div>
             </div>
-            <button type="button" class="sw" id="remSwitch" role="switch" aria-checked="false" aria-label="Punch-in reminder" disabled></button>
+            <button type="button" class="sw" id="remSwitch" role="switch" aria-checked="false" aria-label="Punch-in reminder (required)" disabled></button>
           </div>
           <div class="rem-note" id="remNote">Checking…</div>
+          <ol class="rem-steps" id="remSteps" hidden>
+            <li>Tap the 🔒 lock icon in the address bar (or open the browser's site settings)</li>
+            <li>Notifications → <b>Allow</b></li>
+            <li>Come back here and tap <b>Check again</b></li>
+          </ol>
+          <button type="button" class="btn rem-big" id="btnRemOn" style="display:none;">Turn on reminders</button>
           <button type="button" class="btn secondary" id="btnRemTest" style="display:none; margin-top:10px; padding:7px 14px; font-size:13px;">Send a test notification</button>
         </div>
       </div>
@@ -211,34 +224,24 @@
   const OTHER_MARGIN = 0.08;     // live face must be this much closer to YOU than to anyone else
   let slowDevice = false;        // set when the models had to fall back to the CPU
 
-  // Step 3 (ID card) and step 4 (shoes) libraries, loaded only when needed.
-  const OCR_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-  const TF_URL = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
-  const MOBILENET_URL = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
-  // Card guide box (same fractions as the CSS .cam-card): right 4%, width 46%, top 32%.
-  const CARD_BOX = { right: 0.04, width: 0.46, top: 0.32, ratio: 1.586 };
-  const CARD_TRIES = 3;
-  const SHOES_TRIES = 3;
-
   const alertBox = document.getElementById('alertBox');
   const video = document.getElementById('cam');
   const panel = document.getElementById('camPanel');
   const idle = document.getElementById('camIdle');
   const overlay = document.getElementById('camOverlay');
   const oval = document.getElementById('camOval');
-  const cardBox = document.getElementById('camCard');
-  const shoesBox = document.getElementById('camShoes');
   const verifyMsg = document.getElementById('verifyMsg');
   const btnIn = document.getElementById('btnPunchIn');
   const btnOut = document.getElementById('btnPunchOut');
-  const btnCapture = document.getElementById('btnCapture');
+  const locBox = document.getElementById('locBox');
+  const HINT_TXT = "Tap Punch In or Punch Out — we check your location first, then your face on the back camera. The camera opens only then and closes as soon as you're done.";
   const stepsEl = document.getElementById('steps');
 
   let enrolledDescriptor = null; // Float32Array
   let otherDescriptors = [];     // a few other employees' fingerprints, for the look-alike check
   let enrollMode = false;
   let faceLoaded = false;        // face.get answered (decides Enroll vs Punch)
-  let setup = null;              // punch.setup: place, ID card, reminder
+  let setup = null;              // reminder setup (push key)
   let busy = false;
   let stream = null;             // the live camera, only while a punch runs
   let cancelled = false;         // ✕ tapped, or the app was left mid-punch
@@ -257,15 +260,10 @@
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   // ---------- Step strip ----------
-  // ID card + shoes steps run only when switched on from the Punch Checks page.
-  const checksOn = () => !!(setup && setup.checks_enabled);
-  function stepsShow(type) {
+  // Two checks, in order: 1 Location, 2 Face.
+  function stepsShow() {
     stepsEl.hidden = false;
-    const hideExtra = type === 'out' || !checksOn();
-    stepsEl.querySelectorAll('li').forEach(li => {
-      li.className = '';
-      li.style.display = (hideExtra && (li.dataset.k === 'card' || li.dataset.k === 'shoes')) ? 'none' : '';
-    });
+    stepsEl.querySelectorAll('li').forEach(li => { li.className = ''; });
   }
   function step(k, state) {
     const li = stepsEl.querySelector(`li[data-k="${k}"]`);
@@ -308,9 +306,6 @@
       const done = !!(a && a.punch_in && a.punch_out);
       document.getElementById('doneNote').hidden = !done;
       if (!stream) idle.style.display = done ? 'none' : '';   // don't show "camera off" while it's on
-      // Punch in still to come today: fetch the shoes model now so step 4
-      // doesn't wait on a download.
-      if (!(a && a.punch_in) && checksOn()) loadShoesModel().catch(() => {});
       loadChecklist();
     } catch (err) {
       document.getElementById('todayStatus').classList.remove('loading');
@@ -501,46 +496,6 @@
     return modelsPromise;
   }
 
-  // Extra scripts (OCR, shoes model) are fetched only when a step needs them.
-  const scriptCache = {};
-  function loadScript(url) {
-    if (!scriptCache[url]) {
-      scriptCache[url] = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = url; s.async = true;
-        s.onload = resolve;
-        s.onerror = () => { delete scriptCache[url]; reject(new Error('Could not download ' + url.split('/').slice(2, 4).join('/'))); };
-        document.head.appendChild(s);
-      });
-    }
-    return scriptCache[url];
-  }
-
-  let ocrPromise = null;
-  function loadOcr() {
-    if (!ocrPromise) {
-      ocrPromise = (async () => {
-        await loadScript(OCR_URL);
-        return Tesseract.createWorker('eng', 1, { logger: () => {} });
-      })().catch(err => { ocrPromise = null; throw err; });
-    }
-    return ocrPromise;
-  }
-
-  let shoesModel = null;
-  let shoesPromise = null;
-  function loadShoesModel() {
-    if (!shoesPromise) {
-      shoesPromise = (async () => {
-        await loadScript(TF_URL);
-        await loadScript(MOBILENET_URL);
-        shoesModel = await mobilenet.load({ version: 1, alpha: 0.5 });
-        return shoesModel;
-      })().catch(err => { shoesPromise = null; throw err; });
-    }
-    return shoesPromise;
-  }
-
   // Whether this person still needs to enroll decides what the first button does.
   async function loadFace() {
     try {
@@ -549,7 +504,7 @@
       if (faceData.descriptor) {
         enrolledDescriptor = new Float32Array(JSON.parse(faceData.descriptor));
         enrollMode = false;
-        document.getElementById('camHint').textContent = 'Tap Punch In or Punch Out — the camera opens only then and closes as soon as you\'re done.';
+        document.getElementById('camHint').textContent = HINT_TXT;
       } else {
         enrollMode = true;
         document.getElementById('camTitle').textContent = 'First time: enroll your face';
@@ -562,32 +517,30 @@
       btnIn.disabled = false;
       btnOut.disabled = false;
       ckApplyLock();          // store staff: keep Punch Out locked if the checklist is open
+      applyRemLock();         // reminder is required: punching stays locked until it is on
     } catch (err) {
       setMsg(err.message, 'var(--bad-fg)');
     }
   }
 
+  // Reminder setup. Older servers answer punch.setup; the current one only
+  // has push.key — so the reminder key is read from there when needed.
   async function loadSetup() {
-    try {
-      setup = await api.get('punch.setup');
-      const hint = document.getElementById('camHint');
-      if (!enrollMode) {
-        hint.textContent = checksOn()
-          ? 'Tap Punch In — location, face, ID card and shoes are checked one after another. Punch Out checks location and face. The camera closes as soon as you\'re done.'
-          : 'Tap Punch In or Punch Out — the camera opens only then and closes as soon as you\'re done.';
-        if (setup.place) hint.textContent += ` Your place: ${setup.place.name} (within ${setup.place.radius_m} m).`;
-      }
-      if (checksOn() && !(todayRow && todayRow.punch_in)) loadShoesModel().catch(() => {});
-      initReminder();
-    } catch (err) {
-      setup = { place: null, idcard: { enrolled: false }, push: {}, employee: {}, reminder: {} };
-      initReminder();
+    try { setup = await api.get('punch.setup'); } catch (err) { setup = null; }
+    if (!setup) setup = { push: {}, employee: {}, reminder: {} };
+    if (!(setup.push && setup.push.public_key)) {
+      try {
+        const k = await api.get('push.key');
+        setup.push = Object.assign({}, setup.push, { public_key: k.key });
+      } catch (err) { /* switch stays off with a clear note */ }
     }
+    if (!enrollMode) document.getElementById('camHint').textContent = HINT_TXT;
+    initReminder();
   }
 
   // ---------- Camera: on only while a punch runs ----------
   async function openCamera(facing) {
-    facing = facing || 'user';
+    facing = facing || 'environment';   // back camera
     idle.style.display = 'none';
     panel.hidden = false;
     panel.classList.toggle('rear', facing === 'environment');
@@ -633,11 +586,8 @@
     video.srcObject = null;
     video.onloadedmetadata = null;
     panel.hidden = true;
-    panel.classList.remove('cardmode', 'rear');
+    panel.classList.remove('rear');
     oval.classList.remove('ok');
-    cardBox.className = 'cam-card';
-    shoesBox.className = 'cam-shoes';
-    btnCapture.classList.remove('show');
     idle.style.display = document.getElementById('doneNote').hidden ? '' : 'none';
   }
 
@@ -679,27 +629,61 @@
     return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
   }
 
-  // Returns {lat,lng,acc} or throws. A place assigned by Admin is enforced
-  // here for a quick answer and again on the server.
-  async function locationStep(locPromise) {
+  // The punch locations (office centre + radius). The server checks again on
+  // save; this is the quick answer before the camera opens.
+  let officeList = null;
+  async function loadOffices() {
+    if (officeList) return officeList;
+    try { const d = await api.get('me.offices'); officeList = d.offices || []; }
+    catch (err) { officeList = []; }
+    return officeList;
+  }
+
+  function locUi(state, title, sub, showBtns) {
+    const pin = document.getElementById('locPin');
+    pin.className = 'loc-pin' + (state ? ' ' + state : '');
+    document.getElementById('locTitle').textContent = title;
+    document.getElementById('locSub').textContent = sub;
+    document.getElementById('locBtns').hidden = !showBtns;
+  }
+  function hideLoc() { locBox.hidden = true; }
+
+  // Step 1: ask first. "Yes" checks the GPS against the office; a wrong place
+  // stops here, before any camera opens. Resolves {lat,lng,acc} (null = cancelled).
+  async function locationGate() {
     step('loc', 'on');
-    const place = setup && setup.place;
+    idle.style.display = 'none';
+    locUi('', 'Check your location?', 'We confirm you are at your office before the face check. Allow location when your phone asks.', true);
+    locBox.hidden = false;
+    const yes = await new Promise(resolve => {
+      const y = document.getElementById('btnLocYes'), n = document.getElementById('btnLocNo');
+      const done = (v) => { y.onclick = null; n.onclick = null; resolve(v); };
+      y.onclick = () => done(true);
+      n.onclick = () => { cancelled = true; done(false); };
+    });
+    if (!yes || cancelled) return null;
+
+    locUi('busy', 'Checking location…', 'Keep GPS on. This takes a few seconds.', false);
     let loc;
-    try {
-      loc = await locPromise;
-    } catch (err) {
-      if (!place) { step('loc', 'skip'); return null; }   // no fence: location optional
-      step('loc', 'bad');
-      throw err;
-    }
-    if (!place) { step('loc', 'skip'); return loc; }
-    const d = Math.round(distanceM(loc, place));
-    const allow = place.radius_m + Math.min(loc.acc, 60);
-    if (d > allow) {
-      step('loc', 'bad');
-      throw new Error(`You are about ${d.toLocaleString('en-IN')} m from ${place.name} — punching is only allowed within ${place.radius_m} m of it.`);
+    try { loc = await getLocation(); }
+    catch (err) { step('loc', 'bad'); hideLoc(); throw err; }
+    const offices = await loadOffices();
+    let where = '';
+    if (offices.length) {
+      let best = null, bestD = Infinity;
+      for (const o of offices) { const d = distanceM(loc, o); if (d < bestD) { bestD = d; best = o; } }
+      const d = Math.round(bestD);
+      if (d > Number(best.radius_m) + Math.min(loc.acc, 30)) {
+        step('loc', 'bad'); hideLoc();
+        const far = d >= 1000 ? (d / 1000).toFixed(1) + ' km' : d + ' m';
+        throw new Error(`You are ${far} from ${best.office_name} (nearest office) — you must be within ${best.radius_m} m of an office to punch.`);
+      }
+      where = `${best.office_name} · ${d} m away`;
     }
     step('loc', 'done');
+    locUi('ok', 'Location OK ✓', where || 'Location received.', false);
+    await sleep(900);
+    hideLoc();
     return loc;
   }
 
@@ -757,9 +741,7 @@
     enrollMode = false;
     document.getElementById('camTitle').textContent = 'Punch';
     btnIn.textContent = 'Punch In';
-    document.getElementById('camHint').textContent = checksOn()
-      ? 'Tap Punch In — location, face, ID card and shoes are checked one after another. The camera closes as soon as you\'re done.'
-      : 'Tap Punch In or Punch Out — the camera opens only then and closes as soon as you\'re done.';
+    document.getElementById('camHint').textContent = HINT_TXT;
     setMsg('');
     loadToday();
   }
@@ -847,311 +829,13 @@
     return frameBlob();
   }
 
-  // ---------- Step 3: ID card (same front camera, next to the face) ----------
-  // The card region of the raw (unmirrored) frame. On screen the box sits
-  // on the right; the raw frame is mirrored, so it is read from the left.
-  function cardRect() {
-    const W = video.videoWidth, H = video.videoHeight;
-    const w = Math.round(CARD_BOX.width * W);
-    const h = Math.round(w / CARD_BOX.ratio);
-    const xScreen = W - Math.round(CARD_BOX.right * W) - w;
-    const x = W - xScreen - w;                       // mirror
-    const y = Math.round(CARD_BOX.top * H);
-    return { x, y, w, h };
-  }
-
-  function cropCard(scale) {
-    const r = cardRect();
-    const c = document.createElement('canvas');
-    c.width = Math.round(r.w * (scale || 1)); c.height = Math.round(r.h * (scale || 1));
-    c.getContext('2d').drawImage(video, r.x, r.y, r.w, r.h, 0, 0, c.width, c.height);
-    return c;
-  }
-
-  // Grey 32×32 + a colour histogram from the card crop.
-  function cardFeatures(canvas) {
-    const g = document.createElement('canvas'); g.width = 32; g.height = 32;
-    const gx = g.getContext('2d'); gx.drawImage(canvas, 0, 0, 32, 32);
-    const px = gx.getImageData(0, 0, 32, 32).data;
-    const gray = new Float64Array(1024);
-    const hist = new Array(16).fill(0);
-    let sum = 0, sum2 = 0, edges = 0;
-    for (let i = 0; i < 1024; i++) {
-      const r = px[i * 4], gg = px[i * 4 + 1], b = px[i * 4 + 2];
-      const v = 0.299 * r + 0.587 * gg + 0.114 * b;
-      gray[i] = v; sum += v; sum2 += v * v;
-      const max = Math.max(r, gg, b), min = Math.min(r, gg, b), d = max - min;
-      const s = max ? d / max : 0;
-      if (s > 0.18 && max > 40) {
-        let h = 0;
-        if (d) {
-          if (max === r) h = ((gg - b) / d) % 6; else if (max === gg) h = (b - r) / d + 2; else h = (r - gg) / d + 4;
-          h = ((h * 60) + 360) % 360;
-        }
-        hist[Math.min(11, Math.floor(h / 30))] += 1;
-      } else {
-        hist[12 + Math.min(3, Math.floor(max / 64))] += 1;   // greys/whites/blacks by brightness
-      }
-    }
-    for (let i = 0; i < 1024; i++) if (i % 32 && Math.abs(gray[i] - gray[i - 1]) > 18) edges++;
-    const mean = sum / 1024, sd = Math.sqrt(Math.max(0, sum2 / 1024 - mean * mean));
-    const total = hist.reduce((a, b) => a + b, 0) || 1;
-    return { gray, hist: hist.map(v => +(v / total).toFixed(4)), sd, edges };
-  }
-
-  // 64-bit perceptual hash (DCT of the 32×32 grey image).
-  function pHash(gray) {
-    const N = 32, cosT = [];
-    for (let u = 0; u < 8; u++) { cosT[u] = []; for (let x = 0; x < N; x++) cosT[u][x] = Math.cos(((2 * x + 1) * u * Math.PI) / (2 * N)); }
-    const rows = [];
-    for (let y = 0; y < N; y++) { rows[y] = []; for (let u = 0; u < 8; u++) { let s = 0; for (let x = 0; x < N; x++) s += gray[y * N + x] * cosT[u][x]; rows[y][u] = s; } }
-    const dct = [];
-    for (let v = 0; v < 8; v++) for (let u = 0; u < 8; u++) { let s = 0; for (let y = 0; y < N; y++) s += rows[y][u] * cosT[v][y]; dct.push(s); }
-    const ac = dct.slice(1);
-    const med = [...ac].sort((a, b) => a - b)[31];
-    let bits = '';
-    for (let i = 0; i < 64; i++) bits += (i > 0 && dct[i] > med) ? '1' : '0';
-    let hex = '';
-    for (let i = 0; i < 64; i += 4) hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
-    return hex;
-  }
-  function hamming(a, b) {
-    let d = 0;
-    for (let i = 0; i < Math.min(a.length, b.length); i++) { let x = parseInt(a[i], 16) ^ parseInt(b[i], 16); while (x) { d += x & 1; x >>= 1; } }
-    return d + Math.abs(a.length - b.length) * 4;
-  }
-  const histSim = (a, b) => a.reduce((s, v, i) => s + Math.min(v, b[i] || 0), 0);
-
-  function fingerprintOf(canvas) {
-    const f = cardFeatures(canvas);
-    return { v: 1, ph: pHash(f.gray), hist: f.hist, sd: +f.sd.toFixed(1), edges: f.edges };
-  }
-
-  const empCode = () => String((setup && setup.employee && setup.employee.employee_code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const empNameTokens = () => String((setup && setup.employee && setup.employee.full_name) || '').toUpperCase().replace(/[^A-Z]+/g, ' ').split(' ').filter(w => w.length >= 4);
-  // Does this text carry the employee's own code or name? Company words
-  // printed on every card don't count — a colleague's card has those too.
-  function ownTextIn(text) {
-    const flat = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const code = empCode();
-    if (code && flat.includes(code)) return true;
-    return empNameTokens().some(w => flat.includes(w));
-  }
-
-  async function readCardText(canvas) {
-    try {
-      const worker = await Promise.race([loadOcr(), sleep(20000).then(() => { throw new Error('ocr timeout'); })]);
-      const res = await Promise.race([worker.recognize(canvas), sleep(9000).then(() => ({ data: { text: '' } }))]);
-      return String((res && res.data && res.data.text) || '').trim();
-    } catch (e) {
-      return null;   // OCR unavailable (offline / slow) — the visual fingerprint alone decides
-    }
-  }
-
-  // Is the face in the same frame still the enrolled person?
-  async function faceStillMatches() {
-    const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 256 })).withFaceLandmarks().withFaceDescriptor();
-    if (!det) return 'noface';
-    return faceapi.euclideanDistance(det.descriptor, enrolledDescriptor) < MATCH_THRESHOLD ? 'ok' : 'other';
-  }
-
-  // Waits until something card-like sits in the box for ~0.8 s.
-  async function waitForCard(maxMs) {
-    const t0 = Date.now();
-    let steady = 0, lastHint = '';
-    while (Date.now() - t0 < maxMs && !cancelled) {
-      const f = cardFeatures(cropCard(0.5));
-      const present = f.sd > 16 && f.edges > 40;
-      cardBox.classList.toggle('seen', present);
-      if (present) { steady++; if (steady >= 4) return true; }
-      else {
-        steady = 0;
-        const hint = 'Hold your ID card flat inside the box, next to your face.';
-        if (hint !== lastHint) { setMsg(hint, 'var(--accent)'); lastHint = hint; }
-      }
-      await sleep(200);
-    }
-    return false;
-  }
-
-  // Returns {ok, score, textOk, first, blob}; throws when refused.
-  async function cardStep() {
-    step('card', 'on');
-    panel.classList.add('cardmode');
-    const enrolled = setup && setup.idcard && setup.idcard.enrolled ? setup.idcard : null;
-    const first = !enrolled;
-    loadOcr().catch(() => {});
-    setMsg(first ? 'First time: hold your ID card inside the box, next to your face, to register it.' : 'Now hold your ID card inside the box, next to your face.', 'var(--accent)');
-
-    let lastReason = '';
-    for (let attempt = 1; attempt <= CARD_TRIES && !cancelled; attempt++) {
-      const found = await waitForCard(25000);
-      if (cancelled) throw new Error('cancelled');
-      if (!found) { step('card', 'bad'); throw new Error('No ID card was shown in the box — tap Punch In again and hold your card next to your face.'); }
-      setMsg('Hold still… reading the card', 'var(--accent)');
-      await sleep(600);
-      const face = await faceStillMatches();
-      if (face !== 'ok') {
-        cardBox.classList.remove('seen');
-        setMsg(face === 'noface' ? 'Keep your face inside the oval while holding the card.' : 'The face in the oval must be yours while the card is shown.', 'var(--accent)');
-        await sleep(900);
-        attempt--; if (Date.now() - cardStepStart > 70000) { step('card', 'bad'); throw new Error('Could not see your face and card together — tap Punch In again.'); }
-        continue;
-      }
-      const crop = cropCard(2);                    // 2× for OCR
-      const fp = fingerprintOf(crop);
-      const text = await readCardText(crop);
-      const blob = await new Promise(r => crop.toBlob(r, 'image/jpeg', 0.85));
-      if (cancelled) throw new Error('cancelled');
-
-      if (first) {
-        // Register: any card you show now becomes YOUR card; Admin/HR can reset it.
-        const fd = new FormData();
-        fd.append('fingerprint', JSON.stringify(fp));
-        fd.append('ocr_text', text || '');
-        fd.append('photo', blob, 'idcard.jpg');
-        const d = await api.upload('idcard.enroll', fd);
-        setup.idcard = { enrolled: true, fingerprint: fp, ocr_text: text || '' };
-        cardBox.classList.add('ok');
-        step('card', 'done');
-        setMsg('ID card registered ✓', 'var(--ok-fg)');
-        showAlert(d.message || 'ID card registered.');
-        await sleep(600);
-        return { ok: 1, score: 1, textOk: text ? 1 : 0, first: 1, blob };
-      }
-
-      // Verify against the registered card.
-      const ref = enrolled.fingerprint || {};
-      const hd = ref.ph ? hamming(fp.ph, ref.ph) : 64;
-      const sim = ref.hist ? histSim(fp.hist, ref.hist) : 0;
-      const score = Math.max(0, 1 - hd / 64);
-      const code = empCode();
-      let textOk = false, otherCode = false, unreadable = false;
-      if (text) {
-        const flat = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        textOk = ownTextIn(text);
-        // A different employee code printed on the card = someone else's card.
-        const codes = flat.match(/EMP\d{3,5}/g) || [];
-        if (code && codes.length && !codes.includes(code)) otherCode = true;
-        // The registered card's text was readable (name/code seen at
-        // registration) and this card reads as text too, but without your
-        // name or code: don't let the look-alike layout pass on its own.
-        if (!textOk && flat.length >= 12 && ownTextIn(enrolled.ocr_text)) unreadable = true;
-      }
-      const pass = !otherCode && !unreadable && (textOk ? (hd <= 30 && sim >= 0.40) : (hd <= 12 || (hd <= 18 && sim >= 0.55)));
-      if (pass) {
-        cardBox.classList.add('ok');
-        step('card', 'done');
-        setMsg('ID card matched ✓', 'var(--ok-fg)');
-        await sleep(500);
-        return { ok: 1, score: +score.toFixed(3), textOk: textOk ? 1 : 0, first: 0, blob };
-      }
-      cardBox.classList.remove('seen'); cardBox.classList.add('bad');
-      lastReason = otherCode ? 'The card shows a different employee code.'
-        : (unreadable ? 'Your name or code could not be read on this card.'
-          : `Card didn't match (similarity ${(score * 100).toFixed(0)}%${sim ? ', colours ' + (sim * 100).toFixed(0) + '%' : ''}).`);
-      if (attempt < CARD_TRIES) {
-        setMsg(`${lastReason} Try ${attempt + 1} of ${CARD_TRIES}: hold it flat, fill the box, avoid glare.`, 'var(--bad-fg)');
-        await sleep(1500);
-        cardBox.classList.remove('bad');
-      }
-    }
-    if (cancelled) throw new Error('cancelled');
-    step('card', 'bad');
-    throw new Error('This ID card doesn\'t match the one registered for you — punch refused. ' + lastReason + ' If you have a new card, ask Admin/HR to reset it.');
-  }
-  let cardStepStart = 0;
-
-  // ---------- Step 4: shoes (back camera) ----------
-  const SHOE_PASS = ['running shoe', 'loafer', 'cowboy boot', 'clog', 'sneaker', 'boot'];
-  const SHOE_FAIL = ['sandal', 'flip-flop', 'slipper', 'sock', 'toe', 'foot', 'bare'];
-
-  function judgeShoes(preds) {
-    let pass = 0, fail = 0, top = preds[0] ? preds[0].className.split(',')[0] : '';
-    let passLabel = '', failLabel = '';
-    preds.forEach(p => {
-      const n = p.className.toLowerCase();
-      if (SHOE_PASS.some(k => n.includes(k))) { pass += p.probability; if (!passLabel) passLabel = p.className.split(',')[0]; }
-      else if (SHOE_FAIL.some(k => n.includes(k))) { fail += p.probability; if (!failLabel) failLabel = p.className.split(',')[0]; }
-    });
-    if (pass >= 0.30 && pass >= fail * 1.2) return { verdict: 'ok', label: passLabel, conf: pass };
-    if (fail >= 0.25 && fail > pass) return { verdict: 'refuse', label: failLabel, conf: fail };
-    return { verdict: 'unclear', label: top, conf: Math.max(pass, fail) };
-  }
-
-  function waitForCapture() {
-    return new Promise((resolve) => {
-      btnCapture.classList.add('show');
-      btnCapture.disabled = false;
-      const onTap = () => { btnCapture.removeEventListener('click', onTap); btnCapture.disabled = true; resolve(true); };
-      btnCapture.addEventListener('click', onTap);
-      const poll = setInterval(() => { if (cancelled) { clearInterval(poll); btnCapture.removeEventListener('click', onTap); resolve(false); } }, 200);
-      btnCapture.addEventListener('click', () => clearInterval(poll), { once: true });
-    });
-  }
-
-  // Returns {ok, label, conf, blob}; throws when refused.
-  async function shoesStep() {
-    step('shoes', 'on');
-    closeCamera();
-    setMsg('Loading the shoes check…', 'var(--accent)');
-    const modelReady = loadShoesModel();
-    await openCamera('environment');
-    if (cancelled) throw new Error('cancelled');
-    try { await modelReady; } catch (e) { step('shoes', 'bad'); throw new Error('Could not load the shoes check — check your internet and tap Punch In again.'); }
-
-    let lastVerdict = null;
-    for (let attempt = 1; attempt <= SHOES_TRIES && !cancelled; attempt++) {
-      shoesBox.className = 'cam-shoes';
-      setMsg(`Point the camera at your shoes so both fit in the frame, then tap Check shoes${attempt > 1 ? ` (try ${attempt} of ${SHOES_TRIES})` : ''}.`, 'var(--accent)');
-      const tapped = await waitForCapture();
-      if (!tapped || cancelled) throw new Error('cancelled');
-      btnCapture.classList.remove('show');
-      setMsg('Checking…', 'var(--accent)');
-      const canvas = document.getElementById('snap');
-      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      let preds;
-      try { preds = await shoesModel.classify(canvas, 5); } catch (e) { preds = []; }
-      const j = judgeShoes(preds);
-      lastVerdict = j;
-      if (j.verdict === 'ok') {
-        shoesBox.classList.add('ok');
-        step('shoes', 'done');
-        setMsg(`Shoes OK ✓ (${j.label})`, 'var(--ok-fg)');
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
-        await sleep(400);
-        return { ok: 1, label: j.label, conf: +j.conf.toFixed(3), blob };
-      }
-      if (j.verdict === 'refuse') {
-        shoesBox.classList.add('bad');
-        step('shoes', 'bad');
-        throw new Error(`Punch refused — ${j.label} detected. Closed shoes are required at work; put them on and tap Punch In again.`);
-      }
-      if (attempt < SHOES_TRIES) {
-        setMsg(`Couldn't tell what you're wearing (saw "${j.label}"). Fill the frame with both shoes in good light and tap again — ${SHOES_TRIES - attempt} more ${SHOES_TRIES - attempt === 1 ? 'try' : 'tries'}.`, 'var(--bad-fg)');
-        await sleep(1200);
-      }
-    }
-    if (cancelled) throw new Error('cancelled');
-    step('shoes', 'bad');
-    throw new Error('Could not confirm closed shoes after 3 tries — punch refused. Wear closed shoes, stand in good light, and tap Punch In again.');
-  }
-
   // ---------- Save ----------
-  async function submitPunch(type, loc, faceBlob, card, shoes) {
+  async function submitPunch(type, loc, faceBlob) {
     setMsg('All checks passed ✓ Saving...', 'var(--ok-fg)');
     const fd = new FormData();
     fd.append('type', type);
     fd.append('photo', faceBlob, 'punch.jpg');
     if (loc) { fd.append('lat', loc.lat); fd.append('lng', loc.lng); fd.append('accuracy', loc.acc); }
-    if (card) {
-      fd.append('card_ok', card.ok); fd.append('card_score', card.score); fd.append('card_text_ok', card.textOk); fd.append('card_first', card.first);
-    }
-    if (shoes) {
-      fd.append('shoes_ok', shoes.ok); fd.append('shoes_label', shoes.label); fd.append('shoes_conf', shoes.conf);
-      fd.append('shoes_photo', shoes.blob, 'shoes.jpg');
-    }
     const res = await fetch(api.buildUrl('attendance.punch'), {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + api.token() },
@@ -1169,46 +853,52 @@
 
   async function handle(type) {
     if (busy || !faceLoaded) return;
+    if (reminderNeeded && !reminderOn) { applyRemLock(); return; }
     busy = true;
     cancelled = false;
     [btnIn, btnOut].forEach(b => (b.disabled = true));
-    if (enrollMode) stepsEl.hidden = true; else stepsShow(type);
+    if (enrollMode) stepsEl.hidden = true; else stepsShow();
     try {
-      // Camera, face models and GPS all start at once (iOS wants the video
-      // started close to the tap); the checks then run in order.
-      const camReady = openCamera('user');
+      // Face models download while the location question is on screen.
       const modelsReady = loadModels();
-      camReady.catch(() => {});
-      const locP = enrollMode ? null : getLocation();
-      if (locP) locP.catch(() => {});
+      modelsReady.catch(() => {});
+      if (enrollMode) {
+        const camReady = openCamera('environment');
+        camReady.catch(() => {});
+        if (!modelsLoaded) setMsg('Loading the face check… first time can take a few seconds', 'var(--accent)');
+        await modelsReady;
+        modelsLoaded = true;
+        if (cancelled) return;
+        await camReady;
+        if (cancelled) return;
+        await enrollFlow();
+        return;
+      }
+
+      // Step 1: ask, then check the location (no camera yet).
+      const loc = await locationGate();
+      if (cancelled || !loc) return;
+
+      // Step 2: face page on the back camera.
+      setMsg('Opening the camera…', 'var(--accent)');
+      await openCamera('environment');
+      if (cancelled) return;
       if (!modelsLoaded) setMsg('Loading the face check… first time can take a few seconds', 'var(--accent)');
       await modelsReady;
       modelsLoaded = true;
       if (cancelled) return;
-      await camReady;
-      if (cancelled) return;
-      if (enrollMode) { await enrollFlow(); return; }
-
-      const loc = await locationStep(locP);
-      if (cancelled) return;
       const faceBlob = await faceStep();
       if (cancelled) return;
-      let card = null, shoes = null;
-      if (type === 'in' && checksOn()) {
-        cardStepStart = Date.now();
-        card = await cardStep();
-        if (cancelled) return;
-        shoes = await shoesStep();
-        if (cancelled) return;
-      }
       closeCamera();
-      await submitPunch(type, loc, faceBlob, card, shoes);
+      await submitPunch(type, loc, faceBlob);
     } catch (err) {
       if (!cancelled && err.message !== 'cancelled') setMsg(err.message, 'var(--bad-fg)');
     } finally {
+      hideLoc();
       closeCamera();        // always off afterwards: success, failure or cancel
       [btnIn, btnOut].forEach(b => (b.disabled = false));
       ckApplyLock();
+      applyRemLock();
       busy = false;
     }
   }
@@ -1232,19 +922,60 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopOnLeave(); });
   window.addEventListener('pagehide', stopOnLeave);
 
-  // ---------- Punch-in reminder (push notification) ----------
+  // ---------- Punch-in reminder (push notification) — REQUIRED ----------
+  // Cannot be switched off. Until it is on for this phone, Punch In / Out is
+  // locked. (Where a phone/browser cannot do notifications at all, or the
+  // server has no key, nothing is locked — nobody is shut out for that.)
   const remSwitch = document.getElementById('remSwitch');
   const remNote = document.getElementById('remNote');
+  const remSteps = document.getElementById('remSteps');
+  const btnRemOn = document.getElementById('btnRemOn');
   const btnRemTest = document.getElementById('btnRemTest');
   const PUSH_SCOPE = 'pushsw/';
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  let reminderOn = false;                 // this phone is allowed + subscribed
+  let reminderNeeded = pushSupported;     // required here (until the server/browser say otherwise)
 
-  function remState(on, note) {
+  // Keeps Punch In / Out locked while the required reminder is not on.
+  function applyRemLock() {
+    const lock = reminderNeeded && !reminderOn;
+    const box = document.getElementById('remLock');
+    if (lock) {
+      [btnIn, btnOut].forEach(b => (b.disabled = true));
+      const blocked = pushSupported && Notification.permission === 'denied';
+      box.className = 'rem-lock' + (blocked ? ' bad' : '');
+      box.textContent = blocked
+        ? '🔒 Notifications are blocked — unblock them in the Punch-in reminder box below to punch.'
+        : '🔒 Turn on the punch-in reminder below to unlock punching.';
+      box.hidden = false;
+    } else {
+      box.hidden = true;
+      if (faceLoaded && !busy) { [btnIn, btnOut].forEach(b => (b.disabled = false)); ckApplyLock(); }
+    }
+  }
+
+  // on: reminder works on this phone. Otherwise shows how to turn it on / unblock it.
+  function remState(on, note, kind) {
+    reminderOn = !!on;
     remSwitch.classList.toggle('on', !!on);
     remSwitch.setAttribute('aria-checked', on ? 'true' : 'false');
     remNote.textContent = note || '';
+    remNote.className = 'rem-note' + (kind ? ' ' + kind : '');
     btnRemTest.style.display = on ? '' : 'none';
+    const blocked = pushSupported && Notification.permission === 'denied';
+    remSteps.hidden = !!on || !blocked || !reminderNeeded;
+    btnRemOn.style.display = (!on && reminderNeeded) ? '' : 'none';
+    btnRemOn.textContent = blocked ? 'Check again' : 'Turn on reminders';
+    applyRemLock();
+  }
+  const REM_ON_NOTE = 'Reminder is on for this phone ✓ Required — it can\'t be switched off.';
+  function remShowOff(extra) {
+    const blocked = Notification.permission === 'denied';
+    remState(false, blocked
+      ? 'Notifications are blocked for this site.'
+      : (extra || 'Your phone will ask to allow notifications — tap Allow.'), blocked ? 'bad' : '');
   }
   function urlB64ToBytes(s) {
     const pad = '='.repeat((4 - s.length % 4) % 4);
@@ -1262,29 +993,33 @@
       const t = new Date(); t.setHours(h, m + (r.after_min || 0), 0, 0);
       document.getElementById('remWhen').textContent = `A notification on this phone at ${t.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} if you haven't punched in (shift start + ${r.after_min} min).`;
     }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+    if (!pushSupported) {
+      reminderNeeded = false;   // this browser cannot do it — nothing to lock
       remSwitch.disabled = true;
       remState(false, isIOS && !standalone
-        ? 'On iPhone, reminders work only from the Home Screen app: tap Share → Add to Home Screen, open HRMS from there, then switch this on.'
+        ? 'On iPhone, reminders work only from the Home Screen app: tap Share → Add to Home Screen, open HRMS from there, then come back here.'
         : 'This browser does not support notifications.');
       return;
     }
-    if (!(setup && setup.push && setup.push.public_key)) { remSwitch.disabled = true; remState(false, 'Reminders are not available on the server right now.'); return; }
+    if (!(setup && setup.push && setup.push.public_key)) {
+      reminderNeeded = false;   // server has no push key — nothing to lock
+      remSwitch.disabled = true;
+      remState(false, 'Reminders are not available on the server right now.');
+      return;
+    }
+    reminderNeeded = true;
     try {
       const reg = await pushReg();
       const sub = reg ? await reg.pushManager.getSubscription() : null;
-      remSwitch.disabled = false;
       if (sub && Notification.permission === 'granted') {
         api.post('push.subscribe', sub.toJSON()).catch(() => {});   // keep the server copy fresh
-        remState(true, 'Reminder is on for this phone. You can switch it on on another phone too.');
+        remState(true, REM_ON_NOTE, 'ok');
+        startPresence();
       } else {
-        remState(false, Notification.permission === 'denied'
-          ? 'Notifications are blocked for this site — allow them in your browser settings, then switch this on.'
-          : 'Switch on to get a reminder on this phone.');
+        remShowOff();
       }
     } catch (e) {
-      remSwitch.disabled = false;
-      remState(false, 'Switch on to get a reminder on this phone.');
+      remShowOff();
     }
   }
 
@@ -1302,25 +1037,23 @@
     await api.post('push.subscribe', sub.toJSON());
   }
 
-  async function disableReminder() {
-    const reg = await pushReg();
-    const sub = reg ? await reg.pushManager.getSubscription() : null;
-    const endpoint = sub ? sub.endpoint : '';
-    if (sub) await sub.unsubscribe().catch(() => {});
-    await api.post('push.unsubscribe', { endpoint });
-  }
-
-  remSwitch.addEventListener('click', async () => {
-    const on = remSwitch.classList.contains('on');
-    remSwitch.disabled = true;
-    remNote.textContent = on ? 'Switching off…' : 'Switching on…';
+  // "Turn on reminders" (or "Check again" when blocked). There is no way to turn it off.
+  btnRemOn.addEventListener('click', async () => {
+    btnRemOn.disabled = true;
     try {
-      if (on) { await disableReminder(); remState(false, 'Reminder is off on this phone.'); }
-      else { await enableReminder(); remState(true, 'Reminder is on for this phone ✓ Tap "Send a test notification" to check it arrives.'); }
+      if (Notification.permission === 'denied') {
+        await initReminder();               // re-check: maybe it was unblocked in settings
+        if (!reminderOn) remShowOff();
+      } else {
+        await enableReminder();
+        remState(true, REM_ON_NOTE, 'ok');
+        // Location is asked once here too, so "at the office, not punched in" can be noticed.
+        getLocation().then(reportPresence).then(startPresence).catch(() => {});
+      }
     } catch (err) {
-      remState(on, err.message);
+      remShowOff(err.message);
     } finally {
-      remSwitch.disabled = false;
+      btnRemOn.disabled = false;
     }
   });
 
@@ -1335,6 +1068,29 @@
       btnRemTest.disabled = false;
     }
   });
+
+  // ---------- At the office and not punched in → reminder ----------
+  // The server sends the "punch in" reminder to someone who is inside an
+  // office area, past punch-in time, with no punch in. It knows where the
+  // phone is only from this report, so the page sends its position (at most
+  // every 2 minutes) while it is open and the site is allowed to use location.
+  let presenceAt = 0, presenceWatch = null;
+  async function reportPresence(loc) {
+    if (!loc || Date.now() - presenceAt < 120000) return;
+    if (todayRow && todayRow.punch_in) return;        // already punched in — nothing to remind
+    presenceAt = Date.now();
+    try { await api.post('presence.report', { lat: loc.lat, lng: loc.lng, accuracy: loc.acc }); }
+    catch (e) { presenceAt = 0; }                     // a courtesy call: punching never depends on it
+  }
+  async function startPresence() {
+    if (presenceWatch !== null || !navigator.geolocation || !window.isSecureContext) return;
+    let state = 'prompt';
+    try { if (navigator.permissions && navigator.permissions.query) state = (await navigator.permissions.query({ name: 'geolocation' })).state; } catch (e) {}
+    if (state !== 'granted') return;                  // the permission popup only appears for a tap
+    presenceWatch = navigator.geolocation.watchPosition(
+      p => reportPresence({ lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy || 0) }),
+      () => {}, { enableHighAccuracy: false, maximumAge: 60000, timeout: 30000 });
+  }
 
   loadToday();
   loadFace().then(loadSetup);
