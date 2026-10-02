@@ -21,6 +21,9 @@
   .plat-card .li span{color:var(--muted);} .plat-card .li b{font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
   .plat-card .li[data-go]{cursor:pointer;} .plat-card .li[data-go]:hover{background:#f3f4f6;} .plat-card .li[data-go]:hover span{text-decoration:underline;}
   .plat-card .li.q span{color:#1d4ed8;} .plat-card .li.c span{color:#b45f06;}
+  .plat-card .li.p span{color:#0f7a41;} .plat-card .li.d span{color:#b45f06;}
+  .plat-card .li i.cd{display:inline-block; width:8px; height:8px; border-radius:50%; border:1px solid #cbd5e1; margin-right:5px;}
+  .plat-card .li b small{font-size:11px; font-weight:600; color:var(--muted); margin-left:6px;}
   .plat-card .li.t{border-bottom:none; background:#f9fafb; margin:3px -6px 0; padding:6px 6px; border-radius:6px;} .plat-card .li.t b{font-size:14px;}
   .plat-card .g{color:#0f7a41;} .plat-card .a{color:#b45f06;} .plat-card .r{color:#c81e1e;}
   /* Phones: cards stack, and each card's nine figures become a 3×3 grid of
@@ -35,6 +38,9 @@
     .plat-card .li span{font-size:10px; line-height:1.2;}
     .plat-card .li b{font-size:13px; max-width:100%; overflow:hidden; text-overflow:ellipsis;}
     .plat-card .li.q{background:#f3f7ff; border-color:#dbe7ff;} .plat-card .li.c{background:#fff8ec; border-color:#fbe4bd;}
+    .plat-card .li.p{background:#f1faf5; border-color:#cdeedb;} .plat-card .li.d{background:#fff8ec; border-color:#fbe4bd;}
+    .plat-card .li b small{display:block; margin-left:0;}
+    .stat-card .value.cl-tot{font-size:12px; gap:2px 8px;} .cl-tot span{gap:3px;} .cl-tot i{width:7px; height:7px;}
     .plat-card .li.t{margin:0; padding:6px 8px; background:#111827; border-color:#111827;} .plat-card .li.t span{color:#9ca3af;} .plat-card .li.t b{color:#fff;}
   }
   /* Stat cards carry a full and a short label/amount; only one shows at a
@@ -76,7 +82,7 @@
   .es-tbl thead tr.g1 th.g-emp{position:sticky; left:0; z-index:5;}
   .g-emp{background:#111827 !important;} .g-tgt{background:#2563eb !important;} .g-ord{background:#0f7a41 !important;}
   .g-qry{background:#7c3aed !important;} .g-cmp{background:#b45309 !important;} .g-pay{background:#0e7490 !important;}
-  .g-rat{background:#be185d !important;} .g-clr{background:#475569 !important;}
+  .g-rat{background:#be185d !important;}
   .es-tbl .gl{border-left:2px solid #e5e7eb;}
   .es-tbl tbody tr:hover td{background:#f8faff;}
   .es-tbl .st{position:sticky; left:0; z-index:2; min-width:218px;}
@@ -98,15 +104,39 @@
   .oc-edit button{min-height:0; width:auto; padding:4px 9px; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid var(--line); background:#fff;}
   .oc-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
   .es-pill{display:inline-block; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:700;}
-  .es-in{background:var(--ok-bg); color:var(--ok-fg);} .es-out{background:var(--bad-bg); color:var(--bad-fg);} .es-late{background:#fff4db; color:#8a5a00;} .es-part{background:#fff4db; color:#8a5a00;} .es-na{background:#f1f2f4; color:#9aa1ad;}
+  .es-in{background:var(--ok-bg); color:var(--ok-fg);} .es-out{background:var(--bad-bg); color:var(--bad-fg);} .es-part{background:#fff4db; color:#8a5a00;} .es-na{background:#f1f2f4; color:#9aa1ad;}
   .es-mk-wfh{background:#e0f2fe; color:#075985;} .es-mk-leave{background:#f3e8ff; color:#6b21a8;} .es-mk-half_leave{background:#fce7f3; color:#9d174d;} .es-mk-holiday{background:#ecfccb; color:#3f6212;} .es-mk-week_off{background:#f1f5f9; color:#475569;}
   .es-tm{font-size:11px; color:var(--muted); font-weight:600;}
-  .es-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle;} .es-dot.o{background:#16a34a;} .es-dot.l{background:#f59e0b;} .es-dot.x{background:#dc2626;} .es-dot.n{background:#cbd5e1;}
+  .es-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle;} .es-dot.o{background:#16a34a;} .es-dot.x{background:#dc2626;} .es-dot.n{background:#cbd5e1;}
   .es-rt{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11.5px; font-weight:700;}
   .es-rt.g{background:#e7f7ee; color:#0f7a41;} .es-rt.a{background:#fdf3e3; color:#b45f06;} .es-rt.r{background:#fdecec; color:#c81e1e;} .es-rt.n{background:#f1f2f4; color:#9aa1ad;}
   .es-star{color:#f59e0b; letter-spacing:1px; font-size:12px;} .es-star .e{color:#e2e5ea;} .es-star small{color:var(--muted); letter-spacing:0; margin-left:4px; font-size:11px; font-weight:600;}
   .es-sl{color:#c3c8d0;} .es-pd{color:var(--ok-fg); font-weight:600;}
-  .es-dots{display:inline-flex; gap:10px; align-items:center;} .es-dots span{display:inline-flex; align-items:center; gap:4px; font-weight:600;} .es-dots i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1;}
+  .es-cl{font-size:11px; color:var(--muted); font-weight:600; margin-left:6px;}
+  .cl-tot{display:flex; flex-wrap:wrap; gap:3px 14px;} .cl-tot span{display:inline-flex; align-items:center; gap:5px; white-space:nowrap;} .cl-tot i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1; flex:none;}
+  .stat-card .value.cl-tot{line-height:1.5;} @media (min-width:821px){ .stat-card .value.cl-tot{font-size:14px;} }
+  /* store picker: tick one or several stores */
+  .ms{position:relative;}
+  .ms-btn{padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; min-width:150px; text-align:left; cursor:pointer; min-height:0; width:auto; color:var(--ink);}
+  .ms-panel{position:absolute; z-index:40; top:calc(100% + 4px); left:0; min-width:240px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(15,23,42,.14); padding:6px; max-height:340px; overflow:auto;}
+  .ms-panel[hidden]{display:none;}
+  .ms-panel label{display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:6px; font-size:13px; cursor:pointer; white-space:nowrap; margin:0; text-transform:none; letter-spacing:0; color:var(--ink); font-weight:500;}
+  .ms-panel label:hover{background:#f3f6ff;} .ms-panel input{width:auto; min-height:0; margin:0;}
+  .ms-panel .all{border-bottom:1px solid var(--line); border-radius:6px 6px 0 0; margin-bottom:4px; font-weight:700;}
+  /* per-order rating stars (same as the Order Allocation page) */
+  /* the orders table scrolls sideways inside its card on tablets / small laptops instead of being cut off */
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  @media (max-width:820px){ .tscroll{overflow:visible;} }
+  .rs{display:inline-flex; align-items:center; gap:6px; vertical-align:middle; border-radius:6px; outline:none;}
+  .rs-stars{display:inline-flex; gap:2px; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation;}
+  .rs-star{position:relative; width:17px; height:17px; display:inline-block; transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+  .rs-star svg{position:absolute; inset:0; width:17px; height:17px;}
+  .rs-preview .rs-fill{opacity:.6;}
+  .rs-pop{animation:rsPop .35s cubic-bezier(.34,1.56,.64,1);} @keyframes rsPop{50%{transform:scale(1.35);}}
+  .rs-num{font-size:12px; color:var(--muted); min-width:18px; font-variant-numeric:tabular-nums;}
+  .rs.off .rs-stars{cursor:not-allowed; opacity:.45;}
+  .rs.ro .rs-stars{cursor:default;}
+  @media (max-width:820px){ .rs-star, .rs-star svg{width:24px; height:24px;} }
   .c-dg{background:#14532d;} .c-lg{background:#86efac;} .c-wh{background:#fff;} .c-ot{background:#94a3b8;}
   .es-lk{color:inherit; text-decoration:none; border-bottom:1px dashed #9ca3af;} .es-lk:hover{color:var(--accent); border-color:var(--accent);}
   .es-nm{color:inherit; text-decoration:none;} .es-nm b{font-size:13px; border-bottom:1px dashed #9ca3af;} .es-nm:hover b{color:var(--accent); border-color:var(--accent);}
@@ -182,11 +212,13 @@
             </div>
             <div>
               <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Store</label>
-              <select id="storeFilter" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-                <option value="">All Stores</option>
-              </select>
+              <div class="ms" id="storeMs">
+                <button type="button" class="ms-btn" id="storeBtn" aria-haspopup="true">All stores ▾</button>
+                <div class="ms-panel" id="storePanel" hidden></div>
+              </div>
             </div>
             <button class="btn secondary" id="btnToday">Today</button>
+            <button class="btn secondary" id="btnTiming" type="button" title="Set when each business day starts">Day timing</button>
             <span id="loadingHint" style="display:none; font-size:13px; color:var(--muted); align-self:center;">Loading...</span>
             <button class="btn" id="btnAddOrder">+ Add Order</button>
           </div>
@@ -232,6 +264,7 @@
             <div class="search-box"><input type="text" id="orderSearch" placeholder="Search order #, customer, store, payment..."></div>
           </div>
         </div>
+        <div class="tscroll">
         <table>
           <thead>
             <tr>
@@ -246,11 +279,13 @@
               <th class="th-sort" data-key="total" style="cursor:pointer; user-select:none;">Total</th>
               <th class="th-sort" data-key="financial_status" style="cursor:pointer; user-select:none;">Payment</th>
               <th class="th-sort" data-key="fulfillment_status" style="cursor:pointer; user-select:none;">Fulfillment</th>
+              <th class="th-sort" data-key="ticket_rating" style="cursor:pointer; user-select:none;" title="Ticket size convincing — same rating as the Performance page">Rating</th>
               <th id="thAct"></th>
             </tr>
           </thead>
           <tbody id="ordersBody"></tbody>
         </table>
+        </div>
         <div id="ordersCards" style="display:none; padding:10px;"></div>
         <div id="pagerBar" style="display:none; padding:14px 20px; border-top:1px solid var(--line); align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           <span id="pagerInfo" style="font-size:13px; color:var(--muted);"></span>
@@ -278,6 +313,21 @@
     <div id="detailBody" style="max-height:65vh; overflow-y:auto; overscroll-behavior:contain;"></div>
     <div class="actions">
       <button type="button" class="btn secondary" id="btnDetailClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="timingModal">
+  <div class="modal" style="max-width:440px;">
+    <h3>Day timing</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">A business day runs from its start time until the next day's start time. Orders on this page are shown in that window — for example 10:00 AM to the next day 10:00 AM. Default is 10:00 AM every day.</p>
+    <div id="timingAlert"></div>
+    <div id="timingRows"></div>
+    <p style="font-size:11.5px; color:var(--muted); margin:10px 0 0;">The same setting is used on Targets and Attendance.</p>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="timingReset">Reset to 10:00 AM</button>
+      <button type="button" class="btn secondary" id="timingCancel">Cancel</button>
+      <button type="button" class="btn" id="timingSave">Save</button>
     </div>
   </div>
 </div>
@@ -389,34 +439,44 @@
 
   function fmtMoney(v, cur) {
     const n = Number(v || 0);
-    return (cur === 'INR' ? '₹' : cur + ' ') + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-  }
-
-  // Abbreviated amount for the 3-per-row mobile stat cards, where the full
-  // "₹64,082.26" simply doesn't fit in a third of a phone screen.
-  function fmtMoneyShort(v, cur) {
-    const n = Number(v || 0);
-    const sym = cur === 'INR' ? '₹' : cur + ' ';
-    if (n >= 10000000) return sym + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'cr';
-    if (n >= 100000) return sym + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
-    if (n >= 1000) return sym + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-    return sym + Math.round(n);
+    return (cur === 'INR' ? '₹' : cur + ' ') + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });   // whole numbers, never 1.5k or ₹120.36
   }
 
   function dateLabel(dstr) {
     return new Date(dstr + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  // Store picker: tick one or several stores (nothing ticked = all stores). The page sends them as "key1,key2".
+  const HIDDEN_STORE = 'mysales4p';
+  const storeSel = new Set();
+  const storeVal = () => [...storeSel].join(',');
+  let STORE_OPTS = [];
+  function renderStorePanel() {
+    const label = !storeSel.size ? 'All stores' : (storeSel.size <= 2 ? STORE_OPTS.filter(o => storeSel.has(o[0])).map(o => o[1].replace(/ \(.*\)$/, '')).join(', ') : storeSel.size + ' stores');
+    document.getElementById('storeBtn').textContent = label + ' ▾';
+    document.getElementById('storePanel').innerHTML = `<label class="all"><input type="checkbox" data-s="" ${storeSel.size ? '' : 'checked'}> All stores</label>` +
+      STORE_OPTS.map(([k, l]) => `<label><input type="checkbox" data-s="${ocEsc(k)}" ${storeSel.has(k) ? 'checked' : ''}> ${ocEsc(l)}</label>`).join('');
+  }
+  (function storePicker() {
+    const btn = document.getElementById('storeBtn'), panel = document.getElementById('storePanel');
+    let t = 0;
+    btn.addEventListener('click', () => { panel.hidden = !panel.hidden; });
+    panel.addEventListener('change', (ev) => {
+      const c = ev.target.closest('input[data-s]'); if (!c) return;
+      const k = c.dataset.s;
+      if (!k) storeSel.clear(); else if (c.checked) storeSel.add(k); else storeSel.delete(k);
+      renderStorePanel();
+      clearTimeout(t); t = setTimeout(loadOrders, 450);     // several ticks in a row load once
+    });
+    document.addEventListener('click', (ev) => { if (!ev.target.closest('#storeMs')) panel.hidden = true; });
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') panel.hidden = true; });
+  })();
   async function loadStores() {
     try {
       const data = await api.get('shopify.stores');
-      const sel = document.getElementById('storeFilter');
-      sel.innerHTML = '<option value="">All Stores</option>' +
-        (data.stores || []).map(s => `<option value="${s.key}">${s.label}</option>`).join('') +
-        '<option value="tm4u">TM4U (orders tagged tm4u)</option>' +
-        '<option value="tmsg">TM Shower Gel</option>' +
-        '<option value="tmh4">TM House 4th</option>' +
-        '<option value="manual">Manual</option>';
+      STORE_OPTS = (data.stores || []).filter(s => s.key !== HIDDEN_STORE).map(s => [s.key, s.label]).concat([
+        ['tm4u', 'TM4U (orders tagged tm4u)'], ['tmsg', 'TM Shower Gel'], ['tmh4', 'TM House 4th'], ['manual', 'Manual']]);
+      renderStorePanel();
     } catch (err) {
       showAlert(err.message, 'error');
     }
@@ -425,7 +485,7 @@
   async function loadOrders() {
     const from = document.getElementById('dateFrom').value;
     const to = document.getElementById('dateTo').value;
-    const store = document.getElementById('storeFilter').value;
+    const store = storeVal();
     if (!from || !to) { showAlert('Pick both dates.', 'error'); return; }
     if (from > to) { showAlert('"From" date must be before "To" date.', 'error'); return; }
 
@@ -440,7 +500,7 @@
       loadTeamSheet(from, to, store);
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
       if (reqId !== ordersReqId) return;
-      const orders = data.orders || [];
+      const orders = (data.orders || []).filter(o => o.store_key !== HIDDEN_STORE);   // MySales 4P is not shown or counted on this page
       (data.errors || []).forEach(e => showAlert(e, 'error'));
       render(orders);
     } catch (err) {
@@ -460,12 +520,12 @@
 
   const TH_LABELS = {
     order_name: 'Order', store: 'Store', salesman: 'Salesman', code: 'Code', created_at: 'Time', customer: 'Customer', phone: 'Mobile',
-    items: 'Items', total: 'Total', financial_status: 'Payment', fulfillment_status: 'Fulfillment',
+    items: 'Items', total: 'Total', financial_status: 'Payment', fulfillment_status: 'Fulfillment', ticket_rating: 'Rating',
   };
 
   // Order code (the Order Codes page): shown on every order; Admin / HR can type or change it here.
   // Saving writes it to the same place as the Order Codes page (HRMS + tag on the Shopify order).
-  const OC_CAN = ['Admin', 'HR'].includes((api.currentUser() || {}).role);
+  const OC_CAN = (api.currentUser() || {}).role !== 'Employee';   // every role that has this page (the server still checks)
   let ocEdit = -1;
   const ocEsc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   function ocCell(o) {
@@ -524,6 +584,90 @@
     cxSet(Number(b.dataset.i), b.dataset.cx === 'cancel');
   }
 
+  // ---------- Per-order rating (Ticket size convincing, half stars = 1–10; same rating as the Order Allocation / Performance pages) ----------
+  // Every Shopify order can be rated here. The rating counts for the order's salesman; an order with no salesman is greyed out.
+  // The Employee role only sees ratings.
+  const RT_CAN = (api.currentUser() || {}).role !== 'Employee';
+  const STAR_PATH = '<path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/>';
+  const RATE_WORDS = ['Not rated', 'Very poor', 'Poor', 'Weak', 'Fair', 'Okay', 'Good', 'Very good', 'Great', 'Excellent', 'Outstanding'];
+  function starCells(v) {
+    return Array.from({ length: 5 }, (_, i) => {
+      const f = Math.max(0, Math.min(2, v - i * 2));
+      return `<span class="rs-star"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#D6D3DF">${STAR_PATH}</g></svg><svg class="rs-fill" viewBox="0 0 24 24" aria-hidden="true" style="clip-path:inset(0 ${100 - f * 50}% 0 0);"><g fill="#E8A21C">${STAR_PATH}</g></svg></span>`;
+    }).join('');
+  }
+  function rtCell(o) {
+    if (o.id === undefined || o.id === null || !o.store_key || o.store_key === 'manual') return '<span class="es-sl">—</span>';
+    const v = o.ticket_rating == null ? 0 : Math.max(0, Math.min(10, Math.round(Number(o.ticket_rating))));
+    const num = `<span class="rs-num">${v ? String(v / 2) : '—'}</span>`;
+    if (!RT_CAN || o.cancelled) return `<span class="rs ro" title="${v ? v / 2 + ' of 5' : 'Not rated'}"><span class="rs-stars">${starCells(v)}</span>${num}</span>`;
+    const off = !o.employee_id;
+    return `<span class="rs ${off ? 'off' : ''}" data-i="${o._i}" data-val="${v}" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}"
+      title="${off ? 'This order has no salesman yet' : RATE_WORDS[v]}"><span class="rs-stars">${starCells(v)}</span>${num}</span>`;
+  }
+  function paintStars(rs, v, preview) {
+    rs.querySelectorAll('.rs-star').forEach((st, i) => {
+      const f = Math.max(0, Math.min(2, v - i * 2));
+      st.querySelector('.rs-fill').style.clipPath = `inset(0 ${100 - f * 50}% 0 0)`;
+    });
+    rs.classList.toggle('rs-preview', !!preview);
+    rs.querySelector('.rs-num').textContent = v ? String(v / 2) : '—';
+    if (!rs.classList.contains('off')) rs.title = RATE_WORDS[v] || '';
+  }
+  async function saveStars(rs, v, starIdx) {
+    const o = allOrders[Number(rs.dataset.i)];
+    if (!o) return;
+    if (!o.employee_id) { showAlert('This order has no salesman — set one on the Order Allocation page first, then rate it.', 'error'); return; }
+    v = Math.max(1, Math.min(10, v));
+    if (Number(rs.dataset.val) === v) v = 0;                   // same value again = clear
+    const prev = o.ticket_rating;
+    rs.dataset.val = v; o.ticket_rating = v === 0 ? null : v;
+    paintStars(rs, v, false);
+    const st = rs.querySelectorAll('.rs-star')[starIdx];
+    if (st) { st.classList.remove('rs-pop'); void st.offsetWidth; st.classList.add('rs-pop'); }
+    try {
+      await api.post('order_ratings.save', {
+        order_key: o.order_key || (o.store_key + ':' + o.id), order_name: o.order_name, employee_id: o.employee_id,
+        group_key: o.house || STORE_HOUSE_MAP[o.store_key] || '', date: o.biz_date || bizDayOf(new Date(o.created_at)), field: 'ticket', value: v,
+      });
+    } catch (err) {
+      o.ticket_rating = prev; rs.dataset.val = prev == null ? 0 : Math.round(prev); paintStars(rs, Number(rs.dataset.val), false);
+      showAlert(err.message, 'error');
+    }
+  }
+  (function starEvents() {
+    function stepAt(rs, clientX) {
+      const row = rs.querySelector('.rs-stars').getBoundingClientRect();
+      const x = Math.max(0, Math.min(row.width - 0.01, clientX - row.left));
+      const per = row.width / 5; const i = Math.floor(x / per);
+      const half = (x - i * per) < per / 2 ? 1 : 2;
+      return { i, v: i * 2 + half };
+    }
+    document.addEventListener('mousemove', (e) => {
+      const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
+      const rs = stars.closest('.rs'); if (rs.classList.contains('off') || rs.classList.contains('ro')) return;
+      paintStars(rs, stepAt(rs, e.clientX).v, true);
+    });
+    document.addEventListener('mouseout', (e) => {
+      const rs = e.target.closest && e.target.closest('.rs');
+      if (!rs || rs.classList.contains('ro') || (e.relatedTarget && rs.contains(e.relatedTarget))) return;
+      paintStars(rs, Number(rs.dataset.val), false);
+    });
+    document.addEventListener('click', (e) => {
+      const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
+      const rs = stars.closest('.rs');
+      if (rs.classList.contains('ro')) return;
+      if (rs.classList.contains('off')) { showAlert('This order has no salesman — set one on the Order Allocation page first, then rate it.', 'error'); return; }
+      const { i, v } = stepAt(rs, e.clientX); saveStars(rs, v, i);
+    });
+    document.addEventListener('keydown', (e) => {
+      const rs = e.target.closest && e.target.closest('.rs'); if (!rs || rs.classList.contains('off') || rs.classList.contains('ro')) return;
+      const v = Number(rs.dataset.val);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); saveStars(rs, v + 1, Math.ceil((v + 1) / 2) - 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); if (v > 1) saveStars(rs, v - 1, Math.ceil((v - 1) / 2) - 1); }
+    });
+  })();
+
   // The orders this page is about: one salesperson's when opened from
   // Targets (?salesman=Name), otherwise everything loaded. The stat cards,
   // the list and its title all use this, so they can never disagree.
@@ -577,7 +721,7 @@
     const dir = sortDir === 'asc' ? 1 : -1;
     filteredOrders.sort((a, b) => {
       let va = a[sortKey], vb = b[sortKey];
-      if (sortKey === 'items' || sortKey === 'total') {
+      if (sortKey === 'items' || sortKey === 'total' || sortKey === 'ticket_rating') {
         return (Number(va || 0) - Number(vb || 0)) * dir;
       }
       if (sortKey === 'order_name') {
@@ -602,6 +746,12 @@
     if (t.some(x => CAMPAIGN_TAGS.includes(x))) return 'campaign';
     return 'other';
   }
+  // COD = the customer still owes money on delivery; anything else is prepaid (same rule as the Employee sheet's COD / Prepaid columns).
+  function orderOutstanding(o, amt) {
+    return (o.outstanding === null || o.outstanding === undefined)
+      ? (/cod|pending/i.test(o.financial_status || '') ? amt : 0)
+      : Math.min(amt, Math.max(0, Number(o.outstanding) || 0));
+  }
   let platformQueries = {};          // house -> { query, campaign } for the loaded dates
   let platformQueriesFor = '';
   async function loadPlatformQueries(from, to) {
@@ -617,21 +767,34 @@
   function renderPlatformSummary() {
     const card = document.getElementById('platformCard');
     const base = scopedOrders().filter(o => STORE_HOUSE_MAP[o.store_key] || o.house);   // Shopify orders only
-    const storeSel = document.getElementById('storeFilter').value;
-    const shown = PLATFORMS.filter(([k]) => !storeSel || (STORE_HOUSE_MAP[storeSel] || storeSel) === k);
+    const picked = [...storeSel].map(x => STORE_HOUSE_MAP[x] || x);
+    const shown = PLATFORMS.filter(([k]) => !picked.length || picked.includes(k));
     if (!base.length && !Object.keys(platformQueries).length) { card.style.display = 'none'; return; }
     const stats = {};
-    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0 });
+    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0, pre: 0, cod: 0, col: [0, 0, 0, 0] });
     PLATFORMS.forEach(([k]) => { const pq = platformQueries[k] || {}; stats[k].q = pq.query || 0; stats[k].c = pq.campaign || 0; });
     base.forEach(o => {
       const h = o.house || STORE_HOUSE_MAP[o.store_key]; if (!stats[h]) return;
       const t = orderTagType(o.tags), amt = Number(o.total) || 0;
       stats[h].to++; stats[h].tc += amt;
+      if (orderOutstanding(o, amt) > 0) stats[h].cod += amt; else stats[h].pre += amt;
+      const cc = o.colors || {};
+      stats[h].col[0] += Number(cc.dg) || 0; stats[h].col[1] += Number(cc.lg) || 0; stats[h].col[2] += Number(cc.wh) || 0; stats[h].col[3] += Number(cc.other) || 0;
       if (t === 'query') { stats[h].qo++; stats[h].qc += amt; }
       if (t === 'campaign') { stats[h].co++; stats[h].cc += amt; }
     });
     const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
     const ratio = (p) => { if (!p.q) return '<b style="color:var(--muted); font-weight:400;">—</b>'; const r = Math.round(p.qo / p.q * 100); return `<b class="${r >= 25 ? 'g' : (r >= 10 ? 'a' : 'r')}">${r}%</b>`; };
+    const sh = (v, tot) => { const x = tot > 0 ? Math.round(v / tot * 100) : 0; return `<small>${x}%</small>`; };
+    // Bottle colours with their share of that platform's bottles (whole percents that add up to 100).
+    const clrPct = (c) => {
+      const tot = c.reduce((a, b) => a + b, 0); if (!tot) return c.map(() => 0);
+      const raw = c.map(v => v / tot * 100), out = raw.map(Math.floor);
+      let left = 100 - out.reduce((a, b) => a + b, 0);
+      raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (left > 0 && c[i] > 0) { out[i]++; left--; } });
+      return out;
+    };
+    const clrTile = (p, i, cls, name) => { const pc = clrPct(p.col)[i]; return ['', `<i class="cd ${cls}"></i>${name}`, `<b>${p.col[i]}${p.col.some(v => v > 0) ? `<small>${pc}%</small>` : ''}</b>`]; };
     const lines = (p, k) => [
       ['q', 'Query', `<b>${p.q}</b>`],
       ['q', 'Query order', `<b>${p.qo}</b>`, 'query'],
@@ -640,6 +803,9 @@
       ['c', 'Campaign order', `<b>${p.co}</b>`, 'campaign'],
       ['c', 'Campaign collection', `<b>${inr(p.cc)}</b>`, 'campaign'],
       ['', 'Ticket size', `<b>${p.to ? inr(p.tc / p.to) : '—'}</b>`],
+      ['p', 'Total prepaid', `<b>${inr(p.pre)}${p.tc > 0 ? sh(p.pre, p.tc) : ''}</b>`],
+      ['d', 'Total COD', `<b>${inr(p.cod)}${p.tc > 0 ? `<small>${100 - Math.round(p.pre / p.tc * 100)}%</small>` : ''}</b>`],
+      clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER'),
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`, 'orders'],
       ['t', 'Total order', `<b>${p.to}</b>`, 'orders'],
     ].map(([c, l, v, go]) => go ? `<div class="li ${c}" data-go="${go}" data-h="${k}" title="Click to see these orders"><span>${l}</span>${v}</div>` : `<div class="li ${c}"><span>${l}</span>${v}</div>`).join('');
@@ -656,7 +822,10 @@
     const base = scopedOrders();
     const byStore = {};
     let grandTotal = 0;
+    const clr = { dg: 0, lg: 0, wh: 0, other: 0 };
     base.forEach(o => {
+      const c = o.colors || {};
+      clr.dg += Number(c.dg) || 0; clr.lg += Number(c.lg) || 0; clr.wh += Number(c.wh) || 0; clr.other += Number(c.other) || 0;
       byStore[o.store] = byStore[o.store] || { count: 0, total: 0, currency: o.currency };
       byStore[o.store].count++;
       byStore[o.store].total += Number(o.total || 0);
@@ -673,14 +842,18 @@
       </div>
       <div class="stat-card">
         <div class="label"><span class="lbl-full">Total Revenue</span><span class="lbl-short">Revenue</span></div>
-        <div class="value"><span class="amt-full">${fmtMoney(grandTotal, 'INR')}</span><span class="amt-short">${fmtMoneyShort(grandTotal, 'INR')}</span></div>
+        <div class="value"><span class="amt-full">${fmtMoney(grandTotal, 'INR')}</span><span class="amt-short">${fmtMoney(grandTotal, 'INR')}</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
+        <div class="value cl-tot"><span><i class="c-dg"></i>DG ${clr.dg}</span><span><i class="c-lg"></i>LG ${clr.lg}</span><span><i class="c-wh"></i>WH ${clr.wh}</span><span><i class="c-ot"></i>OTHER ${clr.other}</span></div>
       </div>
       ${Object.entries(byStore).map(([label, s]) => `
         <div class="stat-card">
           <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
           <div class="value">${s.count}
             <span class="amt-full" style="font-size:13px; font-weight:500; color:var(--muted);"> / ${fmtMoney(s.total, s.currency)}</span>
-            <span class="amt-short">${fmtMoneyShort(s.total, s.currency)}</span>
+            <span class="amt-short">${fmtMoney(s.total, s.currency)}</span>
           </div>
         </div>`).join('')}
     `;
@@ -725,7 +898,7 @@
     });
 
     if (filteredOrders.length === 0) {
-      body.innerHTML = '<tr><td colspan="12" class="empty-state">No matching orders.</td></tr>';
+      body.innerHTML = '<tr><td colspan="13" class="empty-state">No matching orders.</td></tr>';
       document.getElementById('ordersCards').innerHTML = '<div class="empty-state">No matching orders.</div>';
       pagerBar.style.display = 'none';
       return;
@@ -752,6 +925,7 @@
           <td style="font-weight:600;">${fmtMoney(o.total, o.currency)}</td>
           <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
           <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
+          <td style="white-space:nowrap;">${rtCell(o)}</td>
           <td style="white-space:nowrap;">${cxBtn(o)}</td>
         </tr>`;
 
@@ -760,7 +934,7 @@
     // fulfillment as pills at the bottom — same data as the table row above,
     // just laid out as a card instead of ten cramped columns.
     const cardHtml = (o) => `
-        <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:8px;" onclick="openDetail(${o._i})">
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:8px;" onclick="if (event.target.closest('.rs')) return; openDetail(${o._i})">
           <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
             <span style="font-weight:600; color:var(--accent);">${o.order_name}</span>
             <span style="font-weight:600;">${fmtMoney(o.total, o.currency)}</span>
@@ -770,6 +944,7 @@
             <span style="font-size:12px; color:var(--muted);">${o.store}</span>
             <span style="font-size:12px; color:var(--muted);">${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · ${o.items} item${o.items === 1 ? '' : 's'}</span>
           </div>
+          <div style="margin-top:8px;">${rtCell(o)}</div>
           <div style="display:flex; gap:6px; margin-top:8px;">
             <span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span>
             <span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span>
@@ -803,7 +978,7 @@
         const dt = dayTotals[day];
         return `
           <tr style="background:#f0f4ff;">
-            <td colspan="12" style="font-weight:700;">
+            <td colspan="13" style="font-weight:700;">
               ${dateLabel(day)}
               <span style="float:right; font-weight:600; color:var(--muted);">${dt.count} order${dt.count === 1 ? '' : 's'} · ${fmtMoney(dt.total, 'INR')}</span>
             </td>
@@ -860,7 +1035,46 @@
   // Auto-load whenever a filter changes — no button needed.
   document.getElementById('dateFrom').addEventListener('change', loadOrders);
   document.getElementById('dateTo').addEventListener('change', loadOrders);
-  document.getElementById('storeFilter').addEventListener('change', loadOrders);
+  // ---------- Day timing window (same setting as Targets / Attendance) ----------
+  const timingModal = document.getElementById('timingModal');
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  function renderTiming(vals) {
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    document.getElementById('timingRows').innerHTML = `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; padding:0 0 4px;"><span>Day</span><span>Starts at</span><span>Counts from → to</span></div>` +
+      order.map(i => `<div style="display:grid; grid-template-columns:110px 110px 1fr; gap:6px 10px; align-items:center; padding:6px 0; border-top:1px solid var(--line); font-size:13px;">
+        <b>${DAY_NAMES[i]}</b><input type="time" class="timing-in" data-wd="${i}" value="${vals[i]}" style="padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <span class="timing-win" data-wd="${i}" style="font-size:11.5px; color:var(--muted);"></span></div>`).join('');
+    paintWindows();
+  }
+  function timingVals() { const v = [...DAY_START]; document.querySelectorAll('.timing-in').forEach(i => { v[Number(i.dataset.wd)] = i.value || '10:00'; }); return v; }
+  function paintWindows() {
+    const v = timingVals();
+    document.querySelectorAll('.timing-win').forEach(el => {
+      const i = Number(el.dataset.wd), n = (i + 1) % 7;
+      el.textContent = `${DAY_SHORT[i]} ${fmtHM(v[i])} → ${DAY_SHORT[n]} ${fmtHM(v[n])}`;
+      el.style.color = (v[i] !== '10:00' || v[n] !== '10:00') ? 'var(--accent)' : 'var(--muted)';
+    });
+  }
+  document.getElementById('btnTiming').addEventListener('click', async () => { await timingReady; document.getElementById('timingAlert').innerHTML = ''; renderTiming(DAY_START); timingModal.classList.add('open'); });
+  document.getElementById('timingCancel').addEventListener('click', () => timingModal.classList.remove('open'));
+  timingModal.addEventListener('click', (e) => { if (e.target === timingModal) timingModal.classList.remove('open'); });
+  timingModal.addEventListener('input', (e) => { if (e.target.classList.contains('timing-in')) paintWindows(); });
+  document.getElementById('timingReset').addEventListener('click', () => renderTiming(['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00']));
+  document.getElementById('timingSave').addEventListener('click', async () => {
+    const btn = document.getElementById('timingSave'); btn.disabled = true;
+    try {
+      const d = await api.post('day_timing.save', { start: timingVals() });
+      DAY_START = timingVals();
+      timingModal.classList.remove('open');
+      document.getElementById('dayNote').textContent = '(day = ' + dayWindowText() + ')';
+      showAlert('Day timing saved — orders now follow ' + dayWindowText() + '.');
+      loadOrders();      // the list, cards and Employee sheet are re-read for the new window
+    } catch (err) {
+      document.getElementById('timingAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally { btn.disabled = false; }
+  });
+
   document.getElementById('btnToday').addEventListener('click', () => {
     document.getElementById('dateFrom').value = todayStr();
     document.getElementById('dateTo').value = todayStr();
@@ -1033,13 +1247,12 @@
   // COD / prepaid and bottle colours are worked out here from the orders the
   // page already loaded, so they always agree with the cards and the list.
   const ES_ROLE = (api.currentUser() || {}).role;
-  const ES_ALLOWED = (ES_ROLE === 'Admin' || ES_ROLE === 'HR') && !new URLSearchParams(location.search).get('salesman');
+  const ES_ALLOWED = ES_ROLE !== 'Employee' && !new URLSearchParams(location.search).get('salesman');   // Admin, HR and any custom role with this page (e.g. Sales Head)
   let teamData = null;               // last team.sheet response
   let teamReqId = 0;
   const ES_GROUPS = [
     { k: 'tgt', n: 'Target', cls: 'g-tgt' }, { k: 'ord', n: 'Orders', cls: 'g-ord' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
-    { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' },
-    { k: 'clr', n: 'Bottle colour', cls: 'g-clr' }
+    { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' }
   ];
   const ES_COLS = {
     tgt: [['Target', 'tg'], ['Collection', 'coll']],
@@ -1047,13 +1260,12 @@
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
-    rat: [['Per order', 'or'], ['Per employee', 'er']],
-    clr: [['DG · LG · WH · Other', 'col']]
+    rat: [['Per order', 'or'], ['Per employee', 'er']]
   };
-  const esOn = { tgt: 1, ord: 1, qry: 1, cmp: 1, pay: 1, rat: 1, clr: 1 };
+  const esOn = { tgt: 1, ord: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-  const esPct = (a, b) => b > 0 ? Math.round(a / b * 1000) / 10 : null;
+  const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)
   const esEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const esRt = (v) => v === null ? '<span class="es-rt n">—</span>' : `<span class="es-rt ${v >= 25 ? 'g' : (v >= 10 ? 'a' : 'r')}">${v}%</span>`;
   // Ratings are stored 1-10 and shown as 5 stars (value / 2).
@@ -1062,7 +1274,9 @@
     const v = v10 / 2, f = Math.max(0, Math.min(5, Math.round(v)));
     return `<span class="es-star">${'★'.repeat(f)}<span class="e">${'★'.repeat(5 - f)}</span><small>${v.toFixed(1)}${n ? ' · ' + n + ' rated' : ''}</small></span>`;
   };
-  const esDots = (c) => `<span class="es-dots"><span><i class="c-dg"></i>${c[0]}</span><span><i class="c-lg"></i>${c[1]}</span><span><i class="c-wh"></i>${c[2]}</span><span><i class="c-ot"></i>${c[3]}</span></span>`;
+  // Bottle colours written after the order count: "DG-5, LG-2" (only the colours that have bottles).
+  const esColTxt = (c) => ['DG', 'LG', 'WH', 'Other'].map((n, i) => c[i] > 0 ? n + '-' + c[i] : '').filter(Boolean).join(', ');
+  const esColSpan = (c) => { const t = esColTxt(c); return t ? ` <span class="es-cl">${t}</span>` : ''; };
   const esAch = (e) => e.tg ? Math.round(e.coll / e.tg * 100) : 0;
 
   // One-line message inside the sheet box (loading / slow / error), so it is never an empty white box.
@@ -1114,9 +1328,7 @@
       a.coll += amt; a.ord++;
       if (t === 'query') { a.qo++; a.qc += amt; }
       if (t === 'campaign') { a.ko++; a.kc += amt; }
-      const out = (o.outstanding === null || o.outstanding === undefined)
-        ? (/cod|pending/i.test(o.financial_status || '') ? amt : 0)
-        : Math.min(amt, Math.max(0, Number(o.outstanding) || 0));
+      const out = orderOutstanding(o, amt);
       if (out > 0) { a.cod += amt; a.codPaid += amt - out; } else a.pre += amt;
       const c = o.colors || {};
       a.col[0] += Number(c.dg) || 0; a.col[1] += Number(c.lg) || 0; a.col[2] += Number(c.wh) || 0; a.col[3] += Number(c.other) || 0;
@@ -1133,7 +1345,7 @@
       const a = by[key] || { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] };
       const q = Number(r.q) || 0, k = Number(r.c) || 0;
       return Object.assign({
-        id: r.employee_id, n: r.full_name, c: r.employee_code || '', p: (r.present_days || 0) > 0, days: r.present_days || 0, t: r.punch_in || '', late: !!r.late,
+        id: r.employee_id, n: r.full_name, c: r.employee_code || '', p: (r.present_days || 0) > 0, days: r.present_days || 0, t: r.punch_in || '',
         tg: Number(r.target) || 0, tsrc: r.target_src || 'none', how: r.target_how || '', mark: r.mark || null, tgks: Array.isArray(r.target_gks) && r.target_gks.length ? r.target_gks : [''], man: !!r.manual, tout: r.punch_out || '', q, k, tot: q + k,
         or: r.order_rating ? [Number(r.order_rating.avg) || 0, Number(r.order_rating.n) || 0] : [0, 0], er: Number(r.emp_rating) || 0, real: true
       }, a);
@@ -1141,7 +1353,7 @@
     // Orders whose salesman is not in the sheet (manual orders, ex-staff…) stay in the totals.
     const other = slot0();
     Object.keys(by).forEach(k => { if (!used.has(k)) { const a = by[k]; ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre'].forEach(f => other[f] += a[f]); a.col.forEach((v, i) => other.col[i] += v); } });
-    if (other.ord) rows.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', late: false, tg: 0, tsrc: 'none', how: '', tgks: [''], mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], er: 0, real: false }, other));
+    if (other.ord) rows.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', tgks: [''], mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], er: 0, real: false }, other));
     return rows;
   }
   function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] }; }
@@ -1151,7 +1363,9 @@
     const r = all.filter(e => !e.real ? (f === 'all' && !q) : ((!q || e.n.toLowerCase().includes(q) || e.c.toLowerCase().includes(q)) && (f === 'all' || (f === 'present') === e.p)));
     const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0), rate: (e) => -e.er }[s];
     const real = r.filter(e => e.real).sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0));
-    return real.concat(r.filter(e => !e.real));
+    // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
+    const away = (e) => !e.p && !esMk(e);
+    return real.filter(e => !away(e)).concat(real.filter(away), r.filter(e => !e.real));
   }
   function esTotals(rows) {
     const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0, erN: 0, erS: 0 });
@@ -1173,7 +1387,7 @@
     if (!single) return e.p ? `<span class="es-pill es-in">${e.days} of ${teamData.days} days</span>` : '<span class="es-pill es-out">Absent</span>';
     const tag = e.p ? (e.man ? '<span class="tgt-pill man">Manual</span>' : '<span class="tgt-pill auto">Auto</span>') : (esMk(e) ? '<span class="tgt-pill man">Manual</span>' : '');
     const mkPill = esMk(e) ? `<span class="es-pill es-mk-${e.mark}">${ES_MARKS[e.mark]}</span>` : '<span class="es-pill es-out">Absent</span>';
-    return `<span class="stbox">${e.p ? `<span class="es-pill ${e.late ? 'es-late' : 'es-in'}">${e.late ? 'Late' : 'Present'}</span> <span class="es-tm">${esEsc(e.t)}</span>` : mkPill} ${tag}<button type="button" class="stedit" data-sx="${e.id}" title="Change attendance">✎</button></span>`;
+    return `<span class="stbox">${e.p ? `<span class="es-pill es-in">Present</span> <span class="es-tm">${esEsc(e.t)}</span>` : mkPill} ${tag}<button type="button" class="stedit" data-sx="${e.id}" title="Change attendance">✎</button></span>`;
   }
   // ---- Target cell (same look as the Targets page) and Collection cell (Query / Campaign / Other bar)
   let esEditTg = 0;
@@ -1209,7 +1423,7 @@
       case 'tg':    return `<td class="gl">${esTgtCell(e)}</td>`;
       case 'coll':  return `<td>${esCollCell(e)}</td>`;
       case 'tq':    return `<td class="gl">${e.real ? '<b>' + e.tot + '</b>' : dash}</td>`;
-      case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) : dash}</td>`;
+      case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col) : dash}</td>`;
       case 'ratio': return `<td>${e.real && e.tot ? esRt(esPct(e.ord, e.tot)) : dash}</td>`;
       case 'q':     return `<td class="gl">${e.real ? e.q : dash}</td>`;
       case 'qo':    return `<td>${e.real || e.qo ? esLk(e, 'query', e.qo) : dash}</td>`;
@@ -1223,15 +1437,14 @@
       case 'pre':   return `<td>${e.ord ? esInr(e.pre) : dash}</td>`;
       case 'or':    return `<td class="gl">${e.or[1] ? esStars(e.or[0], e.or[1]) : dash}</td>`;
       case 'er':    return `<td>${e.er ? esStars(e.er) : dash}</td>`;
-      case 'col':   return `<td class="gl">${e.ord ? esDots(e.col) : dash}</td>`;
     }
     return '<td></td>';
   }
   function esFoot(k, t) {
-    const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord, ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
+    const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg), er: esStars(t.erAvg), col: esDots(t.col) };
-    return `<td${['tg', 'tq', 'q', 'k', 'cod', 'or', 'col'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
+      or: esStars(t.orAvg), er: esStars(t.erAvg) };
+    return `<td${['tg', 'tq', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
   }
 
   function renderTeamSheet() {
@@ -1245,7 +1458,7 @@
     rows.forEach(e => {
       const abs = e.real && !e.p && !esMk(e);
       const nm = e.real
-        ? `<i class="es-dot ${abs ? 'x' : (e.late ? 'l' : 'o')}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" title="Show this person's orders"><b>${esEsc(e.n)}</b></a>`
+        ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" title="Show this person's orders"><b>${esEsc(e.n)}</b></a>`
         : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
       b += `<tr class="${abs ? 'abs' : (e.real ? '' : 'un')}"><td class="st l">${esStatus(e)}</td><td class="nm l">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</td>` +
         gs.map(g => ES_COLS[g.k].map(c => esCell(c[1], e, abs)).join('')).join('') + '</tr>';
@@ -1289,7 +1502,7 @@
   // ---- change attendance / target by hand (one-day view only)
   let esPop = null;
   const esClosePop = () => { if (esPop) { esPop.remove(); esPop = null; } };
-  const esReload = () => loadTeamSheet(esEl('dateFrom').value, esEl('dateTo').value, esEl('storeFilter').value);
+  const esReload = () => loadTeamSheet(esEl('dateFrom').value, esEl('dateTo').value, storeVal());
   function esOpenStatus(btn, id) {
     esClosePop();
     const e = esRows().find(x => x.id === id); if (!e) return;
@@ -1351,7 +1564,7 @@
     document.querySelectorAll('#vtabs button').forEach(b => b.addEventListener('click', () => esView(b.dataset.v)));
     ES_GROUPS.forEach(g => {
       const b = document.createElement('button');
-      b.type = 'button'; b.className = 'es-chip on'; b.textContent = g.n;
+      b.type = 'button'; b.className = 'es-chip' + (esOn[g.k] ? ' on' : ''); b.textContent = g.n;
       b.addEventListener('click', () => { esOn[g.k] = esOn[g.k] ? 0 : 1; b.classList.toggle('on', !!esOn[g.k]); renderTeamSheet(); });
       esEl('esChips').appendChild(b);
     });
