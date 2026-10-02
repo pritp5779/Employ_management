@@ -247,7 +247,7 @@
           <select id="esSt"><option value="all">All employees</option><option value="present">Present only</option><option value="absent">Absent only</option></select>
           <select id="esSort">
             <option value="name">Sort: Name</option><option value="coll">Sort: Collection</option><option value="ach">Sort: Target achieved %</option>
-            <option value="ord">Sort: Orders</option><option value="ratio">Sort: Ratio</option><option value="rate">Sort: Employee rating</option>
+            <option value="ord">Sort: Orders</option><option value="ratio">Sort: Ratio</option>
           </select>
         </div>
         <div class="es-chips" id="esChips"><span class="lbl">Show columns:</span></div>
@@ -1260,7 +1260,7 @@
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
-    rat: [['Per order', 'or'], ['Per employee', 'er']]
+    rat: [['Per order', 'or']]
   };
   const esOn = { tgt: 1, ord: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
   const esEl = (id) => document.getElementById(id);
@@ -1347,13 +1347,13 @@
       return Object.assign({
         id: r.employee_id, n: r.full_name, c: r.employee_code || '', p: (r.present_days || 0) > 0, days: r.present_days || 0, t: r.punch_in || '',
         tg: Number(r.target) || 0, tsrc: r.target_src || 'none', how: r.target_how || '', mark: r.mark || null, tgks: Array.isArray(r.target_gks) && r.target_gks.length ? r.target_gks : [''], man: !!r.manual, tout: r.punch_out || '', q, k, tot: q + k,
-        or: r.order_rating ? [Number(r.order_rating.avg) || 0, Number(r.order_rating.n) || 0] : [0, 0], er: Number(r.emp_rating) || 0, real: true
+        or: r.order_rating ? [Number(r.order_rating.avg) || 0, Number(r.order_rating.n) || 0] : [0, 0], real: true
       }, a);
     });
     // Orders whose salesman is not in the sheet (manual orders, ex-staff…) stay in the totals.
     const other = slot0();
     Object.keys(by).forEach(k => { if (!used.has(k)) { const a = by[k]; ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre'].forEach(f => other[f] += a[f]); a.col.forEach((v, i) => other.col[i] += v); } });
-    if (other.ord) rows.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', tgks: [''], mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], er: 0, real: false }, other));
+    if (other.ord) rows.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', tgks: [''], mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], real: false }, other));
     return rows;
   }
   function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] }; }
@@ -1361,21 +1361,20 @@
   function esVisible(all) {
     const q = esEl('esQ').value.trim().toLowerCase(), f = esEl('esSt').value, s = esEl('esSort').value;
     const r = all.filter(e => !e.real ? (f === 'all' && !q) : ((!q || e.n.toLowerCase().includes(q) || e.c.toLowerCase().includes(q)) && (f === 'all' || (f === 'present') === e.p)));
-    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0), rate: (e) => -e.er }[s];
+    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0) }[s];
     const real = r.filter(e => e.real).sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0));
     // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
     const away = (e) => !e.p && !esMk(e);
     return real.filter(e => !away(e)).concat(real.filter(away), r.filter(e => !e.real));
   }
   function esTotals(rows) {
-    const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0, erN: 0, erS: 0 });
+    const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0 });
     rows.forEach(e => {
       ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre'].forEach(f => t[f] += e[f]);
       e.col.forEach((v, i) => t.col[i] += v);
       if (e.or[1]) { t.orN += e.or[1]; t.orS += e.or[0] * e.or[1]; }
-      if (e.er) { t.erN++; t.erS += e.er; }
     });
-    t.orAvg = t.orN ? t.orS / t.orN : 0; t.erAvg = t.erN ? t.erS / t.erN : 0;
+    t.orAvg = t.orN ? t.orS / t.orN : 0;
     return t;
   }
   const ES_MARKS = { wfh: 'WFH', leave: 'Leave', half_leave: 'Half leave', holiday: 'Holiday', week_off: 'Week off' };
@@ -1436,14 +1435,13 @@
       case 'cod':   return e.ord ? `<td class="gl">${esInr(e.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(e.codPaid)}</span></td>` : `<td class="gl">${dash}</td>`;
       case 'pre':   return `<td>${e.ord ? esInr(e.pre) : dash}</td>`;
       case 'or':    return `<td class="gl">${e.or[1] ? esStars(e.or[0], e.or[1]) : dash}</td>`;
-      case 'er':    return `<td>${e.er ? esStars(e.er) : dash}</td>`;
     }
     return '<td></td>';
   }
   function esFoot(k, t) {
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg), er: esStars(t.erAvg) };
+      or: esStars(t.orAvg) };
     return `<td${['tg', 'tq', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
   }
 
