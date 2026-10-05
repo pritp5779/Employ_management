@@ -316,7 +316,15 @@
     } else if (!Number(r.is_store)) {
       checklist = '<span style="color:var(--muted); font-size:12px;">not store staff</span>';
     }
-    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn, shift, shiftSub, lateTag, checklist };
+    // Two employee records with the same name: say where the other one stands, so an "Absent" here is explained.
+    let dupTag = '';
+    if (Array.isArray(r.same_name) && r.same_name.length) {
+      dupTag = r.same_name.map((o) => {
+        const hit = o.punch_in && !r.punch_in;
+        return `<div style="font-size:11px; margin-top:3px; font-weight:600; color:${hit ? '#b42318' : 'var(--muted)'};">${hit ? '⚠ ' : ''}Same name as ${o.employee_code}${o.punch_in ? ' — punched in ' + fmtT(o.punch_in) + ' there' : ' — no punch there'}</div>`;
+      }).join('');
+    }
+    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn, shift, shiftSub, lateTag, checklist, dupTag };
   }
 
   // "Adajan Office · 40 m" under a punch time (where the punch was made).
@@ -328,7 +336,7 @@
   function attRowHtml(r) {
     const v = prep(r);
     return `<tr>
-        <td><a href="#" onclick="viewMonth(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="Open full month">${r.full_name}</a> <span class="badge">${r.employee_code}</span>${Number(r.is_store) ? ' <span class="badge" style="background:#EEF2FF; color:#3730a3;">Store</span>' : ''}</td>
+        <td><a href="#" onclick="viewMonth(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="Open full month">${r.full_name}</a> <span class="badge">${r.employee_code}</span>${Number(r.is_store) ? ' <span class="badge" style="background:#EEF2FF; color:#3730a3;">Store</span>' : ''}${v.dupTag}</td>
         <td><a href="#" onclick="editShift(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="font-weight:600; text-decoration:none;">${v.shift}</a><div style="font-size:10.5px; color:var(--muted);">${v.shiftSub}</div></td>
         <td>${fmtT(r.punch_in)}${locLine(r.in_office, r.in_distance_m)}</td>
         <td>${fmtT(r.punch_out)}${locLine(r.out_office, r.out_distance_m)}</td>
@@ -351,6 +359,7 @@
         <div style="font-size:13px; font-weight:600;">
           <a href="#" onclick="viewMonth(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" title="Open full month">${r.full_name}</a>
           <span style="font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;">${r.employee_code}</span>
+          ${v.dupTag}
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
           ${field('Punch in', fmtT(r.punch_in) + locLine(r.in_office, r.in_distance_m))}
@@ -465,6 +474,37 @@
     }
   };
 
+  // Store opening checklist photo: the same pop-up as a punch photo (never a new tab / window).
+  const attr = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  window.viewCkPhoto = async function (path, title) {
+    const body = document.getElementById('photoBody');
+    document.getElementById('photoTitle').textContent = title;
+    body.innerHTML = '<div class="loading" style="padding:30px 0;">Loading photo...</div>';
+    photoScrollY = window.scrollY;
+    photoModal.classList.add('open');
+    try {
+      const res = await fetch(api.buildUrl('files.view', { path }), { headers: { Authorization: 'Bearer ' + api.token() } });
+      if (!res.ok) {
+        let msg = `Could not load the photo (HTTP ${res.status}).`;
+        try { const j = await res.json(); if (j.error) msg = j.error; } catch (e) {}
+        body.innerHTML = `<div class="alert error" style="text-align:left;">${msg}</div>`;
+        return;
+      }
+      const blob = await res.blob();
+      if (photoObjectUrl) URL.revokeObjectURL(photoObjectUrl);
+      photoObjectUrl = URL.createObjectURL(blob);
+      body.innerHTML = `<img src="${photoObjectUrl}" alt="Checklist photo" style="max-width:100%; max-height:60vh; border-radius:8px;">`;
+    } catch (err) {
+      body.innerHTML = `<div class="alert error" style="text-align:left;">${err.message}</div>`;
+    }
+  };
+  document.getElementById('ckBody').addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[data-ckp]');
+    if (!a) return;
+    e.preventDefault();
+    viewCkPhoto(a.dataset.ckp, a.dataset.ckt);
+  });
+
   // ---- Full month for one employee (click a name) ----
   const monthModal = document.getElementById('monthModal');
   let monthEmp = 0, monthName = '', monthScrollY = 0;
@@ -534,13 +574,13 @@
   // ---- Store opening checklist: the day's photos, task by task ----
   const ckModal = document.getElementById('ckModal');
   const ckPhotoUrl = (p) => api.buildUrl('files.view', { path: p, token: api.token() || '' });
-  let ckEmpId = 0;
+  let ckEmpId = 0, ckName = '';
   function closeCk() { ckModal.classList.remove('open'); document.getElementById('ckBody').innerHTML = ''; }
   document.getElementById('ckCloseBtn').addEventListener('click', closeCk);
   ckModal.addEventListener('click', (e) => { if (e.target === ckModal) closeCk(); });
 
   window.viewChecklist = async function (empId, name) {
-    ckEmpId = empId;
+    ckEmpId = empId; ckName = name;
     document.getElementById('ckTitle').textContent = `${name} — opening checklist`;
     document.getElementById('ckSub').textContent = new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     document.getElementById('ckBody').innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
@@ -560,8 +600,8 @@
           <div style="flex:1; min-width:0;">
             <div style="font-size:13px; font-weight:600;">${t.title}</div>
             <div style="font-size:11px; color:var(--muted); margin-top:1px;">${t.photos.length} of ${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}${t.photos.length ? ' · ' + fmtT(t.photos[t.photos.length - 1].taken_at) : ''}</div>
-            ${t.photos.length ? `<div style="display:flex; gap:6px; margin-top:7px; flex-wrap:wrap;">${t.photos.map(p =>
-              `<a href="${ckPhotoUrl(p.photo)}" target="_blank" rel="noopener" title="Open full size"><img src="${ckPhotoUrl(p.photo)}" alt="" style="width:64px; height:64px; object-fit:cover; border-radius:7px; display:block;"></a>`).join('')}</div>` : ''}
+            ${t.photos.length ? `<div style="display:flex; gap:6px; margin-top:7px; flex-wrap:wrap;">${t.photos.map((p, k) =>
+              `<a href="#" data-ckp="${attr(p.photo)}" data-ckt="${attr(ckName + ' — ' + t.title + (t.photos.length > 1 ? ' · photo ' + (k + 1) + ' of ' + t.photos.length : ''))}" title="Open photo"><img src="${ckPhotoUrl(p.photo)}" alt="" style="width:64px; height:64px; object-fit:cover; border-radius:7px; display:block;"></a>`).join('')}</div>` : ''}
           </div>
         </div>`).join('') || '<div class="empty-state">No tasks set for this employee.</div>';
     } catch (err) {

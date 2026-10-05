@@ -10,33 +10,98 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Order Codes — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=260929d">
+<title>Order Allocation — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=260928b">
 <style>
-  .sub{font-size:11.5px; color:var(--muted);}
-  .tabs{display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;}
-  .tab{padding:8px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; user-select:none;}
-  .tab.on{background:#111827; color:#fff; border-color:#111827;}
-  .pane{display:none;} .pane.on{display:block;}
-  .code{display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:12px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; white-space:nowrap;}
-  .code.none{background:#fff7ed; color:#b45f06; font-family:inherit; font-weight:600;}
-  .code .x{cursor:pointer; opacity:.6; font-weight:400; font-size:14px; line-height:1;} .code .x:hover{opacity:1;}
-  .inl{display:inline-flex; gap:6px; align-items:center;}
-  .inl input{padding:6px 9px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; width:118px; font-family:ui-monospace,Menlo,Consolas,monospace; text-transform:uppercase;}
-  .inl .btn{padding:6px 10px; font-size:12px; min-height:0; width:auto;}
-  .lnk{background:none; border:none; padding:0; color:var(--accent); font-size:12px; cursor:pointer; min-height:0; text-decoration:underline;}
+  .sel{padding:7px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; width:100%; min-width:104px; max-width:100%;}
+  .sel.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .sel.inline{width:auto;}
+  .ok-btn{width:38px; height:36px; min-height:0; border:none; border-radius:6px; background:#0f7a41; color:#fff; font-size:16px; font-weight:700; cursor:pointer;}
+  .ok-btn:disabled{background:#cbd5e1; cursor:not-allowed;}
+  /* Per-order rating stars (same control as the Performance page) */
+  .rs{display:inline-flex; align-items:center; gap:6px; vertical-align:middle; border-radius:6px; outline:none;}
+  .rs-stars{display:inline-flex; gap:2px; cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation;}
+  .rs-star{position:relative; width:17px; height:17px; display:inline-block; transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+  .rs-star svg{position:absolute; inset:0; width:17px; height:17px;}
+  .rs-preview .rs-fill{opacity:.6;}
+  .rs-pop{animation:rsPop .35s cubic-bezier(.34,1.56,.64,1);} @keyframes rsPop{50%{transform:scale(1.35);}}
+  .rs-num{font-size:12px; color:var(--muted); min-width:18px; font-variant-numeric:tabular-nums;}
+  .rs.off .rs-stars{cursor:not-allowed; opacity:.45;}
+  .rs.ro .rs-stars{cursor:default;}
+  @media (max-width:820px){ .rs-star, .rs-star svg{width:24px; height:24px;} }
+  /* Product colour counts (DG / LG / WH / Other) — small, plain text */
+  .clr-totals{display:flex; flex-wrap:wrap; align-items:center; gap:2px 14px; font-size:12.5px; font-weight:600; color:#334155;}
+  .clr-totals span, .clr-line span{display:inline-flex; align-items:center; gap:4px; white-space:nowrap;}
+  .clr-totals i, .clr-line i{width:8px; height:8px; border-radius:50%; border:1px solid rgba(0,0,0,.25); display:inline-block; flex:0 0 auto;}
+  .clr-line{display:flex; flex-wrap:wrap; gap:1px 8px; margin-top:3px; font-size:11px; color:var(--muted);}
+  .clr-line i{width:7px; height:7px;}
+  .clr-dg{background:#14532d;} .clr-lg{background:#86efac;} .clr-wh{background:#fff;} .clr-ot{background:#94a3b8;}
+  @media (max-width:820px){ .clr-totals{width:100%; font-size:12px; gap:2px 12px;} }
+  /* Twelve columns: compact controls so the table fits a laptop screen, and a
+     sideways scroll inside the card (never past its edge) when it doesn't. */
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  #allocCard table{min-width:1250px;}
+  #allocCard th, #allocCard td{padding-left:8px; padding-right:8px;}
+  #allocCard th:first-child, #allocCard td:first-child{padding-left:20px;}
+  #allocCard th:last-child, #allocCard td:last-child{padding-right:20px;}
+  @media (max-width:820px){ .tscroll{overflow:visible;} #allocCard table{min-width:0;} }
+  .code-in{width:100px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; font-family:ui-monospace,Menlo,Consolas,monospace; background:#fff; min-height:0;}
+  .code-in::placeholder{text-transform:none; font-weight:500; color:#94a3b8; font-family:inherit; letter-spacing:0;}
+  .code-in.saving{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;} .code-in.saved{border-color:#16a34a; box-shadow:0 0 0 2px #dcfce7;} .code-in.failed{border-color:#dc2626; box-shadow:0 0 0 2px #fee2e2;}
+  .code-tag{display:inline-block; padding:2px 9px; border-radius:12px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; white-space:nowrap;}
+  @media (max-width:820px){ .code-in{width:100%; font-size:16px;} }
+  .cx-btn{display:block; white-space:nowrap; text-align:center; margin-top:4px; padding:3px 9px; min-height:0; width:auto; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid #f3c9c9; background:#fff; color:var(--bad-fg);}
+  .cx-btn:hover{background:#fdecec;} .cx-btn.undo{margin-top:0; border-color:#bfd3ff; color:#1d4ed8;} .cx-btn.undo:hover{background:#eef4ff;} .cx-btn:disabled{opacity:.5; cursor:default;}
+  .row-cx td{background:#faf5f5;}
+  /* Customer's extra mobile number box (under the customer's phone) */
+  .ph-in{display:block; width:112px; margin-top:5px; padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; background:#fff;}
+  .ph-in::placeholder{color:#94a3b8;}
+  #allocCard td:first-child .sub{white-space:nowrap;}
+  .ph-in.saving{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;} .ph-in.saved{border-color:#16a34a; box-shadow:0 0 0 2px #dcfce7;} .ph-in.failed{border-color:#dc2626; box-shadow:0 0 0 2px #fee2e2;}
+  @media (max-width:820px){ .ph-in{width:100%; font-size:16px; padding:8px 10px;} }
+  /* Add-on: extra products sold onto an order (same entry as the Performance page) */
+  .ad-wrap{display:flex; align-items:center; gap:6px 8px; flex-wrap:wrap;}
+  .ad-sum{font-size:12px; font-weight:700; color:var(--accent); text-decoration:none; white-space:nowrap;} .ad-sum span{color:var(--muted); font-weight:500;}
+  .ad-add{padding:3px 9px; min-height:0; width:auto; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; border:1px solid var(--line); background:var(--bg); color:var(--accent); white-space:nowrap;}
+  .ad-add:hover{background:#eef4ff;}
+  .ad-in{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;}
+  .ad-in[readonly]{background:var(--bg); color:var(--muted);}
+  @media (max-width:820px){ .ad-add{height:40px; font-size:13px;} .ad-in{font-size:16px;} }
+  @media (max-width:820px){ .cx-btn{width:100%; height:40px; font-size:13px;} }
+  .undo-btn{background:none; border:none; padding:4px 0; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; min-height:0;}
+  .house{display:inline-block; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap;}
+  .house.tmph{background:#dbeafe; color:#1d4ed8;}
+  .house.tmf{background:#fef3c7; color:#b45309;}
+  .house.tm4u{background:#ede9fe; color:#6d28d9;}
+  .house.tmsg{background:#dcfce7; color:#15803d;}
+  .house.tmh4{background:#ffe4e6; color:#be123c;}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; border:1px solid var(--line); font-size:12.5px; cursor:pointer; background:#fff; white-space:nowrap;}
-  .pill.on{background:var(--navy-900,#111827); color:#fff; border-color:var(--navy-900,#111827);}
-  .sel{padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff;}
-  .drop{border:2px dashed #c7d2fe; border-radius:12px; padding:30px 20px; text-align:center; background:#f8faff; color:var(--muted); font-size:13px; cursor:pointer;}
-  .drop.over{background:#eef2ff; border-color:#6366f1;} .drop b{color:#3730a3;}
-  .res{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:14px 0;}
-  .res > div{border:1px solid var(--line); border-radius:10px; padding:10px 12px;} .res .n{font-size:20px; font-weight:700;} .res .l{font-size:11px; color:var(--muted); text-transform:uppercase;}
-  .st{display:inline-block; padding:2px 9px; border-radius:10px; font-size:11.5px; font-weight:600; white-space:nowrap;}
-  .st.ok{background:#e7f7ee; color:#0f7a41;} .st.warn{background:#fdf3e3; color:#b45f06;} .st.bad{background:#fdecec; color:#c81e1e;} .st.skip{background:#f3f4f6; color:#6b7280;}
-  .stat-card .value small{font-size:12px; font-weight:500; color:var(--muted);}
+  .pill.on{background:var(--navy-900); color:#fff; border-color:var(--navy-900);}
+  .pill b{font-weight:700;}
+  .sub{font-size:11.5px; color:var(--muted);}
+  .src{display:inline-block; font-size:10.5px; color:#6b7280; background:#f3f4f6; border-radius:8px; padding:1px 7px; white-space:nowrap;}
+  .otype{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap;}
+  .otype.query{background:#e0f2fe; color:#0369a1;}
+  .otype.campaign{background:#fef3c7; color:#b45309;}
+  .row-done td{background:#f8fffb;}
+
+  /* searchable employee dropdown */
+  .emp-pick{position:relative; min-width:150px;}
+  .emp-pick input{width:100%; padding:7px 26px 7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff;}
+  .emp-pick input.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .emp-pick .caret{position:absolute; right:9px; top:9px; font-size:11px; color:#94a3b8; pointer-events:none;}
+  .emp-menu{position:fixed; z-index:30; margin:0; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 10px 30px rgba(15,23,42,.14); max-height:280px; overflow:auto; display:none;}
+  .emp-menu.open{display:block;}
+  .emp-menu .grp{padding:7px 10px 3px; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#94a3b8; background:#f8fafc; position:sticky; top:0;}
+  .emp-menu .opt{padding:7px 10px; font-size:13px; cursor:pointer; display:flex; justify-content:space-between; gap:8px;}
+  .emp-menu .opt:hover, .emp-menu .opt.hl{background:#eef2ff;}
+  .emp-menu .opt small{color:#94a3b8; font-size:11px;}
+  .emp-menu .none{padding:10px; font-size:12.5px; color:#94a3b8;}
   @media (max-width:820px){
-    .res{grid-template-columns:1fr 1fr;}
+    .sel, .emp-pick input{font-size:16px;}
+    .sel.inline{width:100%;}
+    .ok-btn{height:40px; width:100%;}
+    .emp-pick{min-width:0;}
   }
 </style>
 </head>
@@ -45,384 +110,706 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar">
-      <div><h1>Order Codes</h1><div class="sub" style="margin-top:2px;">Your code on every order (e.g. AG00123) · written as a Shopify tag</div></div>
+      <div><h1>Order Allocation</h1><div class="sub" style="margin-top:2px;">All orders — set the employee, the type and the panel each order counts under</div><div class="clr-totals" id="clrTotals" style="margin-top:6px;"></div></div>
       <div style="display:flex; gap:10px; align-items:center;">
         <input type="date" id="dateFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="date" id="dateTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <button class="btn secondary" id="btnToday">Today</button>
-        <button class="btn secondary" id="btnMonth">This month</button>
       </div>
     </div>
     <div class="content">
       <div id="alertBox"></div>
-
-      <div class="tabs">
-        <span class="tab on" data-p="orders">1 · Orders + Code</span>
-        <span class="tab" data-p="upload">2 · Bulk Excel Upload</span>
-      </div>
-
-      <!-- ================= 1. ORDERS ================= -->
-      <div class="pane on" id="p-orders">
-        <div class="stat-grid" id="statGrid" style="display:none;"></div>
-        <div class="card" id="ocOrdersCard">
-          <div class="card-head">
-            <h2 id="ordersTitle">Orders</h2>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <span class="pill on" data-f="all">All <b id="cntAll">0</b></span>
-              <span class="pill" data-f="none">No code <b id="cntNone">0</b></span>
-              <span class="pill" data-f="coded">With code <b id="cntCoded">0</b></span>
-              <select id="sourceFilter" class="sel" title="Filter by store"><option value="">All stores</option></select>
-              <div class="search-box"><input type="text" id="search" placeholder="Search order, customer, code..."></div>
-            </div>
+      <div class="card" id="allocCard">
+        <div class="card-head">
+          <h2 id="cardTitle">Orders</h2>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <span class="pill on" data-f="pending">Pending <b id="cntPending">0</b></span>
+            <span class="pill" data-f="done">Allocated <b id="cntDone">0</b></span>
+            <span class="pill" data-f="all">All <b id="cntAll">0</b></span>
+            <span class="pill" data-f="cancelled">Cancelled <b id="cntCancelled">0</b></span>
+            <select id="sourceFilter" class="sel inline" title="Filter by source"><option value="">All sources</option></select>
+            <select id="panelFilter" class="sel inline" title="Filter by panel"><option value="">All panels</option></select>
+            <select id="typeFilter" class="sel inline" title="Filter by type">
+              <option value="">All types</option>
+              <option value="query">Query</option>
+              <option value="campaign">Campaign</option>
+              <option value="none">No type</option>
+            </select>
+            <div class="search-box"><input type="text" id="search" placeholder="Search order, customer, mobile, employee..."></div>
           </div>
-          <table class="no-stack">
-            <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Store</th><th>Code (Shopify tag)</th></tr></thead>
-            <tbody id="tbody"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
-          </table>
-          <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
-            <span id="shownCount" class="sub"></span>
-            <button class="btn secondary" id="btnMore" style="width:auto; display:none;">Load more</button>
-          </div>
+        </div>
+        <div class="tscroll">
+        <table>
+          <thead><tr><th>Order</th><th style="width:112px;" title="Order code — type it here, or upload the Excel on the Order Codes page and it fills in">Code</th><th>Employee</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Type</th><th>Panel</th><th style="width:124px;" title="Ticket size convincing — same per-order rating as the Performance page">Rating</th><th id="thAddon" style="width:120px;" title="Extra products sold onto this order — same as the Add-on on the Performance page">Add-on</th><th style="width:84px;"></th></tr></thead>
+          <tbody id="tbody"><tr><td colspan="12" class="loading">Loading...</td></tr></tbody>
+        </table>
+        </div>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="shownCount" class="sub"></span>
+          <button class="btn secondary" id="btnMore" style="width:auto; display:none;">Load more</button>
         </div>
       </div>
-
-      <!-- ================= 2. BULK UPLOAD ================= -->
-      <div class="pane" id="p-upload">
-        <div class="card">
-          <div class="card-head"><h2>Upload Excel — Order ID → Code</h2><button class="btn secondary" id="btnSample" style="width:auto;">⬇ Sample .xlsx</button></div>
-          <div style="padding:16px 20px;">
-            <div class="drop" id="drop">
-              <div style="font-size:26px;">📄</div>
-              <b>Drop your .xlsx / .csv here</b> or click to choose<br>
-              <span class="sub">Columns: <b>Order ID</b> and <b>Code</b> (headings auto-detected; extra columns ignored). Order IDs are matched against orders dated <b id="dropRange">—</b> — change the dates above if the orders are older.</span>
-              <input type="file" id="file" accept=".xlsx,.xls,.csv" style="display:none;">
-            </div>
-            <div id="fileInfo" class="sub" style="margin-top:8px;"></div>
-          </div>
-        </div>
-
-        <div class="card" id="resCard" style="display:none;">
-          <div class="card-head"><h2>Matching result — <span class="sub" id="resTitle"></span></h2>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <label class="sub" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="onlyProblems"> Only problems</label>
-              <button class="btn secondary" id="btnProblems" style="width:auto;">⬇ Problem rows</button>
-              <button class="btn secondary" id="btnCancel" style="width:auto;">Cancel</button>
-              <button class="btn" id="btnApply" style="width:auto;">Apply</button>
-            </div></div>
-          <div style="padding:0 20px;"><div class="res" id="resCounts"></div></div>
-          <table class="no-stack">
-            <thead><tr><th>Row</th><th>Order ID (excel)</th><th>Matched order</th><th>Code</th><th>Status</th></tr></thead>
-            <tbody id="resBody"></tbody>
-          </table>
-          <div style="padding:14px 20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff8e6; border-top:1px solid #f0c36d;">
-            <span style="font-size:13px; color:#8a5a00;" id="applyNote">Saving matched rows to the database and writing Shopify tags…</span>
-            <button class="btn" id="btnApply2" style="width:auto; margin-left:auto;">Apply</button>
-          </div>
-        </div>
-
-        <div class="card" id="doneCard" style="display:none;">
-          <div style="padding:18px 20px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
-            <div style="font-size:28px;">✅</div>
-            <div><b id="doneMsg"></b><div class="sub" id="doneSub"></div></div>
-            <button class="btn secondary" style="width:auto; margin-left:auto;" onclick="go('orders')">View orders</button>
-          </div>
-        </div>
-      </div>
-
     </div>
   </main>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="assets/js/config.js?v=260929d"></script>
-<script src="assets/js/api.js?v=260929d"></script>
-<script src="assets/js/layout.js?v=260929d"></script>
+<div class="modal-overlay" id="addonModal">
+  <div class="modal wide">
+    <h3 id="addonTitle">Add-on</h3>
+    <div id="addonSub" style="font-size:12px; color:var(--muted); margin:-12px 0 16px;"></div>
+    <div id="addonModalAlert"></div>
+    <div class="field">
+      <label for="addonOrder">Original order</label>
+      <input type="text" id="addonOrder" class="ad-in" readonly>
+    </div>
+    <div style="margin-bottom:6px; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;">Products added</div>
+    <div style="display:grid; grid-template-columns:1fr 92px 58px 30px; gap:8px; margin-bottom:5px;">
+      <span style="font-size:10.5px; color:var(--muted);">Product</span>
+      <span style="font-size:10.5px; color:var(--muted);">Size (ML)</span>
+      <span style="font-size:10.5px; color:var(--muted);">Qty</span>
+      <span></span>
+    </div>
+    <div id="addonItems"></div>
+    <button type="button" id="btnAddonAddRow" class="btn secondary" style="width:auto; font-size:12.5px; padding:6px 12px;">+ Another product</button>
+    <div class="field" style="margin-top:18px; padding-top:14px; border-top:1px solid var(--line);">
+      <label for="addonPrice">Total add-on price</label>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <input type="number" id="addonPrice" min="0" step="1" placeholder="950" style="width:150px;">
+        <span id="addonCovers" style="font-size:11.5px; color:var(--muted);">for the products above</span>
+      </div>
+    </div>
+    <div class="actions" style="align-items:center; justify-content:space-between;">
+      <span style="font-size:12.5px; color:var(--muted);">Add-on total <b id="addonTotal" style="color:#0f7a41; font-size:15px;">₹0</b></span>
+      <span style="display:flex; gap:10px;">
+        <button type="button" class="btn secondary" id="btnAddonCancel">Cancel</button>
+        <button type="button" class="btn" id="btnAddonSave">Save add-on</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addonListModal">
+  <div class="modal">
+    <h3 id="addonListTitle">Add-ons</h3>
+    <div id="addonListSub" style="font-size:12px; color:var(--muted); margin:-12px 0 14px;"></div>
+    <div id="addonListBody"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="btnAddonListClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=260928b"></script>
+<script src="assets/js/api.js?v=260928b"></script>
+<script src="assets/js/layout.js?v=260928b"></script>
 <script>
   guardPage();
-  renderSidebar('order_codes');
+  renderSidebar('order_allocation');
 
   const alertBox = document.getElementById('alertBox');
+  let alertTimer = null;
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
-    setTimeout(() => (alertBox.innerHTML = ''), 5000);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    clearTimeout(alertTimer);
+    alertTimer = setTimeout(() => (alertBox.innerHTML = ''), 5000);
   }
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-  const normCode = (s) => String(s || '').toUpperCase().replace(/\s+/g, '');
-  const pad = (n) => String(n).padStart(2, '0');
-  const dstr = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  const todayStr = () => dstr(new Date());
-  const fmtD = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-  const fmtDT = (s) => { const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }); };
-  const range = () => ({ from: document.getElementById('dateFrom').value, to: document.getElementById('dateTo').value });
-  // A dropped connection ("Failed to fetch") is retried a couple of times
-  // before it is shown as an error — the server may just have been busy.
-  async function withRetry(fn, onRetry) {
-    for (let i = 0; ; i++) {
-      try { return await fn(); }
-      catch (err) {
-        if (i >= 2 || !/failed to fetch|networkerror|load failed/i.test(err.message)) throw err;
-        if (onRetry) onRetry(i + 1);
-        await new Promise(r => setTimeout(r, 1500 * (i + 1)));
-      }
-    }
+  const fmtT = (t) => t ? new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+  const fmtDT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  // ---------- Business-day timing (Admin: Targets → Day timing) ----------
+  // Same rule as the Orders page: a day runs from its start time (default 10:00)
+  // until the next day's start time, so "Today" is the day that is running now.
+  let DAY_START = ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+  const timingReady = api.get('day_timing.get').then(d => { if (Array.isArray(d.start) && d.start.length === 7) DAY_START = d.start; }).catch(() => {});
+  const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function bizDayOf(dt) {           // Date -> 'YYYY-MM-DD'
+    const d = new Date(dt);
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
+    return ymd(d);
   }
+  const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
+  function todayStr() { return bizDayOf(new Date()); }
 
-  // ---------- tabs ----------
-  const loaded = { orders: false };
-  window.go = function (p) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.p === p));
-    document.querySelectorAll('.pane').forEach(x => x.classList.toggle('on', x.id === 'p-' + p));
-    if (p === 'orders' && !loaded.orders) loadOrders();
-    if (p === 'upload') document.getElementById('dropRange').textContent = fmtD(range().from) + ' – ' + fmtD(range().to);
-    try { history.replaceState(null, '', '#' + p); } catch (e) {}
-  };
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => go(t.dataset.p)));
+  let HOUSES = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  let TYPES = { query: 'Query', campaign: 'Campaign' };
+  let SOURCES = {};
+  let EMPS = [];          // [{id, code, name, groups:[...]}]
+  let orders = [];
+  let filter = 'pending';
+  const PAGE = 20;
+  let limit = PAGE;
+  const pending = {};      // "source|id" -> {emp, house, type} chosen, not yet confirmed
 
-  // ---------- 1. orders ----------
-  let orders = [], SOURCES = {}, filter = 'all', limit = 50, dbCodes = null;
-  const PAGE = 50;
-  const codeCell = (o, i) => {
-    if (o.code) {
-      const via = o.code_via === 'excel' ? 'excel' : (o.code_via === 'shopify' ? 'from Shopify tag' : 'manual');
-      const who = o.code_by ? ' · ' + esc(o.code_by) : '';
-      const tag = o.can_tag ? (o.tag_written ? ' · tag ✓' : (o.tag_error ? ` · <span style="color:#c81e1e;" title="${esc(o.tag_error)}">tag ✗</span>` : '')) : '';
-      return `<span class="code">${esc(o.code)} <span class="x" title="Remove code" onclick="setCode(${i}, '')">×</span></span>
-        <button class="lnk" style="margin-left:6px;" onclick="editCode(${i})">edit</button>
-        <div class="sub">${via}${who}${tag}</div>`;
-    }
-    return `<span class="inl"><input id="ci${i}" placeholder="e.g. AG00123" onkeydown="if(event.key==='Enter'){setCode(${i}, this.value)}"><button class="btn" onclick="setCode(${i}, document.getElementById('ci${i}').value)">Save</button></span>`;
-  };
+  const key = (o) => o.store_key + '|' + o.id;
+  const pend = (k) => (pending[k] = pending[k] || {});
+  const empById = (id) => EMPS.find(e => e.id === Number(id));
+  // Effective choice for a pending row: what was picked, else what the order already says
+  // (employee from the order tag / panel salesman, panel from the store or house tag).
+  const effEmp = (o, p) => (p.emp !== undefined ? p.emp : (o.employee_id || 0));
+  const effHouse = (o, p) => (p.house !== undefined ? p.house : (o.house || ''));
+  const effType = (o, p) => (p.type !== undefined ? p.type : (o.order_type || ''));
+
   function matches(o) {
-    if (filter === 'none' && o.code) return false;
-    if (filter === 'coded' && !o.code) return false;
-    const src = document.getElementById('sourceFilter').value;
-    if (src && o.source !== src) return false;
+    if (filter === 'cancelled') { if (!o.cancelled) return false; }
+    else if (o.cancelled) return false;   // a cancelled order only shows under "Cancelled"
+    if (filter === 'pending' && o.allocated) return false;
+    if (filter === 'done' && !o.allocated) return false;
+    const sf = document.getElementById('sourceFilter').value;
+    if (sf && o.store_key !== sf) return false;
+    const pf = document.getElementById('panelFilter').value;
+    if (pf && (o.house || '') !== pf) return false;
+    const tf = document.getElementById('typeFilter').value;
+    if (tf === 'none' && (o.order_type || '')) return false;
+    if (tf && tf !== 'none' && (o.order_type || '') !== tf) return false;
     const q = document.getElementById('search').value.trim().toLowerCase();
     if (!q) return true;
-    return [o.order_name, o.customer, o.code, o.store, o.id].some(v => String(v || '').toLowerCase().includes(q));
+    const qd = q.replace(/\D/g, '');
+    return String(o.order_name || '').toLowerCase().includes(q)
+      || (o.salesman || '').toLowerCase().includes(q)
+      || (o.employee_code || '').toLowerCase().includes(q)
+      || String(o.code || '').toLowerCase().includes(q)
+      || (o.customer || '').toLowerCase().includes(q)
+      || (o.store || '').toLowerCase().includes(q)
+      || (qd.length >= 3 && (String(o.phone || '').replace(/\D/g, '').includes(qd) || String(o.extra_phone || '').replace(/\D/g, '').includes(qd)));
   }
-  function renderOrders() {
-    const tb = document.getElementById('tbody');
-    const all = orders.length, coded = orders.filter(o => o.code).length;
-    document.getElementById('cntAll').textContent = all; document.getElementById('cntNone').textContent = all - coded;
-    document.getElementById('cntCoded').textContent = coded;
-    const sg = document.getElementById('statGrid');
-    sg.style.display = 'grid';
-    sg.innerHTML = `
-      <div class="stat-card"><div class="label">Orders</div><div class="value">${all}</div></div>
-      <div class="stat-card"><div class="label">With code</div><div class="value" style="color:#0f7a41;">${coded} <small>${all ? Math.round(coded / all * 100) : 0}%</small></div></div>
-      <div class="stat-card"><div class="label">No code yet</div><div class="value" style="color:#b45f06;">${all - coded}</div></div>
-      <div class="stat-card" title="Rows in the order_codes table (all dates)"><div class="label">Saved in database</div><div class="value">${dbCodes === null ? '—' : dbCodes} <small>all dates</small></div></div>`;
-    const m = orders.filter(matches);
-    const shown = m.slice(0, limit);
-    document.getElementById('shownCount').textContent = m.length ? `Showing ${shown.length} of ${m.length}` : '';
-    document.getElementById('btnMore').style.display = shown.length < m.length ? 'inline-block' : 'none';
-    if (!shown.length) { tb.innerHTML = '<tr><td colspan="6" class="empty-state">No matching orders.</td></tr>'; return; }
-    tb.innerHTML = shown.map(o => {
-      const i = orders.indexOf(o);
-      return `<tr id="r${i}">
-        <td><b>${esc(o.order_name)}</b><div class="sub">${fmtDT(o.created_at)}</div></td>
-        <td>${esc(o.customer)}</td>
-        <td>${o.items}</td>
-        <td>${inr(o.total)}${o.financial_status ? `<div class="sub">${esc(o.financial_status)}</div>` : ''}</td>
-        <td>${esc(o.store)}${o.source_label !== o.store ? `<div class="sub">${esc(o.source_label)}</div>` : ''}</td>
-        <td>${codeCell(o, i)}</td>
-      </tr>`;
+
+  const options = (map, sel, blank) => `<option value="">${blank}</option>` +
+    Object.entries(map).map(([k, v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
+
+  // ---------- Per-order rating (Ticket size convincing, half stars = 1–10) ----------
+  const STAR_PATH = '<path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/>';
+  // The Employee role can only set Employee, Type and Panel on pending orders — no rating, no Undo,
+  // allocated rows locked. Admin / HR / Sales Head / other roles keep everything.
+  const IS_EMP = String((api.currentUser() || {}).role || '').trim().toLowerCase() === 'employee';
+  // The Employee role has no Add-on column at all (it can't add or see add-ons here).
+  const NCOL = IS_EMP ? 11 : 12;
+  if (IS_EMP) document.getElementById('thAddon').remove();
+  const RATE_WORDS = ['Not rated','Very poor','Poor','Weak','Fair','Okay','Good','Very good','Great','Excellent','Outstanding'];
+  function starCells(v) {
+    return Array.from({ length: 5 }, (_, i) => {
+      const f = Math.max(0, Math.min(2, v - i * 2));
+      return `<span class="rs-star"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#D6D3DF">${STAR_PATH}</g></svg><svg class="rs-fill" viewBox="0 0 24 24" aria-hidden="true" style="clip-path:inset(0 ${100 - f * 50}% 0 0);"><g fill="#E8A21C">${STAR_PATH}</g></svg></span>`;
     }).join('');
   }
-  window.editCode = function (i) {
-    const o = orders[i]; const old = o.code; o.code = '';
-    renderOrders();
-    const inp = document.getElementById('ci' + i); if (inp) { inp.value = old; inp.focus(); inp.select(); }
-    o.code = old; // restored on next render / cancel
-  };
-  window.setCode = async function (i, code) {
-    const o = orders[i]; code = normCode(code);
-    if (code === '' && !o.code) { renderOrders(); return; }
-    if (code !== '' && !/^[A-Z0-9_-]{2,40}$/.test(code)) { showAlert('Code can only have letters, numbers, - and _ (e.g. AG00123).', 'error'); return; }
-    if (code === '' && !confirm('Remove code ' + o.code + ' from ' + o.order_name + (o.can_tag ? ' (the Shopify tag is removed too)' : '') + '?')) { renderOrders(); return; }
-    const row = document.getElementById('r' + i); if (row) row.style.opacity = '.5';
+  function ratingCell(o, empSel) {
+    const v = o.ticket_rating == null ? 0 : Math.max(0, Math.min(10, Math.round(Number(o.ticket_rating))));
+    if (IS_EMP) return `<span class="rs ro" title="${v ? v / 2 + ' of 5' : 'Not rated'}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
+    const off = !empSel;
+    return `<span class="rs ${off ? 'off' : ''}" data-k="${key(o)}" data-val="${v}" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}"
+      title="${off ? 'Choose the employee first' : RATE_WORDS[v]}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
+  }
+  function paintStars(rs, v, preview) {
+    rs.querySelectorAll('.rs-star').forEach((st, i) => {
+      const f = Math.max(0, Math.min(2, v - i * 2));
+      st.querySelector('.rs-fill').style.clipPath = `inset(0 ${100 - f * 50}% 0 0)`;
+    });
+    rs.classList.toggle('rs-preview', !!preview);
+    rs.querySelector('.rs-num').textContent = v ? String(v / 2) : '—';
+    if (!rs.classList.contains('off')) rs.title = RATE_WORDS[v] || '';
+  }
+  async function saveStars(rs, v, starIdx) {
+    const o = orders.find(x => key(x) === rs.dataset.k);
+    if (!o) return;
+    const p = pending[rs.dataset.k] || {};
+    const emp = effEmp(o, p);
+    if (!emp) { showAlert('Choose the employee first, then rate the order.', 'error'); return; }
+    v = Math.max(1, Math.min(10, v));
+    if (Number(rs.dataset.val) === v) v = 0;                   // same value again = clear
+    const prev = o.ticket_rating;
+    rs.dataset.val = v; o.ticket_rating = v === 0 ? null : v;
+    paintStars(rs, v, false);
+    const st = rs.querySelectorAll('.rs-star')[starIdx];
+    if (st) { st.classList.remove('rs-pop'); void st.offsetWidth; st.classList.add('rs-pop'); }
     try {
-      const d = await api.post('order_codes.set', { source: o.source, order_id: String(o.id), order_name: o.order_name, code, old_code: o.code || '' });
-      Object.assign(o, { code: d.code, code_via: d.code_via, code_by: d.code_by, code_at: d.code_at, tag_written: d.tag_written, tag_error: d.tag_error });
-      renderOrders();
-      showAlert(d.message, d.tag_error ? 'error' : 'success');
-    } catch (err) { if (row) row.style.opacity = ''; showAlert(err.message, 'error'); }
+      await api.post('order_ratings.save', {
+        order_key: o.order_key || (o.store_key + ':' + o.id), order_name: o.order_name, employee_id: emp,
+        group_key: effHouse(o, p) || '', date: o.biz_date || (String(o.created_at || '').slice(0, 10)), field: 'ticket', value: v,
+      });
+    } catch (err) {
+      o.ticket_rating = prev; rs.dataset.val = prev == null ? 0 : Math.round(prev); paintStars(rs, Number(rs.dataset.val), false);
+      showAlert(err.message, 'error');
+    }
+  }
+  (function starEvents() {
+    function stepAt(rs, clientX) {
+      const row = rs.querySelector('.rs-stars').getBoundingClientRect();
+      const x = Math.max(0, Math.min(row.width - 0.01, clientX - row.left));
+      const per = row.width / 5; const i = Math.floor(x / per);
+      return { i, v: i * 2 + ((x - i * per) / per < 0.5 ? 1 : 2) };
+    }
+    document.addEventListener('mousemove', (e) => {
+      const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
+      const rs = stars.closest('.rs'); if (rs.classList.contains('off') || rs.classList.contains('ro')) return;
+      paintStars(rs, stepAt(rs, e.clientX).v, true);
+    });
+    document.addEventListener('mouseout', (e) => {
+      const rs = e.target.closest && e.target.closest('.rs');
+      if (!rs || rs.classList.contains('ro') || (e.relatedTarget && rs.contains(e.relatedTarget))) return;
+      paintStars(rs, Number(rs.dataset.val), false);
+    });
+    document.addEventListener('click', (e) => {
+      const stars = e.target.closest && e.target.closest('.rs-stars'); if (!stars) return;
+      const rs = stars.closest('.rs');
+      if (rs.classList.contains('ro')) return;
+      if (rs.classList.contains('off')) { showAlert('Choose the employee first, then rate the order.', 'error'); return; }
+      const { i, v } = stepAt(rs, e.clientX); saveStars(rs, v, i);
+    });
+    document.addEventListener('keydown', (e) => {
+      const rs = e.target.closest && e.target.closest('.rs'); if (!rs || rs.classList.contains('off') || rs.classList.contains('ro')) return;
+      const v = Number(rs.dataset.val);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); saveStars(rs, v + 1, Math.ceil((v + 1) / 2) - 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); if (v > 1) saveStars(rs, v - 1, Math.ceil((v - 1) / 2) - 1); }
+    });
+  })();
+
+  // ---- Product colour (from the product name: DG / LG / WH, anything else = Other)
+  const CLR = [['dg', 'DG', 'Dark Green'], ['lg', 'LG', 'Light Green'], ['wh', 'WH', 'White'], ['other', 'Other', 'Other']];
+  const clrCls = (k) => (k === 'other' ? 'clr-ot' : 'clr-' + k);
+  const clrOf = (o) => o.colors || { dg: 0, lg: 0, wh: 0, other: 0 };
+  function clrLine(o) {
+    const c = clrOf(o);
+    const h = CLR.filter(([k]) => c[k] > 0).map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${c[k]}</span>`).join('');
+    return h ? `<div class="clr-line">${h}</div>` : '';
+  }
+  function renderColorTotals(list) {
+    const tot = { dg: 0, lg: 0, wh: 0, other: 0 };
+    list.forEach(o => { const c = clrOf(o); CLR.forEach(([k]) => { tot[k] += Number(c[k] || 0); }); });
+    document.getElementById('clrTotals').innerHTML = CLR.map(([k, s, name]) => `<span title="${name}"><i class="${clrCls(k)}"></i>${s} ${tot[k]}</span>`).join('');
+  }
+
+  // Extra mobile number of the customer — type it here; saved on Enter / when you leave the box.
+  function phoneBox(o) {
+    if (o.cancelled) return o.extra_phone ? `<div class="sub">+ ${esc(o.extra_phone)}</div>` : '';
+    return `<input type="tel" inputmode="tel" class="ph-in" data-k="${key(o)}" maxlength="16" value="${esc(o.extra_phone || '')}" placeholder="Extra mobile no." autocomplete="off" spellcheck="false" title="Customer's extra mobile number">`;
+  }
+  async function savePhone(inp) {
+    const o = orders.find(x => key(x) === inp.dataset.k);
+    if (!o) return;
+    const ph = inp.value.replace(/[\s().-]+/g, '');
+    inp.value = ph;
+    if (ph === String(o.extra_phone || '')) return;
+    if (ph && !/^\+?\d{10,15}$/.test(ph)) { inp.classList.add('failed'); showAlert('Enter a valid mobile number (10 to 15 digits).', 'error'); return; }
+    inp.classList.remove('saved', 'failed'); inp.classList.add('saving'); inp.disabled = true;
+    try {
+      await api.post('order_phone.set', { source: o.store_key, order_id: String(o.id), order_name: o.order_name, phone: ph });
+      o.extra_phone = ph;
+      inp.classList.remove('saving'); inp.classList.add('saved'); setTimeout(() => inp.classList.remove('saved'), 1200);
+    } catch (err) {
+      inp.value = o.extra_phone || ''; inp.classList.remove('saving'); inp.classList.add('failed'); setTimeout(() => inp.classList.remove('failed'), 2500);
+      showAlert(err.message, 'error');
+    }
+    inp.disabled = false;
+  }
+  document.addEventListener('change', (e) => { if (e.target.classList && e.target.classList.contains('ph-in')) savePhone(e.target); });
+  document.addEventListener('keydown', (e) => {
+    if (!e.target.classList || !e.target.classList.contains('ph-in')) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    else if (e.key === 'Escape') { const o = orders.find(x => key(x) === e.target.dataset.k); e.target.value = o ? (o.extra_phone || '') : ''; e.target.blur(); }
+  });
+
+  function rowHtml(o) {
+    const k = key(o);
+    const p = pending[k] || {};
+    const empSel = effEmp(o, p);
+    const houseSel = effHouse(o, p);
+    const empObj = empById(empSel);
+    const hint = o.employee_from ? `${esc(o.employee_from)}: ${esc(o.salesman || '')}` : (o.broadcast ? 'broadcast ' + esc(o.broadcast) : 'no employee on order');
+    // Employee role on the "All" tab: every row is view-only, like Allocated (edit on the Pending tab).
+    const lock = o.allocated || !!o.cancelled || (IS_EMP && filter === 'all');
+    const empCell = lock
+      ? (o.allocated ? `${esc(o.salesman || '—')}<div class="sub">${esc(o.employee_code || '')}</div>` : `${esc(empObj ? empObj.name : (o.salesman || '—'))}<div class="sub">${hint}</div>`)
+      : `<div class="emp-pick" data-k="${k}">
+           <input type="text" placeholder="Search employee..." value="${empObj ? esc(empObj.name) : ''}" data-id="${empObj ? empObj.id : ''}" class="${p.emp !== undefined ? 'changed' : ''}" autocomplete="off">
+           <span class="caret">▼</span>
+           <div class="emp-menu"></div>
+         </div><div class="sub">${hint}</div>`;
+    const shownType = o.allocated ? o.order_type : effType(o, p);
+    const typeCell = lock
+      ? (shownType ? `<span class="otype ${shownType}">${esc(TYPES[shownType] || shownType)}</span>` : '<span class="sub">—</span>')
+      : `<select class="sel ${p.type ? 'changed' : ''}" onchange="pickType('${k}', this.value)">${options(TYPES, effType(o, p), '— Type —')}</select>`;
+    const panelCell = lock
+      ? (o.allocated ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
+         <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>` : (houseSel ? `<span class="house ${houseSel}">${esc(HOUSES[houseSel] || houseSel)}</span>` : '<span class="sub">—</span>'))
+      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
+    const ready = !o.allocated && houseSel && empSel;
+    const action = o.cancelled ? '' : o.allocated
+      ? (IS_EMP ? '' : `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`)
+      : lock ? ''
+      : `<button type="button" class="ok-btn" title="${ready ? 'Confirm' : 'Choose employee and panel first'}" ${ready ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>`;
+    // Cancel / Undo cancel (saved in HRMS only — the Shopify order is not changed). Not for the Employee role.
+    const cx = IS_EMP ? '' : (o.cancelled
+      ? `<button type="button" class="cx-btn undo" onclick="cancelOrder('${k}', false, this)">↶ Undo</button><div class="sub">cancelled${o.cancelled.by ? ' by ' + esc(o.cancelled.by) : ''}</div>`
+      : `<button type="button" class="cx-btn" onclick="cancelOrder('${k}', true, this)">✕ Cancel</button>`);
+    return `<tr class="${o.cancelled ? 'row-cx' : (o.allocated ? 'row-done' : '')}" data-k="${k}">
+      <td><b>${esc(o.order_name)}</b><div class="sub">${fmtT(o.created_at)} <span class="src">${esc(o.source_label || o.store_src || o.store)}</span></div></td>
+      <td>${o.cancelled ? (o.code ? `<span class="code-tag">${esc(o.code)}</span>` : '<span class="sub">—</span>') : `<input type="text" class="code-in" data-k="${k}" maxlength="40" value="${esc(o.code || '')}" placeholder="Ex:-Og12345" autocomplete="off" spellcheck="false">`}</td>
+      <td>${empCell}</td>
+      <td>${esc(o.customer || 'Guest')}<div class="sub">${esc(o.phone || '')}</div>${phoneBox(o)}</td>
+      <td>${o.items}${clrLine(o)}</td>
+      <td><b>${inr(o.total)}</b></td>
+      <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${esc(o.financial_status || '—')}</span></td>
+      <td>${typeCell}</td>
+      <td>${panelCell}</td>
+      <td>${ratingCell(o, empSel)}</td>
+      ${IS_EMP ? '' : `<td>${addonCell(o)}</td>`}
+      <td>${action}${cx}</td>
+    </tr>`;
+  }
+
+  // ---- Order code: type it here (saved on Enter / when you leave the box). Codes uploaded from the Excel on the
+  // Order Codes page are already filled in. Saved in the same place as the Order Codes page, and written as a Shopify tag.
+  async function saveCode(inp) {
+    const o = orders.find(x => key(x) === inp.dataset.k);
+    if (!o) return;
+    const code = inp.value.trim().toUpperCase().replace(/\s+/g, '');
+    inp.value = code;
+    if (code === String(o.code || '')) return;
+    if (code && !/^[A-Z0-9_-]{2,40}$/.test(code)) { inp.classList.add('failed'); showAlert('Code can only have letters, numbers, - and _ (e.g. AG00123).', 'error'); return; }
+    inp.classList.remove('saved', 'failed'); inp.classList.add('saving'); inp.disabled = true;
+    try {
+      const r = await api.post('order_codes.set', { source: o.store_key, order_id: String(o.id), order_name: o.order_name, code, old_code: o.code || '' });
+      o.code = code;
+      inp.classList.remove('saving'); inp.classList.add('saved'); setTimeout(() => inp.classList.remove('saved'), 1200);
+      if (r && r.tag_error) showAlert(r.message, 'error');
+    } catch (err) {
+      inp.value = o.code || ''; inp.classList.remove('saving'); inp.classList.add('failed'); setTimeout(() => inp.classList.remove('failed'), 2500);
+      showAlert(err.message, 'error');
+    }
+    inp.disabled = false;
+  }
+  document.addEventListener('change', (e) => { if (e.target.classList && e.target.classList.contains('code-in')) saveCode(e.target); });
+  document.addEventListener('keydown', (e) => {
+    if (!e.target.classList || !e.target.classList.contains('code-in')) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    else if (e.key === 'Escape') { const o = orders.find(x => key(x) === e.target.dataset.k); e.target.value = o ? (o.code || '') : ''; e.target.blur(); }
+  });
+
+  // ---------- Add-on: extra products sold onto an order ----------
+  // Saved in the same place as the Performance page's Add-on (so it shows there too, under the order's employee and
+  // day). Not for the Employee role — no column, and the server refuses it as well.
+  let addonRows = [];
+  async function loadAddons(from, to) {
+    addonRows = [];
+    if (IS_EMP) return;
+    try { addonRows = (await api.get('addons.list', { date_from: from, date_to: to })).addons || []; } catch (err) { addonRows = []; }
+  }
+  const adNm = (s) => String(s == null ? '' : s).replace(/^#/, '').trim().toLowerCase();
+  const adHouse = (o) => effHouse(o, pending[key(o)] || {});
+  const adDate = (o) => o.biz_date || String(o.created_at || '').slice(0, 10);
+  // One add-on = the products saved together (they share an addon_group and one price).
+  function adGroups(o) {
+    const h = adHouse(o), g = {}, ord = [];
+    addonRows.filter(a => adNm(a.order_name) === adNm(o.order_name) && (!a.group_key || !h || a.group_key === h)).forEach(a => {
+      const k = a.addon_group || ('single-' + a.addon_id);
+      if (!g[k]) { g[k] = { key: k, addon_id: a.addon_id, price: 0, items: [] }; ord.push(k); }
+      g[k].price += Number(a.price); g[k].items.push(a);
+    });
+    return ord.map(k => g[k]);
+  }
+  function addonCell(o) {
+    const g = adGroups(o);
+    const sum = g.length ? `<a href="#" class="ad-sum" onclick="showAddons('${key(o)}'); return false;" title="View add-ons">${inr(g.reduce((t, x) => t + x.price, 0))} <span>· ${g.length}</span></a>` : '';
+    const add = o.cancelled ? '' : `<button type="button" class="ad-add" onclick="openAddon('${key(o)}')">+ Add</button>`;
+    return `<div class="ad-wrap">${sum}${add}${sum || add ? '' : '<span class="sub">—</span>'}</div>`;
+  }
+  function addonItemRow() {
+    return `<div class="addon-item" style="display:grid; grid-template-columns:1fr 92px 58px 30px; gap:8px; margin-bottom:7px;">
+      <input type="text" class="ad-in ad-name" placeholder="Product name">
+      <input type="text" class="ad-in ad-size" placeholder="">
+      <input type="number" class="ad-in ad-qty" value="1" min="1" style="padding:8px 6px; text-align:center;">
+      <button type="button" onclick="this.closest('.addon-item').remove(); recalcAddonTotal();" title="Remove this product"
+        style="width:30px; height:34px; padding:0; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--bad-fg); cursor:pointer; font-size:14px; min-height:0;">&times;</button>
+    </div>`;
+  }
+  window.recalcAddonTotal = function () {
+    const named = [...document.querySelectorAll('#addonItems .addon-item')].filter(r => r.querySelector('.ad-name').value.trim()).length;
+    document.getElementById('addonCovers').textContent = named === 0 ? 'for the products above' : `for ${named} product${named === 1 ? '' : 's'} above`;
+    const price = Number(document.getElementById('addonPrice').value || 0);
+    document.getElementById('addonTotal').textContent = price > 0 ? inr(price) : '₹0';
   };
-  async function loadOrders() {
-    const { from, to } = range();
+  let addonKey = '';
+  window.openAddon = function (k) {
+    const o = orders.find(x => key(x) === k);
+    if (!o || IS_EMP) return;
+    const emp = effEmp(o, pending[k] || {});
+    if (!emp) { showAlert('Choose the employee first, then add the add-on.', 'error'); return; }
+    const e = empById(emp), h = adHouse(o);
+    addonKey = k;
+    document.getElementById('addonTitle').textContent = 'Add-on for ' + (e ? e.name : 'employee');
+    document.getElementById('addonSub').textContent = new Date(adDate(o) + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' }) + (h ? ' · ' + (HOUSES[h] || h) : '');
+    document.getElementById('addonOrder').value = o.order_name || '';
+    document.getElementById('addonItems').innerHTML = addonItemRow() + addonItemRow();
+    document.getElementById('addonPrice').value = '';
+    document.getElementById('addonModalAlert').innerHTML = '';
+    recalcAddonTotal();
+    document.getElementById('addonModal').classList.add('open');
+  };
+  const closeAddon = () => document.getElementById('addonModal').classList.remove('open');
+  window.showAddons = function (k) {
+    const o = orders.find(x => key(x) === k);
+    if (!o) return;
+    const g = adGroups(o);
+    document.getElementById('addonListTitle').textContent = (o.order_name || '') + ' · add-ons';
+    document.getElementById('addonListSub').textContent = `${g.length} add-on${g.length === 1 ? '' : 's'} · ${inr(g.reduce((t, x) => t + x.price, 0))}`;
+    document.getElementById('addonListBody').innerHTML = g.length ? g.map(x => `<div style="padding:9px 0; border-bottom:1px solid var(--line);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+          <span style="color:var(--accent); font-size:12.5px;">${esc((x.items[0] || {}).created_by || '')}</span>
+          <span style="display:flex; align-items:center; gap:10px;">
+            <b style="font-size:13px;">${inr(x.price)}</b>
+            <button type="button" onclick="deleteAddon('${esc(x.key)}', ${Number(x.addon_id)})" title="Remove this add-on" style="background:none; border:none; cursor:pointer; color:var(--bad-fg); font-size:14px; padding:0; min-height:0;">&times;</button>
+          </span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:3px;">${x.items.map(it => `${esc(it.product_name)}${it.size_ml ? ' ' + esc(it.size_ml) + ' ML' : ''}${Number(it.qty) > 1 ? ' ×' + Number(it.qty) : ''}`).join(' · ')}</div>
+      </div>`).join('') : '<div class="empty-state" style="padding:20px;">No add-ons for this order.</div>';
+    document.getElementById('addonListModal').classList.add('open');
+  };
+  window.deleteAddon = async function (groupKey, fallbackId) {
+    if (!confirm('Remove this add-on and all its products?')) return;
+    try {
+      await api.post('addons.delete', String(groupKey).startsWith('single-') ? { addon_id: fallbackId } : { addon_group: groupKey });
+      await loadAddons(document.getElementById('dateFrom').value, document.getElementById('dateTo').value);
+      document.getElementById('addonListModal').classList.remove('open');
+      render();
+      showAlert('Add-on removed.');
+    } catch (err) { showAlert(err.message, 'error'); }
+  };
+  document.getElementById('btnAddonAddRow').addEventListener('click', () => document.getElementById('addonItems').insertAdjacentHTML('beforeend', addonItemRow()));
+  document.getElementById('btnAddonCancel').addEventListener('click', closeAddon);
+  document.getElementById('addonModal').addEventListener('click', (e) => { if (e.target.id === 'addonModal') closeAddon(); });
+  document.getElementById('btnAddonListClose').addEventListener('click', () => document.getElementById('addonListModal').classList.remove('open'));
+  document.getElementById('addonListModal').addEventListener('click', (e) => { if (e.target.id === 'addonListModal') e.currentTarget.classList.remove('open'); });
+  document.getElementById('addonItems').addEventListener('input', (e) => { if (e.target.classList.contains('ad-name')) recalcAddonTotal(); });
+  document.getElementById('addonPrice').addEventListener('input', recalcAddonTotal);
+  document.getElementById('btnAddonSave').addEventListener('click', async () => {
+    const box = document.getElementById('addonModalAlert');
+    const o = orders.find(x => key(x) === addonKey);
+    if (!o || IS_EMP) return;
+    const items = [];
+    document.querySelectorAll('#addonItems .addon-item').forEach(row => {
+      const name = row.querySelector('.ad-name').value.trim();
+      if (!name) return;   // blank spare rows are ignored
+      items.push({ product_name: name, size_ml: row.querySelector('.ad-size').value.trim(), qty: Math.max(1, Number(row.querySelector('.ad-qty').value || 1)) });
+    });
+    if (!items.length) { box.innerHTML = '<div class="alert error">Enter at least one product name.</div>'; return; }
+    const totalPrice = Number(document.getElementById('addonPrice').value || 0);
+    if (!(totalPrice > 0)) { box.innerHTML = '<div class="alert error">Enter the total add-on price.</div>'; return; }
+    const btn = document.getElementById('btnAddonSave');
+    btn.disabled = true;
+    try {
+      const d = await api.post('addons.save', { employee_id: effEmp(o, pending[addonKey] || {}), date: adDate(o), group_key: adHouse(o) || '', order_name: o.order_name, total_price: totalPrice, items });
+      closeAddon();
+      showAlert(d.message || 'Add-on saved.');
+      await loadAddons(document.getElementById('dateFrom').value, document.getElementById('dateTo').value);
+      render();
+    } catch (err) { box.innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // A fixed menu must not float away from its input when the page scrolls.
+  ['scroll', 'resize'].forEach(ev => window.addEventListener(ev, () => document.querySelectorAll('.emp-menu.open').forEach(m => m.classList.remove('open')), true));
+
+  function render() {
+    const shown = orders.filter(matches);
+    renderColorTotals(shown);
+    const live = orders.filter(o => !o.cancelled);
+    const done = live.filter(o => o.allocated).length;
+    document.getElementById('cntPending').textContent = live.length - done;
+    document.getElementById('cntDone').textContent = done;
+    document.getElementById('cntAll').textContent = live.length;
+    document.getElementById('cntCancelled').textContent = orders.length - live.length;
+    document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.f === filter));
+    const tbody = document.getElementById('tbody');
+    if (!shown.length) {
+      tbody.innerHTML = `<tr><td colspan="${NCOL}" class="empty-state">${orders.length ? (filter === 'pending' ? 'Every order for these dates is allocated ✓' : (filter === 'cancelled' ? 'No cancelled orders.' : 'No matching orders.')) : 'No orders for these dates.'}</td></tr>`;
+      document.getElementById('shownCount').textContent = '';
+      document.getElementById('btnMore').style.display = 'none';
+    } else {
+      const n = Math.min(limit, shown.length);
+      tbody.innerHTML = shown.slice(0, n).map(rowHtml).join('');
+      tbody.querySelectorAll('.emp-pick').forEach(initEmpPick);
+      document.getElementById('shownCount').textContent = `Showing ${n} of ${shown.length}`;
+      document.getElementById('btnMore').style.display = n >= shown.length ? 'none' : 'inline-block';
+    }
+  }
+
+  // ---- searchable employee dropdown, grouped panel-wise
+  function empMenuHtml(q) {
+    q = (q || '').toLowerCase().trim();
+    const hit = (e) => !q || e.name.toLowerCase().includes(q) || String(e.code || '').toLowerCase().includes(q);
+    const opt = (e) => `<div class="opt" data-id="${e.id}"><span>${esc(e.name)}</span><small>${esc(e.code || '')}</small></div>`;
+    let html = '';
+    Object.keys(HOUSES).forEach(h => {
+      const rows = EMPS.filter(e => (e.groups || []).includes(h) && hit(e));
+      if (rows.length) html += `<div class="grp">${esc(HOUSES[h])}</div>` + rows.map(opt).join('');
+    });
+    const other = EMPS.filter(e => !(e.groups || []).some(g => HOUSES[g]) && hit(e));
+    if (other.length) html += `<div class="grp">Other employees</div>` + other.map(opt).join('');
+    return html || '<div class="none">No employee matches</div>';
+  }
+
+  function initEmpPick(box) {
+    const k = box.dataset.k, inp = box.querySelector('input'), menu = box.querySelector('.emp-menu');
+    // The menu is fixed-positioned under its input so the card's sideways
+    // scroll area never clips it.
+    const place = () => { const r = inp.getBoundingClientRect(); menu.style.left = r.left + 'px'; menu.style.top = (r.bottom + 4) + 'px'; menu.style.width = Math.max(r.width, 220) + 'px'; };
+    const open = () => { menu.innerHTML = empMenuHtml(inp.value === (empById(inp.dataset.id) || {}).name ? '' : inp.value); place(); menu.classList.add('open'); };
+    inp.addEventListener('focus', () => { inp.select(); open(); });
+    inp.addEventListener('input', () => { inp.dataset.id = ''; menu.innerHTML = empMenuHtml(inp.value); place(); menu.classList.add('open'); });
+    inp.addEventListener('keydown', (e) => {
+      const opts = [...menu.querySelectorAll('.opt')];
+      let i = opts.findIndex(o => o.classList.contains('hl'));
+      if (e.key === 'ArrowDown') { e.preventDefault(); i = Math.min(opts.length - 1, i + 1); opts.forEach(o => o.classList.remove('hl')); if (opts[i]) { opts[i].classList.add('hl'); opts[i].scrollIntoView({ block: 'nearest' }); } }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); i = Math.max(0, i - 1); opts.forEach(o => o.classList.remove('hl')); if (opts[i]) { opts[i].classList.add('hl'); opts[i].scrollIntoView({ block: 'nearest' }); } }
+      else if (e.key === 'Enter') { e.preventDefault(); const o = opts[i] || opts[0]; if (o) choose(o.dataset.id); }
+      else if (e.key === 'Escape') { menu.classList.remove('open'); inp.blur(); }
+    });
+    menu.addEventListener('mousedown', (e) => { const o = e.target.closest('.opt'); if (!o) return; e.preventDefault(); choose(o.dataset.id); });
+    inp.addEventListener('blur', () => setTimeout(() => {
+      menu.classList.remove('open');
+      // Typed text that wasn't picked: fall back to the last chosen employee.
+      const e = empById(inp.dataset.id);
+      inp.value = e ? e.name : '';
+      if (!e) { pend(k).emp = 0; refreshOk(k); }
+    }, 120));
+    function choose(id) {
+      const e = empById(id);
+      if (!e) return;
+      inp.value = e.name; inp.dataset.id = e.id; inp.classList.add('changed');
+      menu.classList.remove('open');
+      pend(k).emp = e.id;
+      refreshOk(k);
+      inp.blur();
+    }
+  }
+
+  function refreshOk(k) {
+    const tr = document.querySelector(`tr[data-k="${k}"]`);
+    const o = orders.find(x => key(x) === k);
+    if (!tr || !o) return;
+    const p = pending[k] || {};
+    tr.querySelector('.ok-btn').disabled = !(effHouse(o, p) && effEmp(o, p));
+    // Stars unlock as soon as an employee is chosen.
+    const rs = tr.querySelector('.rs');
+    if (rs) { const off = !effEmp(o, p); rs.classList.toggle('off', off); rs.title = off ? 'Choose the employee first' : (RATE_WORDS[Number(rs.dataset.val)] || ''); }
+  }
+
+  window.pickType = function (k, t) {
+    pend(k).type = t || '';
+    const tr = document.querySelector(`tr[data-k="${k}"]`);
+    if (tr) tr.querySelectorAll('select.sel')[0].classList.toggle('changed', !!t);
+  };
+
+  window.pickHouse = function (k, house) {
+    pend(k).house = house || '';
+    const tr = document.querySelector(`tr[data-k="${k}"]`);
+    if (tr) tr.querySelectorAll('select.sel')[1].classList.toggle('changed', !!house);
+    refreshOk(k);
+  };
+
+  window.confirmAlloc = async function (k, btn) {
+    const o = orders.find(x => key(x) === k);
+    if (!o) return;
+    const p = pending[k] || {};
+    const emp = effEmp(o, p), house = effHouse(o, p);
+    if (!house || !emp) return;
+    btn.disabled = true;
+    try {
+      const type = effType(o, p);
+      const d = await api.post('allocation.set', { source: o.store_key, order_id: String(o.id), house, order_type: type, employee_id: emp });
+      const e = empById(emp);
+      o.allocated = 1; o.allocated_house = house; o.house = house; o.order_type = type;
+      o.allocated_emp = emp; o.employee_id = emp; o.salesman = d.employee_name || (e ? e.name : o.salesman); o.employee_code = e ? e.code : o.employee_code;
+      o.allocated_by = d.allocated_by; o.allocated_at = d.allocated_at;
+      o.store_src = o.store_src || o.store; o.store = HOUSES[house];
+      delete pending[k];
+      showAlert(d.message);
+      render();
+    } catch (err) {
+      btn.disabled = false;
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.cancelOrder = async function (k, cancel, btn) {
+    const o = orders.find(x => key(x) === k);
+    if (!o) return;
+    btn.disabled = true;
+    try {
+      const d = await api.post('orders.cancel', { source: o.store_key, order_id: String(o.id), order_name: o.order_name, cancel: cancel ? 1 : 0 });
+      o.cancelled = cancel ? { by: d.by || '', at: d.at || '' } : null;
+      showAlert(d.message);
+      render();
+    } catch (err) {
+      btn.disabled = false;
+      showAlert(err.message, 'error');
+    }
+  };
+
+  window.undoAlloc = async function (k, btn) {
+    const o = orders.find(x => key(x) === k);
+    if (!o) return;
+    if (!confirm(`Remove the allocation of ${o.order_name}?`)) return;
+    btn.disabled = true;
+    try {
+      const d = await api.post('allocation.set', { source: o.store_key, order_id: String(o.id), house: '' });
+      showAlert(d.message);
+      await load();   // re-read: employee / panel go back to what the order itself says
+    } catch (err) {
+      btn.disabled = false;
+      showAlert(err.message, 'error');
+    }
+  };
+
+  function fillFilters() {
+    const sf = document.getElementById('sourceFilter'), pf = document.getElementById('panelFilter');
+    const sv = sf.value, pv = pf.value;
+    sf.innerHTML = '<option value="">All sources</option>' + Object.entries(SOURCES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    pf.innerHTML = '<option value="">All panels</option>' + Object.entries(HOUSES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    sf.value = sv; pf.value = pv;
+  }
+
+  async function load() {
+    const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
     if (!from || !to) return;
     if (from > to) { showAlert('"From" date must be before "To" date.', 'error'); return; }
-    loaded.orders = true;
-    document.getElementById('ordersTitle').textContent = 'Orders — ' + (from === to ? fmtD(from) : fmtD(from) + ' to ' + fmtD(to));
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+    const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+    // The window shown: from the first day's start time to the next day's start time after the last day (default 10 AM → next day 10 AM).
+    const endD = new Date(to + 'T00:00:00'); endD.setDate(endD.getDate() + 1);
+    const startAt = (d) => fmtHM(DAY_START[new Date(d + 'T00:00:00').getDay()]);
+    document.getElementById('cardTitle').textContent = 'Orders — ' + fmt(from) + ', ' + startAt(from) + ' → ' + fmt(ymd(endD)) + ', ' + startAt(ymd(endD));
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="${NCOL}" class="loading">Loading...</td></tr>`;
     try {
-      const d = await withRetry(() => api.get('order_codes.list', { date_from: from, date_to: to }),
-        (n) => { document.getElementById('tbody').innerHTML = `<tr><td colspan="6" class="loading">Server busy — retrying (${n})…</td></tr>`; });
-      orders = d.orders || []; SOURCES = d.sources || {}; dbCodes = d.db_codes ?? null;
-      if (d.db_error) showAlert(d.db_error, 'error');
-      const sf = document.getElementById('sourceFilter'); const cur = sf.value;
-      sf.innerHTML = '<option value="">All stores</option>' + Object.entries(SOURCES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
-      sf.value = cur;
+      const d = await api.get('allocation.list', { date_from: from, date_to: to });
+      orders = d.orders || [];
+      if (d.houses) HOUSES = d.houses;
+      if (d.types) TYPES = d.types;
+      if (d.sources) SOURCES = d.sources;
+      if (d.employees) EMPS = d.employees;
+      fillFilters();
       (d.errors || []).forEach(e => showAlert(e, 'error'));
-      limit = PAGE; renderOrders();
+      await loadAddons(from, to);
+      limit = PAGE;
+      render();
     } catch (err) {
-      document.getElementById('tbody').innerHTML = `<tr><td colspan="6"><div class="alert error">${esc(err.message)}</div></td></tr>`;
+      document.getElementById('tbody').innerHTML = `<tr><td colspan="${NCOL}"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
-  document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => { document.querySelectorAll('.pill').forEach(x => x.classList.toggle('on', x === p)); filter = p.dataset.f; limit = PAGE; renderOrders(); }));
-  let st = null;
-  document.getElementById('search').addEventListener('input', () => { clearTimeout(st); st = setTimeout(() => { limit = PAGE; renderOrders(); }, 150); });
-  document.getElementById('sourceFilter').addEventListener('change', () => { limit = PAGE; renderOrders(); });
-  document.getElementById('btnMore').addEventListener('click', () => { limit += PAGE; renderOrders(); });
 
-  // ---------- 2. bulk upload ----------
-  let preview = null;
-  const drop = document.getElementById('drop'), fileIn = document.getElementById('file');
-  drop.addEventListener('click', () => fileIn.click());
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-  fileIn.addEventListener('change', () => { if (fileIn.files[0]) handleFile(fileIn.files[0]); fileIn.value = ''; });
-
-  // Find the "Order ID" and "Code" columns by their headings (any wording
-  // containing order / id and code / tag); fall back to columns A and B.
-  function rowsFromSheet(aoa) {
-    const rows = aoa.filter(r => r && r.some(c => String(c ?? '').trim() !== ''));
-    if (!rows.length) return [];
-    const head = rows[0].map(c => String(c ?? '').trim().toLowerCase());
-    let oi = head.findIndex(h => /order|invoice|#/.test(h) && !/code|tag/.test(h));
-    let ci = head.findIndex(h => /code|tag/.test(h));
-    let start = 1;
-    if (oi < 0 || ci < 0) { oi = 0; ci = 1; start = /^[a-z ]+$/.test(head[0]) && /^[a-z ]+$/.test(head[1] || '') ? 1 : 0; }
-    const out = [];
-    for (let r = start; r < rows.length; r++) {
-      const id = rows[r][oi], code = rows[r][ci];
-      if (String(id ?? '').trim() === '' && String(code ?? '').trim() === '') continue;
-      out.push({ row: r + 1, order_id: String(id ?? '').trim(), code: String(code ?? '').trim() });
-    }
-    return out;
-  }
-  async function handleFile(file) {
-    document.getElementById('fileInfo').textContent = 'Reading ' + file.name + '…';
-    let rows = [];
-    try {
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      rows = rowsFromSheet(XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }));
-    } catch (err) { document.getElementById('fileInfo').textContent = ''; showAlert('Could not read the file: ' + err.message, 'error'); return; }
-    if (!rows.length) { document.getElementById('fileInfo').textContent = ''; showAlert('No Order ID / Code rows found in ' + file.name + '.', 'error'); return; }
-    document.getElementById('fileInfo').textContent = file.name + ' · ' + rows.length + ' rows · matching against orders ' + fmtD(range().from) + ' – ' + fmtD(range().to) + '…';
-    document.getElementById('doneCard').style.display = 'none';
-    try {
-      const d = await withRetry(() => api.post('order_codes.preview', { rows, date_from: range().from, date_to: range().to }),
-        (n) => { document.getElementById('fileInfo').textContent = file.name + ' · server busy — retrying (' + n + ')…'; });
-      preview = d; preview.file = file.name;
-      (d.errors || []).forEach(e => showAlert(e, 'error'));
-      document.getElementById('fileInfo').textContent = file.name + ' · ' + rows.length + ' rows';
-      renderPreview();
-      document.getElementById('resCard').scrollIntoView({ behavior: 'smooth' });
-      // Matched rows are saved straight away — no separate Apply step.
-      await applyPreview(true);
-    } catch (err) { document.getElementById('fileInfo').textContent = ''; showAlert(err.message, 'error'); }
-  }
-  const STATUS = { match: ['ok', 'Matched'], replace: ['warn', 'Will replace'], same: ['skip', 'Already same'], notfound: ['bad', 'Order not found'], skip: ['skip', 'Skipped'] };
-  function renderPreview() {
-    const d = preview; if (!d) return;
-    document.getElementById('resCard').style.display = '';
-    document.getElementById('resTitle').textContent = d.file + ' · ' + d.rows.length + ' rows';
-    const c = d.counts;
-    document.getElementById('resCounts').innerHTML = `
-      <div><div class="n" style="color:#0f7a41;">${c.match}</div><div class="l">Matched · will assign</div></div>
-      <div><div class="n" style="color:#b45f06;">${c.replace}</div><div class="l">Already has a code · will replace</div></div>
-      <div><div class="n" style="color:#c81e1e;">${c.notfound}</div><div class="l">Order not found</div></div>
-      <div><div class="n" style="color:#6b7280;">${c.skip}</div><div class="l">Skipped (blank / same / duplicate)</div></div>`;
-    const n = c.match + c.replace;
-    ['btnApply', 'btnApply2'].forEach(id => { const btn = document.getElementById(id); btn.textContent = 'Apply ' + n + ' code' + (n === 1 ? '' : 's'); btn.disabled = n === 0; });
-    const only = document.getElementById('onlyProblems').checked;
-    const rows = d.rows.filter(r => !only || (r.status !== 'match' && r.status !== 'same'));
-    document.getElementById('resBody').innerHTML = rows.length ? rows.map(r => {
-      const [cls, lbl] = STATUS[r.status] || ['skip', r.status];
-      const o = r.order;
-      return `<tr>
-        <td>${r.row}</td>
-        <td>${esc(r.order_id)}</td>
-        <td>${o ? `<b>${esc(o.order_name)}</b> · ${esc(o.customer)} · ${inr(o.total)} <span class="sub">${esc(o.store)}</span>${o.old_code ? ` · has <span class="code">${esc(o.old_code)}</span>` : ''}` : `<span class="sub">${esc(r.note)}</span>`}</td>
-        <td>${r.code ? `<span class="code">${esc(r.code)}</span>` : '<span class="sub">(blank)</span>'}</td>
-        <td><span class="st ${cls}">${lbl}</span>${r.note && o ? `<div class="sub">${esc(r.note)}</div>` : ''}</td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="5" class="empty-state">No problem rows — everything matched.</td></tr>';
-  }
-  document.getElementById('onlyProblems').addEventListener('change', renderPreview);
-  document.getElementById('btnCancel').addEventListener('click', () => { preview = null; document.getElementById('resCard').style.display = 'none'; document.getElementById('fileInfo').textContent = ''; });
-  document.getElementById('btnProblems').addEventListener('click', () => {
-    if (!preview) return;
-    const rows = preview.rows.filter(r => r.status !== 'match' && r.status !== 'same' && r.status !== 'replace').map(r => ({ 'Order ID': r.order_id, 'Code': r.code, 'Problem': r.note || (STATUS[r.status] || [])[1] || r.status }));
-    if (!rows.length) { showAlert('No problem rows.'); return; }
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Problems');
-    XLSX.writeFile(wb, 'order_codes_problems.xlsx');
+  document.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => { filter = p.dataset.f; limit = PAGE; render(); }));
+  let searchTimer = null;
+  document.getElementById('search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { limit = PAGE; render(); }, 150); });
+  ['sourceFilter', 'panelFilter', 'typeFilter'].forEach(id => document.getElementById(id).addEventListener('change', () => { limit = PAGE; render(); }));
+  document.getElementById('btnMore').addEventListener('click', () => { limit += PAGE; render(); });
+  document.getElementById('dateFrom').addEventListener('change', load);
+  document.getElementById('dateTo').addEventListener('change', load);
+  document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('dateFrom').value = todayStr(); document.getElementById('dateTo').value = todayStr(); load(); });
+  timingReady.then(() => {
+    document.getElementById('dateFrom').value = todayStr();
+    document.getElementById('dateTo').value = todayStr();
+    load();
   });
-  document.getElementById('btnSample').addEventListener('click', () => {
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Order ID', 'Code'], ['#TMPH-58211', 'AG00123'], ['#TMF-20418', 'AG00124'], ['369910', 'BR00042']]), 'Codes');
-    XLSX.writeFile(wb, 'order_codes_sample.xlsx');
-  });
-  document.getElementById('btnApply2').addEventListener('click', () => document.getElementById('btnApply').click());
-  document.getElementById('btnApply').addEventListener('click', () => applyPreview(false));
-  async function applyPreview(auto) {
-    if (!preview) return;
-    const items = preview.rows.filter(r => (r.status === 'match' || r.status === 'replace') && r.order)
-      .map(r => ({ source: r.order.source, id: r.order.id, order_name: r.order.order_name, code: r.code, old_code: r.order.old_code || '' }));
-    if (!items.length) { if (auto) document.getElementById('applyNote').textContent = 'Nothing new to save — every matched order already has this code.'; return; }
-    if (!auto && !confirm('Apply ' + items.length + ' code' + (items.length === 1 ? '' : 's') + '? Shopify tags will be written now.')) return;
-    document.getElementById('applyNote').textContent = 'Saving ' + items.length + ' code' + (items.length === 1 ? '' : 's') + ' to the database and writing Shopify tags…';
-    // Sent in small batches: every Shopify tag is two API calls, so one
-    // request for hundreds of orders would hit the server's time limit.
-    const btn = document.getElementById('btnApply'); btn.disabled = true; document.getElementById('btnApply2').disabled = true;
-    const BATCH = 8; let saved = 0, verified = 0, tagged = 0, tagFailed = [];
-    try {
-      for (let i = 0; i < items.length; i += BATCH) {
-        btn.textContent = `Applying ${Math.min(i + BATCH, items.length)} / ${items.length}…`;
-        const d = await withRetry(() => api.post('order_codes.apply', { items: items.slice(i, i + BATCH) }));
-        saved += d.saved || 0; verified += d.verified || 0; tagged += d.tagged || 0; tagFailed = tagFailed.concat(d.tag_failed || []);
-        // Mark the rows done so a failure mid-way leaves the rest re-applicable.
-        items.slice(i, i + BATCH).forEach(it => { const r = preview.rows.find(x => x.order && x.order.source === it.source && x.order.id === it.id); if (r) { r.status = 'same'; r.note = 'Saved'; } });
-      }
-      document.getElementById('resCard').style.display = 'none';
-      document.getElementById('doneMsg').textContent = saved + ' order' + (saved === 1 ? '' : 's') + ' updated · ' + tagged + ' Shopify tag' + (tagged === 1 ? '' : 's') + ' written' + (tagFailed.length ? ' · ' + tagFailed.length + ' tag' + (tagFailed.length === 1 ? '' : 's') + ' failed' : '');
-      const c = preview.counts;
-      document.getElementById('doneSub').innerHTML = `${c.match} assigned · ${c.replace} replaced · ${c.notfound + c.skip} skipped (${c.notfound} not found, ${c.skip} blank / same / duplicate)` + (tagFailed.length ? `<div style="color:#c81e1e; margin-top:4px;">Tag not written: ${tagFailed.map(esc).join('; ')}</div>` : '');
-      if (verified < saved) document.getElementById('doneSub').innerHTML += `<div style="color:#c81e1e; margin-top:4px;">Only ${verified} of ${saved} could be read back from the database — check the api build / database user rights.</div>`;
-      document.getElementById('doneCard').style.display = '';
-      document.getElementById('fileInfo').textContent = '';
-      preview = null; loaded.orders = false;
-      // Show the result straight away: the Orders tab reloads with the new codes.
-      go('orders'); document.querySelector('.pill[data-f="coded"]').click();
-    } catch (err) {
-      document.getElementById('applyNote').textContent = 'Stopped after ' + saved + ' of ' + items.length + ' — press Apply for the rest.';
-      showAlert('Stopped after ' + saved + ' of ' + items.length + ': ' + err.message + ' — press Apply again for the rest.', 'error');
-      preview.counts = { match: preview.rows.filter(r => r.status === 'match').length, replace: preview.rows.filter(r => r.status === 'replace').length, notfound: preview.counts.notfound, skip: preview.rows.filter(r => ['skip', 'same'].includes(r.status)).length };
-      btn.disabled = false; renderPreview();
-    }
-  }
-
-  // ---------- dates ----------
-  function reloadAll() {
-    loaded.orders = false;
-    const p = document.querySelector('.tab.on').dataset.p;
-    if (p === 'orders') loadOrders(); else if (p === 'upload') document.getElementById('dropRange').textContent = fmtD(range().from) + ' – ' + fmtD(range().to);
-  }
-  document.getElementById('dateFrom').addEventListener('change', reloadAll);
-  document.getElementById('dateTo').addEventListener('change', reloadAll);
-  document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('dateFrom').value = todayStr(); document.getElementById('dateTo').value = todayStr(); reloadAll(); });
-  document.getElementById('btnMonth').addEventListener('click', () => { const d = new Date(); document.getElementById('dateFrom').value = dstr(new Date(d.getFullYear(), d.getMonth(), 1)); document.getElementById('dateTo').value = todayStr(); reloadAll(); });
-  document.getElementById('dateFrom').value = todayStr();
-  document.getElementById('dateTo').value = todayStr();
-  const hash = (location.hash || '').replace('#', '');
-  go(['orders', 'upload'].includes(hash) ? hash : 'orders');
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

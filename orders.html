@@ -23,6 +23,7 @@
   .plat-card .li.q span{color:#1d4ed8;} .plat-card .li.c span{color:#b45f06;}
   .plat-card .li.p span{color:#0f7a41;} .plat-card .li.d span{color:#b45f06;}
   .plat-card .li i.cd{display:inline-block; width:8px; height:8px; border-radius:50%; border:1px solid #cbd5e1; margin-right:5px;}
+  .plat-card .li i.cd.c-mb{background:#f59e0b; border-color:#f59e0b;} .plat-card .li i.cd.c-ma{background:#4f46e5; border-color:#4f46e5;}
   .plat-card .li b small{font-size:11px; font-weight:600; color:var(--muted); margin-left:6px;}
   .plat-card .li.t{border-bottom:none; background:#f9fafb; margin:3px -6px 0; padding:6px 6px; border-radius:6px;} .plat-card .li.t b{font-size:14px;}
   .plat-card .g{color:#0f7a41;} .plat-card .a{color:#b45f06;} .plat-card .r{color:#c81e1e;}
@@ -39,6 +40,7 @@
     .plat-card .li b{font-size:13px; max-width:100%; overflow:hidden; text-overflow:ellipsis;}
     .plat-card .li.q{background:#f3f7ff; border-color:#dbe7ff;} .plat-card .li.c{background:#fff8ec; border-color:#fbe4bd;}
     .plat-card .li.p{background:#f1faf5; border-color:#cdeedb;} .plat-card .li.d{background:#fff8ec; border-color:#fbe4bd;}
+    .plat-card .li.bfm{background:#fff8ec; border-color:#fbe4bd;} .plat-card .li.afm{background:#f3f2fe; border-color:#dcd9fb;} .plat-card .li.w2{grid-column:span 2;}
     .plat-card .li b small{display:block; margin-left:0;}
     .stat-card .value.cl-tot{font-size:12px; gap:2px 8px;} .cl-tot span{gap:3px;} .cl-tot i{width:7px; height:7px;}
     .plat-card .li.t{margin:0; padding:6px 8px; background:#111827; border-color:#111827;} .plat-card .li.t span{color:#9ca3af;} .plat-card .li.t b{color:#fff;}
@@ -47,7 +49,7 @@
      time. Kept here as well as in style.css so the cards render correctly
      even when a browser or local server has an older stylesheet. */
   .lbl-short, .amt-short{display:none;}
-  @media (max-width:820px){ .lbl-full, .amt-full{display:none;} .lbl-short{display:inline;} .amt-short{display:block;} }
+  @media (max-width:820px){ .lbl-full, .amt-full{display:none;} .lbl-short{display:inline;} .amt-short{display:block;} .stat-card.ar{grid-column:span 2;} .pc-tot{flex-direction:row; flex-wrap:wrap; gap:2px 22px;} .pcm span{flex-direction:column; gap:0;} .pcm{gap:9px;} .stat-card.ar .pcm{gap:2px;} .stat-card.ar .pcm span{flex-direction:row; gap:6px;} }
   .topbar .tb-title{display:flex; align-items:center; gap:12px; min-width:0;}
   .topbar .tb-title h1{margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .topbar .back-btn{display:inline-flex; align-items:center; gap:4px; flex:0 0 auto !important; width:auto;
@@ -77,22 +79,86 @@
   table.es-tbl{border-collapse:separate; border-spacing:0; width:100%; font-size:12.5px; white-space:nowrap;}
   .es-tbl th,.es-tbl td{padding:8px 10px; border-bottom:1px solid #eef0f3; text-align:right; background:#fff;}
   .es-tbl .l{text-align:left;}
-  .es-tbl thead th{font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.2px; background:#fafafa; border-bottom:1px solid var(--line);}
-  .es-tbl thead tr.g1 th{text-align:center; font-size:11px; letter-spacing:.4px; color:#fff; border-bottom:none; padding:6px 10px;}
-  .es-tbl thead tr.g1 th.g-emp{position:sticky; left:0; z-index:5;}
+  .es-tbl thead th,.es-tbl tr.hd th{font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.2px; background:#fafafa; border-bottom:1px solid var(--line);}
+  .es-tbl thead tr.g1 th,.es-tbl tr.hd.g1 th{text-align:center; font-size:11px; letter-spacing:.4px; color:#fff; border-bottom:none; padding:6px 10px;}
+  .es-tbl thead tr.g1 th.g-emp,.es-tbl tr.hd.g1 th.g-emp{position:sticky; left:0; z-index:5;}
   .g-emp{background:#111827 !important;} .g-tgt{background:#2563eb !important;} .g-ord{background:#0f7a41 !important;}
   .g-qry{background:#7c3aed !important;} .g-cmp{background:#b45309 !important;} .g-pay{background:#0e7490 !important;}
   .g-rat{background:#be185d !important;}
   .es-tbl .gl{border-left:2px solid #e5e7eb;}
   .es-tbl tbody tr:hover td{background:#f8faff;}
-  .es-tbl .st{position:sticky; left:0; z-index:2; min-width:218px;}
-  .es-tbl .nm{position:sticky; left:218px; z-index:2; min-width:150px; box-shadow:2px 0 0 #eef0f3;}
-  .es-tbl thead th.st,.es-tbl thead th.nm{z-index:4;}
+  .es-tbl .emp{position:sticky; left:0; z-index:2; min-width:262px; box-shadow:2px 0 0 #eef0f3;}
+  .es-tbl thead th.emp,.es-tbl tr.hd th.emp{z-index:4;}
   .es-tbl tr.abs td{background:#fff8f8;} .es-tbl tr.abs:hover td{background:#fff1f1;} .es-tbl tr.abs .dim{color:#b9bec7;}
   .es-tbl tr.un td{background:#f8fafc; color:var(--muted);}
   .es-tbl tfoot td{background:#f1f5f9; font-weight:700; border-top:2px solid var(--line); border-bottom:none;}
-  .es-tbl tfoot td.st,.es-tbl tfoot td.nm{z-index:4;}
+  .es-tbl tfoot td.emp{z-index:4;}
+  /* panel buttons, and the coloured bar + total row of each panel block on the Employee sheet */
+  .pchips{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 12px;}
+  .pchips[hidden]{display:none;}
+  .pchips .lbl{font-size:12px; color:var(--muted); font-weight:700; margin-right:2px;}
+  .pchip{display:inline-flex; align-items:center; gap:7px; background:#fff; color:var(--ink); border:1.5px solid var(--line); padding:7px 13px; border-radius:22px; font-size:13px; font-weight:700; cursor:pointer; min-height:0; width:auto;}
+  .pchip i{width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--c);}
+  .pchip small{font-size:11.5px; font-weight:600; color:var(--muted); margin-left:2px;}
+  .pchip.on{background:var(--c); border-color:var(--c); color:#fff;} .pchip.on i{background:#fff;} .pchip.on small{color:rgba(255,255,255,.82);}
+  .es-tbl tbody tr.pb td,.es-tbl tbody tr.pb:hover td{background:var(--c); color:#fff; border-bottom:none; text-align:left; padding:10px 14px; font-size:14px; font-weight:700;}
+  .es-tbl tbody tr.pb td.pbs{font-size:12.5px; font-weight:600;} .es-tbl tbody tr.pb td.pbs b{font-weight:700;}
+  .es-tbl tbody tr.pt td,.es-tbl tbody tr.pt:hover td{background:#f1f5f9; font-weight:700; border-top:2px solid var(--line); border-bottom:none;}
+  .es-tbl tbody tr.sp td,.es-tbl tbody tr.sp:hover td{height:14px; padding:0; border:0; background:var(--bg);}
   .es-ec{display:block; font-size:11px; color:var(--muted); font-weight:500; margin:1px 0 0 15px;}
+  /* Target + Collection + Orders in ONE box per employee */
+  .g-to{background:#0f766e !important;}
+  .es-tbl td.to,.es-tbl th.to{text-align:left;}
+  .tob{display:flex; flex-direction:column; gap:6px; min-width:390px; padding:8px 10px; border:1px solid #cfd8e3; border-radius:10px; background:#fafcff; white-space:nowrap; text-align:left;}
+  .tob .tb1{display:flex; align-items:flex-start; justify-content:space-between; gap:16px;}
+  .tob .tbt{min-width:128px;} .tob .tbt .tgt-how{text-align:left; margin-left:0; max-width:150px;}
+  .tob .tbc .cl1,.tob .tbc .cl2{justify-content:flex-start;}
+  .tob .tb2{display:flex; align-items:center; gap:16px; padding-top:6px; border-top:1px dashed #cfd8e3; font-size:12px; color:var(--muted);}
+  .tob .tb2 b{color:var(--ink);}
+  /* After punch-out: this person's orders that came in after they punched out, split before 12 AM / after 12 AM */
+  .po{margin-top:7px; padding-top:7px; border-top:1px dashed #cfd8e3; font-size:12px; color:var(--muted); line-height:1.5;}
+  .po .h{display:flex; justify-content:space-between; gap:8px; white-space:nowrap;} .po .h b{color:var(--ink);} .po .h em{font-style:normal; font-size:11px;}
+  .po .ch{display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;} .po .ch span{border-radius:10px; padding:2px 8px; font-size:11px; font-weight:700; white-space:nowrap;}
+  .po .ch .pcb{background:#fff4db; color:#8a5a00;} .po .ch .pca{background:#eceafd; color:#3730a3;}
+  .po.none{color:#9aa1ad;} .mbox .po{margin:0; padding:8px 10px; border-top:1px dashed #cfd8e3;}
+  /* drag handle: hold it and move the row up or down inside its panel block */
+  .grip{display:inline-block; flex:none; width:16px; margin-right:10px; color:#94a3b8; cursor:grab; font-size:16px; letter-spacing:-3px; line-height:1; vertical-align:middle; user-select:none; -webkit-user-select:none; touch-action:none; -webkit-touch-callout:none;}
+  .grip:hover{color:#2563eb;}
+  /* Employee: grip, then the name line, then ONE line with status + time + Auto/Manual + edit */
+  .em{display:flex; align-items:flex-start;}
+  .em .grip{margin-top:2px;}
+  .em .eb{min-width:0;}
+  .em .el1{display:flex; align-items:center; min-height:20px;}
+  .em .el1 .es-ec{display:inline; margin:0 0 0 8px;}
+  .em .el2{display:flex; align-items:center; margin-top:5px;}
+  .em .el2 .es-tm{font-size:12px; font-weight:700;}
+  body.es-dragging,body.es-dragging *{cursor:grabbing !important; user-select:none; -webkit-user-select:none;}
+  .es-dragcatch{position:fixed; top:0; right:0; bottom:0; left:0; z-index:9999; touch-action:none; background:transparent;}
+  .es-tbl tbody tr.lift td{background:#eaf1ff !important; box-shadow:0 2px 0 #2563eb, 0 -2px 0 #2563eb;}
+  .mc.lift{background:#eaf1ff !important; outline:2px solid #2563eb; box-shadow:0 8px 22px rgba(15,23,42,.25); position:relative; z-index:2;}
+  /* phone: one card per employee instead of a sideways-scrolling table */
+  .es-cards{display:none;}
+  .es-wrap.cm{background:transparent; border:0; overflow:visible; min-height:0;}
+  .es-wrap.cm .es-tbl{display:none;} .es-wrap.cm .es-cards{display:block;}
+  .mb{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:0 0 14px;}
+  .mb .mbh{background:var(--c); color:#fff; padding:11px 14px;} .mb .mbh b{display:block; font-size:15px;} .mb .mbh span{display:block; font-size:12.5px; font-weight:600; margin-top:2px;} .mb .mbh span b{display:inline; font-size:inherit;}
+  .mc{padding:12px; border-top:1px solid #eef0f3; background:#fff;}
+  .mc.abs{background:#fff8f8;} .mc.un{background:#f8fafc;} .mc.tot{background:#f1f5f9;}
+  .mc .mt{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .mc .mt b{font-size:15px;}
+  .mc .mt.em{flex-wrap:nowrap; align-items:flex-start;} .mc .mt.em .grip{margin-top:3px;}
+  .mc .lb{display:block; font-size:10.5px; color:var(--muted); font-weight:600; margin-bottom:3px;}
+  .mbox{margin-top:10px; border:1px solid #cfd8e3; border-radius:12px; background:#fafcff; overflow:hidden;}
+  .mbox .mbt{background:#0f766e; color:#fff; font-size:11px; font-weight:700; letter-spacing:.3px; padding:5px 10px; text-transform:uppercase;}
+  .mbox .mb1{padding:9px 10px 2px;} .mbox .mb1.c{padding-bottom:9px;}
+  .mbox .tgt-how{text-align:left; margin-left:0; max-width:none;}
+  .mbox .cl1{justify-content:flex-start;} .mbox .cl1 .seg{flex:1; width:auto; min-width:60px;} .mbox .cl2{justify-content:flex-start; flex-wrap:wrap;}
+  .mbox .mb2{display:grid; grid-template-columns:1.3fr 1fr 1fr; border-top:1px dashed #cfd8e3;}
+  .mbox .mb2>div{padding:8px 10px; min-width:0;} .mbox .mb2>div+div{border-left:1px dashed #cfd8e3;}
+  .msec{margin-top:8px; border-left:3px solid var(--g); background:#f6f8fb; border-radius:0 8px 8px 0; padding:6px 10px 8px;}
+  .msec .msh{font-size:11px; font-weight:700; color:var(--g); text-transform:uppercase; letter-spacing:.3px; margin-bottom:5px;}
+  .msec .msg{display:grid; grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); gap:6px 10px;} .msec .msg>div{min-width:0;}
+  @media (min-width:600px){ .es-wrap.cm .es-cards{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start;} .es-wrap.cm .mb{margin:0;} }
   .oc-chip{display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:12px; background:#eef2ff; color:#3730a3; font-weight:700; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; white-space:nowrap;}
   .oc-chip.none{background:#fff7ed; color:#b45f06; font-family:inherit; font-weight:600;}
   .oc-chip[data-oc]{cursor:pointer;} .oc-chip[data-oc]:hover{filter:brightness(.96);}
@@ -113,8 +179,22 @@
   .es-star{color:#f59e0b; letter-spacing:1px; font-size:12px;} .es-star .e{color:#e2e5ea;} .es-star small{color:var(--muted); letter-spacing:0; margin-left:4px; font-size:11px; font-weight:600;}
   .es-sl{color:#c3c8d0;} .es-pd{color:var(--ok-fg); font-weight:600;}
   .es-cl{font-size:11px; color:var(--muted); font-weight:600; margin-left:6px;}
-  .cl-tot{display:flex; flex-wrap:wrap; gap:3px 14px;} .cl-tot span{display:inline-flex; align-items:center; gap:5px; white-space:nowrap;} .cl-tot i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1; flex:none;}
+  .cl-tot .sum{margin-top:2px; padding-top:7px; border-top:1px dashed var(--line);}
+  .cl-tot{display:flex; flex-direction:column; gap:6px;} .cl-tot span{display:flex; align-items:center; gap:7px; white-space:nowrap;} .cl-tot span b{margin-left:auto; font-variant-numeric:tabular-nums;} .cl-tot i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1; flex:none;}
   .stat-card .value.cl-tot{line-height:1.5;} @media (min-width:821px){ .stat-card .value.cl-tot{font-size:14px;} }
+  /* All Orders box + panel boxes: prepaid ₹ and COD ₹ with their share of the revenue */
+  .pc-tot{display:flex; flex-direction:column; gap:1px; margin-top:6px; font-weight:700; line-height:1.35;}
+  .pc-tot .r{display:flex; align-items:baseline; gap:8px; white-space:nowrap; font-size:20px;}
+  .pc-tot .r small{font-size:12px; font-weight:700;}
+  .pc-tot.ar-tot{gap:2px;} .pc-tot.ar-tot .r{font-size:22px; flex-wrap:wrap; gap:0 7px; color:var(--ink);} .pc-tot.ar-tot .r small{color:var(--muted); font-weight:600;}
+  .pcm{display:flex; flex-direction:column; gap:2px; margin-top:9px; font-weight:700; font-size:13px; line-height:1.35;}
+  .pcm span{display:flex; align-items:baseline; gap:6px; white-space:nowrap;} .pcm small{font-size:11px; font-weight:700;}
+  .pcm .p,.pcm .p small{color:#0f7a41;} .pcm .d,.pcm .d small{color:#b45f06;}
+  .pcm.ar-pc{margin-top:8px; padding-top:7px; border-top:1px dashed var(--line); font-size:15px;} .pcm.ar-pc small{font-size:11.5px;}
+  .tkr{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-top:7px; padding-top:6px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--muted); white-space:nowrap;}
+  .tkr b{color:#1d4ed8; font-weight:700; font-size:13px;}
+  .tkr + .tkr{margin-top:3px; padding-top:0; border-top:0;} .tkr b.n{color:var(--ink);} .tkr b.g{color:#0f7a41;} .tkr b.a{color:#b45f06;} .tkr b.r{color:#c81e1e;}
+  @media (max-width:820px){ .tkr{flex-direction:column; align-items:flex-start; gap:1px; font-size:10.5px;} .stat-card.ar .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   /* store picker: tick one or several stores */
   .ms{position:relative;}
   .ms-btn{padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; min-width:150px; text-align:left; cursor:pointer; min-height:0; width:auto; color:var(--ink);}
@@ -157,6 +237,23 @@
   .tgt-edit button{min-height:0; width:auto; padding:4px 9px; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid var(--line); background:#fff;}
   .tgt-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
   .stedit{border:none; background:none; color:var(--accent); cursor:pointer; font-size:13px; padding:0 2px; min-height:0; width:auto; vertical-align:middle;}
+  /* Panel boxes: Target (sum of the panel's employee targets, or set by hand), ring, Achieved and Pending */
+  .pt-box{margin-top:10px; padding-top:9px; border-top:1px dashed var(--line); font-size:12.5px;}
+  .pt-top{display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:8px; color:var(--muted); white-space:nowrap;}
+  .pt-top b{color:var(--ink); font-size:14px;} .pt-top .tgt-chip{padding:2px 8px; font-size:12.5px;}
+  .pt-wait{color:var(--muted); font-weight:700;}
+  .pt-edit{display:inline-flex; gap:4px; align-items:center;}
+  .pt-edit input{width:78px; padding:4px 6px; border:1px solid var(--accent); border-radius:6px; font-size:13px; min-height:0;}
+  .pt-edit button{min-height:0; width:auto; padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid var(--line); background:#fff;}
+  .pt-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .pt-box .tgt-revert{display:block; margin:-3px 0 8px; text-align:left;}
+  .pt-ring{display:flex; gap:10px; align-items:center;}
+  .pt-ring .rg{flex:none; width:58px; height:58px; position:relative;} .pt-ring svg{display:block; width:58px; height:58px; transform:rotate(-90deg);}
+  .pt-ring .rg span{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#0f7a41; white-space:nowrap;} .pt-ring .rg span.o{color:#7C3AED; font-size:12px;}
+  .pt-ring .tx{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px;}
+  .pt-ring .it{line-height:1.2; white-space:nowrap;} .pt-ring .it small{display:block; font-size:10.5px; font-weight:600; color:var(--muted);} .pt-ring .it b{font-size:13px;}
+  .pt-ring .a b{color:#0f7a41;} .pt-ring .p b{color:#b45f06;}
+  @media (max-width:820px){ .pt-top{flex-direction:column; align-items:flex-start; gap:2px; font-size:10.5px;} .pt-top b{font-size:13px;} .pt-edit input{font-size:16px; width:70px;} .pt-ring{flex-direction:column; align-items:flex-start; gap:7px;} .pt-ring .tx{width:100%; gap:4px;} .pt-ring .rg, .pt-ring svg{width:46px; height:46px;} .pt-ring .rg span{font-size:11.5px;} .pt-ring .rg span.o{font-size:10px;} .pt-ring .it small{font-size:10px;} .pt-ring .it b{font-size:12px;} }
   .stbox{display:flex; align-items:center; gap:5px; flex-wrap:nowrap;}
   .cl1{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
   .seg{display:flex; width:96px; height:10px; background:var(--bg); border-radius:5px; overflow:hidden; flex:none;}
@@ -175,10 +272,6 @@
     .stpop{left:10px !important; right:10px; width:auto;}
     .es-tools{display:grid; grid-template-columns:1fr 1fr; gap:8px;} .es-tools input,.es-tools select{width:100%; min-width:0;} .es-tools input[type=search]{grid-column:1 / -1;}
     .vtabs button{flex:1; padding:10px 8px; font-size:13px;}
-    /* same one-row table on the phone: only the Name column stays put, the rest scrolls sideways */
-    .es-tbl{font-size:12px;} .es-tbl th,.es-tbl td{padding:7px 8px;}
-    .es-tbl tbody .st,.es-tbl tfoot .st,.es-tbl thead th.st{position:static; min-width:0 !important;}
-    .es-tbl .nm{left:0; min-width:112px;} .es-tbl thead tr.g1 th.g-emp{left:auto; position:static;}
   }
 </style>
 </head>
@@ -241,17 +334,18 @@
         <button type="button" data-v="campaign">Campaign orders<span class="cnt" id="cntCampaign"></span></button>
         <button type="button" data-v="cancelled">Cancelled orders<span class="cnt" id="cntCancelled"></span></button>
       </div>
+      <div class="pchips" id="pChips" hidden></div>
       <div id="paneSheet" hidden>
         <div class="es-tools">
           <input type="search" id="esQ" placeholder="Search name or code…">
           <select id="esSt"><option value="all">All employees</option><option value="present">Present only</option><option value="absent">Absent only</option></select>
           <select id="esSort">
             <option value="name">Sort: Name</option><option value="coll">Sort: Collection</option><option value="ach">Sort: Target achieved %</option>
-            <option value="ord">Sort: Orders</option><option value="ratio">Sort: Ratio</option>
+            <option value="ord">Sort: Orders</option><option value="ratio">Sort: Ratio</option><option value="manual">Sort: My order (drag rows)</option>
           </select>
         </div>
         <div class="es-chips" id="esChips"><span class="lbl">Show columns:</span></div>
-        <div class="es-wrap"><table class="es-tbl" id="esTbl"></table></div>
+        <div class="es-wrap" id="esWrap"><table class="es-tbl" id="esTbl"></table><div class="es-cards" id="esCards"></div></div>
         <div class="es-note" id="esNote"></div>
       </div>
 
@@ -427,6 +521,9 @@
     if (hm < DAY_START[d.getDay()]) d.setDate(d.getDate() - 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
+  const ymdOf = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  // An order that came in after midnight still belongs to the business day that started the morning before it.
+  function afterMidnight(o) { const d = new Date(o.created_at); return !isNaN(d) && ymdOf(d) !== bizDayOf(d); }
   const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
   function dayWindowText() {
     const all = new Set(DAY_START);
@@ -497,7 +594,7 @@
     const reqId = ++ordersReqId;
     try {
       loadPlatformQueries(from, to);
-      loadTeamSheet(from, to, store);
+      loadTeamSheet(from, to);
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
       if (reqId !== ordersReqId) return;
       const orders = (data.orders || []).filter(o => o.store_key !== HIDDEN_STORE);   // MySales 4P is not shown or counted on this page
@@ -575,7 +672,7 @@
     try {
       const r = await api.post('orders.cancel', { source: o.store_key, order_id: String(o.id), order_name: o.order_name, cancel: cancel ? 1 : 0 });
       o.cancelled = cancel ? { by: (r && r.by) || '', at: (r && r.at) || '' } : null;
-      renderSummary(); renderPlatformSummary(); applyFilters(); renderTeamSheet();
+      renderAll();
     } catch (er) { alert(er.message); }
   }
   function cxClick(b, ev) {
@@ -668,11 +765,24 @@
     });
   })();
 
+  // ---------- Panels ----------
+  // The five panels (businesses), each with its own block, its own button and its own daily target.
+  // "No panel" holds MySales / manual orders that were not moved to a panel on the Order Allocation page.
+  const PANELS = [['tmph', 'TM Perfume House', '#1d4ed8'], ['tmf', 'TM Fragrance', '#b45f06'], ['tm4u', 'TM4U', '#7e22ce'], ['tmsg', 'TM Shower Gel', '#15803d'], ['tmh4', 'TM House 4th', '#be123c'], ['none', 'No panel', '#475569']];
+  const PANEL_NAME = {}; PANELS.forEach(p => { PANEL_NAME[p[0]] = p[1]; });
+  const PANEL_GK = { tmph: 'tmph', tmf: 'tmf', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };       // every panel has a target → the key its daily target is saved under
+  const panelOfHouse = (h) => PANEL_GK[h] !== undefined ? h : 'none';
+  const panelOf = (o) => panelOfHouse(o.house || STORE_HOUSE_MAP[o.store_key] || '');
+  const STORE_PANEL = { tmperfumehouse: 'tmph', tmfragrance: 'tmf', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };   // any other store (MySales, Manual) = no panel
+  let panelPick = '';       // the panel button picked above the sheet ('' = all panels)
+  const panelAllowed = (k) => !storeSel.size || [...storeSel].some(s => (STORE_PANEL[s] || 'none') === k);   // the Store picker can hide panels
+
   // The orders this page is about: one salesperson's when opened from
   // Targets (?salesman=Name), otherwise everything loaded. The stat cards,
   // the list and its title all use this, so they can never disagree.
   function scopedAll() {
-    return urlSalesman ? allOrders.filter(o => o.salesman === urlSalesman) : allOrders;
+    const b = urlSalesman ? allOrders.filter(o => o.salesman === urlSalesman) : allOrders;
+    return panelPick ? b.filter(o => panelOf(o) === panelPick) : b;
   }
   // Cancelled orders are left out of every total, card and the sheet; they only show under "Cancelled orders".
   function scopedOrders() {
@@ -682,12 +792,14 @@
   // The list under the stat cards: the scoped orders, narrowed to one person
   // when a name was clicked in the Employee sheet (the cards stay unchanged).
   let pickSalesman = '';
+  let pickPanel = '';      // a name / count was clicked inside a panel block: only that panel's orders
   let housePick = '';      // a platform card was clicked: only that platform's orders (cleared with the ✕ chip)
   let listType = '';      // '' = all orders, 'query' / 'campaign' = only that kind (Query orders / Campaign orders tabs)
   const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', cancelled: 'Cancelled orders' };
   function listBase() {
     let b = listType === 'cancelled' ? scopedAll().filter(o => o.cancelled) : scopedOrders();
     if (pickSalesman) b = b.filter(o => o.salesman === pickSalesman);
+    if (pickPanel) b = b.filter(o => panelOf(o) === pickPanel);
     if (housePick) b = b.filter(o => (o.house || STORE_HOUSE_MAP[o.store_key]) === housePick);
     return listType && listType !== 'cancelled' ? b.filter(o => orderTagType(o.tags) === listType) : b;
   }
@@ -697,10 +809,28 @@
     allOrders = orders;
     currentPage = 1;
     document.getElementById('orderSearch').value = '';
+    if (panelPick && !panelAllowed(panelPick)) panelPick = '';
     renderSummary();
     renderPlatformSummary();
     applyFilters();
     renderTeamSheet();
+    renderPanelChips();
+  }
+
+  // Panel buttons (Admin / HR): All panels, TM Perfume House, TM Fragrance, TM4U … each with its collection. One pick narrows the cards, the sheet and the lists.
+  function renderPanelChips() {
+    const el = document.getElementById('pChips');
+    if (!ES_ALLOWED) { el.hidden = true; return; }
+    const sum = {}, cnt = {};
+    allOrders.forEach(o => { if (o.cancelled) return; const k = panelOf(o); sum[k] = (sum[k] || 0) + (Number(o.total) || 0); cnt[k] = (cnt[k] || 0) + 1; });
+    const keys = PANELS.filter(p => panelAllowed(p[0]) && (p[0] !== 'none' || cnt.none)).map(p => p[0]);
+    const all = keys.reduce((a, k) => a + (sum[k] || 0), 0);
+    const chip = (k, label, c, v) => `<button type="button" class="pchip${panelPick === k ? ' on' : ''}" data-p="${k}" style="--c:${c};"><i></i>${ocEsc(label)}<small>${esInr(v)}</small></button>`;
+    el.innerHTML = '<span class="lbl">Panel</span>' + chip('', 'All panels', '#111827', all) + PANELS.filter(p => keys.includes(p[0])).map(p => chip(p[0], p[1], p[2], sum[p[0]] || 0)).join('');
+    el.hidden = false;
+  }
+  function renderAll() {
+    renderSummary(); renderPlatformSummary(); applyFilters(); renderTeamSheet(); renderPanelChips();
   }
 
   function applyFilters() {
@@ -752,6 +882,13 @@
       ? (/cod|pending/i.test(o.financial_status || '') ? amt : 0)
       : Math.min(amt, Math.max(0, Number(o.outstanding) || 0));
   }
+  // The platforms the cards (and the Query lines of the top boxes) cover under the current Store / panel pick.
+  function platformShown() {
+    const picked = [...storeSel].map(x => STORE_HOUSE_MAP[x] || x);
+    return PLATFORMS.filter(([k]) => (!picked.length || picked.includes(k)) && (!panelPick || panelOfHouse(k) === panelPick));
+  }
+  // Query ratio = query orders ÷ queries: green from 25%, amber from 10%, red below. "—" when there were no queries.
+  const qRatio = (qo, q) => { if (!q) return '<b style="color:var(--muted); font-weight:400;">—</b>'; const r = Math.round(qo / q * 100); return `<b class="${r >= 25 ? 'g' : (r >= 10 ? 'a' : 'r')}">${r}%</b>`; };
   let platformQueries = {};          // house -> { query, campaign } for the loaded dates
   let platformQueriesFor = '';
   async function loadPlatformQueries(from, to) {
@@ -763,28 +900,29 @@
       platformQueriesFor = key;
     } catch (e) { platformQueries = {}; }
     renderPlatformSummary();
+    renderSummary();            // the top boxes show the query totals too
   }
   function renderPlatformSummary() {
     const card = document.getElementById('platformCard');
     const base = scopedOrders().filter(o => STORE_HOUSE_MAP[o.store_key] || o.house);   // Shopify orders only
-    const picked = [...storeSel].map(x => STORE_HOUSE_MAP[x] || x);
-    const shown = PLATFORMS.filter(([k]) => !picked.length || picked.includes(k));
-    if (!base.length && !Object.keys(platformQueries).length) { card.style.display = 'none'; return; }
+    const shown = platformShown();
+    if (!shown.length || (!base.length && !Object.keys(platformQueries).length)) { card.style.display = 'none'; return; }
     const stats = {};
-    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0, pre: 0, cod: 0, col: [0, 0, 0, 0] });
+    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0, pre: 0, cod: 0, bn: 0, bt: 0, an: 0, at: 0, col: [0, 0, 0, 0] });
     PLATFORMS.forEach(([k]) => { const pq = platformQueries[k] || {}; stats[k].q = pq.query || 0; stats[k].c = pq.campaign || 0; });
     base.forEach(o => {
       const h = o.house || STORE_HOUSE_MAP[o.store_key]; if (!stats[h]) return;
       const t = orderTagType(o.tags), amt = Number(o.total) || 0;
       stats[h].to++; stats[h].tc += amt;
       if (orderOutstanding(o, amt) > 0) stats[h].cod += amt; else stats[h].pre += amt;
+      if (afterMidnight(o)) { stats[h].an++; stats[h].at += amt; } else { stats[h].bn++; stats[h].bt += amt; }      // came in before 12 AM / after 12 AM
       const cc = o.colors || {};
       stats[h].col[0] += Number(cc.dg) || 0; stats[h].col[1] += Number(cc.lg) || 0; stats[h].col[2] += Number(cc.wh) || 0; stats[h].col[3] += Number(cc.other) || 0;
       if (t === 'query') { stats[h].qo++; stats[h].qc += amt; }
       if (t === 'campaign') { stats[h].co++; stats[h].cc += amt; }
     });
     const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-    const ratio = (p) => { if (!p.q) return '<b style="color:var(--muted); font-weight:400;">—</b>'; const r = Math.round(p.qo / p.q * 100); return `<b class="${r >= 25 ? 'g' : (r >= 10 ? 'a' : 'r')}">${r}%</b>`; };
+    const ratio = (p) => qRatio(p.qo, p.q);
     const sh = (v, tot) => { const x = tot > 0 ? Math.round(v / tot * 100) : 0; return `<small>${x}%</small>`; };
     // Bottle colours with their share of that platform's bottles (whole percents that add up to 100).
     const clrPct = (c) => {
@@ -805,6 +943,10 @@
       ['', 'Ticket size', `<b>${p.to ? inr(p.tc / p.to) : '—'}</b>`],
       ['p', 'Total prepaid', `<b>${inr(p.pre)}${p.tc > 0 ? sh(p.pre, p.tc) : ''}</b>`],
       ['d', 'Total COD', `<b>${inr(p.cod)}${p.tc > 0 ? `<small>${100 - Math.round(p.pre / p.tc * 100)}%</small>` : ''}</b>`],
+      ['bfm w2', '<i class="cd c-mb"></i>Before 12 AM', `<b>${inr(p.bt)}${p.tc > 0 ? sh(p.bt, p.tc) : ''}</b>`],
+      ['bfm', '<i class="cd c-mb"></i>Before 12 AM order', `<b>${p.bn}</b>`],
+      ['afm w2', '<i class="cd c-ma"></i>After 12 AM', `<b>${inr(p.at)}${p.tc > 0 ? `<small>${100 - Math.round(p.bt / p.tc * 100)}%</small>` : ''}</b>`],
+      ['afm', '<i class="cd c-ma"></i>After 12 AM order', `<b>${p.an}</b>`],
       clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER'),
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`, 'orders'],
       ['t', 'Total order', `<b>${p.to}</b>`, 'orders'],
@@ -818,44 +960,119 @@
     card.style.display = '';
   }
 
+  // ---- Panel target in the panel boxes. Target = the sum of the panel's employee targets for the dates (Auto), or the
+  // amount set by hand for the day (Manual, one-day view only). Achieved = the box's revenue; Pending = Target - Achieved.
+  let ptEdit = '';        // panel being typed in
+  const ptInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
+  function panelTargetHtml(label, s) {
+    const pn = PANELS.find(p => p[1] === label && p[0] !== 'none');
+    if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_targets) return '';
+    if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';   // the sheet for these dates is still loading
+    const k = pn[0], pt = teamData.panel_targets[k] || { target: 0, auto: 0, src: 'auto', manual_days: 0, days: 1 };
+    const can = esCanEdit(), tgt = Number(pt.target) || 0, man = pt.src === 'manual';
+    const pill = man ? `<span class="tgt-pill man" title="${pt.manual_days} of ${pt.days} day${pt.days === 1 ? '' : 's'} set by hand">Manual</span>` : (tgt > 0 ? '<span class="tgt-pill auto">Auto</span>' : '');
+    if (teamData.rulePending && !(teamData.single && man)) return `<div class="pt-box"><div class="pt-top"><span>Target</span><span class="pt-wait">…</span></div></div>`;
+    const ach = Number(s.total) || 0, pc = tgt > 0 ? Math.round(ach / tgt * 100) : 0, pend = Math.max(0, tgt - ach), pp = tgt > 0 ? Math.round(pend / tgt * 100) : 0;
+    const ring = tgt > 0 ? (() => {
+      const r = 24, c = 2 * Math.PI * r;
+      return `<div class="pt-ring"><div class="rg"><svg viewBox="0 0 58 58"><circle cx="29" cy="29" r="${r}" fill="none" stroke="#fde9c7" stroke-width="7"/><circle cx="29" cy="29" r="${r}" fill="none" stroke="#1D9E75" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c * Math.min(100, pc) / 100} ${c}"/></svg><span${pc > 100 ? ' class="o"' : ''}>${pc}%</span></div>` +
+        `<div class="tx"><div class="it a"><small>Achieved ${pc}%${pc > 100 ? ' 🎯' : ''}</small><b>${ptInr(ach)}</b></div><div class="it p"><small>Pending ${pp}%</small><b>${ptInr(pend)}</b></div></div></div>`;
+    })() : '';
+    if (can && ptEdit === k) {
+      return `<div class="pt-box"><div class="pt-top"><span>Target</span><span class="pt-edit"><input type="number" id="ptIn" min="0" step="1000" inputmode="numeric" value="${man ? Math.round(tgt) : ''}" placeholder="${pt.auto ? Math.round(pt.auto) : 'Target'}"><button type="button" class="ok" data-pt="save" data-k="${k}" title="Save">✓</button><button type="button" data-pt="x" data-k="${k}" title="Cancel">✕</button></span></div>` +
+        (man ? `<button type="button" class="tgt-revert" data-pt="rev" data-k="${k}">↺ Back to automatic${pt.auto ? ' (' + ptInr(pt.auto) + ')' : ''}</button>` : '') + ring + '</div>';
+    }
+    const right = tgt > 0 ? `<b>${ptInr(tgt)}${can ? `<button type="button" class="stedit" data-pt="edit" data-k="${k}" title="Set the target by hand">✎</button>` : ''}</b>`
+      : (can ? `<span class="tgt-chip empty" data-pt="edit" data-k="${k}" title="Set the target by hand">Set target ✎</span>` : '<b>—</b>');
+    return `<div class="pt-box"><div class="pt-top"><span>Target ${pill}</span>${right}</div>${ring}</div>`;
+  }
+  // Redraw the top boxes when the sheet's targets arrive — only once the orders have been drawn (the boxes are hidden until then).
+  const summaryRefresh = () => { if (allOrders.length || document.getElementById('summaryGrid').style.display !== 'none') renderSummary(); };
+  async function ptSave(k, amount) {
+    if (!teamData || !teamData.single) return;
+    try {
+      await api.post('panel_target.save', { date: teamData.from, panel: k, amount });
+      const cur = (teamData.panel_targets || {})[k] || { auto: 0 };
+      teamData.panel_targets[k] = amount === null ? Object.assign({}, cur, { target: cur.auto, src: 'auto', manual_days: 0 }) : Object.assign({}, cur, { target: amount, src: 'manual', manual_days: 1, days: 1 });
+      ptEdit = '';
+      renderSummary();
+      esReload();          // fresh figures from the server
+    } catch (er) { alert(er.message); }
+  }
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-pt]'); if (!b) return;
+    const k = b.dataset.k, act = b.dataset.pt;
+    if (act === 'edit') { ptEdit = k; renderSummary(); const i = document.getElementById('ptIn'); if (i) { i.focus(); i.select(); } }
+    else if (act === 'x') { ptEdit = ''; renderSummary(); }
+    else if (act === 'save') { const v = Number((document.getElementById('ptIn') || {}).value); ptSave(k, v > 0 ? v : null); }
+    else if (act === 'rev') ptSave(k, null);
+  });
+  document.getElementById('summaryGrid').addEventListener('keydown', (ev) => {
+    if (ev.target.id !== 'ptIn') return;
+    if (ev.key === 'Enter') { const b = document.querySelector('#summaryGrid [data-pt="save"]'); if (b) b.click(); }
+    if (ev.key === 'Escape') { ptEdit = ''; renderSummary(); }
+  });
+
+  const TOP_ORDER = ['tmph', 'tmf', 'tm4u', 'tmh4', 'tmsg'];     // order of the panel boxes in the top boxes
   function renderSummary() {
     const base = scopedOrders();
     const byStore = {};
-    let grandTotal = 0;
+    let grandTotal = 0, prepaid = 0, cod = 0;
     const clr = { dg: 0, lg: 0, wh: 0, other: 0 };
+    const shownKeys = platformShown().map(p => p[0]);
+    let qTotal = 0, qOrders = 0;      // same numbers as the platform cards add up to: queries from Assign Queries, orders tagged "query"
+    shownKeys.forEach(k => { qTotal += (platformQueries[k] || {}).query || 0; });
+    base.forEach(o => { if (shownKeys.includes(o.house || STORE_HOUSE_MAP[o.store_key]) && orderTagType(o.tags) === 'query') qOrders++; });
+    const ticket = (tot, n, cur) => n > 0 ? fmtMoney(tot / n, cur) : '—';     // ticket size = revenue ÷ orders
+    const share = (pre, tot) => { const pp = tot > 0 ? Math.round(pre / tot * 100) : 0; return [pp, tot > 0 ? 100 - pp : 0]; };   // prepaid % and COD % (always 100 together)
     base.forEach(o => {
+      const amt = Number(o.total) || 0, isCod = orderOutstanding(o, amt) > 0;     // same rule as the platform cards and the Employee sheet
+      if (isCod) cod += amt; else prepaid += amt;
       const c = o.colors || {};
       clr.dg += Number(c.dg) || 0; clr.lg += Number(c.lg) || 0; clr.wh += Number(c.wh) || 0; clr.other += Number(c.other) || 0;
-      byStore[o.store] = byStore[o.store] || { count: 0, total: 0, currency: o.currency };
-      byStore[o.store].count++;
-      byStore[o.store].total += Number(o.total || 0);
+      const pk = panelOf(o), bk = pk !== 'none' ? PANEL_NAME[pk] : o.store;      // a panel's orders always land in that panel's box
+      byStore[bk] = byStore[bk] || { count: 0, total: 0, currency: o.currency, pre: 0, cod: 0 };
+      byStore[bk].count++;
+      byStore[bk].total += Number(o.total || 0);
+      byStore[bk][isCod ? 'cod' : 'pre'] += amt;
       grandTotal += Number(o.total || 0);
     });
+
+    // One box per panel — also a panel with no orders (shown with zeros) so none goes missing.
+    // Top-box order: TM Perfume House, TM Fragrance, TM4U, TM House 4th, TM Shower Gel. Anything else (MySales, Manual) follows when it has orders.
+    const boxes = [];
+    TOP_ORDER.map(k => PANELS.find(p => p[0] === k)).forEach(([k, label]) => {
+      if (byStore[label] || (ES_ALLOWED && panelAllowed(k) && (!panelPick || panelPick === k))) boxes.push([label, byStore[label] || { count: 0, total: 0, currency: 'INR', pre: 0, cod: 0 }]);
+    });
+    Object.entries(byStore).forEach(([label, s]) => { if (!PANELS.some(p => p[0] !== 'none' && p[1] === label)) boxes.push([label, s]); });
 
     const grid = document.getElementById('summaryGrid');
     // Each card carries both a full label/amount and a short one; CSS shows
     // whichever fits (short only under the mobile breakpoint).
     grid.innerHTML = `
-      <div class="stat-card">
-        <div class="label"><span class="lbl-full">All Orders</span><span class="lbl-short">Orders</span></div>
-        <div class="value">${base.length}</div>
+      <div class="stat-card ar">
+        <div class="label"><span class="lbl-full">All Orders &amp; Revenue</span><span class="lbl-short">Orders &amp; Revenue</span></div>
+        <div class="pc-tot ar-tot"><span class="r">${base.length} <small>${base.length === 1 ? 'order' : 'orders'}</small></span><span class="r">${fmtMoney(grandTotal, 'INR')} <small>revenue</small></span></div>
+        <div class="pcm ar-pc"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
+        <div class="tkr"><span>Ticket size</span> <b>${ticket(grandTotal, base.length, 'INR')}</b></div>
+        <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
+        <div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>
       </div>
-      <div class="stat-card">
-        <div class="label"><span class="lbl-full">Total Revenue</span><span class="lbl-short">Revenue</span></div>
-        <div class="value"><span class="amt-full">${fmtMoney(grandTotal, 'INR')}</span><span class="amt-short">${fmtMoney(grandTotal, 'INR')}</span></div>
-      </div>
-      <div class="stat-card">
-        <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
-        <div class="value cl-tot"><span><i class="c-dg"></i>DG ${clr.dg}</span><span><i class="c-lg"></i>LG ${clr.lg}</span><span><i class="c-wh"></i>WH ${clr.wh}</span><span><i class="c-ot"></i>OTHER ${clr.other}</span></div>
-      </div>
-      ${Object.entries(byStore).map(([label, s]) => `
+      ${boxes.map(([label, s]) => `
         <div class="stat-card">
           <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
           <div class="value">${s.count}
             <span class="amt-full" style="font-size:13px; font-weight:500; color:var(--muted);"> / ${fmtMoney(s.total, s.currency)}</span>
             <span class="amt-short">${fmtMoney(s.total, s.currency)}</span>
           </div>
+          <div class="tkr"><span>Ticket size</span> <b>${ticket(s.total, s.count, s.currency)}</b></div>
+          <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
+          ${panelTargetHtml(label, s)}
         </div>`).join('')}
+      <div class="stat-card">
+        <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
+        <div class="value cl-tot"><span><i class="c-dg"></i>Dark green<b>${clr.dg}</b></span><span><i class="c-lg"></i>Light green<b>${clr.lg}</b></span><span><i class="c-wh"></i>White<b>${clr.wh}</b></span><span><i class="c-ot"></i>Other<b>${clr.other}</b></span><span class="sum">Total<b>${clr.dg + clr.lg + clr.wh + clr.other}</b></span></div>
+      </div>
     `;
     grid.style.display = 'grid';
   }
@@ -1242,27 +1459,27 @@
   };
 
   // ================= Employee sheet (Admin / HR) =================
-  // One row per sales employee for the dates above. Attendance, target,
-  // queries / campaigns and ratings come from team.sheet; collection, orders,
-  // COD / prepaid and bottle colours are worked out here from the orders the
-  // page already loaded, so they always agree with the cards and the list.
+  // One block per panel (TM Perfume House, TM Fragrance, TM4U …), one row per employee in that panel, for the dates above.
+  // An employee who works in two panels has a row in each. Attendance is the person's; target,
+  // queries / campaigns and ratings come from team.sheet for that panel; collection, orders,
+  // COD / prepaid and bottle colours are worked out here from the orders the page already
+  // loaded, so they always agree with the cards and the list.
   const ES_ROLE = (api.currentUser() || {}).role;
   const ES_ALLOWED = ES_ROLE !== 'Employee' && !new URLSearchParams(location.search).get('salesman');   // Admin, HR and any custom role with this page (e.g. Sales Head)
   let teamData = null;               // last team.sheet response
   let teamReqId = 0;
   const ES_GROUPS = [
-    { k: 'tgt', n: 'Target', cls: 'g-tgt' }, { k: 'ord', n: 'Orders', cls: 'g-ord' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
+    { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
     { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' }
   ];
   const ES_COLS = {
-    tgt: [['Target', 'tg'], ['Collection', 'coll']],
-    ord: [['Total query', 'tq'], ['Total order', 'ord'], ['Ratio', 'ratio']],
+    to: [['Target · Collection · Orders', 'to']],      // one box: Target, Collection, Orders, Total query, Ratio
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
     rat: [['Per order', 'or']]
   };
-  const esOn = { tgt: 1, ord: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
+  const esOn = { to: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
   const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)
@@ -1280,33 +1497,48 @@
   const esAch = (e) => e.tg ? Math.round(e.coll / e.tg * 100) : 0;
 
   // One-line message inside the sheet box (loading / slow / error), so it is never an empty white box.
-  function esMsg(html) { esEl('esTbl').innerHTML = `<tbody><tr><td class="es-empty l" style="text-align:center;">${html}</td></tr></tbody>`; esEl('esNote').innerHTML = ''; }
-  let esSlowTimer = 0;
-  async function loadTeamSheet(from, to, store) {
+  const esMq = window.matchMedia('(max-width: 820px)');
+  const esCardsMode = () => esMq.matches;           // phone: one card per employee
+  function esMsg(html) {
+    esEl('esWrap').classList.toggle('cm', esCardsMode());
+    esEl('esTbl').innerHTML = `<tbody><tr><td class="es-empty l" style="text-align:center;">${html}</td></tr></tbody>`;
+    esEl('esCards').innerHTML = `<div class="es-empty l" style="padding:22px 14px; text-align:center;">${html}</div>`;
+    esEl('esNote').innerHTML = '';
+  }
+  let esSlowTimer = 0, esSortTouched = false;
+  async function loadTeamSheet(from, to) {
     if (!ES_ALLOWED) return;
     const id = ++teamReqId;
     if (!teamData) esMsg('Loading employee sheet…');
     clearTimeout(esSlowTimer);
     esSlowTimer = setTimeout(() => { if (id === teamReqId && !teamData) esMsg('Still loading — the server is slow right now. <button type="button" class="btn secondary" id="esRetry" style="width:auto; margin-left:8px;">Try again</button>'); }, 15000);
     try {
-      const d = await api.get('team.sheet', { date_from: from, date_to: to, store });
+      const d = await api.get('team.sheet', { date_from: from, date_to: to });
       if (id !== teamReqId) return;
       clearTimeout(esSlowTimer);
       if (!d || !Array.isArray(d.rows)) throw new Error('the server sent an unexpected reply — upload the latest api.php');
+      d.rows.forEach(r => { if (!r.panels || Array.isArray(r.panels)) r.panels = {}; });   // PHP sends [] for "none"
+      if (!d.order || Array.isArray(d.order)) d.order = {};
+      Object.keys(d.order).forEach(k => { d.order[k] = (d.order[k] || []).map(Number); });
+      if (!esSortTouched && Object.keys(d.order).length) esEl('esSort').value = 'manual';      // a saved order is used until another sort is picked
       teamData = d;
+      teamData.rulePending = !!d.auto_rule;        // the Target with the automatic rule is still on its way
       try { renderTeamSheet(); } catch (re) { teamData = null; throw new Error('could not draw the sheet (' + re.message + ')'); }
+      summaryRefresh();
       // Target with the automatic daily rule needs Shopify history, so it comes in a second, slower call.
       if (d.auto_rule) {
-        api.get('team.sheet', { date_from: from, date_to: to, store, rule: 1 }).then(r => {
+        api.get('team.sheet', { date_from: from, date_to: to, rule: 1 }).then(r => {
           if (id !== teamReqId || !teamData) return;
           teamData.rows.forEach(row => {
-            const t = (r.targets || {})[row.employee_id];
-            if (t !== undefined && t !== null) row.target = t;
-            if ((r.src || {})[row.employee_id]) { row.target_src = r.src[row.employee_id]; row.target_how = (r.how || {})[row.employee_id] || ''; }
+            const pp = (r.panels || {})[row.employee_id] || {};      // each panel's own target
+            Object.keys(pp).forEach(k => { row.panels[k] = Object.assign({}, row.panels[k] || {}, pp[k]); });
           });
           teamData.rule_note = r.note || '';
+          if (r.panel_targets) teamData.panel_targets = r.panel_targets;
+          teamData.rulePending = false;
           renderTeamSheet();
-        }).catch(() => {});
+          summaryRefresh();
+        }).catch(() => { if (id === teamReqId && teamData) { teamData.rulePending = false; summaryRefresh(); } });
       }
     } catch (err) {
       if (id !== teamReqId) return;
@@ -1319,10 +1551,13 @@
   // Per-person order numbers from the loaded orders.
   function esAggregate() {
     const by = {};
-    const slot = () => ({ coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] });
+    const slot = slot0;
+    const outMap = {};      // person -> { business day: punch-out time (seconds) }
+    if (teamData) teamData.rows.forEach(r => { outMap[String(r.full_name || '').trim().toLowerCase()] = r.outs || {}; });
     allOrders.forEach(o => {
       if (o.cancelled) return;
-      const key = String(o.salesman || '').trim().toLowerCase();
+      const nm = String(o.salesman || '').trim().toLowerCase();
+      const key = nm + '|' + panelOf(o);
       const a = by[key] = by[key] || slot();
       const amt = Number(o.total) || 0, t = orderTagType(o.tags);
       a.coll += amt; a.ord++;
@@ -1332,45 +1567,78 @@
       if (out > 0) { a.cod += amt; a.codPaid += amt - out; } else a.pre += amt;
       const c = o.colors || {};
       a.col[0] += Number(c.dg) || 0; a.col[1] += Number(c.lg) || 0; a.col[2] += Number(c.wh) || 0; a.col[3] += Number(c.other) || 0;
+      // After punch-out: the order came in later than this person's punch-out on that business day; then before 12 AM or after 12 AM.
+      const outs = outMap[nm];
+      if (outs) {
+        const d = new Date(o.created_at), day = bizDayOf(d), ot = Number(outs[day]) || 0;
+        if (ot && d.getTime() / 1000 > ot) {
+          a.pon++; a.pot += amt;
+          if (ymdOf(d) !== day) { a.poan++; a.poat += amt; } else { a.pobn++; a.pobt += amt; }
+        }
+      }
     });
     return by;
   }
 
   function esRows() {
     if (!teamData) return [];
-    const by = esAggregate(), used = new Set();
-    const rows = teamData.rows.map(r => {
-      const key = String(r.full_name || '').trim().toLowerCase();
-      used.add(key);
-      const a = by[key] || { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] };
-      const q = Number(r.q) || 0, k = Number(r.c) || 0;
-      return Object.assign({
-        id: r.employee_id, n: r.full_name, c: r.employee_code || '', p: (r.present_days || 0) > 0, days: r.present_days || 0, t: r.punch_in || '',
-        tg: Number(r.target) || 0, tsrc: r.target_src || 'none', how: r.target_how || '', mark: r.mark || null, tgks: Array.isArray(r.target_gks) && r.target_gks.length ? r.target_gks : [''], man: !!r.manual, tout: r.punch_out || '', q, k, tot: q + k,
-        or: r.order_rating ? [Number(r.order_rating.avg) || 0, Number(r.order_rating.n) || 0] : [0, 0], real: true
-      }, a);
+    const by = esAggregate(), used = new Set(), out = [];
+    teamData.rows.forEach(r => {
+      const nm = String(r.full_name || '').trim().toLowerCase();
+      const base = { id: r.employee_id, n: r.full_name, c: r.employee_code || '', p: (r.present_days || 0) > 0, days: r.present_days || 0, t: r.punch_in || '',
+        mark: r.mark || null, man: !!r.manual, tout: r.punch_out || '', real: true };
+      let any = false;
+      PANELS.forEach(([b]) => {
+        const pp = r.panels[b], a = by[nm + '|' + b];
+        if (a) used.add(nm + '|' + b);
+        if (!pp && !a) return;                       // nothing of this person in this panel
+        any = true;
+        const q = pp ? Number(pp.q) || 0 : 0, k = pp ? Number(pp.c) || 0 : 0;
+        out.push(Object.assign({}, base, {
+          b, q, k, tot: q + k, or: pp && pp.order_rating ? [Number(pp.order_rating.avg) || 0, Number(pp.order_rating.n) || 0] : [0, 0],
+          tg: pp ? Number(pp.target) || 0 : 0, tsrc: pp ? pp.src || 'none' : 'none', how: pp ? pp.how || '' : '', shared: !!(pp && pp.shared),
+          fl: pp ? Number(pp.floor) || 0 : 0      // a new Sales Executive's automatic target for the day: it can be raised by hand, not lowered
+        }, a || slot0()));
+      });
+      // Not in any panel yet and no orders: still listed (under "No panel") so nobody disappears.
+      if (!any) out.push(Object.assign({}, base, { b: 'none', q: 0, k: 0, tot: 0, or: [0, 0], tg: 0, tsrc: 'none', how: '' }, slot0()));
     });
-    // Orders whose salesman is not in the sheet (manual orders, ex-staff…) stay in the totals.
-    const other = slot0();
-    Object.keys(by).forEach(k => { if (!used.has(k)) { const a = by[k]; ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre'].forEach(f => other[f] += a[f]); a.col.forEach((v, i) => other.col[i] += v); } });
-    if (other.ord) rows.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', tgks: [''], mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], real: false }, other));
-    return rows;
+    // Orders whose salesman is not in the sheet (manual orders, ex-staff…) stay in the totals, panel by panel.
+    const other = {};
+    Object.keys(by).forEach(key => {
+      if (used.has(key)) return;
+      const b = key.slice(key.lastIndexOf('|') + 1), o = other[b] = other[b] || slot0(), a = by[key];
+      ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat'].forEach(f => o[f] += a[f]);
+      a.col.forEach((v, n) => o.col[n] += v);
+    });
+    Object.keys(other).forEach(b => {
+      if (other[b].ord) out.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], real: false, b }, other[b]));
+    });
+    return out;
   }
-  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, col: [0, 0, 0, 0] }; }
+  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, col: [0, 0, 0, 0] }; }
 
+  // The employees of one panel in the order picked in the Sort box. "My order" is the one set by drag and drop.
+  function esSortRows(real, s, panel) {
+    if (s === 'manual') {
+      const rk = new Map(((teamData && teamData.order && teamData.order[panel]) || []).map((id, i) => [id, i]));
+      return real.slice().sort((a, b) => (rk.has(a.id) ? rk.get(a.id) : 1e6) - (rk.has(b.id) ? rk.get(b.id) : 1e6) || (a.n.toLowerCase() > b.n.toLowerCase() ? 1 : (a.n.toLowerCase() < b.n.toLowerCase() ? -1 : 0)));
+    }
+    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0) }[s] || ((e) => e.n.toLowerCase());
+    const sorted = real.slice().sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0));
+    // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
+    const away = (e) => !e.p && !esMk(e);
+    return sorted.filter(e => !away(e)).concat(sorted.filter(away));
+  }
   function esVisible(all) {
     const q = esEl('esQ').value.trim().toLowerCase(), f = esEl('esSt').value, s = esEl('esSort').value;
     const r = all.filter(e => !e.real ? (f === 'all' && !q) : ((!q || e.n.toLowerCase().includes(q) || e.c.toLowerCase().includes(q)) && (f === 'all' || (f === 'present') === e.p)));
-    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0) }[s];
-    const real = r.filter(e => e.real).sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0));
-    // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
-    const away = (e) => !e.p && !esMk(e);
-    return real.filter(e => !away(e)).concat(real.filter(away), r.filter(e => !e.real));
+    return esSortRows(r.filter(e => e.real), s, (all[0] || {}).b).concat(r.filter(e => !e.real));
   }
   function esTotals(rows) {
     const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0 });
     rows.forEach(e => {
-      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre'].forEach(f => t[f] += e[f]);
+      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat'].forEach(f => t[f] += e[f]);
       e.col.forEach((v, i) => t.col[i] += v);
       if (e.or[1]) { t.orN += e.or[1]; t.orS += e.or[0] * e.or[1]; }
     });
@@ -1389,15 +1657,15 @@
     return `<span class="stbox">${e.p ? `<span class="es-pill es-in">Present</span> <span class="es-tm">${esEsc(e.t)}</span>` : mkPill} ${tag}<button type="button" class="stedit" data-sx="${e.id}" title="Change attendance">✎</button></span>`;
   }
   // ---- Target cell (same look as the Targets page) and Collection cell (Query / Campaign / Other bar)
-  let esEditTg = 0;
+  let esEditTg = '';      // "employee id|panel" of the target being typed
   function esTgtCell(e) {
-    if (!e.real) return '<span class="es-sl">—</span>';
-    const can = esCanEdit();
-    if (can && esEditTg === e.id) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="0" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="Daily target"><button class="ok" data-tg="save" data-id="${e.id}">✓</button><button data-tg="x" data-id="${e.id}">✕</button></span>`;
-    const pill = e.tsrc === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (e.tsrc === 'rule' ? '<span class="tgt-pill auto">Auto</span>' : '');
+    if (!e.real || PANEL_GK[e.b] === undefined) return '<span class="es-sl">—</span>';     // "No panel" has no target
+    const can = esCanEdit(), d = `data-id="${e.id}" data-b="${e.b}"`;
+    if (can && esEditTg === e.id + '|' + e.b) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="${e.fl || 0}" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="${e.fl ? '≥ ' + esInr(e.fl) : 'Daily target'}"${e.fl ? ` title="New Sales Executive: at least ${esInr(e.fl)} — you can raise it, not lower it"` : ''}><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span>`;
+    const pill = e.tsrc === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (e.tsrc === 'rule' || e.tsrc === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
     if (!can) return e.tg > 0 ? `<span class="tgt-chip ro">${esInr(e.tg)}</span>` : '<span class="es-sl">—</span>';
-    const chip = `<span class="tgt-chip ${e.tg > 0 ? '' : 'empty'}" data-tg="edit" data-id="${e.id}" title="Click to set by hand">${e.tg > 0 ? esInr(e.tg) : 'Set target'} ${pill} ✎</span>`;
-    const sub = e.tsrc === 'manual' ? `<div><button type="button" class="tgt-revert" data-tg="rev" data-id="${e.id}">↺ Back to automatic</button></div>` : (e.how ? `<div class="tgt-how" title="${esEsc(e.how)}">${esEsc(e.how)}</div>` : '');
+    const chip = `<span class="tgt-chip ${e.tg > 0 ? '' : 'empty'}" data-tg="edit" ${d} title="Click to set by hand">${e.tg > 0 ? esInr(e.tg) : 'Set target'} ${pill} ✎</span>`;
+    const sub = e.tsrc === 'manual' && !e.shared ? `<div><button type="button" class="tgt-revert" data-tg="rev" ${d}>↺ Back to automatic</button></div>` : (e.how ? `<div class="tgt-how" title="${esEsc(e.how)}">${esEsc(e.how)}</div>` : '');
     return chip + sub;
   }
   function esCollCell(e) {
@@ -1411,14 +1679,31 @@
     return `<div class="cl1"><b>${esInr(e.coll)}</b><div class="seg"><div style="width:${sP}%;background:#0EA5E9"></div><div style="width:${cP}%;background:#F59E0B"></div><div style="width:${oP}%;background:#94A3B8"></div></div><span>${lbl}</span></div>` +
       (e.coll > 0 ? `<div class="cl2">${lg('Query', e.qc, '#0EA5E9')}${lg('Campaign', e.kc, '#F59E0B')}${oth > 0 ? lg('Other', oth, '#94A3B8') : ''}</div>` : '');
   }
-  // A count that opens the orders behind it (this person's all / query / campaign orders).
+  // A count that opens the orders behind it (this person's all / query / campaign orders in this panel).
   function esLk(e, v, n, bold) {
     const t = bold ? '<b>' + n + '</b>' : String(n);
-    return e.real && n > 0 ? `<a href="#" class="es-lk" data-lk="${v}" data-n="${esEsc(e.n)}" title="Show these orders">${t}</a>` : t;
+    return e.real && n > 0 ? `<a href="#" class="es-lk" data-lk="${v}" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${t}</a>` : t;
+  }
+  // The inside of a cell (no <td>), so the same value can sit in a table cell, in the one Target & Orders box or on a phone card.
+  const esCv = (e, tot, abs) => (k) => (tot ? esFoot(k, e) : esCell(k, e, abs)).replace(/^<td[^>]*>/, '').replace(/<\/td>$/, '');
+  // Target + Collection on the first line, Orders / Total query / Ratio under it.
+  // After punch-out line: orders that came in after the person punched out, split before 12 AM / after 12 AM ("—" when none).
+  function esPo(e, tot) {
+    const lab = 'After punch-out';
+    if (!e.pon) return `<div class="po none"><div class="h"><span>${lab}</span><span>—</span></div></div>`;
+    const out = !tot && e.tout ? ` <em>(out ${esEsc(e.tout)})</em>` : '';
+    const chip = (cls, l, n, v) => n ? `<span class="${cls}">${l} · ${n} · ${esInr(v)}</span>` : '';
+    return `<div class="po"><div class="h"><span>${lab}${out}</span><span><b>${e.pon} ${e.pon === 1 ? 'order' : 'orders'}</b> · <b>${esInr(e.pot)}</b></span></div><div class="ch">${chip('pcb', 'Before 12 AM', e.pobn, e.pobt)}${chip('pca', 'After 12 AM', e.poan, e.poat)}</div></div>`;
+  }
+  function esBox(e, tot, abs) {
+    const cv = esCv(e, tot, abs);
+    return `<div class="tob"><div class="tb1"><div class="tbt">${cv('tg')}</div><div class="tbc">${cv('coll')}</div></div>` +
+      `<div class="tb2"><span>Orders ${cv('ord')}</span><span>Total query <b>${cv('tq')}</b></span><span>Ratio ${cv('ratio')}</span></div>${esPo(e, tot)}</div>`;
   }
   function esCell(k, e, abs) {
     const d = abs ? ' dim' : '', dash = '<span class="es-sl">—</span>';
     switch (k) {
+      case 'to':    return `<td class="gl to">${esBox(e, false, abs)}</td>`;
       case 'tg':    return `<td class="gl">${esTgtCell(e)}</td>`;
       case 'coll':  return `<td>${esCollCell(e)}</td>`;
       case 'tq':    return `<td class="gl">${e.real ? '<b>' + e.tot + '</b>' : dash}</td>`;
@@ -1439,39 +1724,146 @@
     return '<td></td>';
   }
   function esFoot(k, t) {
+    if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
       or: esStars(t.orAvg) };
     return `<td${['tg', 'tq', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
   }
 
-  function renderTeamSheet() {
-    if (!ES_ALLOWED || !teamData) return;
-    const rows = esVisible(esRows()), t = esTotals(rows);
-    const gs = ES_GROUPS.filter(g => esOn[g.k]);
-    let h = '<thead><tr class="g1"><th class="g-emp l" colspan="2">Employee</th>' + gs.map(g => `<th class="${g.cls}" colspan="${ES_COLS[g.k].length}">${g.n}</th>`).join('') + '</tr>';
-    h += '<tr class="g2"><th class="st l">Status</th><th class="nm l">Name</th>' + gs.map(g => ES_COLS[g.k].map((c, i) => `<th${i === 0 ? ' class="gl"' : ''}>${c[0]}</th>`).join('')).join('') + '</tr></thead>';
-    let b = '<tbody>';
-    if (!rows.length) b += '<tr><td colspan="40" class="es-empty l">No employee matches.</td></tr>';
-    rows.forEach(e => {
-      const abs = e.real && !e.p && !esMk(e);
-      const nm = e.real
-        ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" title="Show this person's orders"><b>${esEsc(e.n)}</b></a>`
-        : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
-      b += `<tr class="${abs ? 'abs' : (e.real ? '' : 'un')}"><td class="st l">${esStatus(e)}</td><td class="nm l">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</td>` +
-        gs.map(g => ES_COLS[g.k].map(c => esCell(c[1], e, abs)).join('')).join('') + '</tr>';
+  // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
+  function esEmp(e, label, abs) {
+    const nm = e.real
+      ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show this person's orders in ${esEsc(label)}"><b>${esEsc(e.n)}</b></a>`
+      : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
+    return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${e.real ? `<div class="el2">${esStatus(e)}</div>` : ''}</div>`;
+  }
+  // ---- the sheet as a table (computer) ...
+  function esTableHtml(blocks, gs) {
+    const ncol = 1 + gs.reduce((n, g) => n + ES_COLS[g.k].length, 0);
+    // The column heads repeat inside every panel block, so each block reads on its own.
+    const hd = '<tr class="g1 hd"><th class="g-emp l">Employee</th>' + gs.map(g => `<th class="${g.cls}" colspan="${ES_COLS[g.k].length}">${g.n}</th>`).join('') + '</tr>' +
+      '<tr class="g2 hd"><th class="emp l">Employee</th>' + gs.map(g => ES_COLS[g.k].map((c, i) => `<th class="${i === 0 ? 'gl' : ''}${g.k === 'to' ? ' to' : ''}">${c[0]}</th>`).join('')).join('') + '</tr>';
+    let b = '';
+    blocks.forEach((bl, bi) => {
+      b += (bi ? `<tr class="sp"><td colspan="${ncol}"></td></tr>` : '') +
+        `<tr class="pb" style="--c:${bl.color};"><td class="emp l">${esEsc(bl.label)}</td><td class="pbs" colspan="${ncol - 1}">${bl.stats}</td></tr>` + hd;
+      bl.rows.forEach(e => {
+        const abs = e.real && !e.p && !esMk(e);
+        b += `<tr class="${abs ? 'abs' : (e.real ? '' : 'un')}"${e.real ? ` data-id="${e.id}" data-b="${e.b}"` : ''}><td class="emp l"><div class="em">${e.real ? '<span class="grip" data-grip title="Drag to change the order">⋮⋮</span>' : ''}${esEmp(e, bl.label, abs)}</div></td>` +
+          gs.map(g => ES_COLS[g.k].map(c => esCell(c[1], e, abs)).join('')).join('') + '</tr>';
+      });
+      b += `<tr class="pt"><td class="emp l"><div class="em"><div class="eb"><div class="el1"><b>Total</b><span class="es-ec">${bl.real.filter(e => e.p).length} present</span></div></div></div></td>` + gs.map(g => ES_COLS[g.k].map(c => esFoot(c[1], bl.t)).join('')).join('') + '</tr>';
     });
-    b += '</tbody>';
-    const present = rows.filter(e => e.real && e.p).length, real = rows.filter(e => e.real).length;
-    const f = `<tfoot><tr><td class="st l">${present} present</td><td class="nm l">${real} employee${real === 1 ? '' : 's'}</td>` + gs.map(g => ES_COLS[g.k].map(c => esFoot(c[1], t)).join('')).join('') + '</tr></tfoot>';
-    esEl('esTbl').innerHTML = h + b + f;
-    esEl('cntSheet').textContent = ' · ' + real;
-    const live = allOrders.filter(o => !o.cancelled);
-    esEl('cntOrders').textContent = ' · ' + live.length;
-    esEl('cntQuery').textContent = ' · ' + live.filter(o => orderTagType(o.tags) === 'query').length;
-    esEl('cntCampaign').textContent = ' · ' + live.filter(o => orderTagType(o.tags) === 'campaign').length;
-    esEl('cntCancelled').textContent = ' · ' + allOrders.filter(o => o.cancelled).length;
+    return '<tbody>' + (b || '<tr><td colspan="40" class="es-empty l">No employee matches.</td></tr>') + '</tbody>';
+  }
+  // ... and as cards (phone): one card per employee, everything on it, no sideways scrolling.
+  function esCard(e, label) {
+    const tot = !!e.__tot, abs = !tot && e.real && !e.p && !esMk(e);
+    const cv = esCv(e, tot, abs);
+    let head;
+    if (tot) head = `<div class="mt"><b>Total</b><span class="es-ec">${e.present} present</span></div>`;
+    else {
+      head = `<div class="mt em">${e.real ? '<span class="grip" data-grip title="Hold and drag to change the order">⋮⋮</span>' : ''}${esEmp(e, label, abs)}</div>`;
+    }
+    const box = esOn.to
+      ? `<div class="mbox"><div class="mbt">Target &amp; Orders</div><div class="mb1"><span class="lb">Target</span>${cv('tg')}</div><div class="mb1 c"><span class="lb">Collection</span>${cv('coll')}</div>` +
+        `<div class="mb2"><div><span class="lb">Orders</span>${cv('ord')}</div><div><span class="lb">Total query</span>${cv('tq')}</div><div><span class="lb">Ratio</span>${cv('ratio')}</div></div>${esPo(e, tot)}</div>` : '';
+    const sec = (g, title, color, items) => esOn[g]
+      ? `<div class="msec" style="--g:${color}"><div class="msh">${title}</div><div class="msg">${items.map(([l, k]) => `<div><span class="lb">${l}</span>${cv(k)}</div>`).join('')}</div></div>` : '';
+    return `<div class="mc ${tot ? 'tot' : (abs ? 'abs' : (e.real ? '' : 'un'))}"${e.real && !tot ? ` data-id="${e.id}" data-b="${e.b}"` : ''}>${head}${box}` +
+      sec('qry', 'Query', '#7c3aed', [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']]) +
+      sec('cmp', 'Campaign', '#b45309', [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']]) +
+      sec('pay', 'Payments', '#0e7490', [['COD / Paid', 'cod'], ['Prepaid', 'pre']]) +
+      sec('rat', 'Ratings', '#be185d', [['Per order', 'or']]) + '</div>';
+  }
+  function esCardsHtml(blocks) {
+    if (!blocks.length) return '<div class="es-empty l" style="padding:22px 14px; text-align:center;">No employee matches.</div>';
+    return blocks.map(bl => `<div class="mb" style="--c:${bl.color};"><div class="mbh"><b>${esEsc(bl.label)}</b><span>${bl.stats}</span></div>` +
+      bl.rows.map(e => esCard(e, bl.label)).join('') + esCard(Object.assign({}, bl.t, { __tot: true, present: bl.real.filter(e => e.p).length }), bl.label) + '</div>').join('');
+  }
+
+  function renderTeamSheet() {
+    if (!ES_ALLOWED || !teamData || esDrag) return;
+    const gs = ES_GROUPS.filter(g => esOn[g.k]);
+    const all = esRows(), people = new Set(), blocks = [];
+    PANELS.forEach(([k, label, color]) => {
+      if (!panelAllowed(k) || (panelPick && panelPick !== k)) return;
+      const rows = esVisible(all.filter(e => e.b === k));
+      if (!rows.length) return;
+      const t = esTotals(rows), real = rows.filter(e => e.real);
+      real.forEach(e => people.add(e.id));
+      const pc = esPct(t.coll, t.tg);
+      const stats = `${real.length} employee${real.length === 1 ? '' : 's'} · Collection <b>${esInr(t.coll)}</b>` +
+        (PANEL_GK[k] !== undefined ? ` · Target <b>${t.tg ? esInr(t.tg) : '—'}</b>${pc !== null ? ' · <b>' + pc + '%</b>' : ''}` : '');
+      blocks.push({ k, label, color, rows, t, real, stats });
+    });
+    const cm = esCardsMode();
+    esEl('esWrap').classList.toggle('cm', cm);
+    if (cm) esEl('esCards').innerHTML = esCardsHtml(blocks);
+    else esEl('esTbl').innerHTML = esTableHtml(blocks, gs);
+    esEl('cntSheet').textContent = ' · ' + people.size;
+    const sc = scopedAll();
+    esEl('cntOrders').textContent = ' · ' + sc.filter(o => !o.cancelled).length;
+    esEl('cntQuery').textContent = ' · ' + sc.filter(o => !o.cancelled && orderTagType(o.tags) === 'query').length;
+    esEl('cntCampaign').textContent = ' · ' + sc.filter(o => !o.cancelled && orderTagType(o.tags) === 'campaign').length;
+    esEl('cntCancelled').textContent = ' · ' + sc.filter(o => o.cancelled).length;
     esEl('esNote').innerHTML = teamData.rule_note ? esEsc(teamData.rule_note) : '';
+  }
+
+  // ---- drag and drop: hold the ⋮⋮ handle and move the employee up or down inside the panel block.
+  // The new order is kept for everyone (per panel); "Sort: My order" shows it.
+  let esDrag = null;
+  function esDragPlace() {
+    const d = esDrag; if (!d) return;
+    const sibs = [...d.host.children].filter(x => x !== d.row && x.dataset.id && x.dataset.b === d.b);
+    let before = null;
+    for (const x of sibs) { const r = x.getBoundingClientRect(); if (d.y < r.top + r.height / 2) { before = x; break; } }
+    if (before) { if (d.row.nextElementSibling !== before) d.host.insertBefore(d.row, before); }
+    else { const last = sibs[sibs.length - 1]; if (last && last.nextElementSibling !== d.row) d.host.insertBefore(d.row, last.nextElementSibling); }
+  }
+  function esDragTick() {
+    const d = esDrag; if (!d) return;
+    if (d.y < 80) scrollBy(0, -12); else if (d.y > innerHeight - 80) scrollBy(0, 12);
+    esDragPlace();
+    d.raf = requestAnimationFrame(esDragTick);
+  }
+  function esDragStart(ev) {
+    const g = ev.target.closest('[data-grip]');
+    if (!g || (ev.pointerType === 'mouse' && ev.button !== 0) || esDrag) return;
+    const row = g.closest('[data-id]'); if (!row) return;
+    ev.preventDefault();
+    // A see-through layer catches the finger / mouse for the whole drag: the row (and its handle) is moved in the page while dragging,
+    // and a moved element would lose the pointer.
+    const ov = document.createElement('div'); ov.className = 'es-dragcatch'; document.body.appendChild(ov);
+    try { ov.setPointerCapture(ev.pointerId); } catch (e) {}
+    esDrag = { row, id: Number(row.dataset.id), b: row.dataset.b, host: row.parentElement, y: ev.clientY, raf: 0 };
+    row.classList.add('lift'); document.body.classList.add('es-dragging');
+    const move = (e) => { if (esDrag) esDrag.y = e.clientY; esDragPlace(); };
+    const end = () => {
+      ov.removeEventListener('pointermove', move); ov.removeEventListener('pointerup', end); ov.removeEventListener('pointercancel', end); ov.remove();
+      const d = esDrag; if (!d) return;
+      esDrag = null; cancelAnimationFrame(d.raf);
+      d.row.classList.remove('lift'); document.body.classList.remove('es-dragging');
+      esMoved(d.b, d.id, [...d.host.children].filter(x => x.dataset.id && x.dataset.b === d.b).map(x => Number(x.dataset.id)));
+    };
+    ov.addEventListener('pointermove', move); ov.addEventListener('pointerup', end); ov.addEventListener('pointercancel', end);
+    esDrag.raf = requestAnimationFrame(esDragTick);
+  }
+  // `vis` = the employees now showing in that block, top to bottom. The saved order keeps everyone who is hidden by the search / filter where they were.
+  async function esMoved(b, id, vis) {
+    const full = esSortRows(esRows().filter(e => e.b === b && e.real), esEl('esSort').value, b).map(e => e.id);
+    const i = vis.indexOf(id), prev = vis[i - 1], next = vis[i + 1];
+    const rest = full.filter(x => x !== id);
+    let at = rest.length;
+    if (prev !== undefined) at = rest.indexOf(prev) + 1; else if (next !== undefined) at = rest.indexOf(next);
+    rest.splice(Math.max(0, at), 0, id);
+    teamData.order = teamData.order || {};
+    teamData.order[b] = rest;
+    esEl('esSort').value = 'manual'; esSortTouched = true;
+    renderTeamSheet();
+    try { await api.post('team.sheet_order', { panel: b, ids: rest }); }
+    catch (er) { alert('Could not save the order: ' + er.message); esReload(); }
   }
 
   function esView(v) {
@@ -1481,9 +1873,10 @@
     if (lt !== listType) { listType = lt; currentPage = 1; applyFilters(); }
     document.querySelectorAll('#vtabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   }
-  function esPick(name, house) {
+  function esPick(name, house, panel) {
     pickSalesman = name || '';
     housePick = house || '';
+    pickPanel = panel || '';
     esChip();
     currentPage = 1;
     applyFilters();
@@ -1491,16 +1884,16 @@
   // The filter chip above the list (the Query / Campaign tab shows its own kind when there are no tabs).
   function esChip() {
     const tl = !ES_ALLOWED && listType ? LIST_NAMES[listType] : '';
-    esEl('esWho').hidden = !pickSalesman && !housePick && !tl;
+    esEl('esWho').hidden = !pickSalesman && !housePick && !pickPanel && !tl;
     const hl = (PLATFORMS.find(p => p[0] === housePick) || [])[1] || '';
-    esEl('esWhoN').textContent = [pickSalesman ? 'Salesman: ' + pickSalesman : '', hl ? 'Platform: ' + hl : '', tl].filter(Boolean).join(' · ');
+    esEl('esWhoN').textContent = [pickSalesman ? 'Salesman: ' + pickSalesman : '', pickPanel ? 'Panel: ' + PANEL_NAME[pickPanel] : '', hl ? 'Platform: ' + hl : '', tl].filter(Boolean).join(' · ');
   }
 
 
   // ---- change attendance / target by hand (one-day view only)
   let esPop = null;
   const esClosePop = () => { if (esPop) { esPop.remove(); esPop = null; } };
-  const esReload = () => loadTeamSheet(esEl('dateFrom').value, esEl('dateTo').value, storeVal());
+  const esReload = () => loadTeamSheet(esEl('dateFrom').value, esEl('dateTo').value);
   function esOpenStatus(btn, id) {
     esClosePop();
     const e = esRows().find(x => x.id === id); if (!e) return;
@@ -1540,18 +1933,15 @@
       } catch (er) { err.textContent = er.message; a.disabled = false; }
     });
   }
-  async function esSaveTarget(id, amount) {
-    const e = esRows().find(x => x.id === id); if (!e) return;
+  async function esSaveTarget(id, b, amount) {
+    const rw = teamData.rows.find(x => x.employee_id === id); if (!rw) return;
+    const cur = esRows().find(x => x.id === id && x.b === b);
+    if (amount !== null && cur && cur.fl && amount < cur.fl) { alert('New Sales Executive: the target for this day is at least ' + esInr(cur.fl) + '. You can raise it, not lower it.'); return; }
     try {
-      // A person with two target rows: the typed amount goes to the first row and the other row is set to 0, so the day's total is exactly what was typed.
-      for (let i = 0; i < e.tgks.length; i++) {
-        await api.post('targets.save_daily', { date: teamData.from, employee_id: id, group_key: e.tgks[i], amount: amount === null ? null : (i === 0 ? amount : 0) });
-      }
-      esEditTg = 0;
-      const rw = teamData.rows.find(x => x.employee_id === id);
-      if (rw) {
-        if (amount !== null) { rw.target = amount; rw.target_src = 'manual'; rw.target_how = 'Set by hand for this day'; }
-      }
+      // The typed amount belongs to that panel only (TM Perfume House, TM Fragrance, TM4U …); the person's other panels keep their own targets.
+      await api.post('targets.save_daily', { date: teamData.from, employee_id: id, group_key: PANEL_GK[b], amount });
+      esEditTg = '';
+      if (amount !== null) rw.panels[b] = Object.assign({}, rw.panels[b] || {}, { target: amount, src: 'manual', how: 'Set by hand for this day', shared: false });
       esReload();      // the automatic value (when "back to automatic") comes with the fresh data
       renderTeamSheet();
     } catch (er) { alert(er.message); }
@@ -1566,31 +1956,38 @@
       b.addEventListener('click', () => { esOn[g.k] = esOn[g.k] ? 0 : 1; b.classList.toggle('on', !!esOn[g.k]); renderTeamSheet(); });
       esEl('esChips').appendChild(b);
     });
-    ['esQ', 'esSt', 'esSort'].forEach(id => esEl(id).addEventListener(id === 'esQ' ? 'input' : 'change', renderTeamSheet));
+    ['esQ', 'esSt', 'esSort'].forEach(id => esEl(id).addEventListener(id === 'esQ' ? 'input' : 'change', () => { if (id === 'esSort') esSortTouched = true; renderTeamSheet(); }));
+    esEl('pChips').addEventListener('click', (ev) => {
+      const c = ev.target.closest('.pchip'); if (!c) return;
+      panelPick = c.dataset.p; currentPage = 1;
+      renderAll();
+    });
     document.addEventListener('click', (ev) => { if (esPop && !ev.target.closest('.stpop') && !ev.target.closest('[data-sx]')) esClosePop(); });
     document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = 0; renderTeamSheet(); } }
+      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } }
       if (ev.key === 'Enter' && ev.target.id === 'esTgIn') document.querySelector('[data-tg="save"]').click();
     });
-    esEl('esTbl').addEventListener('click', (ev) => {
+    const esSheetClick = (ev) => {
       if (ev.target.closest('#esRetry')) { ev.preventDefault(); esReload(); return; }
       const sx = ev.target.closest('[data-sx]');
       if (sx) { ev.preventDefault(); esOpenStatus(sx, Number(sx.dataset.sx)); return; }
       const tg = ev.target.closest('[data-tg]');
       if (tg) {
-        const id = Number(tg.dataset.id), act = tg.dataset.tg;
-        if (act === 'edit') { esEditTg = id; renderTeamSheet(); const i = esEl('esTgIn'); if (i) { i.focus(); i.select(); } }
-        else if (act === 'x') { esEditTg = 0; renderTeamSheet(); }
-        else if (act === 'save') { const v = Number(esEl('esTgIn').value); esSaveTarget(id, v > 0 ? v : null); }
-        else if (act === 'rev') esSaveTarget(id, null);
+        const id = Number(tg.dataset.id), pn = tg.dataset.b, act = tg.dataset.tg;
+        if (act === 'edit') { esEditTg = id + '|' + pn; renderTeamSheet(); const i = esEl('esTgIn'); if (i) { i.focus(); i.select(); } }
+        else if (act === 'x') { esEditTg = ''; renderTeamSheet(); }
+        else if (act === 'save') { const v = Number(esEl('esTgIn').value); esSaveTarget(id, pn, v > 0 ? v : null); }
+        else if (act === 'rev') esSaveTarget(id, pn, null);
         return;
       }
       const lk = ev.target.closest('.es-lk');
-      if (lk) { ev.preventDefault(); esPick(lk.dataset.n); esView(lk.dataset.lk); window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' }); return; }
+      if (lk) { ev.preventDefault(); esPick(lk.dataset.n, '', lk.dataset.b); esView(lk.dataset.lk); window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' }); return; }
       const a = ev.target.closest('.es-nm'); if (!a) return;
-      ev.preventDefault(); esPick(a.dataset.n); esView('orders');
+      ev.preventDefault(); esPick(a.dataset.n, '', a.dataset.b); esView('orders');
       window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' });
-    });
+    };
+    ['esTbl', 'esCards'].forEach(id => { esEl(id).addEventListener('click', esSheetClick); esEl(id).addEventListener('pointerdown', esDragStart); });
+    (esMq.addEventListener ? esMq.addEventListener('change', () => { if (teamData) renderTeamSheet(); }) : esMq.addListener(() => { if (teamData) renderTeamSheet(); }));
   } else {
     esEl('paneOrders').hidden = false;
   }

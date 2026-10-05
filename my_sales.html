@@ -84,6 +84,7 @@
         <div style="margin-bottom:16px;">
           <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">Today — ${dayLabel} (10 AM to next day 10 AM)</div>
           <div style="font-size:14px; margin-top:4px;">${inr(d.today.sales)} of ${d.daily_target > 0 ? inr(d.daily_target) : '—'} daily target</div>
+          ${d.ladder ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">New joiner target — week ${d.ladder.week} of 4</div>` : ''}
           ${bar(d.today.sales, d.daily_target)}
         </div>
         <div>

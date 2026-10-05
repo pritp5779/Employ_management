@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HRMS">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>My Salary — HRMS</title>
-<link rel="stylesheet" href="assets/css/style.css?v=4">
+<link rel="stylesheet" href="assets/css/style.css?v=1">
 </head>
 <body>
 <div class="app">
@@ -28,6 +28,8 @@
         <div class="stat-card"><div class="label">Monthly Salary</div><div class="value" id="stSalary">—</div></div>
         <div class="stat-card"><div class="label">Per Day</div><div class="value" id="stDaily">—</div></div>
         <div class="stat-card"><div class="label">Earned (so far)</div><div class="value" id="stEarned">—</div></div>
+        <div class="stat-card"><div class="label">Penalties</div><div class="value" id="stPen">—</div></div>
+        <div class="stat-card"><div class="label">Final pay</div><div class="value" id="stFinal">—</div></div>
       </div>
 
       <div class="card" style="max-width:720px;">
@@ -41,9 +43,9 @@
   </main>
 </div>
 
-<script src="assets/js/config.js?v=2"></script>
-<script src="assets/js/api.js?v=2"></script>
-<script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/config.js?v=1"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/layout.js?v=1"></script>
 <script>
   guardPage();
   renderSidebar('my_salary');
@@ -62,7 +64,12 @@
       document.getElementById('stSalary').textContent = inr(d.monthly_salary);
       document.getElementById('stDaily').textContent = inr(d.daily_rate);
       document.getElementById('stEarned').textContent = inr(d.earned);
-      document.getElementById('poolInfo').textContent = 'Free leave remaining: ' + d.pool_left + ' day(s)';
+      document.getElementById('stPen').textContent = d.penalty_total > 0 ? '− ' + inr(d.penalty_total) : '—';
+      document.getElementById('stFinal').textContent = inr(d.net_pay);
+      document.getElementById('poolInfo').textContent = 'Free leave remaining: ' + d.pool_left + ' day(s) · 30-day month, Sunday is a paid off day';
+      const penaltyRows = (d.penalties || []).map(p => `<tr><td colspan="3" style="font-size:12px; color:#c81e1e;">Penalty — ${String(p.title).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))} <span style="color:var(--muted);">· ${new Date(p.date + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span></td><td style="color:#c81e1e; font-weight:600;">− ${inr(p.amount)}</td></tr>`).join('')
+        + (d.penalty_total > 0 ? `<tr><td colspan="3" style="font-weight:700;">Final pay after penalties</td><td style="font-weight:700;">${inr(d.net_pay)}</td></tr>` : '');
+      const extraRow = d.extra_days > 0 ? `<tr><td colspan="3" style="font-size:12px; color:#0f7a41;">+ ${d.extra_days} paid day(s) — every month is paid as 30 days</td><td style="color:#0f7a41; font-weight:600;">${inr(d.extra_amount)}</td></tr>` : '';
       tbody.innerHTML = d.days.map(day => {
         const color = day.pct >= 100 ? '#0f7a41' : (day.pct > 0 ? '#b45f06' : '#c81e1e');
         return `<tr>
@@ -71,7 +78,7 @@
           <td style="color:${color};">${day.pct}%</td>
           <td style="color:${color}; font-weight:600;">${inr(day.amount)}</td>
         </tr>`;
-      }).join('');
+      }).join('') + extraRow + penaltyRows;
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="4"><div class="alert error">${err.message}</div></td></tr>`;
     }

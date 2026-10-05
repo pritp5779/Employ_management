@@ -3,7 +3,24 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '260930.5';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261003.1';   // shown under your name in the sidebar
+
+// Site icon: the TMPH logo as the browser-tab icon and the home-screen icon, on every page that loads this file.
+(function () {
+  try {
+    document.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]').forEach((l) => l.remove());
+    const add = (rel, href, attrs) => {
+      const l = document.createElement('link');
+      l.rel = rel; l.href = href;
+      if (attrs) Object.keys(attrs).forEach((k) => l.setAttribute(k, attrs[k]));
+      document.head.appendChild(l);
+    };
+    add('icon', 'icons/favicon-32.png', { type: 'image/png', sizes: '32x32' });
+    add('icon', 'icons/favicon-16.png', { type: 'image/png', sizes: '16x16' });
+    add('shortcut icon', 'icons/favicon.ico');
+    add('apple-touch-icon', 'icons/apple-touch-icon.png');
+  } catch (e) { /* icons are cosmetic */ }
+})();
 
 
 /**
@@ -91,6 +108,50 @@ function startPunchReminder() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
 }
 
+// A penalty (or its removal / waiver) the employee has not seen yet: shown as a pop-up on whatever page they have open.
+// The same text also goes to their phone as a notification. "OK" marks them seen.
+function startPenaltyNotice() {
+  if (window.__penaltyNoticeOn) return;
+  window.__penaltyNoticeOn = true;
+  let box = null;
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function show(list) {
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'penaltyNotice';
+      box.style.cssText = 'position:fixed; inset:0; background:rgba(17,24,39,.55); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px;';
+      document.body.appendChild(box);
+    }
+    const items = list.map((n) => `<div style="padding:10px 12px; border-radius:10px; margin-top:8px; border-left:4px solid ${n.kind === 'applied' ? '#dc2626' : '#16a34a'}; background:${n.kind === 'applied' ? '#fef2f2' : '#f0fdf4'};">
+        <div style="font-size:13px; font-weight:700; color:#111827;">${esc(n.title)}</div>
+        <div style="font-size:13px; color:#374151; line-height:1.45; margin-top:2px;">${esc(n.body)}</div></div>`).join('');
+    box.innerHTML = `<div style="background:#fff; border-radius:16px; max-width:420px; width:100%; max-height:85vh; overflow:auto; padding:20px; box-shadow:0 24px 60px rgba(0,0,0,.35); font-family:inherit;">
+        <div style="font-size:17px; font-weight:700; color:#111827;">Penalty update</div>
+        ${items}
+        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+          <a class="btn secondary" href="my_penalties.html" style="flex:1; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">See details</a>
+          <button type="button" class="btn" id="pnOk" style="flex:1; min-height:44px;">OK</button>
+        </div></div>`;
+    box.style.display = 'flex';
+    document.getElementById('pnOk').onclick = async () => {
+      box.style.display = 'none';
+      try { await api.post('my_penalties.read', {}); } catch (e) {}
+    };
+    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+  }
+  async function poll() {
+    if (box && box.style.display !== 'none') return;
+    try {
+      const t = new Date();
+      const d = await api.get('my_penalties.list', { month: t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') });
+      if (d && d.unread && d.unread.length) show(d.unread.slice().reverse());
+    } catch (e) {}
+  }
+  poll();
+  setInterval(poll, 90000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
+}
+
 function renderSidebar(active) {
   const user = api.currentUser() || { username: '', role: '' };
   const linkClass = (key) => (active === key ? 'active' : '');
@@ -139,6 +200,7 @@ function renderSidebar(active) {
     assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
     salary: [['salary.html', 'Salary', 'salary']],
     commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
+    penalties: [['penalties.html', 'Penalties', 'penalties']],
     agreements: [['agreements.html', 'Agreements', 'agreements']],
     decline_history: [['history.html', 'Decline History', 'history']],
     approvals: [['approvals.html', 'Approvals', 'approvals']],
@@ -207,7 +269,7 @@ function renderSidebar(active) {
     // Pages every employee may open. Anything else is hidden immediately —
     // before its own script can show admin data — until me.flags confirms
     // the Employee role was granted that module on the Roles page.
-    const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_agreements', 'my_sales', 'orders'];
+    const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_penalties', 'my_agreements', 'my_sales', 'orders'];
     const needsCheck = !EMPLOYEE_PAGES.includes(active);
     if (needsCheck) { document.documentElement.style.visibility = 'hidden'; setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000); }
 
@@ -230,11 +292,12 @@ function renderSidebar(active) {
     addMobileMenu();
 
     startPunchReminder();
+    startPenaltyNotice();
     api.get('me.flags').then((d) => {
       if (syncRole(d)) return;
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
-      const allowed = ['attendance', 'my_salary', 'my_agreements'].concat(grantedActives);
+      const allowed = ['attendance', 'my_salary', 'my_penalties', 'my_agreements'].concat(grantedActives);
       if (d.is_sales) allowed.push('my_sales', 'orders');
       // replace(): the refused page never enters the history, so the back
       // button goes to the previous employee page, not back to this one.
@@ -255,6 +318,7 @@ function renderSidebar(active) {
         <a href="my_salary.html" class="${linkClass('my_salary')}">My Salary</a>`;
         }
         links += `
+        <a href="my_penalties.html" class="${linkClass('my_penalties')}">My Penalties</a>
         <a href="my_agreements.html" class="${linkClass('my_agreements')}">My Agreements</a>`;
         // Admin-side pages granted to the Employee role via Roles page.
         // 'punch' is skipped: every employee already has "Attendance" above,
@@ -301,6 +365,7 @@ function renderSidebar(active) {
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
       ['commission_rules.html', 'Commission Rules', 'commission_rules'],
+      ['penalties.html', 'Penalties', 'penalties'],
       ['agreements.html', 'Agreements', 'agreements'],
     ]},
     { key: 'masters', label: 'Masters', defaultOpen: false, links: [
@@ -538,6 +603,105 @@ function addMobileMenu() {
       r.addedNodes.forEach(n => n.nodeType === 1 && scan(n));
       if (r.type === 'attributes' && r.target.tagName === 'IMG') { delete r.target.dataset.upFixed; fixImg(r.target); }
     })).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+
+/**
+ * Back button (installed app / phone).
+ *
+ * A pop-up (month view, photo, checklist, ...), a day popover or the phone
+ * menu is only a layer on the SAME page, so the browser has no history entry
+ * for it. Pressing Back then leaves the page — and from the app's first page
+ * that closes the whole app. Here every layer that opens adds one history
+ * entry, and Back closes the top-most layer instead. Closing a layer with its
+ * own Close / Cancel button (or by tapping outside it) removes its entry again,
+ * so the history never fills up with leftovers.
+ */
+(function () {
+  const LAYERS = '.modal-overlay, .daypop';
+  const MENU = 'menu';                       // the phone menu (body.sidebar-open)
+  const MARK = { hrmsLayer: 1 };
+  const stack = [];                          // open layers, oldest first — each owns one history entry
+  let ignore = 0;                            // history moves made by this code itself (not a Back press)
+  let pendingNav = null, navTimer = null;
+
+  const isOn = (l) => (l === MENU ? document.body.classList.contains('sidebar-open') : !!(l.isConnected && getComputedStyle(l).display !== 'none'));
+  function liveLayers() {
+    const on = [];
+    document.querySelectorAll(LAYERS).forEach((el) => { if (isOn(el)) on.push(el); });
+    if (isOn(MENU)) on.push(MENU);
+    return on;
+  }
+  function push() { try { history.pushState(MARK, ''); } catch (e) {} }
+
+  // Brings the history in line with the layers that are open right now.
+  function sync() {
+    const on = liveLayers();
+    const closed = stack.filter((l) => !on.includes(l));
+    const opened = on.filter((l) => !stack.includes(l));
+    // One layer handing over to another in the same moment keeps its entry.
+    while (closed.length && opened.length) stack[stack.indexOf(closed.shift())] = opened.shift();
+    if (closed.length) {
+      closed.forEach((l) => stack.splice(stack.indexOf(l), 1));
+      ignore++;
+      try { history.go(-closed.length); } catch (e) { ignore--; }
+    }
+    opened.forEach((l) => { stack.push(l); push(); });
+  }
+
+  // Closes a layer the way the page itself would: its outside-tap handler, then its Close / Cancel button.
+  function close(l) {
+    if (l === MENU) { document.body.classList.remove('sidebar-open'); return; }
+    if (l.classList.contains('modal-overlay')) l.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    if (!isOn(l)) return;
+    const b = [...l.querySelectorAll('button, a.btn')].find((x) => /^(close|cancel|done|not now|no|×|✕|✖|x)$/i.test((x.textContent || '').trim()) || (x.dataset && x.dataset.dp === 'x'));
+    if (b) b.click();
+    if (!isOn(l)) return;
+    if (l.classList.contains('modal-overlay')) l.classList.remove('open'); else l.remove();
+  }
+
+  function go() {
+    clearTimeout(navTimer);
+    const h = pendingNav; pendingNav = null;
+    if (h) location.href = h;
+  }
+
+  window.addEventListener('popstate', () => {
+    if (ignore > 0) { ignore--; if (!ignore && pendingNav) go(); return; }
+    const top = stack.pop();
+    if (top === undefined) return;           // nothing of ours is open: an ordinary Back between pages
+    close(top);
+    if (isOn(top)) { stack.push(top); push(); }   // it would not close — keep its entry
+    sync();                                  // layers that closed along with it
+  });
+
+  // Opening a page from the phone menu: drop the menu's entry first, so the new page sits right after this one.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('.sidebar a[href], #sidebar a[href]');
+    if (!a || !stack.includes(MENU) || e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || (a.target && a.target !== '_self')) return;
+    const h = a.href || '';
+    if (!/^https?:/i.test(h) || (a.hash && a.pathname === location.pathname && a.search === location.search)) return;
+    e.preventDefault();
+    pendingNav = h;
+    document.body.classList.remove('sidebar-open');
+    sync();
+    clearTimeout(navTimer); navTimer = setTimeout(go, 500);   // safety: never get stuck on this page
+  }, true);
+
+  const relevant = (r) => {
+    const t = r.target;
+    if (t === document.body) return true;    // sidebar-open
+    if (r.type === 'attributes') return !!(t.closest && t.closest(LAYERS));
+    for (const n of [...r.addedNodes, ...r.removedNodes]) if (n.nodeType === 1 && (n.matches(LAYERS) || n.querySelector(LAYERS))) return true;
+    return false;
+  };
+  const start = () => {
+    // Landed on an entry this code added earlier (page reloaded, or came back from another page): step off it.
+    if (history.state && history.state.hrmsLayer && !stack.length) { ignore++; try { history.back(); } catch (e) { ignore--; } }
+    new MutationObserver((recs) => { if (recs.some(relevant)) sync(); })
+      .observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] });
+    sync();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

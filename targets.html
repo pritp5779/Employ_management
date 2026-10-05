@@ -105,7 +105,7 @@
 <div class="modal-overlay" id="ruleModal">
   <div class="modal" style="max-width:520px;">
     <h3>Target rules</h3>
-    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target.</p>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target. A new Sales Executive follows a fixed ladder for the first four weeks instead (₹10,000 / 15,000 / 20,000 / 25,000 a day by week); a target set by hand can go above it, not below.</p>
     <div id="ruleAlert"></div>
     <label class="rule-switch"><input type="checkbox" id="ruleEnabled"> Set daily targets automatically</label>
     <div class="rule-body">
@@ -390,9 +390,14 @@
     const { overrides, hist, histDays, rule, day } = dailyCache;
     const ek = r.employee_id + '|' + r.group_key;
     const nk = r.full_name + '|' + r.group_key;
-    if (overrides[ek] !== undefined) return { amount: Number(overrides[ek]), source: 'manual', how: 'Set by hand for this day' };
+    // A new Sales Executive's first four weeks (10,000 / 15,000 / 20,000 / 25,000 a day): the lowest target of the day. It
+    // replaces the automatic rule, and a target set by hand can only go above it. Counted on the person's first row only.
+    const L = (dailyCache.ladder || {})[r.employee_id];
+    const lad = L && L.row === r.group_key ? L : null;
+    const ladder = lad ? { amount: Number(lad.amount), source: 'ladder', how: `New Sales Executive · week ${lad.week} of 4 · can be raised, not lowered` } : null;
+    if (overrides[ek] !== undefined) return ladder && Number(overrides[ek]) < ladder.amount ? ladder : { amount: Number(overrides[ek]), source: 'manual', how: 'Set by hand for this day' };
 
-    if (rule && ruleApplies(r) && histDays.length) {
+    if (!ladder && rule && ruleApplies(r) && histDays.length) {
       const byDay = hist[nk] || {};
       const vals = histDays.map(d => byDay[d] || 0);
       const counted = rule.skip_zero ? vals.filter(v => v > 0) : vals;
@@ -411,12 +416,13 @@
     }
 
     const fallback = r.manual_target !== null ? Math.round(r.manual_target / daysInMonth) : (Number(r.daily_target) || 0);
+    if (ladder && fallback <= ladder.amount) return ladder;
     return { amount: fallback, source: fallback > 0 ? 'profile' : 'none', how: fallback > 0 ? 'From profile / monthly target' : '' };
   }
 
   // Target chip + how it was worked out + "back to auto" when set by hand.
   function targetCell(r, t, compact) {
-    const pill = t.source === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (t.source === 'rule' ? '<span class="tgt-pill auto">Auto</span>' : '');
+    const pill = t.source === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (t.source === 'rule' || t.source === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
     const chip = `<span class="tgt-chip ${t.amount > 0 ? '' : 'empty'}" data-value="${t.source === 'manual' ? t.amount : ''}"
         onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')" title="Click to set by hand">${t.amount > 0 ? inr(t.amount) : 'Set target'} ${pill} ✎</span>`;
     const revert = t.source === 'manual'
@@ -549,7 +555,8 @@
         }
       });
 
-      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, codeLists, queriesByKey, overrides, day, hist, histDays, rule };
+      // New Sales Executives (first four weeks): the automatic ladder for this day, per employee and the row it sits on.
+      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, codeLists, queriesByKey, overrides, ladder: ovData.ladder || {}, day, hist, histDays, rule };
       renderDaily();
     } catch (err) {
       if (reqId !== dailyReqId) return;
@@ -843,6 +850,12 @@
           monthRows.filter(r => r.employee_id === employeeId).forEach(r => (r.daily_target = amount));
         } else {
           const amount = input.value === '' ? null : Number(input.value);
+          const L = dailyCache && dailyCache.ladder ? dailyCache.ladder[employeeId] : null;
+          if (amount !== null && L && L.row === groupKey && amount < L.amount) {
+            showAlert(`New Sales Executive, week ${L.week}: the target for this day is at least ${inr(L.amount)}. You can raise it, not lower it.`, 'error');
+            restore();
+            return;
+          }
           await api.post('targets.save_daily', {
             date: document.getElementById('dayPick').value,
             employee_id: employeeId,
