@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261003.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261005.1';   // shown under your name in the sidebar
 
 // Site icon: the TMPH logo as the browser-tab icon and the home-screen icon, on every page that loads this file.
 (function () {
@@ -188,6 +188,7 @@ function renderSidebar(active) {
     offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
+    order_targets: [['order_targets.html', 'Order Targets', 'order_targets']],
     performance: [['performance.html', 'Performance', 'performance']],
     departments: [['departments.html', 'Departments', 'departments']],
     employees: [
@@ -361,6 +362,7 @@ function renderSidebar(active) {
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
       ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],
+      ['order_targets.html', 'Order Targets', 'order_targets'],
       ['performance.html', 'Performance', 'performance'],
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
@@ -532,8 +534,11 @@ function addMobileMenu() {
  * hosting, and files uploaded before the domain move sit in the old domain's
  * folder. Every page builds those direct links (Approvals "View", employee
  * documents, photos…), so rather than edit each page this intercepts them:
- *  - clicking a link into /uploads/ fetches the file with the login token
- *    and opens it in a new tab;
+ *  - clicking a link into /uploads/ fetches the file with the login token.
+ *    Photos open in a viewer on the same page (never a new tab: inside the
+ *    installed phone app a new tab is outside the app, and Back there closes
+ *    the whole app). Other files open in a new tab in the browser, and are
+ *    saved to the phone when the page runs as the installed app;
  *  - <img> tags pointing into /uploads/ are loaded the same way.
  */
 (function uploadsViaApi() {
@@ -556,6 +561,67 @@ function addMobileMenu() {
   };
 
   // ---- links ----
+  const IMG_RE = /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i;
+  const installedApp = () => {
+    try { return ['standalone', 'fullscreen', 'minimal-ui'].some((m) => window.matchMedia('(display-mode: ' + m + ')').matches) || navigator.standalone === true; }
+    catch (e) { return false; }
+  };
+  const baseName = (rel) => decodeURIComponent(String(rel).split('/').pop() || 'file');
+  const saveBlob = (blob, name) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+
+  // Photo viewer: a full-screen layer on the same page. Close button, a tap outside the photo, or the
+  // phone's Back button closes it (layout.js's Back handling treats it like any other pop-up).
+  let viewer = null;
+  function closeViewer() {
+    if (!viewer) return;
+    const v = viewer; viewer = null;
+    if (v.url) URL.revokeObjectURL(v.url);
+    v.el.remove();
+  }
+  function openViewer(rel) {
+    closeViewer();
+    const el = document.createElement('div');
+    el.className = 'modal-overlay open';
+    el.id = 'hrmsViewer';
+    el.style.cssText = 'background:rgba(0,0,0,.94); padding:0; z-index:3000; flex-direction:column; align-items:stretch; justify-content:flex-start;';
+    const btn = 'border:0; border-radius:8px; padding:0 16px; min-height:40px; font:600 14px system-ui; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; background:#fff; color:#111;';
+    el.innerHTML = `<div style="display:flex; gap:10px; align-items:center; justify-content:space-between; padding:10px 12px;">
+        <span style="color:#fff; font:600 14px system-ui; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+        <span style="display:flex; gap:8px; flex:none;"><a data-v="dl" style="${btn} display:none;">Download</a><button type="button" data-v="x" style="${btn}">Close</button></span>
+      </div>
+      <div data-v="body" style="flex:1; min-height:0; overflow:auto; display:flex; align-items:center; justify-content:center; padding:0 8px 12px; color:#fff; font:14px system-ui; text-align:center;">Opening photo…</div>`;
+    el.firstElementChild.firstElementChild.textContent = baseName(rel);
+    const body = el.querySelector('[data-v="body"]');
+    el.querySelector('[data-v="x"]').addEventListener('click', closeViewer);
+    el.addEventListener('click', (e) => { if (e.target === el || e.target === body) closeViewer(); });
+    document.body.appendChild(el);
+    const v = viewer = { el, url: null };
+    return {
+      show(blob) {
+        if (viewer !== v) return;                       // closed while it was loading
+        v.url = URL.createObjectURL(blob);
+        const img = document.createElement('img');
+        const fit = 'max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; cursor:zoom-in;';
+        img.style.cssText = fit; img.alt = baseName(rel); img.src = v.url;
+        let zoom = false;
+        img.addEventListener('click', () => {               // tap = full size (scroll to look around), tap again = fit
+          zoom = !zoom;
+          img.style.cssText = zoom ? 'max-width:none; max-height:none; border-radius:6px; cursor:zoom-out; margin:auto;' : fit;
+        });
+        body.textContent = ''; body.appendChild(img);
+        const dl = el.querySelector('[data-v="dl"]');
+        dl.href = v.url; dl.download = baseName(rel); dl.style.display = 'inline-flex';
+      },
+      fail(msg) { if (viewer === v) body.textContent = msg; },
+    };
+  }
+
   document.addEventListener('click', async (e) => {
     const a = e.target.closest && e.target.closest('a[href]');
     if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
@@ -563,7 +629,19 @@ function addMobileMenu() {
     if (!rel) return;
     e.preventDefault();
 
-    // Open the tab now, inside the click, so popup blockers allow it.
+    // Photos: shown on this page.
+    if (IMG_RE.test(rel)) {
+      const view = openViewer(rel);
+      try { view.show(await fetchBlob(rel)); } catch (err) { view.fail(err.message); }
+      return;
+    }
+    // Other files in the installed app: save to the phone — a new tab would be outside the app.
+    if (installedApp()) {
+      try { saveBlob(await fetchBlob(rel), baseName(rel)); } catch (err) { alert(err.message); }
+      return;
+    }
+
+    // Browser: open the tab now, inside the click, so popup blockers allow it.
     const win = window.open('', '_blank');
     if (win) win.document.write('<p style="font:14px system-ui; padding:24px; color:#555;">Opening file…</p>');
     try {

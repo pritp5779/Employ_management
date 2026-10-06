@@ -120,6 +120,39 @@
   .ck-done{background:#e7f7ee; color:#0f7a41; border-radius:9px; padding:11px 12px; font-size:13px; font-weight:600; margin-bottom:12px;}
   .ck-shift{font-size:12px; color:var(--muted); margin-top:8px;}
   .ck-shift b{color:var(--ink);}
+  /* Punch-in proofs: Instagram / YouTube comment screenshots (and any the admin adds), uploaded before Punch In */
+  .pf-card[hidden]{display:none;}
+  .pf-card.compact .pf-head{display:none;}
+  .pf-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  .pf-head h3{font-size:14.5px; margin:0;}
+  .pf-note{border-radius:10px; padding:9px 11px; font-size:12.5px; line-height:1.45; font-weight:600; margin-bottom:10px;}
+  .pf-note.wait{background:#FFF4DB; color:#8a5a00;}
+  .pf-note.ok{background:#e7f7ee; color:#0f7a41;}
+  .pf-note.bad{background:#fdecec; color:#8a1f1f;}
+  .pf-card.compact .pf-note{margin-bottom:0;}
+  .pf-req{display:flex; gap:10px; padding:12px 0; border-top:1px solid var(--line); align-items:flex-start;}
+  .pf-req:first-of-type{border-top:0; padding-top:2px;}
+  .pf-tile{width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:none; font-size:11.5px; font-weight:800; background:#e0e7ff; color:#3730a3;}
+  .pf-tile.instagram{background:#fce7f3; color:#be185d;}
+  .pf-tile.youtube{background:#fee2e2; color:#b91c1c;}
+  .pf-body{flex:1; min-width:0;}
+  .pf-name{font-size:13.5px; font-weight:700; line-height:1.3; display:flex; align-items:center; gap:7px; flex-wrap:wrap;}
+  .pf-tick{width:18px; height:18px; border-radius:50%; background:#16a34a; color:#fff; font-size:10.5px; display:inline-flex; align-items:center; justify-content:center;}
+  .pf-desc{font-size:11.8px; color:var(--muted); margin-top:3px; line-height:1.45;}
+  .pf-redo{background:#fdecec; color:#8a1f1f; border-radius:9px; padding:7px 10px; font-size:12px; line-height:1.4; margin-top:7px; font-weight:600;}
+  input.pf-in{display:block; width:100%; box-sizing:border-box; margin-top:8px; border:1px solid var(--line); border-radius:9px; padding:9px 10px; font-size:13px; min-height:0; background:#fffdf9; color:var(--ink);}
+  .pf-acts{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:9px;}
+  .pf-up{background:#e8590c; color:#fff; border:0; border-radius:9px; font-size:12.5px; font-weight:700; padding:8px 13px; min-height:0; cursor:pointer;}
+  .pf-up:disabled{opacity:.6;}
+  .pf-alt{background:#fff; color:#c2410c; border:1.5px solid #f3c9ad; border-radius:8px; font-size:11.5px; font-weight:700; padding:5px 9px; min-height:0; cursor:pointer;}
+  .pf-got{display:flex; gap:10px; margin-top:9px; align-items:center;}
+  .pf-shots{display:flex; gap:6px; flex-wrap:wrap; flex:none;}
+  .pf-shot{position:relative; width:46px; height:64px; border-radius:7px; overflow:hidden; background:#eceef2; border:1px solid var(--line); flex:none;}
+  .pf-shot img{width:100%; height:100%; object-fit:cover; display:block;}
+  .pf-shot button{position:absolute; top:2px; right:2px; width:18px; height:18px; min-height:0; padding:0; border:0; border-radius:50%; background:rgba(17,24,39,.72); color:#fff; font-size:11px; line-height:1; cursor:pointer;}
+  .pf-meta{flex:1; min-width:0; font-size:11.5px; color:var(--muted); line-height:1.5; overflow-wrap:anywhere;}
+  .pf-meta b{display:block; color:var(--ink); font-size:12px;}
+  .pf-card .pf-prog{font-size:11.5px; color:var(--muted); margin-top:6px;}
   @media (max-width:820px){ .punch-btns .btn{flex:1 1 140px; min-height:48px; font-size:15px;} .steps li{font-size:11.5px; padding:6px 6px;} }
   @media (prefers-reduced-motion: reduce){ .cam-panel{animation:none;} .cam-live b{animation:none;} .cam-sw button.on b{animation:none;} .cam-oval{transition:none;} .loc-pin.busy::after{animation-duration:2s;} }
   /* ===== Home look (TMPH orange on cream) — this page only ===== */
@@ -184,7 +217,7 @@
   .pp .ck-tick.now{background:#fff0e6;}
   /* while a punch is running the page becomes the "Verify" screen */
   body.punching .hm-hd, body.punching #todayStatus, body.punching .hm-loc, body.punching #camHint, body.punching .punch-btns, body.punching #camIdle,
-  body.punching #doneNote, body.punching #remLock, body.punching #hmTiles, body.punching #ckCard, body.punching #remCard, body.punching .hm-links, body.punching .hm-ct{display:none !important;}
+  body.punching #doneNote, body.punching #remLock, body.punching #pfCard, body.punching #pfLock, body.punching #hmTiles, body.punching #ckCard, body.punching #remCard, body.punching .hm-links, body.punching .hm-ct{display:none !important;}
   body.punching .hm-vh{display:flex;}
   body.punching .hm-card{background:none; box-shadow:none; padding:0;}
   @media (max-width:400px){ .hm-card{padding:14px;} .hm-hi b{font-size:18px;} }
@@ -203,6 +236,14 @@
           <div class="hm-av" id="hmAv">·</div>
           <div class="hm-hi"><small id="hmGreet">Hello</small><b id="hmName">&nbsp;</b></div>
           <div class="hm-dt" id="hmDate"></div>
+        </div>
+
+        <!-- Punch-in proofs (Instagram / YouTube comment screenshots, plus any the admin adds). Shown only when the admin
+             has a proof for this employee; Punch In stays locked until every one is uploaded. -->
+        <div class="hm-card pf-card" id="pfCard" hidden>
+          <div class="pf-head"><h3>Punch In proofs</h3><span class="ck-pill" id="pfPill"></span></div>
+          <div id="pfAlert"></div>
+          <div id="pfBox"></div>
         </div>
 
         <div class="hm-vh"><span id="hmVerifyT">Verify to punch in</span></div>
@@ -253,6 +294,7 @@
             <button class="btn secondary" id="btnPunchOut" disabled>Punch Out</button>
           </div>
           <div id="remLock" class="rem-lock" hidden></div>
+          <div id="pfLock" class="rem-lock" hidden></div>
           <div id="doneNote" class="done-note" hidden>You're done for today ✓</div>
           <div id="verifyMsg" role="status" aria-live="polite" style="text-align:center; margin-top:10px; font-size:13.5px; min-height:20px;"></div>
           <div id="camHint" class="hm-hint">Tap Punch In or Punch Out — we check your location first, then your face on the front camera (switch to Back at the top of the camera). The camera opens only then and closes as soon as you're done.</div>
@@ -275,6 +317,7 @@
         </div>
       </div>
       <input type="file" accept="image/*" capture="environment" id="ckFile" style="display:none;">
+      <input type="file" accept="image/*" id="pfFile" style="display:none;">
 
       <div class="card" style="max-width:560px;" id="remCard">
         <div class="card-head"><h2>Punch-in reminder <span class="rem-req">Required</span></h2></div>
@@ -454,6 +497,7 @@
       document.getElementById('camHint').hidden = done;
       if (!stream) idle.style.display = done ? 'none' : '';   // don't show "camera off" while it's on
       loadChecklist();
+      loadProofs();
     } catch (err) {
       document.getElementById('todayStatus').classList.remove('loading');
       document.getElementById('todayStatus').innerHTML = `<div class="alert error">${err.message}</div>`;
@@ -619,6 +663,188 @@
     } finally { ckBusy = false; }
   }
 
+  // ---------- Punch-in proofs ----------
+  // Instagram / YouTube comment screenshots (and any other proof the admin adds). The card only shows when at least
+  // one applies to this employee. Punch In stays locked until every one is uploaded — the server refuses it too.
+  // The screenshot comes from the gallery (that is where screenshots are saved), so the picker has no camera-only flag.
+  const pfCard = document.getElementById('pfCard');
+  const pfFile = document.getElementById('pfFile');
+  const PF_LOCK_MSG = 'Upload your punch-in proofs first';
+  let pfState = null;
+  let pfLoaded = false;          // proofs.my answered (Punch In waits for it)
+  let pfBusy = false;
+  let pfRuleId = 0;
+  let pfReplace = false;
+  const pfLinks = {};            // the link typed for each proof, kept across redraws
+  const pfEdit = {};             // proofs being replaced
+  const pfEsc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const pfItem = (id) => ((pfState && pfState.items) || []).find(i => Number(i.rule_id) === Number(id));
+
+  // Punch In is only offered once every proof is in (and not at all until the proofs have loaded).
+  function pfApplyLock() {
+    const d = pfState;
+    const waiting = !pfLoaded;
+    const lock = !enrollMode && (waiting || !!(d && Number(d.total) && !Number(d.complete) && !Number(d.punched_in)));
+    const note = document.getElementById('pfLock');
+    if (lock) {
+      btnIn.disabled = true; btnIn.title = PF_LOCK_MSG;
+      note.textContent = waiting ? '' : '🔒 Upload your punch-in proofs above to unlock Punch In.';
+      note.hidden = waiting;
+    } else {
+      note.hidden = true;
+      if (btnIn.title === PF_LOCK_MSG) {
+        btnIn.title = '';
+        if (faceLoaded && !busy && !(reminderNeeded && !reminderOn)) btnIn.disabled = false;
+      }
+    }
+  }
+
+  function pfAlert(msg, type = 'error') {
+    document.getElementById('pfAlert').innerHTML = msg ? `<div class="alert ${type}" style="margin-bottom:10px;">${pfEsc(msg)}</div>` : '';
+    if (msg) setTimeout(() => { const b = document.getElementById('pfAlert'); if (b) b.innerHTML = ''; }, 5000);
+  }
+
+  function pfTileText(it) {
+    if (it.kind === 'instagram') return 'IG';
+    if (it.kind === 'youtube') return 'YT';
+    const w = String(it.title || '').trim().split(/\s+/).filter(Boolean);
+    return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || '?').slice(0, 2)).toUpperCase();
+  }
+
+  function pfItemHtml(it, punched) {
+    const id = Number(it.rule_id), need = Number(it.shots_required), have = Number(it.have);
+    const editing = !!pfEdit[id];
+    const done = Number(it.done) === 1 && !editing;
+    const kind = (it.kind === 'instagram' || it.kind === 'youtube') ? it.kind : 'custom';
+    const tile = `<span class="pf-tile ${kind}">${pfEsc(pfTileText(it))}</span>`;
+    const proofs = it.proofs || [];
+    const canRemove = !punched && need > 1;
+    const thumbs = proofs.map(p => `<span class="pf-shot"><img src="${ckPhotoUrl(p.file)}" alt="">${canRemove ? `<button type="button" title="Remove this screenshot" onclick="pfRemove(${Number(p.proof_id)})">×</button>` : ''}</span>`).join('');
+    if (done) {
+      const last = proofs[proofs.length - 1];
+      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded');
+      return `<div class="pf-req">${tile}<div class="pf-body">
+        <div class="pf-name">${pfEsc(it.title)} <span class="pf-tick">✓</span></div>
+        <div class="pf-got"><div class="pf-shots">${thumbs}</div>
+          <div class="pf-meta"><b>Saved ${last ? hm12(String(last.uploaded_at).slice(11, 16)) : ''}</b>${sub}</div>
+          ${(!punched && need === 1) ? `<button type="button" class="pf-alt" onclick="pfEditOn(${id})">Replace</button>` : ''}
+        </div></div></div>`;
+    }
+    const redo = Number(it.redo) ? `<div class="pf-redo">Sent back: ${pfEsc(it.redo_note)}</div>` : '';
+    const ph = it.kind === 'youtube' ? 'Paste the YouTube video link' : (it.kind === 'instagram' ? 'Paste the Instagram post link' : 'Paste the link');
+    const linkIn = Number(it.link_required)
+      ? `<input class="pf-in" id="pfLink${id}" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ph}" value="${pfEsc(pfLinks[id] != null ? pfLinks[id] : (it.link || ''))}" oninput="pfLinks[${id}] = this.value" aria-label="Link for ${pfEsc(it.title)}">`
+      : '';
+    const label = editing ? 'Upload new screenshot' : (need > 1 ? `Upload screenshot (${have + 1} of ${need})` : 'Upload screenshot');
+    return `<div class="pf-req">${tile}<div class="pf-body">
+      <div class="pf-name">${pfEsc(it.title)}</div>
+      ${it.instruction ? `<div class="pf-desc">${pfEsc(it.instruction)}</div>` : ''}
+      ${redo}
+      ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} screenshots saved</div>` : ''}
+      ${linkIn}
+      <div class="pf-acts"><button type="button" class="pf-up" onclick="pfPick(${id}, ${editing ? 'true' : 'false'})">${label}</button>${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
+    </div></div>`;
+  }
+
+  function renderProofs() {
+    const d = pfState;
+    if (!d || !Number(d.total)) { pfCard.hidden = true; return; }
+    const punched = Number(d.punched_in) === 1;
+    const redo = Number(d.redo) || 0;
+    const complete = Number(d.complete) === 1;
+    // Punched in already: only a proof the admin sent back is asked for again. A requirement added later is not asked retroactively.
+    if (punched && !redo && !complete) { pfCard.hidden = true; return; }
+    pfCard.hidden = false;
+    const compact = punched && !redo;
+    pfCard.classList.toggle('compact', compact);
+    const pill = document.getElementById('pfPill');
+    pill.textContent = `${d.done_count} of ${d.total}`;
+    pill.className = 'ck-pill' + (complete ? ' ok' : '');
+    let note;
+    if (compact) note = `<div class="pf-note ok">✓ Punch-in proofs submitted</div>`;
+    else if (punched) note = `<div class="pf-note bad">Your admin sent ${redo} proof${redo === 1 ? '' : 's'} back — upload ${redo === 1 ? 'it' : 'them'} again.</div>`;
+    else if (complete) note = `<div class="pf-note ok">All proofs saved — you can punch in now.</div>`;
+    else if (Number(d.done_count) === 0) note = `<div class="pf-note wait">Upload ${Number(d.total) === 1 ? 'this proof' : 'these ' + d.total + ' proofs'} to unlock Punch In.</div>`;
+    else { const left = Number(d.total) - Number(d.done_count); note = `<div class="pf-note wait">${left} proof${left === 1 ? '' : 's'} left — then Punch In unlocks.</div>`; }
+    document.getElementById('pfBox').innerHTML = note + (compact ? '' : d.items.map(it => pfItemHtml(it, punched)).join(''));
+  }
+
+  async function loadProofs() {
+    try {
+      pfState = await api.get('proofs.my');
+    } catch (err) {
+      pfState = null;          // a server without the proofs: nothing to ask for
+    }
+    pfLoaded = true;
+    renderProofs();
+    pfApplyLock();
+  }
+
+  window.pfEditOn = function (id) { pfEdit[id] = true; renderProofs(); };
+  window.pfEditOff = function (id) { delete pfEdit[id]; renderProofs(); };
+  window.pfLinks = pfLinks;
+
+  window.pfPick = function (ruleId, replace) {
+    if (pfBusy) return;
+    const it = pfItem(ruleId);
+    if (!it) return;
+    if (Number(it.link_required)) {
+      const v = String(pfLinks[ruleId] != null ? pfLinks[ruleId] : (it.link || '')).trim();
+      if (!v) {
+        pfAlert('Paste the link to the post or video first, then upload the screenshot.');
+        const el = document.getElementById('pfLink' + ruleId); if (el) el.focus();
+        return;
+      }
+    }
+    pfRuleId = ruleId;
+    pfReplace = !!replace;
+    pfFile.value = '';
+    pfFile.click();
+  };
+
+  pfFile.addEventListener('change', async () => {
+    const file = pfFile.files && pfFile.files[0];
+    if (!file || !pfRuleId) return;
+    if (file.type && file.type.indexOf('image/') !== 0) { pfAlert('Pick a screenshot or photo (JPG, PNG or WEBP).'); pfFile.value = ''; return; }
+    pfBusy = true;
+    pfAlert('');
+    const box = document.getElementById('pfBox');
+    box.style.opacity = '.6';
+    try {
+      const it = pfItem(pfRuleId) || {};
+      const fd = new FormData();
+      fd.append('rule_id', pfRuleId);
+      fd.append('replace', pfReplace ? 1 : 0);
+      fd.append('link', String(pfLinks[pfRuleId] != null ? pfLinks[pfRuleId] : (it.link || '')).trim());
+      fd.append('photo', file, file.name || 'proof.jpg');
+      const d = await api.upload('proofs.upload', fd);
+      pfState = d;
+      delete pfEdit[pfRuleId];
+      renderProofs();
+      pfApplyLock();
+    } catch (err) {
+      pfAlert(err.message);
+    } finally {
+      pfBusy = false;
+      box.style.opacity = '';
+      pfFile.value = '';
+    }
+  });
+
+  window.pfRemove = async function (proofId) {
+    if (pfBusy) return;
+    pfBusy = true;
+    try {
+      const fd = new FormData();
+      fd.append('proof_id', proofId);
+      pfState = await api.upload('proofs.remove', fd);
+      renderProofs();
+      pfApplyLock();
+    } catch (err) {
+      pfAlert(err.message);
+    } finally { pfBusy = false; }
+  };
+
   // ---------- Face models: loaded once, in the background ----------
   let modelsPromise = null;
   let modelsLoaded = false;
@@ -666,6 +892,7 @@
       btnIn.disabled = false;
       btnOut.disabled = false;
       ckApplyLock();          // store staff: keep Punch Out locked if the checklist is open
+      pfApplyLock();          // punch-in proofs: keep Punch In locked until they are uploaded
       applyRemLock();         // reminder is required: punching stays locked until it is on
     } catch (err) {
       setMsg(err.message, 'var(--bad-fg)');
@@ -1063,6 +1290,7 @@
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (data.check) step(data.check, 'bad');
+      if (data.proofs) { pfState = Object.assign({}, data.proofs, { punched_in: 0 }); pfLoaded = true; renderProofs(); }
       throw new Error(data.error || 'Punch failed.');
     }
     showAlert(data.message);
@@ -1073,6 +1301,11 @@
   async function handle(type) {
     if (busy || !faceLoaded) return;
     if (reminderNeeded && !reminderOn) { applyRemLock(); return; }
+    if (type === 'in' && !enrollMode && pfLoaded && pfState && Number(pfState.total) && !Number(pfState.complete) && !Number(pfState.punched_in)) {
+      pfApplyLock();
+      pfCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     busy = true;
     cancelled = false;
     document.getElementById('hmVerifyT').textContent = enrollMode ? 'Enroll your face' : (type === 'out' ? 'Verify to punch out' : 'Verify to punch in');
@@ -1121,6 +1354,7 @@
       closeCamera();        // always off afterwards: success, failure or cancel
       [btnIn, btnOut].forEach(b => (b.disabled = false));
       ckApplyLock();
+      pfApplyLock();
       applyRemLock();
       busy = false;
     }
@@ -1182,7 +1416,10 @@
   const btnRemTest = document.getElementById('btnRemTest');
   const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && !window.MSStream;
   const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  // A page opened as a file on a computer (file://, origin "null") can never register the notification worker, so
+  // it counts as "cannot do notifications" — punching is not locked there (nobody is shut out for it).
+  const onWeb = /^https?:$/.test(location.protocol);
+  const pushSupported = onWeb && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   let reminderOn = false;                 // this phone is allowed + subscribed
   let reminderNeeded = pushSupported;     // required here (until the server/browser say otherwise)
 
@@ -1200,7 +1437,7 @@
       box.hidden = false;
     } else {
       box.hidden = true;
-      if (faceLoaded && !busy) { [btnIn, btnOut].forEach(b => (b.disabled = false)); ckApplyLock(); }
+      if (faceLoaded && !busy) { [btnIn, btnOut].forEach(b => (b.disabled = false)); ckApplyLock(); pfApplyLock(); }
     }
   }
 
@@ -1316,7 +1553,10 @@
     const br = /CriOS/.test(ua) ? 'Chrome' : /FxiOS/.test(ua) ? 'Firefox' : /EdgiOS|EdgA|Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'this browser';
     const steps = (arr) => { remSteps.innerHTML = arr.map(x => '<li>' + x + '</li>').join(''); remSteps.hidden = false; };
     let note, list = null, copy = false;
-    if (inApp) {
+    if (!onWeb) {
+      note = 'This page is opened from a file on this computer, not from the website — notifications cannot work here.';
+      list = ['Open HRMS from your website address (<b>https://…/attendance.html</b>) in <b>Chrome</b>', 'Come back to this box and tap <b>Turn on reminders</b>'];
+    } else if (inApp) {
       note = 'HRMS is open inside another app (WhatsApp / Instagram / …). Notifications do not work there.';
       list = ['Tap <b>Copy link</b> below', 'Open <b>' + (isIOS ? 'Safari' : 'Chrome') + '</b> and paste the link', isIOS ? 'Tap <b>Share → Add to Home Screen</b>, then open HRMS from the icon' : 'Come back to this box and tap <b>Turn on reminders</b>'];
       copy = true;
@@ -1338,7 +1578,7 @@
     if (list) steps(list);
     if (copy) { btnRemCopy.style.display = ''; btnRemCopy.textContent = isIOS && br !== 'Safari' ? 'Copy link to open in Safari' : 'Copy link to open in the browser'; }
     const d = document.getElementById('remDiag');
-    d.textContent = 'Reminders can\'t be turned on here · ' + (isIOS ? 'iPhone/iPad iOS ' + (iosV || '?') : 'Android/other') + ' · ' + br + ' · ' + (standalone ? 'Home Screen app' : 'browser tab') + (inApp ? ' · inside another app' : '') + ' · you can still punch; the reminder pop-up works while HRMS is open.';
+    d.textContent = 'Reminders can\'t be turned on here · ' + (!onWeb ? 'page opened as a file · ' : '') + (isIOS ? 'iPhone/iPad iOS ' + (iosV || '?') : 'Android/other') + ' · ' + br + ' · ' + (standalone ? 'Home Screen app' : 'browser tab') + (inApp ? ' · inside another app' : '') + ' · you can still punch; the reminder pop-up works while HRMS is open.';
     d.hidden = false;
     // Installed on the Home Screen yet still no notification feature = the app manifest must say "display: standalone".
     if (isIOS) {

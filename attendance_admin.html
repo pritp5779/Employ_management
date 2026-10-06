@@ -24,6 +24,63 @@
   .daypop .acts{display:flex; gap:8px; justify-content:flex-end; margin-top:10px;} .daypop .acts button{width:auto; min-height:0; padding:7px 14px;}
   .daypop .err{color:var(--bad-fg); font-size:12px; margin-top:6px;}
   @media (max-width:820px){ .daypop{left:10px !important; right:10px; width:auto;} }
+  /* Punch-in proofs: requirements, scope picker, proof chips, viewer */
+  .pfa-tile{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; font-size:11.5px; font-weight:800; flex:0 0 auto; background:#e0e7ff; color:#3730a3;}
+  .pfa-tile.instagram{background:#fce7f3; color:#be185d;} .pfa-tile.youtube{background:#fee2e2; color:#b91c1c;}
+  .pfa-tile.sm{width:26px; height:26px; border-radius:7px; font-size:10px;}
+  .pfa-rule{display:flex; gap:12px 14px; padding:13px 2px; border-bottom:1px solid var(--line); align-items:flex-start; flex-wrap:wrap;}
+  .pfa-rule:last-child{border-bottom:0;}
+  .pfa-rule.pfa-off .nm, .pfa-rule.pfa-off .sc, .pfa-rule.pfa-off .nd{opacity:.55;}
+  .pfa-rule .nm{flex:2 1 230px; min-width:0;}
+  .pfa-rule .nm b{display:block; font-size:13.5px;}
+  .pfa-rule .nm span{display:block; font-size:12px; color:var(--muted); line-height:1.4; margin-top:2px;}
+  .pfa-rule .sc{flex:1.4 1 200px; min-width:0;}
+  .pfa-rule .nd{flex:0 0 118px; font-size:12.5px;}
+  .pfa-rule .ac{flex:0 0 auto; display:flex; align-items:center; gap:12px;}
+  .pfa-chips{display:flex; gap:5px; flex-wrap:wrap;}
+  .pfa-chip{display:inline-block; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:20px; background:#EEF2FF; color:#3730a3; white-space:nowrap;}
+  .pfa-chip.dep{background:#ecfdf5; color:#047857;} .pfa-chip.all{background:#111827; color:#fff;} .pfa-chip.more{background:#f1f3f6; color:var(--muted);}
+  .pfa-chip.x{cursor:pointer;} .pfa-chip.x::after{content:" ×"; opacity:.6;}
+  .pfa-cnt{font-size:11.5px; color:var(--muted); margin-top:4px;}
+  .pfa-lnk{background:none; border:0; padding:0; min-height:0; width:auto; font-size:12.5px; font-weight:600; color:#2563eb; cursor:pointer;}
+  .pfa-lnk.bad{color:#c81e1e;}
+  .pfa-tg{position:relative; display:inline-block; width:38px; height:22px; flex:0 0 auto;}
+  .pfa-tg input{position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; min-height:0;}
+  .pfa-tg i{position:absolute; inset:0; border-radius:20px; background:#d5d9e0; transition:background .15s; pointer-events:none;}
+  .pfa-tg i::after{content:""; position:absolute; width:17px; height:17px; border-radius:50%; background:#fff; top:2.5px; left:2.5px; transition:left .15s;}
+  .pfa-tg input:checked + i{background:#2563eb;} .pfa-tg input:checked + i::after{left:18.5px;}
+  .pfa-seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff;}
+  .pfa-seg button{border:0; border-right:1px solid var(--line); background:#fff; padding:7px 14px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; min-height:0; width:auto; border-radius:0;}
+  .pfa-seg button:last-child{border-right:0;}
+  .pfa-seg button.on{background:#2563eb; color:#fff;}
+  .pfa-box{border:1px solid var(--line); border-radius:9px; padding:9px 10px; margin-top:8px; background:#fff;}
+  .pfa-box .lbl{font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
+  .pfa-deps{display:flex; gap:6px; flex-wrap:wrap;}
+  .pfa-dep{display:inline-flex; align-items:center; gap:6px; text-transform:none; letter-spacing:0; font-size:12.5px; font-weight:600; padding:5px 10px; border:1px solid var(--line); border-radius:20px; cursor:pointer; background:#fff; line-height:1.2;}
+  .pfa-dep input{width:auto; min-height:0; margin:0;}
+  .pfa-dep small{color:var(--muted); font-weight:500;}
+  .pfa-dep.on{border-color:#047857; background:#ecfdf5; color:#047857;}
+  .pfa-res{display:block; width:100%; text-align:left; background:#fff; border:0; border-bottom:1px solid var(--line); padding:8px 10px; font-size:13px; cursor:pointer; min-height:0; border-radius:0;}
+  .pfa-res span{color:var(--muted); font-size:11.5px; margin-left:4px;}
+  .pfa-res:hover{background:#f3f7ff;}
+  .pfa-resbox{border:1px solid var(--line); border-radius:8px; margin-top:6px; max-height:190px; overflow:auto;}
+  .pfa-none{padding:8px 10px; font-size:12.5px; color:var(--muted);}
+  .pfa-sum{margin-top:9px; font-size:12px; background:#F8FAFF; border-radius:8px; padding:8px 10px; color:#1e3a8a; line-height:1.5;}
+  .pfc{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:3px 9px 3px 5px; border-radius:20px; background:#e7f7ee; color:#0f7a41; white-space:nowrap; margin:0 4px 4px 0;}
+  .pfc i{font-style:normal; width:19px; height:19px; border-radius:5px; background:#fff; font-size:8.5px; display:inline-flex; align-items:center; justify-content:center; font-weight:800;}
+  .pfc.wait{background:#FFF4DB; color:#8a5a00;} .pfc.bad{background:#fdecec; color:#c81e1e;}
+  .pfv-item{padding:14px 2px; border-bottom:1px solid var(--line);}
+  .pfv-item:last-child{border-bottom:0;}
+  .pfv-head{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
+  .pfv-head b{font-size:13.5px;}
+  .pfv-shots{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .pfv-img{width:92px; height:132px; object-fit:cover; border-radius:7px; display:block; border:1px solid var(--line); background:#f1f3f6;}
+  .pfv-img.rej{opacity:.45;}
+  .pfv-meta{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6;}
+  .pfv-meta b{color:var(--ink);}
+  .pfv-ask{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;}
+  .pfv-ask input{flex:1 1 200px; min-width:0; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:13px;}
+  .pfv-ask button{width:auto; min-height:0; padding:7px 12px; font-size:12.5px;}
 </style>
 </head>
 <body>
@@ -43,6 +100,7 @@
         <button class="btn secondary" id="btnTiming" type="button" title="Set when each attendance day starts (same rule as Orders and Targets)">Day timing</button>
         <button class="btn secondary" id="btnRefused" type="button" title="Punch tries refused because the employee was outside their office area">Refused <span id="refusedCount" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
         <button class="btn secondary" id="btnReminders" type="button" title="Pop-up reminder on the employee's phone when they are at the office / past day start but not punched in">Reminders <span id="remindCount" style="display:none; background:#b45f06; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
+        <button class="btn secondary" id="btnProofs" type="button" title="Instagram / YouTube comment proofs that must be uploaded before Punch In — and who they apply to">Punch-in proofs</button>
       </div>
     </div>
     <div class="content">
@@ -52,10 +110,10 @@
       <div class="card" id="attCard">
         <table>
           <thead>
-            <tr><th>Employee</th><th style="width:118px;">Shift</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th style="width:190px;">Opening checklist</th><th>Photos</th><th style="width:110px;">Face</th></tr>
+            <tr><th>Employee</th><th style="width:118px;">Shift</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th style="width:190px;">Opening checklist</th><th style="width:170px;">Punch-in proofs</th><th>Photos</th><th style="width:110px;">Face</th></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="9" class="loading">Loading...</td></tr>
+            <tr><td colspan="10" class="loading">Loading...</td></tr>
           </tbody>
         </table>
         <div id="attCards" style="display:none; padding:10px;"></div>
@@ -178,6 +236,74 @@
   #monthBody .badge { font-size:10px; padding:2px 6px; }
 }
 </style>
+<div class="modal-overlay" id="pfRulesModal">
+  <div class="modal" style="max-width:860px;">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h3 style="margin:0;">Punch-in proofs</h3>
+      <span style="flex:1;"></span>
+      <button type="button" class="btn" id="pfAdd" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px;">+ Add requirement</button>
+    </div>
+    <div style="font-size:12.5px; color:var(--muted); margin:6px 0 12px; line-height:1.5;">Punch In stays locked until the employee has uploaded every proof that applies to them. Each requirement is yours to set up: what they upload, and who it applies to — everyone, whole departments, individual employees, or departments and employees together.</div>
+    <div id="pfRulesAlert"></div>
+    <div id="pfRulesBody" style="max-height:62vh; overflow:auto;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="pfRulesClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pfEditModal">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="pfeHead">Add requirement</h3>
+    <div style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Set what the employee must upload and who it applies to.</div>
+    <div id="pfeAlert"></div>
+    <div class="field"><label>Type</label>
+      <div class="pfa-seg" id="pfeKind"><button type="button" data-k="instagram">Instagram</button><button type="button" data-k="youtube">YouTube</button><button type="button" data-k="custom">Custom</button></div>
+    </div>
+    <div class="field"><label>Name</label><input type="text" id="pfeTitle" maxlength="120" placeholder="e.g. Google review screenshot"></div>
+    <div class="field"><label>What the employee sees</label><textarea id="pfeText" rows="3" maxlength="500" placeholder="Tell them exactly what to do and what the screenshot must show"></textarea></div>
+    <div class="field-grid">
+      <div class="field"><label>Screenshots needed</label><input type="number" id="pfeShots" min="1" max="10" value="1"></div>
+      <div class="field"><label>Post / video link</label>
+        <div class="pfa-seg" id="pfeLink"><button type="button" data-v="0">Not needed</button><button type="button" data-v="1">Required</button></div>
+      </div>
+    </div>
+    <div class="field"><label>Applies to</label>
+      <div class="pfa-seg" id="pfeScope"><button type="button" data-v="1">Everyone</button><button type="button" data-v="0">Selected people</button></div>
+      <div id="pfeSel" style="display:none;">
+        <div class="pfa-box"><div class="lbl">Departments</div><div class="pfa-deps" id="pfeDeps"></div></div>
+        <div class="pfa-box"><div class="lbl">Individual employees</div>
+          <div class="pfa-chips" id="pfeEmpChips"></div>
+          <input type="text" id="pfeEmpSearch" placeholder="Search an employee to add…" autocomplete="off" style="margin-top:8px;">
+          <div class="pfa-resbox" id="pfeEmpRes" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="pfa-sum" id="pfeSum"></div>
+    </div>
+    <label style="display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:#F8FAFF; font-size:13px; font-weight:600; cursor:pointer;">
+      <span class="pfa-tg"><input type="checkbox" id="pfeActive"><i></i></span>
+      <span><span id="pfeActiveTxt">Requirement is on</span> <span style="display:block; font-weight:400; font-size:11.5px; color:var(--muted);">Switch off to pause it without losing the setup.</span></span>
+    </label>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="pfeDelete" style="margin-right:auto; color:var(--bad-fg); border-color:#f3c9c9; display:none;">Delete</button>
+      <button type="button" class="btn secondary" id="pfeCancel">Cancel</button>
+      <button type="button" class="btn" id="pfeSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pfViewModal">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="pfvTitle">Punch-in proofs</h3>
+    <div id="pfvSub" style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;"></div>
+    <div id="pfvAlert"></div>
+    <div id="pfvBody" style="max-height:62vh; overflow:auto;"></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="pfvClose">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="monthModal">
   <div class="modal" style="max-width:760px; width:100%;">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
@@ -316,6 +442,16 @@
     } else if (!Number(r.is_store)) {
       checklist = '<span style="color:var(--muted); font-size:12px;">not store staff</span>';
     }
+    // Punch-in proofs: where each requirement that applies to this employee stands that day.
+    let proofs = '<span style="color:var(--muted); font-size:12.5px;">—</span>';
+    if (Array.isArray(r.proofs) && r.proofs.length) {
+      const chips = r.proofs.map((p) => {
+        const done = Number(p.done) === 1, redo = Number(p.redo) === 1;
+        const txt = done ? 'Done' : (redo ? 'Sent back' : (r.punch_in ? 'Missing' : (Number(p.have) > 0 ? `${p.have} of ${p.need}` : 'Waiting')));
+        return `<span class="pfc${done ? '' : (redo ? ' bad' : ' wait')}" title="${attr(p.title)}"><i>${attr(pfTileText(p))}</i>${txt}</span>`;
+      }).join('');
+      proofs = `<a href="#" onclick="viewProofs(${r.employee_id}, '${nm}'); return false;" style="text-decoration:none;" title="Open the screenshots">${chips}</a>`;
+    }
     // Two employee records with the same name: say where the other one stands, so an "Absent" here is explained.
     let dupTag = '';
     if (Array.isArray(r.same_name) && r.same_name.length) {
@@ -324,7 +460,7 @@
         return `<div style="font-size:11px; margin-top:3px; font-weight:600; color:${hit ? '#b42318' : 'var(--muted)'};">${hit ? '⚠ ' : ''}Same name as ${o.employee_code}${o.punch_in ? ' — punched in ' + fmtT(o.punch_in) + ' there' : ' — no punch there'}</div>`;
       }).join('');
     }
-    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn, shift, shiftSub, lateTag, checklist, dupTag };
+    return { hours, status, statusText, statusColor, photos, photoLinks, faceBtn, shift, shiftSub, lateTag, checklist, proofs, dupTag };
   }
 
   // "Adajan Office · 40 m" under a punch time (where the punch was made).
@@ -343,6 +479,7 @@
         <td>${v.hours}</td>
         <td>${v.status}${v.lateTag ? '<div style="margin-top:3px;">' + v.lateTag + '</div>' : ''}</td>
         <td>${v.checklist}</td>
+        <td>${v.proofs}</td>
         <td>${v.photos}</td>
         <td>${v.faceBtn}</td>
       </tr>`;
@@ -368,6 +505,7 @@
           ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>${v.lateTag ? ' ' + v.lateTag : ''} <button type="button" class="dayedit" data-emp="${r.employee_id}" title="Change to Present / WFH / Leave">✎</button>`)}
           ${field('Shift', `<a href="#" onclick="editShift(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="font-weight:600; text-decoration:none;">${v.shift}</a> <span style="font-size:10.5px; color:var(--muted);">${v.shiftSub}</span>`)}
           ${r.checklist ? field('Opening checklist', v.checklist) : ''}
+          ${(Array.isArray(r.proofs) && r.proofs.length) ? field('Punch-in proofs', v.proofs) : ''}
         </div>
         ${(v.photoLinks.length || Number(r.face_enrolled))
           ? `<div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);">
@@ -403,7 +541,7 @@
     attShown = 0;
 
     if (!attFiltered.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matching employees.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matching employees.</td></tr>';
       cardsEl.innerHTML = '<div class="empty-state">No matching employees.</div>';
       updateAttLoadMoreUi();
       return;
@@ -620,6 +758,301 @@
     } catch (err) {
       document.getElementById('ckAdminAlert').innerHTML = `<div class="alert error" style="margin-bottom:10px;">${err.message}</div>`;
     } finally { btn.disabled = false; }
+  });
+
+  // ---- Punch-in proofs: what must be uploaded before Punch In, and for whom ----
+  const pfRulesModal = document.getElementById('pfRulesModal');
+  const pfEditModal = document.getElementById('pfEditModal');
+  const pfViewModal = document.getElementById('pfViewModal');
+  const PF_DEFAULTS = {
+    instagram: { title: 'Instagram comment proof', text: "Comment on today's reel on our Instagram page, then upload a screenshot that shows your comment.", link: 0 },
+    youtube: { title: 'YouTube comment proof', text: "Comment on today's video on our YouTube channel, then upload a screenshot that shows your comment.", link: 0 },
+    custom: { title: '', text: '', link: 0 },
+  };
+  const pfKindOf = (k) => (k === 'instagram' || k === 'youtube') ? k : 'custom';
+  function pfTileText(x) {
+    if (x.kind === 'instagram') return 'IG';
+    if (x.kind === 'youtube') return 'YT';
+    const w = String(x.title || '').trim().split(/\s+/).filter(Boolean);
+    return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || '?').slice(0, 2)).toUpperCase();
+  }
+  const pfTile = (x, sm) => `<span class="pfa-tile ${pfKindOf(x.kind)}${sm ? ' sm' : ''}">${attr(pfTileText(x))}</span>`;
+  let PF = { rules: [], departments: [], employees: [], total_employees: 0 };
+
+  function pfRulesAlert(msg, type = 'error') {
+    document.getElementById('pfRulesAlert').innerHTML = msg ? `<div class="alert ${type}" style="margin-bottom:10px;">${attr(msg)}</div>` : '';
+  }
+  async function pfaLoad() {
+    PF = await api.get('proofs.rules');
+    pfRulesRender();
+  }
+  const pfDeptName = (id) => (PF.departments.find(d => Number(d.department_id) === Number(id)) || {}).department_name || ('Department ' + id);
+  const pfEmpName = (id) => (PF.employees.find(e => Number(e.employee_id) === Number(id)) || {}).full_name || ('Employee ' + id);
+
+  function pfRulesRender() {
+    const body = document.getElementById('pfRulesBody');
+    if (!PF.rules.length) { body.innerHTML = '<div class="empty-state">No requirements yet. Add one — Instagram, YouTube or anything else.</div>'; return; }
+    body.innerHTML = PF.rules.map((r) => {
+      const all = Number(r.scope_all) === 1;
+      const names = all ? [] : r.department_ids.map(id => ({ t: pfDeptName(id), c: 'dep' })).concat(r.employee_ids.map(id => ({ t: pfEmpName(id), c: '' })));
+      const chips = all ? '<span class="pfa-chip all">Everyone</span>'
+        : names.slice(0, 5).map(n => `<span class="pfa-chip ${n.c}">${attr(n.t)}</span>`).join('') + (names.length > 5 ? `<span class="pfa-chip more">+${names.length - 5} more</span>` : '');
+      const kind = all ? 'All employees' : (r.department_ids.length && r.employee_ids.length ? 'Departments and employees' : (r.department_ids.length ? 'Departments' : 'Specific employees'));
+      const needs = `${r.shots_required} screenshot${r.shots_required === 1 ? '' : 's'}${Number(r.link_required) ? ' + link' : ''}`;
+      return `<div class="pfa-rule${Number(r.active) ? '' : ' pfa-off'}">
+        ${pfTile(r)}
+        <div class="nm"><b>${attr(r.title)}</b><span>${attr(r.instruction || 'No wording set.')}</span></div>
+        <div class="sc"><div class="pfa-chips">${chips}</div><div class="pfa-cnt">${kind} · ${r.applies_count} employee${r.applies_count === 1 ? '' : 's'}</div></div>
+        <div class="nd">${needs}</div>
+        <div class="ac">
+          <label class="pfa-tg" title="${Number(r.active) ? 'On' : 'Off'}"><input type="checkbox" ${Number(r.active) ? 'checked' : ''} onchange="pfaToggle(${r.rule_id}, this.checked, this)" aria-label="Requirement on or off"><i></i></label>
+          <button type="button" class="pfa-lnk" onclick="pfaEditRule(${r.rule_id})">Edit</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function pfRulePayload(r, over) {
+    return Object.assign({ rule_id: r.rule_id, kind: r.kind, title: r.title, instruction: r.instruction, shots_required: r.shots_required, link_required: r.link_required,
+      scope_all: r.scope_all, department_ids: r.department_ids, employee_ids: r.employee_ids, active: r.active }, over || {});
+  }
+  window.pfaToggle = async function (id, on, box) {
+    const r = PF.rules.find(x => Number(x.rule_id) === Number(id));
+    if (!r) return;
+    box.disabled = true;
+    try {
+      await api.post('proofs.rule_save', pfRulePayload(r, { active: on ? 1 : 0 }));
+      pfRulesAlert('');
+      await pfaLoad();
+      load();
+    } catch (err) {
+      pfRulesAlert(err.message);
+      await pfaLoad().catch(() => {});
+    }
+  };
+
+  async function pfaOpen() {
+    pfRulesAlert('');
+    document.getElementById('pfRulesBody').innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    pfRulesModal.classList.add('open');
+    try { await pfaLoad(); }
+    catch (err) { document.getElementById('pfRulesBody').innerHTML = `<div class="alert error">${attr(err.message)}</div>`; }
+  }
+  document.getElementById('btnProofs').addEventListener('click', pfaOpen);
+  function closePfRules() { pfRulesModal.classList.remove('open'); }
+  document.getElementById('pfRulesClose').addEventListener('click', closePfRules);
+  pfRulesModal.addEventListener('click', (e) => { if (e.target === pfRulesModal) closePfRules(); });
+  document.getElementById('pfAdd').addEventListener('click', () => pfaEditRule(0));
+
+  // ---- one requirement: add / edit ----
+  let pfEd = null;
+  function pfeAlert(msg) { document.getElementById('pfeAlert').innerHTML = msg ? `<div class="alert error" style="margin-bottom:10px;">${attr(msg)}</div>` : ''; }
+  function pfeSeg(id, val) { document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('on', String(b.dataset.k !== undefined ? b.dataset.k : b.dataset.v) === String(val))); }
+  function pfeSummary() {
+    const box = document.getElementById('pfeSum');
+    const total = PF.employees.length;
+    if (pfEd.all) { box.innerHTML = `Applies to <b>all ${total} employees</b>.`; return; }
+    const inDept = PF.employees.filter(e => pfEd.deps.has(Number(e.department_id)));
+    const byName = PF.employees.filter(e => pfEd.emps.has(Number(e.employee_id)) && !pfEd.deps.has(Number(e.department_id)));
+    const n = inDept.length + byName.length;
+    if (!pfEd.deps.size && !pfEd.emps.size) { box.innerHTML = 'Pick at least one department or employee — or choose <b>Everyone</b>.'; return; }
+    const parts = [];
+    if (pfEd.deps.size) parts.push(`${inDept.length} in the chosen department${pfEd.deps.size === 1 ? '' : 's'}`);
+    if (byName.length) parts.push(`${byName.length} chosen by name`);
+    box.innerHTML = `Applies to <b>${n} employee${n === 1 ? '' : 's'}</b>${parts.length ? ' — ' + parts.join(', plus ') : ''}. Everyone else is not asked for this proof.`;
+  }
+  function pfeDepsRender() {
+    document.getElementById('pfeDeps').innerHTML = PF.departments.map(d => {
+      const on = pfEd.deps.has(Number(d.department_id));
+      return `<label class="pfa-dep${on ? ' on' : ''}"><input type="checkbox" data-d="${d.department_id}" ${on ? 'checked' : ''}> ${attr(d.department_name)} <small>${d.employees}</small></label>`;
+    }).join('') || '<span style="font-size:12.5px; color:var(--muted);">No departments yet.</span>';
+  }
+  function pfeEmpChipsRender() {
+    document.getElementById('pfeEmpChips').innerHTML = [...pfEd.emps].map(id => `<span class="pfa-chip x" data-rm="${id}" title="Remove">${attr(pfEmpName(id))}</span>`).join('')
+      || '<span style="font-size:12.5px; color:var(--muted);">None added.</span>';
+  }
+  function pfeEmpResults() {
+    const q = document.getElementById('pfeEmpSearch').value.trim().toLowerCase();
+    const box = document.getElementById('pfeEmpRes');
+    if (!q) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    const hits = PF.employees.filter(e => !pfEd.emps.has(Number(e.employee_id)) && (String(e.full_name).toLowerCase().includes(q) || String(e.employee_code || '').toLowerCase().includes(q))).slice(0, 8);
+    box.innerHTML = hits.length
+      ? hits.map(e => `<button type="button" class="pfa-res" data-id="${e.employee_id}"><b>${attr(e.full_name)}</b><span>${attr(e.employee_code || '')} · ${attr(e.department_name || 'No department')}</span></button>`).join('')
+      : '<div class="pfa-none">No employee found.</div>';
+    box.style.display = '';
+  }
+  function pfeRender() {
+    pfeSeg('pfeKind', pfEd.kind);
+    pfeSeg('pfeLink', pfEd.link);
+    pfeSeg('pfeScope', pfEd.all ? 1 : 0);
+    document.getElementById('pfeSel').style.display = pfEd.all ? 'none' : '';
+    pfeDepsRender();
+    pfeEmpChipsRender();
+    pfeSummary();
+  }
+  window.pfaEditRule = function (id) {
+    const r = id ? PF.rules.find(x => Number(x.rule_id) === Number(id)) : null;
+    pfEd = r
+      ? { rule_id: Number(r.rule_id), kind: pfKindOf(r.kind), link: Number(r.link_required) ? 1 : 0, all: Number(r.scope_all) === 1, deps: new Set(r.department_ids.map(Number)), emps: new Set(r.employee_ids.map(Number)) }
+      : { rule_id: 0, kind: 'custom', link: 0, all: true, deps: new Set(), emps: new Set() };
+    document.getElementById('pfeHead').textContent = r ? 'Edit requirement' : 'Add requirement';
+    document.getElementById('pfeTitle').value = r ? r.title : '';
+    document.getElementById('pfeText').value = r ? r.instruction : '';
+    document.getElementById('pfeShots').value = r ? r.shots_required : 1;
+    document.getElementById('pfeActive').checked = r ? Number(r.active) === 1 : true;
+    pfeActiveTxt();
+    document.getElementById('pfeEmpSearch').value = '';
+    document.getElementById('pfeEmpRes').style.display = 'none';
+    document.getElementById('pfeDelete').style.display = r ? '' : 'none';
+    pfeAlert('');
+    pfeRender();
+    pfEditModal.classList.add('open');
+  };
+  function pfeActiveTxt() { document.getElementById('pfeActiveTxt').textContent = document.getElementById('pfeActive').checked ? 'Requirement is on' : 'Requirement is off'; }
+  document.getElementById('pfeActive').addEventListener('change', pfeActiveTxt);
+  function closePfEdit() { pfEditModal.classList.remove('open'); }
+  document.getElementById('pfeCancel').addEventListener('click', closePfEdit);
+  pfEditModal.addEventListener('click', (e) => { if (e.target === pfEditModal) closePfEdit(); });
+
+  document.getElementById('pfeKind').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-k]'); if (!b) return;
+    const prev = PF_DEFAULTS[pfEd.kind], next = PF_DEFAULTS[b.dataset.k];
+    const t = document.getElementById('pfeTitle'), x = document.getElementById('pfeText');
+    if (t.value.trim() === '' || t.value === prev.title) t.value = next.title;
+    if (x.value.trim() === '' || x.value === prev.text) x.value = next.text;
+    if (!pfEd.rule_id) pfEd.link = next.link;
+    pfEd.kind = b.dataset.k;
+    pfeRender();
+  });
+  document.getElementById('pfeLink').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.link = Number(b.dataset.v); pfeRender(); });
+  document.getElementById('pfeScope').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.all = b.dataset.v === '1'; pfeRender(); });
+  document.getElementById('pfeDeps').addEventListener('change', (e) => {
+    const c = e.target.closest('input[data-d]'); if (!c) return;
+    const id = Number(c.dataset.d);
+    if (c.checked) pfEd.deps.add(id); else pfEd.deps.delete(id);
+    c.closest('label').classList.toggle('on', c.checked);
+    pfeSummary();
+  });
+  document.getElementById('pfeEmpSearch').addEventListener('input', pfeEmpResults);
+  document.getElementById('pfeEmpRes').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]'); if (!b) return;
+    pfEd.emps.add(Number(b.dataset.id));
+    document.getElementById('pfeEmpSearch').value = '';
+    pfeEmpResults(); pfeEmpChipsRender(); pfeSummary();
+  });
+  document.getElementById('pfeEmpChips').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-rm]'); if (!c) return;
+    pfEd.emps.delete(Number(c.dataset.rm));
+    pfeEmpChipsRender(); pfeSummary();
+  });
+
+  document.getElementById('pfeSave').addEventListener('click', async () => {
+    const btn = document.getElementById('pfeSave');
+    const title = document.getElementById('pfeTitle').value.trim();
+    if (!title) { pfeAlert('Give the requirement a name.'); return; }
+    if (!pfEd.all && !pfEd.deps.size && !pfEd.emps.size) { pfeAlert('Choose Everyone, or pick at least one department or employee.'); return; }
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const d = await api.post('proofs.rule_save', {
+        rule_id: pfEd.rule_id, kind: pfEd.kind, title, instruction: document.getElementById('pfeText').value.trim(),
+        shots_required: Math.max(1, Math.min(10, Number(document.getElementById('pfeShots').value) || 1)), link_required: pfEd.link,
+        scope_all: pfEd.all ? 1 : 0, department_ids: pfEd.all ? [] : [...pfEd.deps], employee_ids: pfEd.all ? [] : [...pfEd.emps],
+        active: document.getElementById('pfeActive').checked ? 1 : 0,
+      });
+      closePfEdit();
+      pfRulesAlert(d.message || 'Saved.', 'success');
+      await pfaLoad();
+      load();
+    } catch (err) {
+      pfeAlert(err.message);
+    } finally { btn.disabled = false; btn.textContent = 'Save'; }
+  });
+  document.getElementById('pfeDelete').addEventListener('click', async () => {
+    if (!pfEd || !pfEd.rule_id) return;
+    if (!confirm('Delete this requirement? Employees will no longer be asked for it. Screenshots already sent stay readable.')) return;
+    try {
+      const d = await api.post('proofs.rule_delete', { rule_id: pfEd.rule_id });
+      closePfEdit();
+      pfRulesAlert(d.message || 'Deleted.', 'success');
+      await pfaLoad();
+      load();
+    } catch (err) { pfeAlert(err.message); }
+  });
+
+  // ---- one employee's proofs for the day: screenshots, links, send back ----
+  let pfvEmp = 0, pfvName = '';
+  function closePfView() { pfViewModal.classList.remove('open'); document.getElementById('pfvBody').innerHTML = ''; }
+  document.getElementById('pfvClose').addEventListener('click', closePfView);
+  pfViewModal.addEventListener('click', (e) => { if (e.target === pfViewModal) closePfView(); });
+
+  function pfvItemHtml(it) {
+    const proofs = it.proofs || [];
+    const ok = proofs.filter(p => p.status === 'ok');
+    const sent = proofs.filter(p => p.status !== 'ok');
+    const state = Number(it.done) ? '<span class="pfc"><i>✓</i>Done</span>'
+      : (Number(it.redo) ? '<span class="pfc bad"><i>!</i>Sent back</span>'
+        : (ok.length ? `<span class="pfc wait">${ok.length} of ${it.shots_required}</span>` : '<span class="pfc wait">Not uploaded</span>'));
+    const thumbs = proofs.map(p => `<a href="#" data-pfp="${attr(p.file)}" data-pft="${attr(pfvName + ' — ' + it.title)}" title="Open full size"><img class="pfv-img${p.status === 'ok' ? '' : ' rej'}" src="${ckPhotoUrl(p.file)}" alt=""></a>`).join('');
+    const last = ok[ok.length - 1];
+    const link = last && last.link ? (/^https?:\/\//i.test(last.link) ? `<a href="${attr(last.link)}" target="_blank" rel="noopener noreferrer">${attr(last.link.replace(/^https?:\/\//i, ''))}</a>` : attr(last.link)) : '';
+    const meta = (last ? `Uploaded <b>${fmtT(last.uploaded_at)}</b>${ok.length > 1 ? ` · ${ok.length} screenshots` : ''}` : '')
+      + (link ? `<br>Link: ${link}` : '')
+      + (sent.length ? `<br><span style="color:#c81e1e;">Sent back: ${attr(sent[sent.length - 1].note || 'upload again')}</span>` : '');
+    const ask = ok.length ? `
+      <div class="pfv-ask" id="pfvAsk${it.rule_id}" style="display:none;">
+        <input type="text" maxlength="250" placeholder="Reason (optional) — the employee will see this">
+        <button type="button" class="btn" data-send="${it.rule_id}">Send back</button>
+        <button type="button" class="btn secondary" data-cancel="${it.rule_id}">Cancel</button>
+      </div>
+      <div class="pfv-ask" id="pfvAskBtn${it.rule_id}"><button type="button" class="btn secondary" data-ask="${it.rule_id}" style="color:var(--bad-fg); border-color:#f3c9c9;">Ask to re-upload</button></div>` : '';
+    return `<div class="pfv-item">
+      <div class="pfv-head">${pfTile(it, true)}<b>${attr(it.title)}</b>${state}</div>
+      ${thumbs ? `<div class="pfv-shots">${thumbs}</div>` : '<div class="pfv-meta">Nothing uploaded yet.</div>'}
+      ${meta ? `<div class="pfv-meta">${meta}</div>` : ''}
+      ${ask}
+    </div>`;
+  }
+  async function pfvLoad() {
+    try {
+      const d = await api.get('proofs.day', { employee_id: pfvEmp, date: currentAttDate });
+      const dayLabel = new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+      document.getElementById('pfvSub').textContent = `${dayLabel} · ${d.punch_in ? 'punched in ' + fmtT(d.punch_in) : 'not punched in yet'} · ${d.done_count} of ${d.total} proofs`;
+      document.getElementById('pfvBody').innerHTML = (d.items || []).map(pfvItemHtml).join('') || '<div class="empty-state">No proof requirements apply to this employee.</div>';
+    } catch (err) {
+      document.getElementById('pfvBody').innerHTML = `<div class="alert error">${attr(err.message)}</div>`;
+    }
+  }
+  window.viewProofs = async function (empId, name) {
+    pfvEmp = empId; pfvName = name;
+    document.getElementById('pfvTitle').textContent = `${name} — punch-in proofs`;
+    document.getElementById('pfvSub').textContent = '';
+    document.getElementById('pfvAlert').innerHTML = '';
+    document.getElementById('pfvBody').innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    pfViewModal.classList.add('open');
+    await pfvLoad();
+  };
+  document.getElementById('pfvBody').addEventListener('click', async (e) => {
+    const shot = e.target.closest('a[data-pfp]');
+    if (shot) { e.preventDefault(); viewCkPhoto(shot.dataset.pfp, shot.dataset.pft); return; }
+    const ask = e.target.closest('button[data-ask]');
+    if (ask) { const id = ask.dataset.ask; document.getElementById('pfvAsk' + id).style.display = 'flex'; document.getElementById('pfvAskBtn' + id).style.display = 'none'; const i = document.querySelector('#pfvAsk' + id + ' input'); if (i) i.focus(); return; }
+    const cancel = e.target.closest('button[data-cancel]');
+    if (cancel) { const id = cancel.dataset.cancel; document.getElementById('pfvAsk' + id).style.display = 'none'; document.getElementById('pfvAskBtn' + id).style.display = 'flex'; return; }
+    const send = e.target.closest('button[data-send]');
+    if (send) {
+      const id = send.dataset.send;
+      const note = document.querySelector('#pfvAsk' + id + ' input').value.trim();
+      send.disabled = true;
+      try {
+        const d = await api.post('proofs.redo', { employee_id: pfvEmp, rule_id: Number(id), date: currentAttDate, note });
+        document.getElementById('pfvAlert').innerHTML = `<div class="alert success" style="margin-bottom:10px;">${attr(d.message)}</div>`;
+        await pfvLoad();
+        load();
+      } catch (err) {
+        document.getElementById('pfvAlert').innerHTML = `<div class="alert error" style="margin-bottom:10px;">${attr(err.message)}</div>`;
+        send.disabled = false;
+      }
+    }
   });
 
   // ---- Working time + checklist setup for one employee ----
@@ -914,7 +1347,7 @@
       loadReminders(date);
       loadEarly();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="alert error">${err.message}</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10"><div class="alert error">${err.message}</div></td></tr>`;
     }
   }
 
@@ -1054,7 +1487,8 @@
   const liveEl = document.getElementById('liveStamp');
   function rowsSig(rows) {
     return JSON.stringify(rows.map(r => [r.employee_id, r.punch_in, r.punch_out, r.mark, !!r.punch_in_photo, !!r.punch_out_photo, r.edited_by, r.in_office, r.out_office, r.in_distance_m, r.out_distance_m,
-      r.checklist ? [r.checklist.tasks_done, r.checklist.photos_have, r.checklist.submitted_at] : null]));
+      r.checklist ? [r.checklist.tasks_done, r.checklist.photos_have, r.checklist.submitted_at] : null,
+      (r.proofs || []).map(p => [p.rule_id, p.have, p.done, p.redo])]));
   }
   function updateSummary(date) {
     const present = allRows.filter(r => r.punch_in).length;

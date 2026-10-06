@@ -84,7 +84,10 @@
   .es-tbl thead tr.g1 th.g-emp,.es-tbl tr.hd.g1 th.g-emp{position:sticky; left:0; z-index:5;}
   .g-emp{background:#111827 !important;} .g-tgt{background:#2563eb !important;} .g-ord{background:#0f7a41 !important;}
   .g-qry{background:#7c3aed !important;} .g-cmp{background:#b45309 !important;} .g-pay{background:#0e7490 !important;}
-  .g-rat{background:#be185d !important;}
+  .g-rat{background:#be185d !important;} .g-tk{background:#0369a1 !important;}
+  .es-tk{font-size:11px; color:var(--muted); font-weight:600; white-space:nowrap;}
+  .unalloc-note{margin:0 0 12px; padding:9px 14px; border-radius:8px; background:#FFF8E6; color:#8a5a00; font-size:12.5px; display:flex; gap:6px 12px; align-items:center; flex-wrap:wrap;}
+  .unalloc-note a{color:#8a5a00; font-weight:700; text-decoration:underline; cursor:pointer;}
   .es-tbl .gl{border-left:2px solid #e5e7eb;}
   .es-tbl tbody tr:hover td{background:#f8faff;}
   .es-tbl .emp{position:sticky; left:0; z-index:2; min-width:262px; box-shadow:2px 0 0 #eef0f3;}
@@ -326,12 +329,15 @@
         <div class="plat-cards" id="platCards"></div>
       </div>
 
+      <div class="unalloc-note" id="unallocNote" hidden></div>
+
       <!-- Employee sheet (Admin / HR): one row per sales employee for the dates above -->
       <div class="vtabs" id="vtabs" hidden>
         <button type="button" data-v="sheet" class="on">Employee sheet<span class="cnt" id="cntSheet"></span></button>
         <button type="button" data-v="orders">All orders<span class="cnt" id="cntOrders"></span></button>
         <button type="button" data-v="query">Query orders<span class="cnt" id="cntQuery"></span></button>
         <button type="button" data-v="campaign">Campaign orders<span class="cnt" id="cntCampaign"></span></button>
+        <button type="button" data-v="unalloc">Not allocated<span class="cnt" id="cntUnalloc"></span></button>
         <button type="button" data-v="cancelled">Cancelled orders<span class="cnt" id="cntCancelled"></span></button>
       </div>
       <div class="pchips" id="pChips" hidden></div>
@@ -784,9 +790,13 @@
     const b = urlSalesman ? allOrders.filter(o => o.salesman === urlSalesman) : allOrders;
     return panelPick ? b.filter(o => panelOf(o) === panelPick) : b;
   }
+  // An order counts (in every box, card, the sheet and the lists) only once it is allocated on the Order Allocation page.
+  // Manual counter orders cannot be allocated there, so they always count.
+  const isCounted = (o) => o.store_key === 'manual' || Number(o.allocated) === 1;
   // Cancelled orders are left out of every total, card and the sheet; they only show under "Cancelled orders".
+  // Orders not allocated yet are left out the same way; they only show under "Not allocated".
   function scopedOrders() {
-    return scopedAll().filter(o => !o.cancelled);
+    return scopedAll().filter(o => !o.cancelled && isCounted(o));
   }
 
   // The list under the stat cards: the scoped orders, narrowed to one person
@@ -795,13 +805,15 @@
   let pickPanel = '';      // a name / count was clicked inside a panel block: only that panel's orders
   let housePick = '';      // a platform card was clicked: only that platform's orders (cleared with the ✕ chip)
   let listType = '';      // '' = all orders, 'query' / 'campaign' = only that kind (Query orders / Campaign orders tabs)
-  const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', cancelled: 'Cancelled orders' };
+  const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', unalloc: 'Not allocated orders', cancelled: 'Cancelled orders' };
   function listBase() {
-    let b = listType === 'cancelled' ? scopedAll().filter(o => o.cancelled) : scopedOrders();
+    let b = listType === 'cancelled' ? scopedAll().filter(o => o.cancelled)
+      : listType === 'unalloc' ? scopedAll().filter(o => !o.cancelled && !isCounted(o))
+      : scopedOrders();
     if (pickSalesman) b = b.filter(o => o.salesman === pickSalesman);
     if (pickPanel) b = b.filter(o => panelOf(o) === pickPanel);
     if (housePick) b = b.filter(o => (o.house || STORE_HOUSE_MAP[o.store_key]) === housePick);
-    return listType && listType !== 'cancelled' ? b.filter(o => orderTagType(o.tags) === listType) : b;
+    return listType && listType !== 'cancelled' && listType !== 'unalloc' ? b.filter(o => orderTagType(o.tags) === listType) : b;
   }
 
   function render(orders) {
@@ -822,7 +834,7 @@
     const el = document.getElementById('pChips');
     if (!ES_ALLOWED) { el.hidden = true; return; }
     const sum = {}, cnt = {};
-    allOrders.forEach(o => { if (o.cancelled) return; const k = panelOf(o); sum[k] = (sum[k] || 0) + (Number(o.total) || 0); cnt[k] = (cnt[k] || 0) + 1; });
+    allOrders.forEach(o => { if (o.cancelled || !isCounted(o)) return; const k = panelOf(o); sum[k] = (sum[k] || 0) + (Number(o.total) || 0); cnt[k] = (cnt[k] || 0) + 1; });
     const keys = PANELS.filter(p => panelAllowed(p[0]) && (p[0] !== 'none' || cnt.none)).map(p => p[0]);
     const all = keys.reduce((a, k) => a + (sum[k] || 0), 0);
     const chip = (k, label, c, v) => `<button type="button" class="pchip${panelPick === k ? ' on' : ''}" data-p="${k}" style="--c:${c};"><i></i>${ocEsc(label)}<small>${esInr(v)}</small></button>`;
@@ -964,8 +976,9 @@
   // amount set by hand for the day (Manual, one-day view only). Achieved = the box's revenue; Pending = Target - Achieved.
   let ptEdit = '';        // panel being typed in
   const ptInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-  function panelTargetHtml(label, s) {
-    const pn = PANELS.find(p => p[1] === label && p[0] !== 'none');
+  // forceKey: the target key to use instead of the box label's panel ('all' = the All Orders & Revenue box).
+  function panelTargetHtml(label, s, forceKey) {
+    const pn = forceKey ? [forceKey] : PANELS.find(p => p[1] === label && p[0] !== 'none');
     if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_targets) return '';
     if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';   // the sheet for these dates is still loading
     const k = pn[0], pt = teamData.panel_targets[k] || { target: 0, auto: 0, src: 'auto', manual_days: 0, days: 1 };
@@ -1024,6 +1037,9 @@
     shownKeys.forEach(k => { qTotal += (platformQueries[k] || {}).query || 0; });
     base.forEach(o => { if (shownKeys.includes(o.house || STORE_HOUSE_MAP[o.store_key]) && orderTagType(o.tags) === 'query') qOrders++; });
     const ticket = (tot, n, cur) => n > 0 ? fmtMoney(tot / n, cur) : '—';     // ticket size = revenue ÷ orders
+    // The All Orders & Revenue target: the sum of the panel targets (or set by hand for the day). With one panel picked the box shows
+    // that panel's target; with a Store pick or one salesman's orders the figures no longer match a target, so none is shown.
+    const allKey = urlSalesman ? '' : (panelPick ? (PANEL_GK[panelPick] !== undefined ? panelPick : '') : (storeSel.size ? '' : 'all'));
     const share = (pre, tot) => { const pp = tot > 0 ? Math.round(pre / tot * 100) : 0; return [pp, tot > 0 ? 100 - pp : 0]; };   // prepaid % and COD % (always 100 together)
     base.forEach(o => {
       const amt = Number(o.total) || 0, isCod = orderOutstanding(o, amt) > 0;     // same rule as the platform cards and the Employee sheet
@@ -1057,6 +1073,7 @@
         <div class="tkr"><span>Ticket size</span> <b>${ticket(grandTotal, base.length, 'INR')}</b></div>
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
         <div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>
+        ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
       </div>
       ${boxes.map(([label, s]) => `
         <div class="stat-card">
@@ -1075,7 +1092,23 @@
       </div>
     `;
     grid.style.display = 'grid';
+    renderUnallocNote();
   }
+  // One line saying how many orders are left out because they are not allocated yet.
+  function renderUnallocNote() {
+    const el = document.getElementById('unallocNote');
+    const un = scopedAll().filter(o => !o.cancelled && !isCounted(o));
+    if (!un.length) { el.hidden = true; return; }
+    const amt = un.reduce((a, o) => a + (Number(o.total) || 0), 0);
+    el.innerHTML = `<span><b>${un.length} order${un.length === 1 ? '' : 's'} · ${fmtMoney(amt, 'INR')}</b> not allocated yet — not counted in the boxes, cards, sheet or lists.</span>` +
+      (ES_ALLOWED ? ' <a data-un="show">Show them</a> <a href="order_allocation.html">Open Order Allocation</a>' : '');
+    el.hidden = false;
+  }
+  document.getElementById('unallocNote').addEventListener('click', (ev) => {
+    if (!ev.target.closest('[data-un="show"]')) return;
+    esView('unalloc');
+    window.scrollTo({ top: document.getElementById('vtabs').getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
+  });
 
   // Which house the order counts under, and why — same rule as the server:
   // a house tag (tmph / tmf / tm4u) beats the store; two house tags = store.
@@ -1300,9 +1333,26 @@
 
   // ---- Order detail modal
   const detailModal = document.getElementById('detailModal');
+  // Freeze the page behind the popup WITHOUT moving it: lock <html> (the page scroller), never <body>.
+  // overflow:hidden on <body> shrinks the page to one screen and throws the scroll position back to the top.
+  let pageLockY = 0;
+  function lockPage(on) {
+    const h = document.documentElement;
+    if (on) {
+      if (h.style.overflow === 'hidden') return;
+      pageLockY = window.scrollY;
+      const sb = window.innerWidth - h.clientWidth;      // keep the layout width when the scrollbar disappears
+      h.style.overflow = 'hidden';
+      if (sb > 0) h.style.paddingRight = sb + 'px';
+    } else {
+      if (h.style.overflow !== 'hidden') return;
+      h.style.overflow = ''; h.style.paddingRight = '';
+      if (Math.abs(window.scrollY - pageLockY) > 1) window.scrollTo(0, pageLockY);
+    }
+  }
   function closeDetail() {
     detailModal.classList.remove('open');
-    document.body.style.overflow = '';
+    lockPage(false);
   }
   document.getElementById('btnDetailClose').addEventListener('click', closeDetail);
   detailModal.addEventListener('click', (e) => { if (e.target === detailModal) closeDetail(); });
@@ -1320,7 +1370,7 @@
     document.getElementById('detailTitle').textContent = `${o.order_name} — ${o.store}`;
     const body = document.getElementById('detailBody');
     detailModal.classList.add('open');
-    document.body.style.overflow = 'hidden'; // freeze the page behind the popup
+    lockPage(true); // freeze the page behind the popup
 
     if (o.store_key === 'manual' || o.custom_store) {
       body.innerHTML =
@@ -1335,7 +1385,7 @@
         detailRow('Added by', o.created_by) +
         (o.custom_store ? detailRow('Counted under', o.allocated
           ? `<b>${o.store}</b> — moved from ${o.store_src || 'MySales'} on the Order Allocation page${o.allocated_by ? ' by ' + o.allocated_by : ''}`
-          : `<b>${o.store}</b> — not allocated to a house yet (Order Allocation page)`) : '');
+          : `Not counted — not allocated yet (Order Allocation page)`) : '');
       return;
     }
 
@@ -1392,7 +1442,7 @@
         trackingHtml +
         detailRow('Note', d.note) +
         detailRow('Tags', d.tags) +
-        detailRow('Counted under', houseReason(o, d.tags)) +
+        detailRow('Counted under', isCounted(o) ? houseReason(o, d.tags) : 'Not counted — not allocated yet (Order Allocation page)') +
         itemsHtml +
         totalsHtml;
     } catch (err) {
@@ -1469,17 +1519,18 @@
   let teamData = null;               // last team.sheet response
   let teamReqId = 0;
   const ES_GROUPS = [
-    { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
+    { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'tk', n: 'Ticket size', cls: 'g-tk' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
     { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' }
   ];
   const ES_COLS = {
     to: [['Target · Collection · Orders', 'to']],      // one box: Target, Collection, Orders, Total query, Ratio
+    tk: [['Ticket size', 'tkt']],                       // collection ÷ orders per employee (Query / Campaign ticket under it)
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
     rat: [['Per order', 'or']]
   };
-  const esOn = { to: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
+  const esOn = { to: 1, tk: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
   const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)
@@ -1495,6 +1546,12 @@
   const esColTxt = (c) => ['DG', 'LG', 'WH', 'Other'].map((n, i) => c[i] > 0 ? n + '-' + c[i] : '').filter(Boolean).join(', ');
   const esColSpan = (c) => { const t = esColTxt(c); return t ? ` <span class="es-cl">${t}</span>` : ''; };
   const esAch = (e) => e.tg ? Math.round(e.coll / e.tg * 100) : 0;
+  // Ticket size = collection ÷ orders; the Query and Campaign ticket sizes sit under it when that person has such orders.
+  function esTk(e) {
+    if (!e.ord) return '<span class="es-sl">—</span>';
+    const sub = [e.qo ? 'Q ' + esInr(e.qc / e.qo) : '', e.ko ? 'C ' + esInr(e.kc / e.ko) : ''].filter(Boolean).join(' · ');
+    return `<b>${esInr(e.coll / e.ord)}</b>${sub ? `<div class="es-tk">${sub}</div>` : ''}`;
+  }
 
   // One-line message inside the sheet box (loading / slow / error), so it is never an empty white box.
   const esMq = window.matchMedia('(max-width: 820px)');
@@ -1555,7 +1612,7 @@
     const outMap = {};      // person -> { business day: punch-out time (seconds) }
     if (teamData) teamData.rows.forEach(r => { outMap[String(r.full_name || '').trim().toLowerCase()] = r.outs || {}; });
     allOrders.forEach(o => {
-      if (o.cancelled) return;
+      if (o.cancelled || !isCounted(o)) return;
       const nm = String(o.salesman || '').trim().toLowerCase();
       const key = nm + '|' + panelOf(o);
       const a = by[key] = by[key] || slot();
@@ -1597,6 +1654,7 @@
         out.push(Object.assign({}, base, {
           b, q, k, tot: q + k, or: pp && pp.order_rating ? [Number(pp.order_rating.avg) || 0, Number(pp.order_rating.n) || 0] : [0, 0],
           tg: pp ? Number(pp.target) || 0 : 0, tsrc: pp ? pp.src || 'none' : 'none', how: pp ? pp.how || '' : '', shared: !!(pp && pp.shared),
+          ab: !!(pp && pp.absent), abd: pp ? Number(pp.absent_days) || 0 : 0,      // absent (every day / this many days of the range): that target is not counted
           fl: pp ? Number(pp.floor) || 0 : 0      // a new Sales Executive's automatic target for the day: it can be raised by hand, not lowered
         }, a || slot0()));
       });
@@ -1620,15 +1678,15 @@
 
   // The employees of one panel in the order picked in the Sort box. "My order" is the one set by drag and drop.
   function esSortRows(real, s, panel) {
-    if (s === 'manual') {
-      const rk = new Map(((teamData && teamData.order && teamData.order[panel]) || []).map((id, i) => [id, i]));
-      return real.slice().sort((a, b) => (rk.has(a.id) ? rk.get(a.id) : 1e6) - (rk.has(b.id) ? rk.get(b.id) : 1e6) || (a.n.toLowerCase() > b.n.toLowerCase() ? 1 : (a.n.toLowerCase() < b.n.toLowerCase() ? -1 : 0)));
-    }
-    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0) }[s] || ((e) => e.n.toLowerCase());
-    const sorted = real.slice().sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0));
     // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
     const away = (e) => !e.p && !esMk(e);
-    return sorted.filter(e => !away(e)).concat(sorted.filter(away));
+    const bottom = (sorted) => sorted.filter(e => !away(e)).concat(sorted.filter(away));
+    if (s === 'manual') {
+      const rk = new Map(((teamData && teamData.order && teamData.order[panel]) || []).map((id, i) => [id, i]));
+      return bottom(real.slice().sort((a, b) => (rk.has(a.id) ? rk.get(a.id) : 1e6) - (rk.has(b.id) ? rk.get(b.id) : 1e6) || (a.n.toLowerCase() > b.n.toLowerCase() ? 1 : (a.n.toLowerCase() < b.n.toLowerCase() ? -1 : 0))));
+    }
+    const key = { name: (e) => e.n.toLowerCase(), coll: (e) => -e.coll, ach: (e) => -esAch(e), ord: (e) => -e.ord, ratio: (e) => -(esPct(e.ord, e.tot) || 0) }[s] || ((e) => e.n.toLowerCase());
+    return bottom(real.slice().sort((a, b) => key(a) > key(b) ? 1 : (key(a) < key(b) ? -1 : 0)));
   }
   function esVisible(all) {
     const q = esEl('esQ').value.trim().toLowerCase(), f = esEl('esSt').value, s = esEl('esSort').value;
@@ -1661,9 +1719,11 @@
   function esTgtCell(e) {
     if (!e.real || PANEL_GK[e.b] === undefined) return '<span class="es-sl">—</span>';     // "No panel" has no target
     const can = esCanEdit(), d = `data-id="${e.id}" data-b="${e.b}"`;
+    if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">Absent — target not counted</div>`;
     if (can && esEditTg === e.id + '|' + e.b) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="${e.fl || 0}" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="${e.fl ? '≥ ' + esInr(e.fl) : 'Daily target'}"${e.fl ? ` title="New Sales Executive: at least ${esInr(e.fl)} — you can raise it, not lower it"` : ''}><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span>`;
     const pill = e.tsrc === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (e.tsrc === 'rule' || e.tsrc === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
-    if (!can) return e.tg > 0 ? `<span class="tgt-chip ro">${esInr(e.tg)}</span>` : '<span class="es-sl">—</span>';
+    const absNote = e.abd > 0 ? `<div class="tgt-how">${e.abd} absent day${e.abd === 1 ? '' : 's'} not counted</div>` : '';      // a range with some absent days
+    if (!can) return (e.tg > 0 ? `<span class="tgt-chip ro">${esInr(e.tg)}</span>` : '<span class="es-sl">—</span>') + absNote;
     const chip = `<span class="tgt-chip ${e.tg > 0 ? '' : 'empty'}" data-tg="edit" ${d} title="Click to set by hand">${e.tg > 0 ? esInr(e.tg) : 'Set target'} ${pill} ✎</span>`;
     const sub = e.tsrc === 'manual' && !e.shared ? `<div><button type="button" class="tgt-revert" data-tg="rev" ${d}>↺ Back to automatic</button></div>` : (e.how ? `<div class="tgt-how" title="${esEsc(e.how)}">${esEsc(e.how)}</div>` : '');
     return chip + sub;
@@ -1707,6 +1767,7 @@
       case 'tg':    return `<td class="gl">${esTgtCell(e)}</td>`;
       case 'coll':  return `<td>${esCollCell(e)}</td>`;
       case 'tq':    return `<td class="gl">${e.real ? '<b>' + e.tot + '</b>' : dash}</td>`;
+      case 'tkt':   return `<td class="gl">${esTk(e)}</td>`;
       case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col) : dash}</td>`;
       case 'ratio': return `<td>${e.real && e.tot ? esRt(esPct(e.ord, e.tot)) : dash}</td>`;
       case 'q':     return `<td class="gl">${e.real ? e.q : dash}</td>`;
@@ -1727,8 +1788,8 @@
     if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg) };
-    return `<td${['tg', 'tq', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
+      or: esStars(t.orAvg), tkt: esTk(t) };
+    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
   }
 
   // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
@@ -1772,6 +1833,7 @@
     const sec = (g, title, color, items) => esOn[g]
       ? `<div class="msec" style="--g:${color}"><div class="msh">${title}</div><div class="msg">${items.map(([l, k]) => `<div><span class="lb">${l}</span>${cv(k)}</div>`).join('')}</div></div>` : '';
     return `<div class="mc ${tot ? 'tot' : (abs ? 'abs' : (e.real ? '' : 'un'))}"${e.real && !tot ? ` data-id="${e.id}" data-b="${e.b}"` : ''}>${head}${box}` +
+      sec('tk', 'Ticket size', '#0369a1', [['Ticket size', 'tkt']]) +
       sec('qry', 'Query', '#7c3aed', [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']]) +
       sec('cmp', 'Campaign', '#b45309', [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']]) +
       sec('pay', 'Payments', '#0e7490', [['COD / Paid', 'cod'], ['Prepaid', 'pre']]) +
@@ -1804,9 +1866,10 @@
     else esEl('esTbl').innerHTML = esTableHtml(blocks, gs);
     esEl('cntSheet').textContent = ' · ' + people.size;
     const sc = scopedAll();
-    esEl('cntOrders').textContent = ' · ' + sc.filter(o => !o.cancelled).length;
-    esEl('cntQuery').textContent = ' · ' + sc.filter(o => !o.cancelled && orderTagType(o.tags) === 'query').length;
-    esEl('cntCampaign').textContent = ' · ' + sc.filter(o => !o.cancelled && orderTagType(o.tags) === 'campaign').length;
+    esEl('cntOrders').textContent = ' · ' + sc.filter(o => !o.cancelled && isCounted(o)).length;
+    esEl('cntQuery').textContent = ' · ' + sc.filter(o => !o.cancelled && isCounted(o) && orderTagType(o.tags) === 'query').length;
+    esEl('cntCampaign').textContent = ' · ' + sc.filter(o => !o.cancelled && isCounted(o) && orderTagType(o.tags) === 'campaign').length;
+    esEl('cntUnalloc').textContent = ' · ' + sc.filter(o => !o.cancelled && !isCounted(o)).length;
     esEl('cntCancelled').textContent = ' · ' + sc.filter(o => o.cancelled).length;
     esEl('esNote').innerHTML = teamData.rule_note ? esEsc(teamData.rule_note) : '';
   }
@@ -1869,7 +1932,7 @@
   function esView(v) {
     esEl('paneSheet').hidden = v !== 'sheet';
     esEl('paneOrders').hidden = v === 'sheet';
-    const lt = v === 'query' || v === 'campaign' || v === 'cancelled' ? v : '';
+    const lt = v === 'query' || v === 'campaign' || v === 'cancelled' || v === 'unalloc' ? v : '';
     if (lt !== listType) { listType = lt; currentPage = 1; applyFilters(); }
     document.querySelectorAll('#vtabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   }

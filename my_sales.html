@@ -15,6 +15,16 @@
 <style>
   .amt-short{display:none;}
   @media (max-width:820px){ .amt-full{display:none;} .amt-short{display:inline;} }
+  /* Query / Campaign counts set for him on Assign Queries, plus today's orders of each type */
+  .qc{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .qc .qb{border:1px solid var(--line); border-radius:10px; padding:12px 14px; min-width:0;}
+  .qc .qb.query{border-left:4px solid #0EA5E9;} .qc .qb.campaign{border-left:4px solid #F59E0B;}
+  .qc .qt{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;}
+  .qc .query .qt{color:#0C447C;} .qc .campaign .qt{color:#854F0B;}
+  .qc .qn{font-size:28px; font-weight:700; line-height:1.15; margin-top:4px;} .qc .qn small{font-size:12px; font-weight:500; color:var(--muted); margin-left:4px;}
+  .qc .ln{display:flex; justify-content:space-between; gap:8px; font-size:13px; padding-top:6px; margin-top:6px; border-top:1px dashed var(--line); color:var(--muted);}
+  .qc .ln b{color:var(--ink); white-space:nowrap;} .qc .ln.pn{border-top:0; margin-top:2px; padding-top:0; font-size:12px;}
+  @media (max-width:520px){ .qc{gap:8px;} .qc .qb{padding:10px;} .qc .qn{font-size:24px;} .qc .ln{flex-direction:column; gap:0;} }
 </style>
 </head>
 <body>
@@ -26,6 +36,11 @@
       <div id="alertBox"></div>
 
       <div class="stat-grid" id="statGrid" style="display:none;"></div>
+
+      <div class="card" id="qcCard" style="max-width:640px; margin-bottom:20px; display:none;">
+        <div class="card-head"><h2>Query &amp; Campaign</h2><span style="font-size:12.5px; color:var(--muted);">Today</span></div>
+        <div style="padding:16px 20px;"><div class="qc" id="qcBox"></div></div>
+      </div>
 
       <div class="card" style="max-width:640px;">
         <div class="card-head"><h2 id="detailTitle">Details</h2></div>
@@ -62,9 +77,27 @@
       </div>`;
   }
 
+  // The Query and Campaign counts set for him (Assign Queries), the orders chosen as Query / Campaign today, and the panel split of today's counts.
+  function renderQC(d) {
+    if (!d.qc) return;       // older api.php without it
+    const panels = Array.isArray(d.qc_panels) ? d.qc_panels : [];
+    const half = (k, title) => {
+      const x = d.qc[k] || {};
+      const byPanel = panels.filter(p => Number(p[k]) > 0).map(p => `<div class="ln pn"><span>${esc(p.label)}</span><b>${Number(p[k])}</b></div>`).join('');
+      return `<div class="qb ${k}"><div class="qt">${title}</div><div class="qn">${Number(x.today || 0)}<small>today</small></div>` +
+        byPanel +
+        `<div class="ln"><span>${title} orders</span><b>${Number(x.orders || 0)} · ${money(x.sales)}</b></div>` +
+        `<div class="ln"><span>This month</span><b>${Number(x.month || 0)}</b></div></div>`;
+    };
+    document.getElementById('qcBox').innerHTML = half('query', 'Query') + half('campaign', 'Campaign');
+    document.getElementById('qcCard').style.display = '';
+  }
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   async function load() {
     try {
       const d = await api.get('my.stats');
+      renderQC(d);
       if (!d.tag) {
         document.getElementById('detailBox').innerHTML = 'No order tag is set on your profile yet — ask Admin to add one, then your sales will show here.';
         return;
