@@ -35,8 +35,29 @@
   .st{display:inline-block; padding:2px 9px; border-radius:10px; font-size:11.5px; font-weight:600; white-space:nowrap;}
   .st.ok{background:#e7f7ee; color:#0f7a41;} .st.warn{background:#fdf3e3; color:#b45f06;} .st.bad{background:#fdecec; color:#c81e1e;} .st.skip{background:#f3f4f6; color:#6b7280;}
   .stat-card .value small{font-size:12px; font-weight:500; color:var(--muted);}
+  .tag-ok{color:#0f7a41;}
+  .cust{margin-bottom:16px; border-top:3px solid var(--accent);}
+  .cust[hidden]{display:none;}
+  .cust-top{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 20px; border-bottom:1px solid var(--line);}
+  .cust-top h2{margin:0; font-size:15px;} .cust-top .sub{margin-top:1px;}
+  .cust-x{background:#fff; border:1px solid var(--line); border-radius:20px; padding:5px 12px; min-height:0; width:auto; font-size:12.5px; font-weight:600; color:var(--ink); cursor:pointer;}
+  .cust-msg{padding:18px 20px; font-size:13.5px; color:var(--muted);}
+  .cust-one{border-bottom:1px solid var(--line);} .cust-one:last-child{border-bottom:none;}
+  .cust-id{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:14px 20px 8px;}
+  .cust-av{width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#334155,#0f172a); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+  .cust-nm{flex:1 1 180px; min-width:0;} .cust-nm b{display:block; font-size:16px; line-height:1.25; overflow-wrap:anywhere;}
+  .cust-ph{font-size:14px; font-weight:600; letter-spacing:.01em;} .cust-ph small{font-weight:500; color:var(--muted);}
+  .cust-act{display:flex; gap:8px;}
+  .cust-act a{display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:700; text-decoration:none; border:1px solid var(--line); background:#fff; color:var(--ink);}
+  .cust-act a.wa{background:#e7f7ee; border-color:#cfe9da; color:#0f7a41;}
+  .cust-stats{display:flex; flex-wrap:wrap; gap:8px; padding:4px 20px 12px;}
+  .cust-stat{background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:6px 12px; min-width:92px;}
+  .cust-stat .l{font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;} .cust-stat .v{font-size:14.5px; font-weight:700; margin-top:1px;}
+  .cust-stat.g{background:#e7f7ee; border-color:#cfe9da;} .cust-stat.g .v{color:#0f7a41;}
+  .st.cxl{background:#fdecec; color:#c81e1e;}
   @media (max-width:820px){
     .res{grid-template-columns:1fr 1fr;}
+    .cust-top, .cust-id, .cust-stats{padding-left:14px; padding-right:14px;}
   }
 </style>
 </head>
@@ -63,6 +84,10 @@
 
       <!-- ================= 1. ORDERS ================= -->
       <div class="pane on" id="p-orders">
+        <div class="card cust" id="custPanel" hidden>
+          <div class="cust-top"><div><h2>Customer lookup</h2><div class="sub" id="custSub">All dates, all stores</div></div><button type="button" class="cust-x" id="custX">✕ Close</button></div>
+          <div id="custBody"></div>
+        </div>
         <div class="stat-grid" id="statGrid" style="display:none;"></div>
         <div class="card" id="ocOrdersCard">
           <div class="card-head">
@@ -182,11 +207,14 @@
 
   // ---------- 1. orders ----------
   let orders = [], SOURCES = {}, filter = 'all', limit = 50, dbCodes = null;
+  // Customer lookup mode: while a mobile number (6+ digits) has matching orders, the table lists THOSE orders (any date).
+  let custRows = [], custMode = false;
+  const curRows = () => custMode ? custRows : orders;
   const PAGE = 50;
   const codeCell = (o, i) => {
     if (o.code) {
-      const via = o.code_via === 'excel' ? 'excel' : (o.code_via === 'shopify' ? 'from Shopify tag' : 'manual');
-      const who = o.code_by ? ' · ' + esc(o.code_by) : '';
+      const via = o.code_via === 'excel' ? 'excel' : (o.code_via === 'shopify' ? 'from Shopify tag' : (o.code_via ? 'manual' : ''));
+      const who = o.code_by ? (via ? ' · ' : '') + esc(o.code_by) : '';
       const tag = o.can_tag ? (o.tag_written ? ' · tag ✓' : (o.tag_error ? ` · <span style="color:#c81e1e;" title="${esc(o.tag_error)}">tag ✗</span>` : '')) : '';
       return `<span class="code">${esc(o.code)} <span class="x" title="Remove code" onclick="setCode(${i}, '')">×</span></span>
         <button class="lnk" style="margin-left:6px;" onclick="editCode(${i})">edit</button>
@@ -200,12 +228,15 @@
     const src = document.getElementById('sourceFilter').value;
     if (src && o.source !== src) return false;
     const q = document.getElementById('search').value.trim().toLowerCase();
-    if (!q) return true;
+    if (!q || custMode) return true;
     return [o.order_name, o.customer, o.code, o.store, o.id].some(v => String(v || '').toLowerCase().includes(q));
   }
   function renderOrders() {
+    if (custMode) document.getElementById('ordersTitle').textContent = 'Orders — mobile ' + document.getElementById('search').value.trim() + ' · all dates';
+    else setOrdersTitle();
     const tb = document.getElementById('tbody');
-    const all = orders.length, coded = orders.filter(o => o.code).length;
+    const rows = curRows();
+    const all = rows.length, coded = rows.filter(o => o.code).length;
     document.getElementById('cntAll').textContent = all; document.getElementById('cntNone').textContent = all - coded;
     document.getElementById('cntCoded').textContent = coded;
     const sg = document.getElementById('statGrid');
@@ -215,16 +246,16 @@
       <div class="stat-card"><div class="label">With code</div><div class="value" style="color:#0f7a41;">${coded} <small>${all ? Math.round(coded / all * 100) : 0}%</small></div></div>
       <div class="stat-card"><div class="label">No code yet</div><div class="value" style="color:#b45f06;">${all - coded}</div></div>
       <div class="stat-card" title="Rows in the order_codes table (all dates)"><div class="label">Saved in database</div><div class="value">${dbCodes === null ? '—' : dbCodes} <small>all dates</small></div></div>`;
-    const m = orders.filter(matches);
+    const m = rows.filter(matches);
     const shown = m.slice(0, limit);
     document.getElementById('shownCount').textContent = m.length ? `Showing ${shown.length} of ${m.length}` : '';
     document.getElementById('btnMore').style.display = shown.length < m.length ? 'inline-block' : 'none';
     if (!shown.length) { tb.innerHTML = '<tr><td colspan="6" class="empty-state">No matching orders.</td></tr>'; return; }
     tb.innerHTML = shown.map(o => {
-      const i = orders.indexOf(o);
+      const i = rows.indexOf(o);
       return `<tr id="r${i}">
-        <td><b>${esc(o.order_name)}</b><div class="sub">${fmtDT(o.created_at)}</div></td>
-        <td>${esc(o.customer)}</td>
+        <td><b>${esc(o.order_name)}</b>${o.cancelled ? ' <span class="st cxl">Cancelled</span>' : ''}<div class="sub">${fmtDT(o.created_at)}</div></td>
+        <td>${esc(o.customer)}${o.phone ? `<div class="sub">${esc(o.phone)}</div>` : ''}</td>
         <td>${o.items}</td>
         <td>${inr(o.total)}${o.financial_status ? `<div class="sub">${esc(o.financial_status)}</div>` : ''}</td>
         <td>${esc(o.store)}${o.source_label !== o.store ? `<div class="sub">${esc(o.source_label)}</div>` : ''}</td>
@@ -233,30 +264,37 @@
     }).join('');
   }
   window.editCode = function (i) {
-    const o = orders[i]; const old = o.code; o.code = '';
+    const o = curRows()[i]; const old = o.code; o.code = '';
     renderOrders();
     const inp = document.getElementById('ci' + i); if (inp) { inp.value = old; inp.focus(); inp.select(); }
     o.code = old; // restored on next render / cancel
   };
   window.setCode = async function (i, code) {
-    const o = orders[i]; code = normCode(code);
+    const o = curRows()[i]; code = normCode(code);
     if (code === '' && !o.code) { renderOrders(); return; }
     if (code !== '' && !/^[A-Z0-9_-]{2,40}$/.test(code)) { showAlert('Code can only have letters, numbers, - and _ (e.g. AG00123).', 'error'); return; }
     if (code === '' && !confirm('Remove code ' + o.code + ' from ' + o.order_name + (o.can_tag ? ' (the Shopify tag is removed too)' : '') + '?')) { renderOrders(); return; }
     const row = document.getElementById('r' + i); if (row) row.style.opacity = '.5';
     try {
       const d = await api.post('order_codes.set', { source: o.source, order_id: String(o.id), order_name: o.order_name, code, old_code: o.code || '' });
-      Object.assign(o, { code: d.code, code_via: d.code_via, code_by: d.code_by, code_at: d.code_at, tag_written: d.tag_written, tag_error: d.tag_error });
+      const upd = { code: d.code, code_via: d.code_via, code_by: d.code_by, code_at: d.code_at, tag_written: d.tag_written, tag_error: d.tag_error };
+      Object.assign(o, upd);
+      const same = orders.find(x => x !== o && x.source === o.source && String(x.id) === String(o.id));   // keep the day list in step
+      if (same) Object.assign(same, upd);
       renderOrders();
       showAlert(d.message, d.tag_error ? 'error' : 'success');
     } catch (err) { if (row) row.style.opacity = ''; showAlert(err.message, 'error'); }
   };
+  function setOrdersTitle() {
+    const { from, to } = range();
+    document.getElementById('ordersTitle').textContent = 'Orders — ' + (from === to ? fmtD(from) : fmtD(from) + ' to ' + fmtD(to));
+  }
   async function loadOrders() {
     const { from, to } = range();
     if (!from || !to) return;
     if (from > to) { showAlert('"From" date must be before "To" date.', 'error'); return; }
     loaded.orders = true;
-    document.getElementById('ordersTitle').textContent = 'Orders — ' + (from === to ? fmtD(from) : fmtD(from) + ' to ' + fmtD(to));
+    setOrdersTitle();
     document.getElementById('tbody').innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
     try {
       const d = await withRetry(() => api.get('order_codes.list', { date_from: from, date_to: to }),
@@ -276,6 +314,62 @@
   let st = null;
   document.getElementById('search').addEventListener('input', () => { clearTimeout(st); st = setTimeout(() => { limit = PAGE; renderOrders(); }, 150); });
   document.getElementById('sourceFilter').addEventListener('change', () => { limit = PAGE; renderOrders(); });
+
+  // ---------- Customer lookup: type a mobile number (6+ digits) in the search box and every order of that
+  // customer, from ANY date, is listed in the Orders table (order id, store, amount, code — add / edit the code right there);
+  // the card above it shows the customer's details and totals.
+  const custPanel = document.getElementById('custPanel'), custBody = document.getElementById('custBody');
+  let custSeq = 0, custTimer = null;
+  const phoneQuery = (v) => /^[\d\s+\-().]+$/.test(v) && v.replace(/\D/g, '').length >= 6;
+  const fmtPh = (d) => d.length === 10 ? d.slice(0, 5) + ' ' + d.slice(5) : d;
+  const fmtDay = (t) => t ? new Date(t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  function custClose() { custSeq++; custPanel.hidden = true; custBody.innerHTML = ''; if (custMode) { custMode = false; custRows = []; renderOrders(); } }
+  function custCard(c) {
+    const ph = c.phone, others = (c.other_phones || []).map(fmtPh).join(', ');
+    const wa = ph.length === 10 ? 'https://wa.me/91' + ph : 'https://wa.me/' + ph;
+    return `<div class="cust-one">
+      <div class="cust-id">
+        <div class="cust-av">${esc((c.name === 'Guest' ? '#' : c.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('')).toUpperCase())}</div>
+        <div class="cust-nm"><b>${esc(c.name)}</b><div class="cust-ph">${esc(fmtPh(ph))}${others ? ` <small>· also ${esc(others)}</small>` : ''}</div></div>
+        <div class="cust-act"><a href="tel:+91${esc(ph)}">📞 Call</a><a class="wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a></div>
+      </div>
+      <div class="cust-stats">
+        <div class="cust-stat g"><div class="l">Orders</div><div class="v">${c.order_count}${c.cancelled_count ? ` <span class="sub">+${c.cancelled_count} cancelled</span>` : ''}</div></div>
+        <div class="cust-stat g"><div class="l">Total spent</div><div class="v">${inr(c.spent)}</div></div>
+        <div class="cust-stat"><div class="l">First order</div><div class="v">${esc(fmtDay(c.first_at))}</div></div>
+        <div class="cust-stat"><div class="l">Last order</div><div class="v">${esc(fmtDay(c.last_at))}</div></div>
+        <div class="cust-stat"><div class="l">Bought from</div><div class="v" style="font-size:13px;">${esc((c.stores || []).join(', '))}</div></div>
+      </div>
+    </div>`;
+  }
+  async function custLookup() {
+    const v = document.getElementById('search').value.trim();
+    if (!phoneQuery(v)) { custClose(); return; }
+    const id = ++custSeq;
+    custPanel.hidden = false;
+    document.getElementById('custSub').textContent = 'Searching ' + v + ' in all orders…';
+    custBody.innerHTML = '<div class="cust-msg">Searching all dates…</div>';
+    try {
+      const d = await api.get('order_codes.customer_search', { phone: v });
+      if (id !== custSeq) return;                                  // typed something else meanwhile
+      const cs = d.customers || [];
+      // The table below lists this customer's orders (every date) so the code can be added / edited right there.
+      custRows = cs.flatMap(c => c.orders).map(o => ({ source: o.store_key, id: o.id, order_name: o.order_name, created_at: o.created_at, customer: o.customer, phone: o.phone,
+        items: o.items, total: o.total, financial_status: o.financial_status, store: o.store, source_label: o.source_label, code: o.code || '', cancelled: o.cancelled }));
+      custMode = custRows.length > 0; limit = PAGE; renderOrders();
+      document.getElementById('custSub').textContent = cs.length
+        ? `${v} · ${d.orders_found} order${d.orders_found === 1 ? '' : 's'} found, all dates` + (cs.length > 1 ? ` · ${d.matches} different numbers match` : '')
+        : v + ' · all dates';
+      const errs = (d.errors || []).map(e => `<div class="alert error" style="margin:10px 20px;">${esc(e)}</div>`).join('');
+      custBody.innerHTML = errs + (cs.length ? cs.map(custCard).join('')
+        : '<div class="cust-msg">No order found with this mobile number (checked the Shopify stores and MySales, including the extra mobile number). Check the digits, or try fewer digits.</div>');
+    } catch (err) {
+      if (id !== custSeq) return;
+      custBody.innerHTML = `<div class="alert error" style="margin:14px 20px;">${esc(err.message)}</div>`;
+    }
+  }
+  document.getElementById('search').addEventListener('input', () => { clearTimeout(custTimer); custTimer = setTimeout(custLookup, 450); });
+  document.getElementById('custX').addEventListener('click', custClose);
   document.getElementById('btnMore').addEventListener('click', () => { limit += PAGE; renderOrders(); });
 
   // ---------- 2. bulk upload ----------
@@ -426,4 +520,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html>
+</html> 

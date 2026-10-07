@@ -1,17 +1,22 @@
 :root{
-  --navy-900:#111827;
-  --navy-700:#243146;
-  --ink:#1f2430;
-  --muted:#6b7280;
-  --line:#e5e7eb;
-  --bg:#f3f4f6;
+  /* "Bento rail" look: soft grey canvas, white rounded tiles, near-black ink,
+     one orange accent. Pages read these variables, so changing them here
+     restyles every page at once. */
+  --navy-900:#14161a;
+  --navy-700:#2a2e36;
+  --ink:#14161a;
+  --muted:#6f7480;
+  --line:#e6e8ec;
+  --bg:#eef0f3;
   --surface:#ffffff;
-  --accent:#2563eb;
-  --accent-dark:#1d4ed8;
-  --ok-bg:#e7f7ee; --ok-fg:#0f7a41;
-  --bad-bg:#fdecec; --bad-fg:#c81e1e;
-  --radius:8px;
-  --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --accent:#ff7a2f;
+  --accent-dark:#e8651a;
+  --ok-bg:#e4f6ec; --ok-fg:#16945a;
+  --bad-bg:#fdecea; --bad-fg:#d9423b;
+  --radius:26px;
+  --shadow:0 1px 2px rgba(20,22,26,.04);
+  --font:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --rail-w:74px;
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
@@ -27,20 +32,21 @@ html{overflow-x:hidden;}
 body, .main{overflow-x:clip;}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:var(--font);
   background:var(--bg); color:var(--ink); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
 }
-a{color:var(--accent); text-decoration:none;}
+a{color:var(--accent-dark); text-decoration:none;}
 
 .auth-wrap{
   min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(160deg,var(--navy-900),var(--navy-700)); padding:20px;
+  background:var(--bg); padding:20px;
 }
 .auth-card{
-  background:var(--surface); width:100%; max-width:380px; border-radius:12px;
-  padding:36px 32px; box-shadow:0 20px 50px rgba(0,0,0,.25);
+  background:var(--surface); width:100%; max-width:380px; border-radius:var(--radius);
+  padding:36px 32px; box-shadow:0 12px 40px rgba(20,22,26,.10);
 }
-.auth-card h1{font-size:20px; margin:0 0 4px;}
+.auth-card h1{font-size:22px; font-weight:800; letter-spacing:-.02em; margin:0 0 4px;}
 .auth-card p.sub{margin:0 0 24px; color:var(--muted); font-size:13px;}
 
 .field{margin-bottom:16px;}
@@ -49,49 +55,110 @@ a{color:var(--accent); text-decoration:none;}
   text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;
 }
 .field input, .field select, .field textarea{
-  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:6px;
+  width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:14px;
   font-size:14px; background:#fff; color:var(--ink); font-family:inherit;
 }
 .field input:focus, .field select:focus, .field textarea:focus{
-  outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);
+  outline:2px solid rgba(255,122,47,.35); outline-offset:0; border-color:var(--accent);
 }
 .field-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 16px;}
 
 .btn{
   display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  border:none; border-radius:6px; padding:10px 16px; font-size:14px; font-weight:600;
+  border:none; border-radius:999px; padding:10px 20px; font-size:14px; font-weight:700;
   cursor:pointer; background:var(--accent); color:#fff;
 }
 .btn:hover{background:var(--accent-dark);}
 .btn.block{width:100%;}
 .btn.secondary{background:#fff; color:var(--ink); border:1px solid var(--line);}
-.btn.secondary:hover{background:#f9fafb;}
+.btn.secondary:hover{background:#f4f5f7;}
 .btn:disabled{opacity:.6; cursor:not-allowed;}
 
-.alert{padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:16px;}
+.alert{padding:11px 16px; border-radius:16px; font-size:13px; margin-bottom:16px;}
 .alert.error{background:var(--bad-bg); color:var(--bad-fg);}
 .alert.success{background:var(--ok-bg); color:var(--ok-fg);}
 
 .app{display:flex; min-height:100vh;}
-.sidebar{width:230px; background:var(--navy-900); color:#cbd3e1; flex-shrink:0; display:flex; flex-direction:column;}
-.sidebar .brand{padding:20px; font-weight:700; font-size:15px; color:#fff; border-bottom:1px solid rgba(255,255,255,.08);}
+/* ---- Icon rail ----
+   A floating white pill down the left edge: logo on top, one icon per page,
+   the signed-in user at the bottom. The active page is a black tile. Labels
+   show as tooltips; the arrow button at the foot widens the rail to icon +
+   label (remembered per browser). On phones the same element is the drawer
+   and always shows labels. layout.js builds the markup. */
+.sidebar{width:var(--rail-w); background:#fff; color:var(--muted); flex-shrink:0; display:flex; flex-direction:column; border-radius:30px; box-shadow:var(--shadow); padding:14px 0; align-items:stretch;}
+.sidebar .brand{display:flex; align-items:center; justify-content:center; gap:10px; padding:0 0 10px; font-weight:800; font-size:16px; color:var(--ink); letter-spacing:-.02em;}
 .sidebar .brand span{color:var(--accent);}
-.sidebar nav{padding:12px; flex:1;}
-.sidebar .nav-label{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#6b7688; padding:14px 10px 6px;}
-.sidebar a{display:block; padding:10px 12px; border-radius:6px; color:#cbd3e1; font-size:13.5px; font-weight:500; margin-bottom:2px;}
-.sidebar a:hover{background:rgba(255,255,255,.06); text-decoration:none;}
-.sidebar a.active{background:var(--accent); color:#fff;}
-.sidebar .user-box{padding:14px 16px; border-top:1px solid rgba(255,255,255,.08); font-size:12.5px;}
-.sidebar .user-box .name{color:#fff; font-weight:600; display:block;}
-.sidebar .user-box .role{color:#8b93a5;}
-.sidebar .user-box button{
-  margin-top:8px; background:none; border:1px solid rgba(255,255,255,.2); color:#cbd3e1;
-  font-size:12px; padding:6px 10px; border-radius:5px; cursor:pointer; width:100%;
+.sidebar .brand img{width:44px; height:44px; border-radius:14px; display:block; flex:none; object-fit:cover; background:#faf1e2;}
+.sidebar .brand .logo-fb{width:44px; height:44px; border-radius:14px; background:#faf1e2; color:#ff914a; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex:none;}
+.sidebar .brand .brand-txt{display:none;}
+.sidebar nav{padding:6px 10px 6px 14px; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; scrollbar-color:#d9dce2 transparent; display:flex; flex-direction:column; align-items:center;}
+/* Wheel / touch scrolling over the menu moves the menu only, never the page behind it. */
+.sidebar nav{overscroll-behavior:contain;}
+.sidebar{overscroll-behavior:contain;}
+.sidebar nav::-webkit-scrollbar{width:4px;}
+.sidebar nav::-webkit-scrollbar-thumb{background:#d9dce2; border-radius:4px;}
+.sidebar nav > .nav-cat, .sidebar nav > span{width:100%;}
+.sidebar .nav-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#a0a5b0; padding:12px 8px 6px; display:none;}
+.sidebar a{position:relative; display:flex; align-items:center; justify-content:center; width:44px; height:44px; margin:0 auto 4px; border-radius:15px; color:#8b909c; font-size:13.5px; font-weight:600; padding:0; transition:background .15s,color .15s;}
+.sidebar a .ico{display:flex; width:22px; height:22px; flex:none;}
+.sidebar a .ico svg{width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.sidebar a .lbl{display:none;}
+.sidebar a #approvalBadge{position:absolute; top:1px; right:1px; margin:0 !important; padding:0 5px !important; font-size:10px !important; line-height:16px;}
+.sidebar.wide a #approvalBadge{position:static; margin-left:auto !important;}
+.sidebar a:hover{background:#f1f3f6; color:var(--ink); text-decoration:none;}
+.sidebar a.active{background:var(--ink); color:#fff;}
+.sidebar a.active:hover{background:var(--ink);}
+/* Tooltip (collapsed rail, desktop only) */
+@media (min-width:821px){
+  .sidebar:not(.wide) a[data-tip]:hover::after{
+    content:attr(data-tip); position:fixed; left:calc(14px + var(--rail-w) + 8px); transform:translateY(0);
+    background:var(--ink); color:#fff; font-size:12px; font-weight:600; white-space:nowrap;
+    padding:6px 11px; border-radius:10px; pointer-events:none; z-index:2000; margin-top:-2px;
+  }
 }
-.sidebar .user-box button:hover{background:rgba(255,255,255,.08);}
+/* Collapsed rail: every group is open, groups are separated by a hairline. */
+.sidebar .nav-cat{border-top:1px solid var(--line); padding-top:8px; margin-top:4px;}
+.sidebar .nav-cat:first-child{border-top:none; padding-top:0; margin-top:0;}
+.sidebar .nav-cat-toggle{display:none !important;}
+.sidebar:not(.wide) .nav-cat-body{display:block !important;}
+.sidebar .rail-tools{display:flex; justify-content:center; padding:6px 0 4px;}
+.sidebar .rail-tools button{width:34px; height:34px; border-radius:12px; border:none; background:#f1f3f6; color:#6f7480; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; min-height:0;}
+.sidebar .rail-tools button:hover{background:#e6e8ec; color:var(--ink);}
+.sidebar .rail-tools svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s;}
+.sidebar .user-box{padding:10px 0 0; border-top:1px solid var(--line); margin:4px 14px 0; display:flex; flex-direction:column; align-items:center; gap:0; font-size:12.5px;}
+.sidebar .user-box .avatar{width:44px; height:44px; border-radius:50%; background:var(--accent); color:#fff; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; flex:none; letter-spacing:.02em;}
+.sidebar .user-box .name{display:none; color:var(--ink); font-weight:700;}
+.sidebar .user-box .role{display:none; color:var(--muted);}
+.sidebar .user-box button{display:none;}
+.sidebar .user-box .build{display:none !important;}
+.sidebar .user-box .rail-out{display:flex; width:34px; height:34px; margin-top:8px; border-radius:12px; background:#f1f3f6; color:#6f7480; align-items:center; justify-content:center; border:none; cursor:pointer; padding:0; min-height:0;}
+.sidebar .user-box .rail-out:hover{background:#fdecea; color:var(--bad-fg);}
+.sidebar .user-box .rail-out svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.sidebar .user-box .who{display:none;}
+
+/* Wide rail: icon + label, group headings. Used on desktop when toggled, and
+   always inside the phone drawer. */
+body.rail-wide{--rail-w:236px;}
+.sidebar.wide .brand{justify-content:flex-start; padding:0 16px 10px;}
+.sidebar.wide .brand .brand-txt{display:inline;}
+.sidebar.wide nav{align-items:stretch; padding:6px 12px;}
+.sidebar.wide a{width:auto; height:auto; justify-content:flex-start; gap:12px; padding:10px 12px; margin:0 0 3px; border-radius:14px;}
+.sidebar.wide a .lbl{display:inline;}
+.sidebar.wide .nav-cat{border-top:none; padding-top:0; margin-top:2px;}
+.sidebar.wide .nav-cat-toggle{display:flex !important; color:#a0a5b0 !important; padding:12px 8px 6px; font-size:10.5px; font-weight:700 !important; letter-spacing:.08em;}
+.sidebar.wide .nav-label{display:block;}
+.sidebar.wide .rail-tools{justify-content:flex-end; padding-right:16px;}
+.sidebar.wide .rail-tools svg{transform:rotate(180deg);}
+.sidebar.wide .user-box{flex-direction:row; align-items:center; gap:10px; margin:4px 12px 0; padding:12px 4px 0;}
+.sidebar.wide .user-box .who{display:block; flex:1; min-width:0; line-height:1.25;}
+.sidebar.wide .user-box .who .name,.sidebar.wide .user-box .who .role{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sidebar.wide .user-box .who .name{font-size:13px;}
+.sidebar.wide .user-box .who .role{font-size:11.5px;}
+.sidebar.wide .user-box .rail-out{margin-top:0;}
+.sidebar .user-box .who .name,.sidebar .user-box .who .role{display:block;}
 
 .main{flex:1; min-width:0; display:flex; flex-direction:column;}
-.topbar{background:var(--surface); border-bottom:1px solid var(--line); padding:16px 28px; display:flex; align-items:center; justify-content:space-between;}
+.topbar{background:transparent; border-bottom:none; padding:22px 8px 8px; display:flex; align-items:center; justify-content:space-between;}
 /* Every control in the page header shares one height so the row reads as a
    single baseline. Without this each control derives its own height from
    padding + font-size — inputs land at ~35px and .btn at ~41px, which is
@@ -103,67 +170,72 @@ a{color:var(--accent); text-decoration:none;}
 }
 .topbar .btn, .topbar a.btn, .topbar button{padding-left:14px; padding-right:14px;}
 .topbar input, .topbar select{padding-left:10px; padding-right:10px;}
-.topbar h1{font-size:18px; margin:0;}
+/* Filters / search fields in card headers and the page header read as pills. */
+.card-head select, .card-head input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]){border-radius:999px;}
+.card-head select, .card-head input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]){border-color:var(--line);}
+.topbar h1{font-size:28px; font-weight:800; letter-spacing:-.02em; margin:0; line-height:1.15;}
+.topbar input, .topbar select{border:1px solid var(--line); background:#fff; border-radius:999px; color:var(--ink); font-family:inherit;}
+.topbar .btn.secondary, .topbar button.secondary{border-radius:999px;}
 /* Tablet / small laptop: a header with many controls (Targets, Performance, Attendance …) wraps onto a second line
    instead of running off the right edge. */
 .topbar{flex-wrap:wrap; gap:10px 16px;}
 .topbar > div{flex-wrap:wrap; justify-content:flex-end; row-gap:8px; min-width:0;}
-.content{padding:24px 28px; flex:1;}
+.content{padding:12px 8px 24px; flex:1;}
 
 .stat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:24px;}
-.stat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow);}
-.stat-card .label{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
-.stat-card .value{font-size:26px; font-weight:700; margin-top:6px;}
+.stat-card{background:var(--surface); border:none; border-radius:var(--radius); padding:18px 22px; box-shadow:var(--shadow);}
+.stat-card .label{font-size:12.5px; color:var(--muted); font-weight:600;}
+.stat-card .value{font-size:30px; font-weight:800; letter-spacing:-.02em; margin-top:4px;}
 /* Stat cards carry both a full and a short label/amount; only the full one
    shows until the mobile breakpoint swaps them (see the media query below). */
 .lbl-short, .amt-short{display:none;}
 
-.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:20px;}
-.card-head{padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
-.card-head h2{font-size:15px; margin:0;}
-.search-box input{padding:8px 12px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:220px;}
+.card{background:var(--surface); border:none; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:16px;}
+.card-head{padding:18px 22px 12px; border-bottom:none; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.card-head h2{font-size:16px; font-weight:800; letter-spacing:-.01em; margin:0;}
+.search-box input{padding:8px 14px; border:1px solid var(--line); border-radius:999px; font-size:13px; min-width:220px;}
 table{width:100%; border-collapse:collapse;}
 /* Sticky column headers: in long lists (200 employees, hundreds of orders)
    the labels otherwise scroll away immediately, leaving unlabelled columns.
    The header cell carries the sticky position rather than the <tr>, since
    position:sticky doesn't apply to table rows in every browser. An opaque
    background is required so rows don't show through as they pass beneath. */
-thead th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); padding:10px 10px; background:#fafbfc; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:2;}
+thead th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#9096a3; font-weight:600; padding:11px 10px; background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:2;}
 /* Cells top-align so every value in a row starts on the same baseline.
    With default middle alignment, a tall cell (the Progress bar with its
    legend) pushes short values in the same row down to the middle, breaking
    the horizontal scan line across the row. */
 tbody td{padding:12px 10px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:top;}
 tbody tr:last-child td{border-bottom:none;}
-tbody tr:hover{background:#fafbfc;}
-.badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; background:#eef2ff; color:#3730a3;}
+tbody tr:hover{background:#f7f8fa;}
+.badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; background:#f1f3f6; color:#3a3f4a;}
 /* Row actions (Edit / Delete / View) read as buttons and have a real hit
    area — bare text with padding:0 gives a ~15px tall target that's hard to
    hit accurately and easy to overlook. Outline style keeps them from
    competing with primary actions on the page. */
 .row-actions{display:flex; gap:8px; flex-wrap:wrap;}
 .row-actions button, .row-actions a{
-  background:none; border:1px solid var(--line); border-radius:6px;
-  padding:6px 12px; cursor:pointer; font-size:13px; font-weight:600;
-  color:var(--accent); line-height:1.3; text-decoration:none; display:inline-block;
+  background:#fff; border:1px solid var(--line); border-radius:999px;
+  padding:6px 14px; cursor:pointer; font-size:13px; font-weight:700;
+  color:var(--ink); line-height:1.3; text-decoration:none; display:inline-block;
 }
-.row-actions button.danger-link, .row-actions a.danger-link{color:var(--bad-fg); border-color:#f3c9c9;}
-.row-actions button:hover, .row-actions a:hover{background:#f9fafb; text-decoration:none;}
+.row-actions button.danger-link, .row-actions a.danger-link{color:var(--bad-fg); border-color:#f6cfcb;}
+.row-actions button:hover, .row-actions a:hover{background:#f4f5f7; text-decoration:none;}
 .row-actions button.danger-link:hover, .row-actions a.danger-link:hover{background:var(--bad-bg);}
 .empty-state{padding:40px 20px; text-align:center; color:var(--muted);}
 .loading{padding:40px 20px; text-align:center; color:var(--muted); font-size:12.5px;}
 /* Ring spinner shown above every "Loading..." text (tables, cards, popups). */
-.loading::before{content:""; display:block; width:34px; height:34px; margin:0 auto 10px; border:4px solid #e5e7eb; border-top-color:var(--accent); border-radius:50%; animation:hrmsSpin .8s linear infinite;}
+.loading::before{content:""; display:block; width:34px; height:34px; margin:0 auto 10px; border:4px solid #e6e8ec; border-top-color:var(--accent); border-radius:50%; animation:hrmsSpin .8s linear infinite;}
 .loading.sm{padding:16px 10px;}
 .loading.sm::before{width:22px; height:22px; border-width:3px; margin-bottom:6px;}
 @keyframes hrmsSpin{to{transform:rotate(360deg);}}
 @media (prefers-reduced-motion: reduce){ .loading::before{animation-duration:2s;} }
 
-.modal-overlay{position:fixed; inset:0; background:rgba(17,24,39,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-overlay{position:fixed; inset:0; background:rgba(20,22,26,.45); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
 .modal-overlay.open{display:flex;}
-.modal{background:#fff; border-radius:10px; width:100%; max-width:460px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.3); max-height:90vh; overflow-y:auto;}
+.modal{background:#fff; border-radius:var(--radius); width:100%; max-width:460px; padding:26px; box-shadow:0 20px 60px rgba(20,22,26,.25); max-height:90vh; overflow-y:auto;}
 .modal.wide{max-width:640px;}
-.modal h3{margin:0 0 18px; font-size:16px;}
+.modal h3{margin:0 0 18px; font-size:18px; font-weight:800; letter-spacing:-.01em;}
 .modal .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
 
 /* ===== Mobile responsive ===== */
@@ -175,32 +247,37 @@ tbody tr:hover{background:#fafbfc;}
 
   /* Sidebar becomes a slide-in drawer, opened by the menu button (layout.js
      toggles the sidebar-open class on <body>). */
+  :root{--radius:20px;}
   .sidebar{
-    position:fixed; left:-240px; top:0; bottom:0; width:240px; z-index:1000;
-    transition:left .25s ease; overflow-y:auto;
+    position:fixed; left:-300px; top:0; bottom:0; width:272px; z-index:1000;
+    transition:left .25s ease; overflow-y:auto; border-radius:0 30px 30px 0; padding-top:18px;
   }
   body.sidebar-open .sidebar{left:0;}
 
   #sidebarBackdrop{
     display:block; position:fixed; inset:0;
-    background:rgba(0,0,0,.45);
+    background:rgba(20,22,26,.45);
     opacity:0; pointer-events:none;
     transition:opacity .25s ease; z-index:999;
   }
   body.sidebar-open #sidebarBackdrop{opacity:1; pointer-events:auto;}
+  body.sidebar-open #menuToggle{opacity:0; pointer-events:none;}
+  /* A popup is open: the floating menu button would sit on top of it. */
+  body:has(.modal-overlay.open) #menuToggle{display:none;}
 
   #menuToggle{
     display:flex; align-items:center; justify-content:center;
     position:fixed; top:11px; left:12px; z-index:1001;
-    width:40px; height:40px;
-    border:none; border-radius:8px;
-    background:var(--navy-900); color:#fff;
+    width:42px; height:42px;
+    border:none; border-radius:14px;
+    background:#fff; color:var(--ink);
     font-size:19px; cursor:pointer;
-    box-shadow:0 2px 8px rgba(0,0,0,.25);
+    box-shadow:0 2px 10px rgba(20,22,26,.12);
   }
 
-  .topbar{padding:14px 18px 14px 64px; flex-wrap:wrap; gap:10px;}
-  .content{padding:16px 14px;}
+  .topbar{padding:14px 10px 6px 62px; flex-wrap:wrap; gap:10px; min-height:66px;}
+  .topbar h1{font-size:22px;}
+  .content{padding:10px 0 16px;}
 
   /* Filter/control rows in the topbar (search box + house dropdown + date
      pickers + buttons) wrap onto multiple lines instead of overflowing —
@@ -214,6 +291,10 @@ tbody tr:hover{background:#fafbfc;}
     flex:1 1 140px;
   }
   .topbar > div > span{flex:0 0 auto;} /* status text stays its own size */
+  /* A title block (h1 + subtitle) is not a control row: keep it stacked at the left. */
+  .topbar > div:has(h1){justify-content:flex-start; flex:1 1 100%;}
+  .topbar > div:has(> h1){display:block;}
+  .topbar > div:has(> h1) > p, .topbar > div:has(> h1) > .sub{margin-top:2px;}
 
   /* Tables scroll sideways inside their card instead of squeezing.
      The scroll sits on the table itself (display:block makes it scrollable)
@@ -274,8 +355,8 @@ tbody tr:hover{background:#fafbfc;}
   .card table:not(.no-stack) tbody tr,
   .card table:not(.no-stack) tbody td{display:block; width:auto;}
   .card table:not(.no-stack) tbody tr{
-    border:1px solid var(--line); border-radius:10px;
-    padding:6px 10px; margin:0 10px 8px;
+    border:1px solid var(--line); border-radius:16px;
+    padding:6px 12px; margin:0 12px 8px;
   }
   .card table:not(.no-stack) tbody tr:hover{background:var(--surface);}
   .card table:not(.no-stack) tbody td{
@@ -324,8 +405,8 @@ tbody tr:hover{background:#fafbfc;}
   /* Stat cards: 3 per row, using the short label/amount variants so the
      numbers actually fit in a third of a phone screen. */
   .stat-grid{grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
-  .stat-card{padding:8px 9px;}
-  .stat-card .label{font-size:11px; text-transform:none; letter-spacing:0;}
+  .stat-card{padding:10px 11px; border-radius:16px;}
+  .stat-card .label{font-size:11px;}
   .stat-card .value{font-size:17px; margin-top:3px;}
   .lbl-full, .amt-full{display:none;}
   .lbl-short{display:inline;}
@@ -345,8 +426,8 @@ tbody tr:hover{background:#fafbfc;}
 /* Phones narrower than ~400px: tables need every pixel, so trim padding
    further and let long badges/labels wrap instead of forcing extra width. */
 @media (max-width:400px){
-  .content{padding:12px 10px;}
-  .card-head{padding:12px 14px;}
+  .content{padding:10px 0 12px;}
+  .card-head{padding:14px 14px 8px;}
   thead th, tbody td{padding-left:6px; padding-right:6px; font-size:12px;}
   /* Stay 3-up even on the narrowest phones — just tighten the cards further. */
   .stat-grid{gap:5px;}
@@ -363,9 +444,10 @@ tbody tr:hover{background:#fafbfc;}
 .modal{overscroll-behavior:contain;}
 
 /* ===== Fixed sidebar: stays in place while the page scrolls (desktop) ===== */
-@media (min-width: 901px) {
-  .sidebar{position:fixed; top:0; left:0; bottom:0; overflow-y:auto;}
-  .main{margin-left:230px;}
+@media (min-width: 821px) {
+  .app{padding:14px 14px 14px 0;}
+  .sidebar{position:fixed; top:14px; left:14px; bottom:14px; overflow:hidden; z-index:50;}
+  .main{margin-left:calc(var(--rail-w) + 28px); transition:margin-left .2s;}
 }
 
 /* ===== Tables fit their card: compact cells, safety scroll only if truly needed =====
@@ -376,8 +458,7 @@ tbody tr:hover{background:#fafbfc;}
 
 /* The card no longer uses overflow:hidden (it would clip sticky headers),
    so the header row rounds its own outer corners to match the card. */
-.card > table thead th:first-child{border-top-left-radius:var(--radius);}
-.card > table thead th:last-child{border-top-right-radius:var(--radius);}
+
 
 /* First column keeps a little extra breathing room */
 thead th:first-child, tbody td:first-child{padding-left:20px;}

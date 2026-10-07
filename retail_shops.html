@@ -59,9 +59,69 @@
   .gal .cap{font-size:11px; color:#374151; padding:6px 8px; line-height:1.4;} .gal .cap b{display:block; color:#111827;}
   .gal .del{position:absolute; top:6px; right:6px; background:rgba(17,24,39,.75); color:#fff; border:none; border-radius:8px; font-size:12px; padding:3px 7px; cursor:pointer; min-height:0;}
   .thumb{width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid var(--line); display:block; background:#e5e7eb;}
+  /* photo viewer: the photo opens inside this page (never a new tab), with pinch / wheel / double-tap zoom */
+  .thumb, .gal img{cursor:zoom-in;}
+  /* it is a .modal-overlay too, so the shared Back-button handling (layout.js) closes it with Back instead of leaving the page / app */
+  .modal-overlay.iv{z-index:3000; padding:0; background:#06080c; flex-direction:column; align-items:stretch; justify-content:flex-start; touch-action:none; overscroll-behavior:contain; -webkit-user-select:none; user-select:none;}
+  .modal-overlay.iv.open{display:flex;}
+  .iv-bar{flex:none; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top)); color:#fff; position:relative; z-index:2;}
+  .iv-title{min-width:0; flex:1; line-height:1.35;}
+  .iv-title b{display:block; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .iv-title span{display:block; font-size:12px; opacity:.78; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .iv-btns{display:flex; gap:8px; flex:none;}
+  .iv-btns button{width:42px; height:42px; min-height:0; padding:0; border:none; border-radius:50%; background:rgba(255,255,255,.16); color:#fff; font-size:22px; line-height:1; cursor:pointer;}
+  .iv-btns button:hover{background:rgba(255,255,255,.3);}
+  .iv-stage{flex:1; min-height:0; position:relative; overflow:hidden; cursor:zoom-in; touch-action:none;}
+  .iv-stage.zoomed{cursor:grab;} .iv-stage.drag{cursor:grabbing;}
+  .iv-img{position:absolute; left:50%; top:50%; max-width:none; max-height:none; transform-origin:50% 50%; pointer-events:none; -webkit-user-drag:none;}
+  .iv-msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; text-align:center; color:#d1d5db; font-size:14px;}
+  .iv-hint{position:absolute; left:0; right:0; bottom:max(14px, env(safe-area-inset-bottom)); text-align:center; color:#fff; font-size:12px; opacity:0; pointer-events:none; transition:opacity .5s;}
+  .iv-hint.show{opacity:.8;}
   #phPreview{width:100%; max-height:280px; object-fit:contain; border-radius:10px; border:1px solid var(--line); background:#f3f4f6; display:none;}
   .cam-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:110px; border:2px dashed #c7d2fe; border-radius:12px; background:#eef2ff; color:#1e3a8a; font-weight:600; cursor:pointer; font-size:14px;}
+  #dueCard .dr{display:grid; grid-template-columns:116px 1fr auto auto; gap:6px 12px; align-items:center; padding:10px 20px; border-bottom:1px solid var(--line);}
+  #dueCard .dr:last-child{border-bottom:none;}
+  #dueCard .dm b{font-size:13.5px;} #dueCard .da{font-size:14px; white-space:nowrap;}
+  #dueCard .ra{display:flex; gap:6px; flex-wrap:wrap;}
+  a.pill-btn{text-decoration:none; display:inline-block;}
   .leaflet-container{font:inherit;}
+  /* ledger */
+  .ld-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
+  .ld-top h2{font-size:22px; margin:0 0 3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ld-btns{display:flex; gap:8px; flex-wrap:wrap;}
+  .ld-btns .btn{width:auto; padding:9px 14px; font-size:13px; min-height:0;}
+  .btn.green{background:#0f7a41; border-color:#0f7a41; color:#fff;}
+  .btn.wa{color:#128c4a;}
+  .ld-cards{grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px;}
+  .ld-cards .stat-card{padding:14px 16px;} .ld-cards .stat-card .value{font-size:20px;}
+  table.led{width:100%; border-collapse:collapse; font-size:13px; min-width:760px;}
+  table.led thead th{position:static;}
+  table.led td{padding:11px 14px; vertical-align:top;}
+  table.led .n{text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .lg-dr{color:#111827; font-weight:600;} .lg-cr{color:#0f7a41; font-weight:600;}
+  table.led tr.lrow-open td, table.led tr.lrow-close td{background:#f8fafc; font-weight:700;}
+  table.led tr.lrow-close td{border-top:2px solid var(--line); font-size:14px;}
+  .lbal{font-weight:700;} .lbal small{font-weight:500; color:var(--muted); margin-left:3px;}
+  .ltag{display:block; font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.45;}
+  .ld-phone, .la-phone{display:none;}
+  .ld-hero{background:#111827; color:#fff; padding:16px 16px 14px; border-radius:14px; margin-bottom:12px;}
+  .ld-hero .sm{font-size:12px; opacity:.7;} .ld-hero .big{font-size:30px; font-weight:800; margin:3px 0 2px;}
+  .ld-hero .row{display:flex; gap:18px; margin-top:12px; font-size:12px; flex-wrap:wrap;} .ld-hero .row b{display:block; font-size:15px;}
+  .lmon{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:14px 16px 6px;}
+  .lent{display:flex; gap:12px; padding:11px 16px; border-bottom:1px solid #f0f1f3; align-items:flex-start;}
+  .lent .ldot{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; flex:none; background:#f3f4f6;}
+  .lent .ldot.c{background:#e7f7ee;}
+  .lent .lm{flex:1; min-width:0; font-size:13px;} .lent .lm b{font-size:13.5px;}
+  .lent .la{text-align:right; white-space:nowrap;} .lent .la b{font-size:14px; display:block;} .lent .la span{font-size:11px; color:var(--muted);}
+  .lrange{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .lrange input[type=date]{padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;}
+  #laCard table{min-width:980px;}
+  .la-row{padding:12px 14px; border-bottom:1px solid #f0f1f3;}
+  .la-row .t{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .la-row .age{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); margin:6px 0;}
+  .rcv-alloc{background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12.5px;}
+  .rcv-alloc .l{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:5px 0;} .rcv-alloc .l + .l{border-top:1px dashed var(--line);}
+  .rcv-alloc input{width:92px; padding:5px 7px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:right;}
   @media (max-width:820px){
     .grid2{grid-template-columns:1fr;}
     .tscroll{overflow:visible;} #rsShopsCard table, #rsOrdersCard table{min-width:0;}
@@ -70,8 +130,77 @@
     #totShopsCard table, #totTodayCard table{min-width:0;}
     .mchart{gap:6px; padding:14px 10px 0;}
     .dl{grid-template-columns:2fr 48px 34px 60px 52px; font-size:12px;}
-    .field input, .field select, .field textarea{font-size:16px;}
+    .field input, .field select, .field textarea, #oDiscVal{font-size:16px;}
     .lmap.big{height:70vh;}
+    #dueCard .dr{grid-template-columns:auto 1fr auto; padding:10px 14px;} #dueCard .ra{grid-column:1 / -1;}
+    .ld-cards{display:none;} .ld-desk, .la-desk{display:none;} .ld-phone, .la-phone{display:block;}
+    .ld-top h2{font-size:19px;} .ld-btns .btn{flex:1 1 auto;}
+    #laCard table{min-width:0;}
+  }
+  /* import from Excel */
+  .modal.imp{max-width:1000px; padding:0;}
+  .imp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 22px; position:sticky; top:0; background:#fff; z-index:3; border-bottom:1px solid var(--line);}
+  .imp-head h3{margin:0; font-size:17px;}
+  .imp-x{background:none; border:none; font-size:26px; line-height:1; color:#6b7280; cursor:pointer; padding:0 4px; min-height:0;}
+  .imp-body{padding:16px 22px 20px;}
+  .imp-lead{font-size:13.5px; color:#374151; line-height:1.55; margin:0 0 12px;}
+  .imp-drop{border:2px dashed #c7d2fe; border-radius:12px; padding:30px 18px; text-align:center; background:#f8faff; color:var(--muted); font-size:13px; line-height:1.6; cursor:pointer; margin:14px 0;}
+  .imp-drop.over{background:#eef2ff; border-color:#6366f1;} .imp-drop b{color:#3730a3;}
+  .imp-opt{display:flex; align-items:center; gap:8px; font-size:13px; margin:4px 0 12px;} .imp-opt input{width:15px; height:15px; min-height:0; margin:0;}
+  .imp-help{font-size:12.5px; color:#374151; border:1px solid var(--line); border-radius:8px; padding:10px 14px; background:#fafafa; line-height:1.55;}
+  .imp-help summary{cursor:pointer; font-weight:600;} .imp-help p{margin:8px 0 0;}
+  .imp-bar{height:10px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin:14px 0 8px;} .imp-bar i{display:block; height:100%; width:0; background:#2563eb; transition:width .25s;}
+  .imp-busy{padding:26px 0 10px; text-align:center;} .imp-busy .t{font-size:14px; font-weight:600;}
+  .imp-file{font-size:12.5px; color:var(--muted); margin:0 0 8px;} .imp-file b{color:#111827;}
+  .imp-sh{border:1px solid var(--line); border-radius:10px; padding:9px 12px; margin:0 0 8px; background:#fff;}
+  .imp-sh.bad{border-color:#f0c36d; background:#fffaf0;}
+  .imp-sh-top{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px;}
+  .imp-sh-top select{padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; min-height:0; width:auto;}
+  .imp-map{margin-top:6px; font-size:12px;}
+  .imp-map summary{cursor:pointer; color:#374151; line-height:1.5;}
+  .imp-map-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px 12px; margin-top:8px;}
+  .imp-map-grid label{display:flex; flex-direction:column; gap:2px; font-size:11.5px; color:var(--muted);}
+  .imp-map-grid select{padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; min-height:0; width:100%;}
+  .imp-mode{border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:0 0 10px; background:#f8fafc; font-size:13px;}
+  .imp-mode .t{font-weight:600; margin-bottom:3px;}
+  .imp-mode label{display:flex; gap:8px; align-items:flex-start; padding:3px 0; cursor:pointer; line-height:1.45;}
+  .imp-mode input{width:15px; height:15px; min-height:0; margin:3px 0 0; flex:none;}
+  .imp-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:6px 0 12px;}
+  .imp-card{border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff;}
+  .imp-card .l{font-size:11.5px; color:var(--muted);} .imp-card .v{font-size:19px; font-weight:700; margin:2px 0;} .imp-card .s{font-size:11.5px; color:var(--muted); line-height:1.4;}
+  .imp-note{border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin:0 0 10px;}
+  .imp-note.warn{background:#fdf3e3; border:1px solid #f0c36d; color:#8a5a00;} .imp-note.info{background:#f3f4f6; color:#4b5563;} .imp-note.ok{background:#e7f7ee; border:1px solid #bfe6cf; color:#0f7a41;}
+  .imp-tabs{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:8px 0;}
+  .imp-tabs .r{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .imp-tabs select{padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-height:0; width:auto;}
+  .imp-tabs input[type=text]{padding:7px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:200px;}
+  .imp-list{border:1px solid var(--line); border-radius:10px; overflow:hidden; max-height:40vh; overflow-y:auto;}
+  .imp-row{display:grid; grid-template-columns:minmax(0,2.4fr) 1.2fr 1fr 1fr; gap:4px 14px; padding:10px 14px; border-bottom:1px solid #f0f1f3; align-items:start; font-size:13px;}
+  .imp-row:last-child{border-bottom:none;}
+  .imp-row.h{position:sticky; top:0; background:#f8fafc; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:600; padding:8px 14px; z-index:1;}
+  .imp-row .m-l{display:none; font-size:11px; color:var(--muted);}
+  .imp-row .r{text-align:right;} .imp-row b.dr{color:#c81e1e;} .imp-row b.cr{color:#0f7a41;}
+  .imp-row .hint{color:#8a5a00; font-size:11.5px; margin-top:2px; line-height:1.4;}
+  .imp-pr{display:grid; grid-template-columns:78px 150px minmax(0,1fr); gap:4px 12px; padding:9px 14px; border-bottom:1px solid #f0f1f3; font-size:12.5px; align-items:start;}
+  .imp-pr:last-child{border-bottom:none;}
+  .imp-more{display:block; width:100%; padding:10px; text-align:center; background:#f8fafc; border:none; border-top:1px solid #f0f1f3; color:#2563eb; font-weight:600; font-size:12.5px; cursor:pointer; min-height:0;}
+  .imp-empty{padding:26px 14px; text-align:center; color:var(--muted); font-size:13px;}
+  .imp-foot{position:sticky; bottom:0; background:#fff; border-top:1px solid var(--line); padding:12px 22px; display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; z-index:3;}
+  .imp-foot .t{font-size:12.5px; color:#374151; line-height:1.45; flex:1 1 220px;}
+  .imp-foot .b{display:flex; gap:8px; flex-wrap:wrap;}
+  .imp-foot .btn{width:auto;}
+  .imp-done{text-align:center; padding:6px 0 4px;} .imp-done .big{font-size:40px; line-height:1;} .imp-done h4{font-size:18px; margin:8px 0 4px;} .imp-done p{margin:0 0 6px; font-size:13px; color:#374151; line-height:1.5;}
+  @media (max-width:820px){
+    .modal.imp{max-width:none;}
+    .imp-head{padding:14px 16px;} .imp-body{padding:14px 16px 16px;} .imp-foot{padding:10px 16px;}
+    .imp-list{max-height:none;}
+    .imp-row{grid-template-columns:1fr 1fr; padding:10px 12px;} .imp-row.h{display:none;} .imp-row .m-l{display:block;} .imp-row .r{text-align:left;}
+    .imp-row > :first-child{grid-column:1 / -1;}
+    .imp-pr{grid-template-columns:1fr; padding:9px 12px;}
+    .imp-tabs .r{width:100%;} .imp-tabs input[type=text]{min-width:0; flex:1 1 140px;}
+    .imp-tabs select, .imp-tabs input[type=text], .imp-sh-top select, .imp-map-grid select{font-size:16px;}
+    .imp-map-grid{grid-template-columns:1fr;}
+    .imp-foot .b{width:100%;} .imp-foot .b .btn{flex:1 1 auto;}
   }
 </style>
 </head>
@@ -82,6 +211,7 @@
     <div class="topbar">
       <div><h1>Retail Shops</h1><div class="sub" style="margin-top:2px;">Partner shops that keep our perfumes on display — shop, contact, pinned location and their orders</div></div>
       <div class="view-toggle" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnLedgerAll">📒 Ledger</button>
         <button class="btn secondary" id="btnTotals">📊 Totals</button>
         <button class="btn secondary" id="btnMapView">📍 Map view</button>
         <button class="btn" id="btnAddShop">+ Add Shop</button>
@@ -98,11 +228,18 @@
           <div class="stat-card"><div class="label">Display bottles out</div><div class="value" id="stDisplay">—</div></div>
           <div class="stat-card"><div class="label">Payment pending</div><div class="value" id="stPending" style="color:#c81e1e;">—</div></div>
         </div>
+        <div class="card" id="dueCard" style="display:none;">
+          <div class="card-head"><h2>Payment reminders</h2><div id="dueTools" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"></div></div>
+          <div id="dueSum" style="display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px 0;"></div>
+          <div id="dueList"></div>
+          <div class="sub" id="dueFoot" style="padding:8px 20px 14px;"></div>
+        </div>
         <div class="card" id="rsShopsCard">
           <div class="card-head"><h2>Shops</h2>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <select id="areaSel" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
               <div class="search-box"><input type="text" id="q" placeholder="Search shop / owner / mobile..."></div>
+              <button type="button" class="btn secondary" id="btnImport" style="padding:8px 12px; font-size:13px;">⬆ Import Excel</button>
             </div>
           </div>
           <div class="tscroll">
@@ -119,7 +256,7 @@
         <div style="margin-bottom:12px;"><button class="link" id="btnBack">← All shops</button></div>
         <div class="grid2">
           <div class="card" style="margin-bottom:0;">
-            <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button><button class="danger-link" id="btnDelShop">Delete</button></div></div>
+            <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnShopLedger" style="color:#0f7a41; font-weight:600;">📒 Ledger</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button><button class="danger-link" id="btnDelShop">Delete</button></div></div>
             <div style="padding:14px 20px;">
               <div class="kv" id="shMeta"></div>
               <div id="shopMap" class="lmap" style="margin-top:12px;"></div>
@@ -182,6 +319,56 @@
         </div>
       </div>
 
+      <!-- ===== LEDGER (all shops) ===== -->
+      <div id="viewLedgerAll" style="display:none;">
+        <div class="ld-top">
+          <div><h2>Retail ledger</h2><div class="sub" id="laSub">What every shop owes us</div></div>
+          <div class="ld-btns"><button class="btn secondary" id="btnLaCsv">⬇ Excel</button><button class="btn secondary" id="btnLaPrint">⬇ PDF</button></div>
+        </div>
+        <div class="stat-grid" id="laCards"></div>
+        <div class="card" id="laCard">
+          <div class="card-head"><h2>Shop-wise balance</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span class="seg" id="laFilter"><button type="button" data-f="due" class="on">With balance</button><button type="button" data-f="overdue">Overdue</button><button type="button" data-f="all">All shops</button></span>
+              <select id="laArea" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
+              <div class="search-box"><input type="text" id="laQ" placeholder="Search shop / owner..."></div>
+            </div>
+          </div>
+          <div class="la-desk tscroll">
+          <table class="led no-stack">
+            <thead><tr><th>Shop</th><th class="n" title="Opening dues + bills">Billed</th><th class="n" title="Payments and credit notes">Paid</th><th class="n">Balance</th><th class="n">0–30 d</th><th class="n">31–60 d</th><th class="n">61–90 d</th><th class="n">90+ d</th><th>Last paid</th><th>Status</th><th style="width:250px;"></th></tr></thead>
+            <tbody id="laBody"><tr><td colspan="11"><div class="loading">Loading...</div></td></tr></tbody>
+          </table>
+          </div>
+          <div class="la-phone" id="laList"></div>
+        </div>
+      </div>
+
+      <!-- ===== LEDGER (one shop) ===== -->
+      <div id="viewLedger" style="display:none;">
+        <div style="margin-bottom:12px;"><button class="link" id="btnLedgerBack">← Back</button></div>
+        <div class="ld-top">
+          <div><h2><span id="ldName">Ledger</span> <span class="chip" id="ldChip"></span></h2><div class="sub" id="ldMeta"></div></div>
+          <div class="ld-btns"><button class="btn secondary" id="btnLdPrint">⬇ PDF</button><button class="btn secondary" id="btnLdCsv">⬇ Excel</button><button class="btn secondary wa" id="btnLdWa">WhatsApp statement</button><button class="btn green" id="btnLdReceive">+ Receive payment</button></div>
+        </div>
+        <div class="ld-phone" id="ldHero"></div>
+        <div class="stat-grid ld-cards" id="ldCards"></div>
+        <div class="card" id="ldCard">
+          <div class="card-head"><h2>Ledger</h2>
+            <div class="lrange"><span class="seg" id="ldPreset"><button type="button" data-p="month">This month</button><button type="button" data-p="last">Last month</button><button type="button" data-p="fy">This FY</button><button type="button" data-p="all" class="on">All time</button><button type="button" data-p="custom">Custom</button></span>
+              <span id="ldCustom" style="display:none; gap:6px; align-items:center;"><input type="date" id="ldFrom"><span class="sub">to</span><input type="date" id="ldTo"></span></div>
+          </div>
+          <div class="ld-desk tscroll">
+          <table class="led no-stack" id="ldTable">
+            <thead><tr><th style="width:112px;">Date</th><th>Particulars</th><th class="n" style="width:112px;">Debit (bill)</th><th class="n" style="width:112px;">Credit (paid)</th><th class="n" style="width:134px;">Balance</th></tr></thead>
+            <tbody id="ldBody"></tbody>
+          </table>
+          </div>
+          <div class="ld-phone" id="ldList"></div>
+          <div class="sub" style="padding:8px 20px 14px;">Dr = the shop owes you · Cr = you owe the shop (an advance). A payment clears the oldest bills first.</div>
+        </div>
+      </div>
+
       <!-- ===== MAP ===== -->
       <div id="viewMap" style="display:none;">
         <div class="card">
@@ -208,6 +395,11 @@
         <div class="field"><label>Note (commission, timing…)</label><input id="fNote" placeholder="e.g. 20% on sale"></div>
       </div>
       <div class="field"><label>Address</label><input id="fAddr" placeholder="Near …, road, city"></div>
+      <div class="field-grid">
+        <div class="field"><label>Opening balance (₹ owed before this app)</label><input id="fOpen" type="number" step="any" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label>Owed since (optional)</label><input id="fOpenDate" type="date"></div>
+      </div>
+      <div class="sub" style="margin:-6px 0 12px;">Money this shop already owed you before the ledger started — it opens the ledger. A minus number means the shop paid in advance.</div>
       <div class="field">
         <label>Shop location</label>
         <div id="pinMap" class="lmap" style="height:190px;"></div>
@@ -240,10 +432,17 @@
       <div class="field"><label>Payment</label><select id="oPay"><option value="pending">Pending</option><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
       <div class="field"><label>Date</label><input type="date" id="oDate"></div>
       <div class="field" id="oPaidWrap"><label>Paid so far (₹)</label><input type="number" id="oPaid" min="0" step="1" placeholder="0"></div>
+      <div class="field" id="oDueWrap"><label>Payment due date</label><input type="date" id="oDue"></div>
     </div>
     <div class="ol h"><span>Perfume name</span><span>ML</span><span>Qty</span><span>Deliv.</span><span>Price ₹</span><span style="text-align:right;">Total</span><span></span></div>
     <div id="oLines"></div>
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:4px 0 8px; font-size:13px; flex-wrap:wrap;"><button type="button" class="link" id="btnAddLine">+ Add line</button><span><span id="oQty">0</span> pcs ordered · <b style="color:#0f7a41;" id="oDel">0</b> delivered<span id="oPendWrap"> · <b style="color:#b45f06;" id="oPend">0</b> pending</span> · <b style="font-size:15px;" id="oTotal">₹0</b></span></div>
+    <div id="oDiscRow" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 10px; font-size:13px;">
+      <label for="oDiscVal" style="font-weight:600;">Discount</label>
+      <input type="number" id="oDiscVal" min="0" step="any" inputmode="decimal" placeholder="0" style="width:96px; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      <span class="seg" id="oDiscType"><button type="button" data-dt="pct" class="on" style="padding:7px 13px;">%</button><button type="button" data-dt="amt" style="padding:7px 13px;">₹</button></span>
+      <span class="sub" id="oDiscNote"></span>
+    </div>
     <div id="oPartBox" style="display:none; background:#fdf3e3; border:1px solid #f0c36d; color:#8a5a00; border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin-bottom:10px;">
       <b>Partly delivered</b> — <span id="oPartTxt"></span> still to deliver. Update the Deliv. box later and the order turns green.
       <div style="margin-top:6px;"><label style="font-weight:600; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="oBillDel" style="width:14px; height:14px; min-height:0; margin:0;"> Bill only delivered pieces (<span id="oBillAmt">₹0</span>)</label></div>
@@ -269,6 +468,15 @@
   </div>
 </div>
 
+<!-- Photo viewer: opens inside this page and can be zoomed -->
+<div class="modal-overlay iv" id="iv" role="dialog" aria-modal="true" aria-label="Photo">
+  <div class="iv-bar">
+    <div class="iv-title"><b id="ivTitle"></b><span id="ivSub"></span></div>
+    <div class="iv-btns"><button type="button" id="ivOut" aria-label="Zoom out">−</button><button type="button" id="ivIn" aria-label="Zoom in">+</button><button type="button" id="ivX" aria-label="Close">✕</button></div>
+  </div>
+  <div class="iv-stage" id="ivStage"><div class="iv-msg" id="ivMsg">Loading…</div><img class="iv-img" id="ivImg" alt="" draggable="false" style="display:none;"><div class="iv-hint" id="ivHint"></div></div>
+</div>
+
 <!-- Delivery -->
 <div class="modal-overlay" id="delModal">
   <div class="modal" style="max-width:480px;">
@@ -286,6 +494,28 @@
   </div>
 </div>
 
+<!-- Receive payment (ledger) -->
+<div class="modal-overlay" id="rcvModal">
+  <div class="modal" style="max-width:520px;">
+    <h3 id="rcvTitle">Receive payment</h3>
+    <div class="sub" id="rcvSub" style="margin:-8px 0 12px;"></div>
+    <div id="rcvAlert"></div>
+    <input type="hidden" id="rcvShop">
+    <div class="field-grid">
+      <div class="field"><label>Amount received (₹)</label><input type="number" id="rcvAmt" min="0" step="any" inputmode="decimal" placeholder="0" style="font-size:18px; font-weight:700;"></div>
+      <div class="field"><label>Date</label><input type="date" id="rcvDate"></div>
+    </div>
+    <div style="margin:-4px 0 10px;"><button type="button" class="link" id="rcvFull"></button></div>
+    <div class="field"><label>Mode</label><span class="seg" id="rcvMode"><button type="button" data-m="cash" class="on">Cash</button><button type="button" data-m="upi">UPI</button><button type="button" data-m="bank">Bank</button><button type="button" data-m="cheque">Cheque</button><button type="button" data-m="credit">Credit note</button></span></div>
+    <div class="field-grid">
+      <div class="field"><label>Reference <span class="sub">(UPI ref, cheque no.)</span></label><input id="rcvRef" maxlength="120"></div>
+      <div class="field"><label>Note <span class="sub">(optional)</span></label><input id="rcvNote" maxlength="255" placeholder="e.g. collected by Gopal"></div>
+    </div>
+    <div id="rcvAlloc"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnRcvCancel">Cancel</button><button type="button" class="btn green" id="btnRcvSave">Save receipt</button></div>
+  </div>
+</div>
+
 <!-- Payment -->
 <div class="modal-overlay" id="payModal">
   <div class="modal" style="max-width:400px;">
@@ -295,7 +525,53 @@
     <input type="hidden" id="pId">
     <div class="field"><label>Status</label><select id="pPay"><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="pending">Pending (part paid)</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
     <div class="field" id="pAmtWrap" style="display:none;"><label>Paid so far (₹)</label><input type="number" id="pAmt" min="0" step="1"></div>
+    <div class="field" id="pDueWrap" style="display:none;"><label>Payment due date</label><input type="date" id="pDue"></div>
     <div class="actions"><button type="button" class="btn secondary" id="btnPayCancel">Cancel</button><button type="button" class="btn" id="btnPaySave">Save</button></div>
+  </div>
+</div>
+
+<!-- Import from Excel -->
+<div class="modal-overlay" id="impModal">
+  <div class="modal imp">
+    <div class="imp-head"><h3 id="impTitle">Import from Excel</h3><button type="button" class="imp-x" id="btnImpX" aria-label="Close">×</button></div>
+    <div class="imp-body">
+      <div id="impAlert"></div>
+
+      <div id="impPick">
+        <p class="imp-lead">Upload your Excel file. Every row is matched to a shop that is already in the app by its <b>mobile number</b> (the shop name is only used when a row has no number). Matched shops get the pending amount from your file, shops that are not in the app yet are added. You see everything before anything is saved.</p>
+        <button type="button" class="btn secondary" id="btnImpTpl" style="width:auto;">⬇ Download template (.xlsx)</button>
+        <div class="imp-drop" id="impDrop"><b>Drop your Excel file here</b> or click to choose<br><span class="sub">.xlsx, .xls or .csv — a list with Shop name, Mobile and Pending amount is enough</span></div>
+        <input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="display:none;">
+        <label class="imp-opt"><input type="checkbox" id="impCreate" checked> Add shops that are not in the app yet</label>
+        <details class="imp-help">
+          <summary>What the file can contain</summary>
+          <p><b>Shops / pending list</b> — Shop name, Mobile, Pending amount (and, if you have them, Area, Owner, Address, Note, As on date). Matched shops keep their own name; blank Owner / Address / Mobile in the app are filled from your file. A minus amount means the shop paid in advance.</p>
+          <p><b>Orders</b> (old bills) — Shop name or Mobile, Date, Bill no, Product, Size, Qty, Rate (or only Amount), Discount, Payment, Paid amount, Due date. Rows with the same Bill no make one bill.</p>
+          <p><b>Payments</b> — Shop name or Mobile, Date, Amount, Mode (Cash / UPI / Bank / Cheque / Credit note), Reference, Bill no. A payment clears the oldest bills first, or the bill you name.</p>
+          <p><b>Ledger</b> — Shop name or Mobile, Date, Debit, Credit, Narration: debit lines become bills, credit lines become payments, a line “Opening balance” becomes the shop's pending amount.</p>
+          <p class="sub">Dates as dd/mm/yyyy · ₹, commas and “5000/-” are fine · each sheet is recognised by its headings and you can change the columns before importing · uploading the same file again is safe, what is already in the app is skipped.</p>
+        </details>
+      </div>
+
+      <div id="impBusy" style="display:none;">
+        <div class="imp-busy"><div class="t" id="impBusyTxt">Checking…</div><div class="imp-bar"><i id="impBar"></i></div><div class="sub" id="impBusySub"></div><button type="button" class="btn secondary" id="btnImpStop" style="width:auto; margin-top:10px;">Stop</button></div>
+      </div>
+
+      <div id="impPrev" style="display:none;">
+        <div id="impDone"></div>
+        <div id="impFileLine" class="imp-file"></div>
+        <div id="impSheets"></div>
+        <div id="impMode"></div>
+        <div id="impNotes"></div>
+        <div class="imp-cards" id="impCards"></div>
+        <div class="imp-tabs">
+          <div class="seg" id="impTabBtns"></div>
+          <div class="r"><select id="impLvl"><option value="problems">Errors &amp; warnings</option><option value="error">Errors only</option><option value="warn">Warnings only</option><option value="skip">Skipped rows</option><option value="all">Everything</option></select><input type="text" id="impQ" placeholder="Search…"></div>
+        </div>
+        <div class="imp-list" id="impList"></div>
+      </div>
+    </div>
+    <div class="imp-foot" id="impFoot" style="display:none;"></div>
   </div>
 </div>
 
@@ -311,6 +587,10 @@
   const inr = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
   const fmtD = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
   const fmtDS = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—';
+  const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const daysTo = (d) => Math.round((new Date(String(d).slice(0, 10) + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000);
+  const dueLabel = (n) => n < 0 ? 'Overdue ' + (-n) + ' d' : (n === 0 ? 'Due today' : (n === 1 ? 'Due tomorrow' : 'Due in ' + n + ' d'));
+  const dueCls = (n) => n < 0 ? 'c-red' : (n === 0 ? 'c-amber' : 'c-blue');
   const alertBox = document.getElementById('alertBox');
   function showAlert(msg, type = 'success') { alertBox.innerHTML = `<div class="alert ${type}">${esc(msg)}</div>`; setTimeout(() => { if (alertBox.firstChild) alertBox.innerHTML = ''; }, 4000); }
   const mapsUrl = (s) => `https://www.google.com/maps?q=${s.lat},${s.lng}`;
@@ -368,23 +648,35 @@
   }
 
   // ---------- views ----------
+  let listY = 0, listTimers = [];
+  const stopListRestore = () => { listTimers.forEach(clearTimeout); listTimers = []; };
+  ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(ev => window.addEventListener(ev, stopListRestore, { passive: true }));
   function showView(v) {
+    stopListRestore();
+    if (view === 'list' && v !== 'list') listY = window.scrollY;   // remember where the list was
     view = v;
     document.getElementById('viewList').style.display = v === 'list' ? '' : 'none';
     document.getElementById('viewShop').style.display = v === 'shop' ? '' : 'none';
     document.getElementById('viewMap').style.display = v === 'map' ? '' : 'none';
     document.getElementById('viewTotals').style.display = v === 'totals' ? '' : 'none';
+    document.getElementById('viewLedger').style.display = v === 'ledger' ? '' : 'none';
+    document.getElementById('viewLedgerAll').style.display = v === 'ledgerAll' ? '' : 'none';
+    document.getElementById('btnLedgerAll').textContent = v === 'ledgerAll' ? '☰ List view' : '📒 Ledger';
     document.getElementById('btnMapView').textContent = v === 'map' ? '☰ List view' : '📍 Map view';
     document.getElementById('btnTotals').textContent = v === 'totals' ? '☰ List view' : '📊 Totals';
     if (v !== 'shop') history.replaceState(null, '', location.pathname);
-    window.scrollTo(0, 0);
+    if (v === 'list' && listY > 0) {   // back to the list: stay where it was (the list may still be redrawing, so try again a few times)
+      const y = listY, go = () => window.scrollTo(0, y);
+      go(); requestAnimationFrame(go); listTimers = [120, 350, 800, 1500].map(t => setTimeout(go, t));
+    } else window.scrollTo(0, 0);
+    if (v === 'list' && typeof loadDue === 'function') loadDue();
   }
   document.getElementById('btnMapView').addEventListener('click', () => { if (view === 'map') showView('list'); else { showView('map'); renderAllMap(); } });
   document.getElementById('btnTotals').addEventListener('click', () => { if (view === 'totals') showView('list'); else { showView('totals'); loadTotals(); } });
   document.getElementById('btnBack').addEventListener('click', () => showView('list'));
 
   // ---------- list ----------
-  async function loadShops() {
+  async function loadShops(listOnly) {
     try {
       const d = await withRetry(() => api.get('retail.shops', { area: document.getElementById('areaSel').value, q: document.getElementById('q').value.trim() }));
       shops = d.shops || []; areas = d.areas || [];
@@ -398,6 +690,7 @@
       sel.value = cur;
       document.getElementById('areaList').innerHTML = areas.map(a => `<option value="${esc(a)}">`).join('');
       renderShops();
+      if (!listOnly && view === 'list') loadDue();
     } catch (err) {
       document.getElementById('shopsBody').innerHTML = `<tr><td colspan="8"><div class="alert error">${esc(err.message)}</div></td></tr>`;
     }
@@ -408,40 +701,76 @@
     tb.innerHTML = shops.map(s => {
       const st = s.stats || {};
       const pinned = s.lat !== null && s.lat !== undefined;
-      const pending = Number(st.pending || 0);
+      const pending = Number(st.balance !== undefined ? st.balance : (st.pending || 0));
       return `<tr${s.status === 'inactive' ? ' style="opacity:.6;"' : ''}>
         <td><b>${esc(s.shop_name)}</b>${s.status === 'inactive' ? ' <span class="chip c-grey">inactive</span>' : ''}<div class="sub">${esc([s.area, s.owner_name].filter(Boolean).join(' · '))}</div></td>
         <td>${s.mobile ? `${esc(s.mobile)}<div class="sub"><a href="${waUrl(s.mobile)}" target="_blank" rel="noopener" style="color:#25d366;">WhatsApp</a> · <a href="tel:${esc(s.mobile)}">Call</a></div>` : '<span class="sub">—</span>'}</td>
         <td>${pinned ? `<span class="chip c-green">📍 Pinned</span>` : `<span class="chip c-amber">No pin yet</span>`}<div class="sub">${esc(s.address || '')}${pinned ? `${s.address ? ' · ' : ''}<a href="${mapsUrl(s)}" target="_blank" rel="noopener">Open in Maps</a>` : ` <button class="link" data-pin="${s.shop_id}" style="font-size:11.5px;">Pin now</button>`}</div></td>
         <td>${st.orders_count ? `<b>${st.display_qty}</b> perfumes<div class="sub">${inr(st.amount)} · ${st.orders_count} order${st.orders_count === 1 ? '' : 's'}</div>${st.to_deliver > 0 ? `<span class="chip c-amber">${st.to_deliver} to deliver</span>` : ''}` : '<span class="sub">no order yet</span>'}</td>
         <td>${st.last_date ? `${fmtDS(st.last_date)}<div class="sub">${st.last_qty} pcs · ${inr(st.last_total)}</div>` : '<span class="sub">—</span>'}</td>
-        <td>${st.visits ? `<div style="display:flex; gap:8px; align-items:center;">${st.last_photo ? `<a href="${fileUrl(st.last_photo)}" target="_blank" rel="noopener"><img class="thumb" src="${fileUrl(st.last_photo)}" alt=""></a>` : ''}<div>${fmtDS(st.last_visit)}<div class="sub">${esc(st.last_visit_by || '')}${st.visits > 1 ? ` · ${st.visits} photos` : ''}</div></div></div>` : '<span class="sub">no photo yet</span>'}</td>
-        <td>${pending > 0 ? `<span class="chip c-red">${inr(pending)} due</span>` : (st.orders_count ? '<span class="chip c-green">Paid</span>' : '<span class="chip c-grey">—</span>')}</td>
-        <td><div class="row-actions"><button data-photo="${s.shop_id}">📷 Photo</button><button data-order="${s.shop_id}" style="color:#2563eb; font-weight:600;">+ New order</button><button data-open="${s.shop_id}">Open</button><button data-edit="${s.shop_id}">Edit</button><button class="danger-link" data-del="${s.shop_id}">Delete</button></div></td>
+        <td>${st.visits ? `<div style="display:flex; gap:8px; align-items:center;">${st.last_photo ? `<a href="${fileUrl(st.last_photo)}" data-iv="${esc(s.shop_name)}" data-ivs="${esc([fmtDS(st.last_visit), st.last_visit_by].filter(Boolean).join(' · '))}"><img class="thumb" src="${fileUrl(st.last_photo)}" alt="Last visit photo" loading="lazy" decoding="async"></a>` : ''}<div>${fmtDS(st.last_visit)}<div class="sub">${esc(st.last_visit_by || '')}${st.visits > 1 ? ` · ${st.visits} photos` : ''}</div></div></div>` : '<span class="sub">no photo yet</span>'}</td>
+        <td>${pending > 0 ? `<span class="chip c-red">${inr(pending)} due</span>${st.due_next ? `<div class="sub" style="${daysTo(st.due_next) < 0 ? 'color:#c81e1e; font-weight:600;' : ''}">${daysTo(st.due_next) < 0 ? 'overdue since ' : 'due '}${fmtDS(st.due_next)}</div>` : ''}` : (pending < -0.5 ? `<span class="chip c-blue">${inr(-pending)} advance</span>` : ((st.orders_count || Number(s.opening_balance)) ? '<span class="chip c-green">Paid</span>' : '<span class="chip c-grey">—</span>'))}</td>
+        <td><div class="row-actions"><button data-photo="${s.shop_id}">📷 Photo</button><button data-order="${s.shop_id}" style="color:#2563eb; font-weight:600;">+ New order</button><button data-ledger="${s.shop_id}" style="color:#0f7a41; font-weight:600;">📒 Ledger</button><button data-open="${s.shop_id}">Open</button><button data-edit="${s.shop_id}">Edit</button><button class="danger-link" data-del="${s.shop_id}">Delete</button></div></td>
       </tr>`; }).join('');
   }
   document.getElementById('shopsBody').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.open) openShop(Number(b.dataset.open));
+    else if (b.dataset.ledger) openLedger(Number(b.dataset.ledger));
     else if (b.dataset.edit) openShopModal(shops.find(s => s.shop_id == b.dataset.edit));
     else if (b.dataset.order) openOrderModal(Number(b.dataset.order));
     else if (b.dataset.pin) pinNow(Number(b.dataset.pin));
     else if (b.dataset.del) deleteShop(shops.find(x => x.shop_id == b.dataset.del));
     else if (b.dataset.photo) openPhotoModal(Number(b.dataset.photo));
   });
-  document.getElementById('areaSel').addEventListener('change', loadShops);
-  let qT; document.getElementById('q').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(loadShops, 300); });
+  document.getElementById('areaSel').addEventListener('change', () => loadShops(true));
+  let qT; document.getElementById('q').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(() => loadShops(true), 300); });
+
+  // ---------- GPS: keep reading and use the BEST fix ----------
+  // iPhones answer first with a rough Wi-Fi / cell position (often 300-400 m
+  // off) and refine it over the next seconds. One quick reading therefore lands
+  // on the wrong spot on the map. This watches for up to maxMs, ignores stale
+  // cached fixes, stops early once the fix is within goodM metres, and returns
+  // the most accurate reading (a Position object, like getCurrentPosition).
+  function bestFix(o) {
+    o = o || {};
+    const maxMs = o.maxMs || 15000, goodM = o.goodM || 20, t0 = Date.now();
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) { reject({ code: 2 }); return; }
+      let best = null, lastErr = null, done = false, id = null, timer = null;
+      const finish = () => {
+        if (done) return; done = true;
+        clearTimeout(timer);
+        if (id !== null) { try { navigator.geolocation.clearWatch(id); } catch (e) {} }
+        best ? resolve(best) : reject(lastErr || { code: 3 });
+      };
+      try {
+        id = navigator.geolocation.watchPosition((p) => {
+          if (p.timestamp && p.timestamp < t0 - 5000) return;            // stale cached fix
+          if (!best || p.coords.accuracy < best.coords.accuracy) best = p;
+          if (o.onProgress) { try { o.onProgress(best); } catch (e) {} }
+          if (best.coords.accuracy <= goodM) finish();
+        }, (e) => { lastErr = e; if (e.code === 1) finish(); },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: maxMs });
+      } catch (e) { reject(e); return; }
+      timer = setTimeout(finish, maxMs);
+    });
+  }
+  const PRECISE_HINT = 'On iPhone turn on Settings › Privacy & Security › Location Services › Safari Websites (or this app) › Precise Location, and stay outdoors or near a window.';
+  function gpsErrMsg(err, fallback) {
+    return err && err.code === 1 ? 'Location permission is blocked for this site — allow it in the browser settings, then tap again.' : fallback;
+  }
 
   // "Pin now" straight from the list: phone GPS → shop pin.
   function pinNow(shopId) {
     if (!navigator.geolocation) { showAlert('This browser cannot read the location.', 'error'); return; }
-    showAlert('Reading your location…');
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+    showAlert('Reading your location… keep the phone still, up to 15 seconds.');
+    bestFix({ onProgress: (b) => showAlert(`Reading your location… ±${Math.round(b.coords.accuracy)} m, refining`) }).then(async (pos) => {
       try {
         const d = await api.post('retail.shop_pin', { shop_id: shopId, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
-        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)`); loadShops();
+        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); loadShops();
       } catch (err) { showAlert(err.message, 'error'); }
-    }, () => showAlert('Could not read the location — allow location for this site and try again, or open the shop and paste a Google Maps link.', 'error'), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    }).catch((err) => showAlert(gpsErrMsg(err, 'Could not read the location — allow location for this site and try again, or open the shop and paste a Google Maps link.'), 'error'));
   }
 
   // ---------- shop page ----------
@@ -463,6 +792,7 @@
         `<span>Added <b>${fmtD(s.created_at)}</b></span>`,
         s.note ? `<span>📝 ${esc(s.note)}</span>` : '',
         s.status === 'inactive' ? '<span class="chip c-grey">inactive</span>' : '',
+        Math.abs(Number(st.balance || 0)) > 0.5 ? `<span>Balance <b style="color:${st.balance > 0 ? '#c81e1e' : '#0f7a41'};">${st.balance > 0 ? inr(st.balance) + ' due' : inr(-st.balance) + ' advance'}</b> · <button class="link" id="btnShMetaLedger">View ledger</button></span>` : '',
       ].filter(Boolean).join('');
       document.getElementById('shAddr').textContent = s.address || '';
       const pinned = s.lat !== null;
@@ -496,13 +826,13 @@
   function pinNowShop() {
     if (!currentShop) return;
     if (!navigator.geolocation) { showAlert('This browser cannot read the location.', 'error'); return; }
-    showAlert('Reading your location…');
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+    showAlert('Reading your location… keep the phone still, up to 15 seconds.');
+    bestFix({ onProgress: (b) => showAlert(`Reading your location… ±${Math.round(b.coords.accuracy)} m, refining`) }).then(async (pos) => {
       try {
         const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
-        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)`); openShop(currentShop.shop_id);
+        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); openShop(currentShop.shop_id);
       } catch (err) { showAlert(err.message, 'error'); }
-    }, () => showAlert('Could not read the location — allow location for this site and try again.', 'error'), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    }).catch((err) => showAlert(gpsErrMsg(err, 'Could not read the location — allow location for this site and try again.'), 'error'));
   }
   async function linkPinShop() {
     const link = prompt('Paste the Google Maps link or "lat, lng":'); if (!link) return;
@@ -520,6 +850,13 @@
       const dCol = dk === 'delivered' ? '#0f7a41' : (dk === 'partial' ? '#b45f06' : '#c81e1e');
       const dCell = `<b style="color:${dCol};">${del} / ${o.qty}</b><div class="dbar ${dk === 'delivered' ? '' : (dk === 'partial' ? 'part' : 'none')}"><i style="width:${o.qty ? Math.round(del / o.qty * 100) : 0}%"></i></div><div class="sub">${dk === 'delivered' ? 'all delivered' : (pend + ' pending')}</div><div style="margin-top:4px;"><button class="pill-btn" data-deliver="${o.order_id}">${dk === 'delivered' ? 'Change' : 'Update delivery'}</button></div>`;
       const payChip = o.payment === 'pending' ? `<span class="chip c-red">Due ${inr(due)}</span>${o.paid_amount > 0 ? `<div class="sub">paid ${inr(o.paid_amount)}</div>` : ''}` : `<span class="chip ${o.payment === 'on_sale' ? 'c-amber' : 'c-green'}">${PAY_LABEL[o.payment] || o.payment}</span>`;
+      const dn = o.due_date ? daysTo(o.due_date) : null;
+      const discBit = Number(o.discount_amount) > 0 ? `<div class="sub" style="color:#0f7a41;">${o.discount_type === 'pct' ? Number(o.discount_value) + '% off · −' + inr(o.discount_amount) : '−' + inr(o.discount_amount) + ' discount'}</div>` : '';
+      const dueBit = o.payment === 'pending' && due > 0
+        ? (o.due_date
+          ? `<div style="margin-top:4px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><span class="chip ${dueCls(dn)}">${dueLabel(dn)}</span><button class="pill-btn" data-due="${o.order_id}" title="Change the due date">📅 ${fmtDS(o.due_date)}</button></div>`
+          : `<div style="margin-top:4px;"><button class="pill-btn" data-due="${o.order_id}">📅 Add due date</button></div>`)
+        : '';
       const items = o.items.map(i => `${itemLabel(i)} ×${i.qty}${(i.delivered !== undefined && i.delivered < i.qty) ? ` <span style="color:#b45f06;">(${i.delivered} del.)</span>` : ''}`).join(', ');
       return `<tr>
         <td><b>${esc(o.order_no)}</b>${o.note ? `<div class="sub">${esc(o.note)}</div>` : ''}</td>
@@ -528,8 +865,8 @@
         <td>${items}</td>
         <td>${o.qty}</td>
         <td>${dCell}</td>
-        <td><b>${inr(billed)}</b>${o.bill_delivered && o.delivered_total !== o.total ? `<div class="sub">ordered ${inr(o.total)}</div>` : (pend > 0 ? `<div class="sub">delivered ${inr(o.delivered_total || 0)}</div>` : '')}</td>
-        <td>${payChip}<div style="margin-top:4px;"><button class="pill-btn" data-pay="${o.order_id}">${o.payment === 'pending' ? 'Mark paid' : 'Change'}</button></div></td>
+        <td><b>${inr(billed)}</b>${discBit}${o.bill_delivered && o.delivered_total !== o.total ? `<div class="sub">ordered ${inr(o.total)}</div>` : (pend > 0 ? `<div class="sub">delivered ${inr(o.delivered_total || 0)}</div>` : '')}</td>
+        <td>${payChip}${dueBit}<div style="margin-top:4px;"><button class="pill-btn" data-pay="${o.order_id}">${o.payment === 'pending' ? 'Mark paid' : 'Change'}</button></div></td>
         <td>${esc(o.created_by_name || '—')}${o.employee_code ? `<div class="sub">${esc(o.employee_code)}</div>` : ''}</td>
         <td><div class="row-actions"><button data-oedit="${o.order_id}">Edit</button><button class="danger-link" data-odel="${o.order_id}">Delete</button></div></td>
       </tr>`; }).join('');
@@ -540,6 +877,7 @@
     const orders = JSON.parse(document.getElementById('ordersBody').dataset.orders || '[]');
     if (b.dataset.deliver) openDeliverModal(orders.find(o => o.order_id == b.dataset.deliver));
     else if (b.dataset.pay) openPayModal(orders.find(o => o.order_id == b.dataset.pay));
+    else if (b.dataset.due) openPayModal(orders.find(o => o.order_id == b.dataset.due), true);
     else if (b.dataset.oedit) openOrderModal(currentShop.shop_id, orders.find(o => o.order_id == b.dataset.oedit));
     else if (b.dataset.odel) {
       const o = orders.find(x => x.order_id == b.dataset.odel);
@@ -553,7 +891,7 @@
     if (!visits.length) { g.innerHTML = '<div class="empty-state" style="padding:24px;">No display photo yet — when you visit the shop, tap “📷 Add photo”.</div>'; return; }
     const me = api.currentUser() || {};
     g.innerHTML = '<div class="gal">' + visits.map(v => `<div class="ph">
-        <a href="${fileUrl(v.photo)}" target="_blank" rel="noopener"><img src="${fileUrl(v.photo)}" alt="Display photo" loading="lazy"></a>
+        <a href="${fileUrl(v.photo)}" data-iv="${esc(currentShop ? currentShop.shop_name : 'Display photo')}" data-ivs="${esc([fmtDT(v.visit_at), v.employee_name, v.note].filter(Boolean).join(' · '))}"><img src="${fileUrl(v.photo)}" alt="Display photo" loading="lazy"></a>
         <div class="cap"><b>${fmtDT(v.visit_at)}</b>${esc(v.employee_name || '—')}${v.distance_m !== null && v.distance_m !== undefined ? ` · ${v.distance_m} m from pin` : ''}${v.note ? `<div>${esc(v.note)}</div>` : ''}</div>
         <button class="del" data-vdel="${v.visit_id}" title="Delete photo">✕</button>
       </div>`).join('') + '</div>';
@@ -625,6 +963,8 @@
     document.getElementById('fArea').value = s ? s.area || '' : '';
     document.getElementById('fNote').value = s ? s.note || '' : '';
     document.getElementById('fAddr').value = s ? s.address || '' : '';
+    document.getElementById('fOpen').value = s && Number(s.opening_balance) ? Number(s.opening_balance) : '';
+    document.getElementById('fOpenDate').value = s && s.opening_date ? String(s.opening_date).slice(0, 10) : '';
     document.getElementById('fStatusWrap').style.display = s ? '' : 'none';
     document.getElementById('fStatus').value = s ? (s.status || 'active') : 'active';
     document.getElementById('btnShopDelete').style.display = s ? '' : 'none';
@@ -648,14 +988,14 @@
     if (!navigator.geolocation) { setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', 'This browser cannot read the location — paste a Google Maps link instead.', 'bad'); return; }
     if (!window.isSecureContext) { setPin('', '', '', 'Location needs https:// — open the site with https and try again.', 'bad'); return; }
     b.disabled = true; b.textContent = 'Reading GPS…';
-    navigator.geolocation.getCurrentPosition((pos) => {
+    bestFix({ onProgress: (bf) => { b.textContent = `Reading GPS… ±${Math.round(bf.coords.accuracy)} m`; } }).then((pos) => {
       b.disabled = false; b.textContent = '📍 Pin my current location';
       const acc = Math.round(pos.coords.accuracy);
-      setPin(pos.coords.latitude, pos.coords.longitude, acc, `Location captured (GPS ±${acc} m).${acc > 60 ? ' Accuracy is poor — step outside the shop door, wait a few seconds and tap again, or drag the pin onto the shop.' : ' Drag the pin if it is not exactly on the shop.'}`, acc > 60 ? 'bad' : 'ok');
+      setPin(pos.coords.latitude, pos.coords.longitude, acc, `Location captured (GPS ±${acc} m).${acc > 60 ? ' Accuracy is poor — step outside the shop door and tap again, or drag the pin onto the shop. ' + PRECISE_HINT : ' Drag the pin if it is not exactly on the shop.'}`, acc > 60 ? 'bad' : 'ok');
     }, (err) => {
       b.disabled = false; b.textContent = '📍 Pin my current location';
-      setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', err.code === 1 ? 'Location permission is blocked for this site — allow it in the browser settings, then tap again.' : 'Could not read the location — try again, or paste a Google Maps link.', 'bad');
-    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+      setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', gpsErrMsg(err, 'Could not read the location — try again, or paste a Google Maps link.'), 'bad');
+    });
   });
   document.getElementById('btnPasteLink').addEventListener('click', async () => {
     const txt = prompt('Paste a Google Maps link or "lat, lng":'); if (!txt) return;
@@ -672,6 +1012,7 @@
         area: document.getElementById('fArea').value.trim(), address: document.getElementById('fAddr').value.trim(), note: document.getElementById('fNote').value.trim(),
         lat: document.getElementById('fLat').value, lng: document.getElementById('fLng').value, accuracy_m: document.getElementById('fAcc').value,
         status: document.getElementById('fStatus').value,
+        opening_balance: Number(document.getElementById('fOpen').value) || 0, opening_date: document.getElementById('fOpenDate').value,
       });
       closeShopModal(); showAlert(d.message);
       await loadShops();
@@ -686,6 +1027,8 @@
     return `<div class="ol"><input class="l-name" placeholder="Perfume name…" value="${esc(it ? it.product_name : '')}" autocomplete="off"><input class="l-ml" placeholder="ML" inputmode="decimal" value="${esc(it ? String(it.ml || '').replace(/\s*ml$/i, '') : '')}" autocomplete="off"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-del" type="number" min="0" step="1" inputmode="numeric" placeholder="Deliv." title="How many actually reached the shop — leave empty if all did" value="${it && it.delivered !== undefined && it.delivered !== null ? it.delivered : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button></div>`;
   }
   function addLine(it) { document.getElementById('oLines').insertAdjacentHTML('beforeend', lineHtml(it)); recalc(); }
+  let oDiscT = 'pct';
+  function setDiscType(t) { oDiscT = t === 'amt' ? 'amt' : 'pct'; document.querySelectorAll('#oDiscType button').forEach(b => b.classList.toggle('on', b.dataset.dt === oDiscT)); }
   function recalc() {
     let qty = 0, total = 0, del = 0, delTotal = 0;
     document.querySelectorAll('#oLines .ol').forEach(r => {
@@ -701,17 +1044,24 @@
     document.getElementById('oPend').textContent = pend;
     document.getElementById('oPendWrap').style.display = pend ? '' : 'none';
     const billDel = document.getElementById('oBillDel').checked && pend > 0;
-    document.getElementById('oTotal').textContent = inr(billDel ? delTotal : total);
+    const base = billDel ? delTotal : total;
+    const dv = Math.max(0, Number(document.getElementById('oDiscVal').value) || 0);
+    const disc = base > 0 && dv > 0 ? Math.round((oDiscT === 'pct' ? base * Math.min(dv, 100) / 100 : Math.min(dv, base)) * 100) / 100 : 0;
+    document.getElementById('oTotal').textContent = inr(base - disc);
+    document.getElementById('oDiscNote').textContent = disc > 0 ? `− ${inr(disc)} off ${inr(base)}` : '';
     document.getElementById('oBillAmt').textContent = inr(delTotal);
     document.getElementById('oPartBox').style.display = pend ? '' : 'none';
     document.getElementById('oPartTxt').textContent = pend + ' pc' + (pend === 1 ? '' : 's');
     document.getElementById('oPaidWrap').style.display = document.getElementById('oPay').value === 'pending' ? '' : 'none';
+    document.getElementById('oDueWrap').style.display = document.getElementById('oPay').value === 'pending' ? '' : 'none';
   }
   document.getElementById('oBillDel').addEventListener('change', recalc);
   document.getElementById('oLines').addEventListener('input', recalc);
   document.getElementById('oLines').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.ol').remove(); if (!document.querySelector('#oLines .ol')) addLine(); recalc(); } });
   document.getElementById('btnAddLine').addEventListener('click', () => { addLine(); const rows = document.querySelectorAll('#oLines .l-name'); rows[rows.length - 1].focus(); });
   document.getElementById('oPay').addEventListener('change', recalc);
+  document.getElementById('oDiscVal').addEventListener('input', recalc);
+  document.getElementById('oDiscType').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; setDiscType(b.dataset.dt); recalc(); });
   async function openOrderModal(shopId, o) {
     const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
     document.getElementById('orderAlert').innerHTML = '';
@@ -722,8 +1072,11 @@
     document.getElementById('oPay').value = o ? o.payment : 'pending';
     document.getElementById('oDate').value = o ? String(o.order_date).slice(0, 10) : new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     document.getElementById('oPaid').value = o && o.paid_amount ? o.paid_amount : '';
+    document.getElementById('oDue').value = o && o.due_date ? String(o.due_date).slice(0, 10) : '';
     document.getElementById('oNote').value = o ? o.note || '' : '';
     document.getElementById('oBillDel').checked = o ? !!o.bill_delivered : false;
+    setDiscType(o && o.discount_type ? o.discount_type : 'pct');
+    document.getElementById('oDiscVal').value = o && Number(o.discount_value) > 0 ? o.discount_value : '';
     document.getElementById('oLines').innerHTML = '';
     if (o && o.items.length) o.items.forEach(addLine); else { addLine(); addLine(); }
     recalc();
@@ -741,7 +1094,7 @@
       const d = await api.post('retail.order_save', {
         order_id: document.getElementById('oId').value || 0, shop_id: Number(document.getElementById('oShop').value),
         order_type: document.getElementById('oType').value, payment: document.getElementById('oPay').value, order_date: document.getElementById('oDate').value,
-        paid_amount: Number(document.getElementById('oPaid').value) || 0, note: document.getElementById('oNote').value.trim(),
+        paid_amount: Number(document.getElementById('oPaid').value) || 0, due_date: document.getElementById('oDue').value, discount_type: oDiscT, discount_value: Number(document.getElementById('oDiscVal').value) || 0, note: document.getElementById('oNote').value.trim(),
         bill_delivered: document.getElementById('oBillDel').checked ? 1 : 0, items,
       });
       closeOrderModal(); showAlert(d.message);
@@ -751,6 +1104,146 @@
     } catch (err) { document.getElementById('orderAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   });
+
+  // ---------- photo viewer ----------
+  // A photo opens on top of this page, never in a new tab (in the installed web app, Back from a new tab closes the app).
+  // Back closes the viewer (layout.js adds a history entry for every .modal-overlay that opens).
+  // Zoom: pinch, double-tap / double-click, mouse wheel or the + / - buttons; drag to move a zoomed photo.
+  // Photos come from the server one request each; when the server is busy a few of them fail. Try them again (up to 3 times) instead of leaving a broken picture.
+  const imgRetry = (url, n) => url + (url.indexOf('?') < 0 ? '?' : '&') + '_r=' + n;
+  document.addEventListener('error', (e) => {
+    const im = e.target;
+    if (!im || im.tagName !== 'IMG' || !(im.classList.contains('thumb') || (im.closest && im.closest('.gal')))) return;
+    const n = Number(im.dataset.try || 0);
+    if (n >= 3) return;
+    im.dataset.try = n + 1;
+    const base = im.dataset.src || (im.dataset.src = im.getAttribute('src'));
+    setTimeout(() => { if (im.isConnected) im.src = imgRetry(base, n + 1); }, 900 * (n + 1));
+  }, true);
+  const iv = { open: false, s: 1, tx: 0, ty: 0, w: 0, h: 0, sw: 0, sh: 0, ptr: new Map(), g: null, tap: null, moved: false, t0: 0, y: 0, hintT: 0, from: null };
+  const IV_MAX = 6;
+  const ivEl = (id) => document.getElementById(id);
+  function ivApply() {   // keep the photo on screen, then draw it
+    const mx = Math.max(0, (iv.w * iv.s - iv.sw) / 2), my = Math.max(0, (iv.h * iv.s - iv.sh) / 2);
+    iv.tx = Math.min(mx, Math.max(-mx, iv.tx)); iv.ty = Math.min(my, Math.max(-my, iv.ty));
+    ivEl('ivImg').style.transform = `translate(${iv.tx}px, ${iv.ty}px) scale(${iv.s})`;
+    ivEl('ivStage').classList.toggle('zoomed', iv.s > 1.01);
+  }
+  function ivFit() {   // the photo fitted into the screen = zoom 1
+    const st = ivEl('ivStage'), img = ivEl('ivImg'), nw = img.naturalWidth || 1, nh = img.naturalHeight || 1;
+    iv.sw = st.clientWidth; iv.sh = st.clientHeight;
+    const k = Math.min(iv.sw / nw, iv.sh / nh);
+    iv.w = nw * k; iv.h = nh * k;
+    img.style.width = iv.w + 'px'; img.style.height = iv.h + 'px'; img.style.marginLeft = (-iv.w / 2) + 'px'; img.style.marginTop = (-iv.h / 2) + 'px';
+  }
+  function ivZoom(s2, px, py) {   // zoom to s2 and keep the point (px, py: from the middle of the screen) where it is
+    s2 = Math.min(IV_MAX, Math.max(1, s2));
+    const k = s2 / iv.s;
+    iv.tx = px - (px - iv.tx) * k; iv.ty = py - (py - iv.ty) * k; iv.s = s2;
+    if (s2 === 1) { iv.tx = 0; iv.ty = 0; }
+    ivApply();
+  }
+  const ivPt = (e) => { const r = ivEl('ivStage').getBoundingClientRect(); return { x: e.clientX - r.left - r.width / 2, y: e.clientY - r.top - r.height / 2 }; };
+  function ivGrip() {   // remember where the fingers are now; the next move is measured from here
+    const p = Array.from(iv.ptr.values());
+    if (p.length === 1) iv.g = { n: 1, x: p[0].x, y: p[0].y, tx: iv.tx, ty: iv.ty };
+    else if (p.length > 1) {
+      const a = p[0], b = p[1], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      iv.g = { n: 2, d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: iv.s, ux: (mx - iv.tx) / iv.s, uy: (my - iv.ty) / iv.s };
+    } else iv.g = null;
+  }
+  function ivDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    try { ivEl('ivStage').setPointerCapture(e.pointerId); } catch (err) {}
+    if (!iv.ptr.size) { iv.moved = false; iv.t0 = Date.now(); }
+    iv.ptr.set(e.pointerId, ivPt(e)); ivGrip();
+  }
+  function ivMove(e) {
+    if (!iv.ptr.has(e.pointerId)) return;
+    iv.ptr.set(e.pointerId, ivPt(e));
+    const g = iv.g, p = Array.from(iv.ptr.values());
+    if (!g) return;
+    if (g.n === 1 && p.length === 1) {   // one finger / the mouse: move the photo (only when it is zoomed)
+      const dx = p[0].x - g.x, dy = p[0].y - g.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) iv.moved = true;
+      if (iv.s > 1.01 && iv.moved) { iv.tx = g.tx + dx; iv.ty = g.ty + dy; ivEl('ivStage').classList.add('drag'); ivApply(); }
+    } else if (g.n === 2 && p.length > 1) {   // two fingers: zoom around the point between them (and move with them)
+      const a = p[0], b = p[1], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      iv.moved = true;
+      iv.s = Math.min(IV_MAX, Math.max(1, g.s * d / g.d)); iv.tx = mx - g.ux * iv.s; iv.ty = my - g.uy * iv.s;
+      if (iv.s === 1) { iv.tx = 0; iv.ty = 0; }
+      ivApply();
+    }
+  }
+  function ivUp(e) {
+    if (!iv.ptr.has(e.pointerId)) return;
+    const pt = iv.ptr.get(e.pointerId), single = iv.ptr.size === 1;
+    iv.ptr.delete(e.pointerId); ivEl('ivStage').classList.remove('drag');
+    if (iv.ptr.size) { iv.moved = true; ivGrip(); return; }   // a pinch ended with one finger still down: carry on with it, it is not a tap
+    iv.g = null;
+    if (e.type === 'pointercancel' || !single || iv.moved || Date.now() - iv.t0 > 450) return;
+    // a tap: on the dark area it closes, two quick taps on the photo zoom in / back out
+    if (Math.abs(pt.x - iv.tx) > iv.w * iv.s / 2 || Math.abs(pt.y - iv.ty) > iv.h * iv.s / 2) { ivClose(); return; }
+    const now = Date.now();
+    if (iv.tap && now - iv.tap.t < 330 && Math.hypot(pt.x - iv.tap.x, pt.y - iv.tap.y) < 40) { iv.tap = null; ivZoom(iv.s > 1.05 ? 1 : 2.5, pt.x, pt.y); return; }
+    iv.tap = { t: now, x: pt.x, y: pt.y };
+  }
+  function ivWheel(e) {
+    e.preventDefault();   // the page behind must not scroll
+    if (e.target.closest && e.target.closest('.iv-bar')) return;
+    const p = ivPt(e);
+    ivZoom(iv.s * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.06 : (e.ctrlKey ? 0.01 : 0.0018))), p.x, p.y);
+  }
+  function ivHint() {
+    const h = ivEl('ivHint');
+    h.textContent = window.matchMedia('(pointer: coarse)').matches ? 'Pinch or double-tap to zoom · drag to move' : 'Scroll or double-click to zoom · drag to move';
+    h.classList.add('show'); clearTimeout(iv.hintT); iv.hintT = setTimeout(() => h.classList.remove('show'), 2800);
+  }
+  function ivOpen(src, title, sub) {
+    const img = ivEl('ivImg'), msg = ivEl('ivMsg');
+    ivEl('ivTitle').textContent = title || 'Photo'; ivEl('ivSub').textContent = sub || '';
+    msg.textContent = 'Loading…'; msg.style.display = ''; img.style.display = 'none'; img.removeAttribute('src');
+    iv.s = 1; iv.tx = 0; iv.ty = 0; iv.ptr.clear(); iv.g = null; iv.tap = null;
+    if (!iv.open) { iv.y = window.scrollY; iv.from = document.activeElement; }
+    iv.open = true; ivEl('iv').classList.add('open');
+    img.onload = () => { msg.style.display = 'none'; img.style.display = ''; ivFit(); ivApply(); ivHint(); };
+    let tries = 0;
+    img.onerror = () => {   // a busy server can drop a request: try again twice before giving up
+      if (tries < 2) { tries++; setTimeout(() => { if (iv.open && img.onerror) img.src = imgRetry(src, tries); }, 700 * tries); return; }
+      msg.textContent = 'Could not load this photo. Close it and tap the photo again to retry.'; msg.style.display = '';
+    };
+    img.src = src;
+    try { ivEl('ivX').focus({ preventScroll: true }); } catch (err) {}
+  }
+  function ivClose() {
+    if (!iv.open) return;
+    iv.open = false; ivEl('iv').classList.remove('open'); iv.ptr.clear(); iv.g = null; clearTimeout(iv.hintT);
+    const img = ivEl('ivImg'); img.onload = img.onerror = null; img.removeAttribute('src');
+    const y = iv.y; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+    if (iv.from && iv.from.focus) { try { iv.from.focus({ preventScroll: true }); } catch (err) {} }
+  }
+  (function () {
+    const root = ivEl('iv'), st = ivEl('ivStage');
+    st.addEventListener('pointerdown', ivDown); st.addEventListener('pointermove', ivMove); st.addEventListener('pointerup', ivUp); st.addEventListener('pointercancel', ivUp);
+    root.addEventListener('wheel', ivWheel, { passive: false });
+    root.addEventListener('click', (e) => { if (e.target === root) ivClose(); });   // also how Back closes it (layout.js)
+    ivEl('ivX').addEventListener('click', () => ivClose());
+    ivEl('ivIn').addEventListener('click', () => ivZoom(iv.s * 1.6, 0, 0));
+    ivEl('ivOut').addEventListener('click', () => ivZoom(iv.s / 1.6, 0, 0));
+    window.addEventListener('resize', () => { if (iv.open && ivEl('ivImg').naturalWidth) { ivFit(); ivApply(); } });
+    document.addEventListener('keydown', (e) => {
+      if (!iv.open) return;
+      if (e.key === 'Escape') { e.preventDefault(); ivClose(); }
+      else if (e.key === '+' || e.key === '=') ivZoom(iv.s * 1.4, 0, 0);
+      else if (e.key === '-' || e.key === '_') ivZoom(iv.s / 1.4, 0, 0);
+      else if (e.key === '0') ivZoom(1, 0, 0);
+    });
+    document.addEventListener('click', (e) => {   // every photo link (Last visit column, shop gallery) opens here
+      const a = e.target.closest && e.target.closest('a[data-iv]');
+      if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button > 0) return;
+      e.preventDefault(); ivOpen(a.getAttribute('href'), a.dataset.iv, a.dataset.ivs);
+    });
+  })();
 
   // ---------- display photo (visit) ----------
   const photoModal = document.getElementById('photoModal');
@@ -765,7 +1258,7 @@
     phBlob = null; phPos = null;
     modalScrollY = window.scrollY; photoModal.classList.add('open');
     // Where the phone is right now (silent; the pin distance is shown with the photo).
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition((p) => { phPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy) }; }, () => {}, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+    if (navigator.geolocation) bestFix({ maxMs: 10000, goodM: 25 }).then((p) => { phPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy) }; }, () => {});
   }
   function closePhotoModal() { photoModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnPhotoCancel').addEventListener('click', closePhotoModal);
@@ -858,13 +1351,12 @@
   // ---------- totals ----------
   let tPeriod = 'month', tData = null;
   const thisMonth = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 7);
-  const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   document.getElementById('tMonth').value = thisMonth();
   document.getElementById('tFrom').value = thisMonth() + '-01';
   document.getElementById('tTo').value = todayStr();
-  document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('#viewTotals .seg button').forEach(btn => btn.addEventListener('click', () => {
     tPeriod = btn.dataset.per;
-    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('#viewTotals .seg button').forEach(b => b.classList.toggle('on', b === btn));
     document.getElementById('tMonth').style.display = tPeriod === 'month' ? '' : 'none';
     document.getElementById('tCustom').style.display = tPeriod === 'custom' ? 'inline-flex' : 'none';
     loadTotals();
@@ -937,7 +1429,7 @@
   document.getElementById('tChart').addEventListener('click', (e) => {
     const b = e.target.closest('.mb'); if (!b) return;
     tPeriod = 'month'; document.getElementById('tMonth').value = b.dataset.m; document.getElementById('tMonth').style.display = ''; document.getElementById('tCustom').style.display = 'none';
-    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x.dataset.per === 'month'));
+    document.querySelectorAll('#viewTotals .seg button').forEach(x => x.classList.toggle('on', x.dataset.per === 'month'));
     loadTotals();
   });
   document.getElementById('viewTotals').addEventListener('click', (e) => {
@@ -960,16 +1452,18 @@
 
   // ---------- payment modal ----------
   const payModal = document.getElementById('payModal');
-  function openPayModal(o) {
+  function payWraps() { const p = document.getElementById('pPay').value === 'pending'; document.getElementById('pAmtWrap').style.display = p ? '' : 'none'; document.getElementById('pDueWrap').style.display = p ? '' : 'none'; }
+  function openPayModal(o, wantPending) {
     document.getElementById('payAlert').innerHTML = '';
     document.getElementById('pId').value = o.order_id;
-    document.getElementById('paySub').textContent = `${o.order_no} · ${inr(o.total)}${o.paid_amount ? ' · paid ' + inr(o.paid_amount) : ''}`;
-    document.getElementById('pPay').value = o.payment === 'pending' ? 'cash' : o.payment;
+    document.getElementById('paySub').textContent = `${o.order_no} · ${inr(o.billed_total !== undefined ? o.billed_total : o.total)}${o.paid_amount ? ' · paid ' + inr(o.paid_amount) : ''}`;
+    document.getElementById('pPay').value = wantPending ? 'pending' : (o.payment === 'pending' ? 'cash' : o.payment);
     document.getElementById('pAmt').value = o.paid_amount || '';
-    document.getElementById('pAmtWrap').style.display = document.getElementById('pPay').value === 'pending' ? '' : 'none';
+    document.getElementById('pDue').value = o.due_date ? String(o.due_date).slice(0, 10) : '';
+    payWraps();
     modalScrollY = window.scrollY; payModal.classList.add('open');
   }
-  document.getElementById('pPay').addEventListener('change', () => { document.getElementById('pAmtWrap').style.display = document.getElementById('pPay').value === 'pending' ? '' : 'none'; });
+  document.getElementById('pPay').addEventListener('change', payWraps);
   function closePayModal() { payModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnPayCancel').addEventListener('click', closePayModal);
   payModal.addEventListener('click', (e) => { if (e.target === payModal) closePayModal(); });
@@ -977,16 +1471,954 @@
     const btn = document.getElementById('btnPaySave'); btn.disabled = true;
     try {
       const pay = document.getElementById('pPay').value;
-      const d = await api.post('retail.order_pay', { order_id: Number(document.getElementById('pId').value), payment: pay, paid_amount: pay === 'pending' ? (Number(document.getElementById('pAmt').value) || 0) : '' });
+      const d = await api.post('retail.order_pay', { order_id: Number(document.getElementById('pId').value), payment: pay, paid_amount: pay === 'pending' ? (Number(document.getElementById('pAmt').value) || 0) : '', due_date: pay === 'pending' ? document.getElementById('pDue').value : undefined });
       closePayModal(); showAlert(d.message); await loadShops(); if (currentShop) openShop(currentShop.shop_id);
     } catch (err) { document.getElementById('payAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   });
 
+  // ---------- payment reminders (due dates) ----------
+  // Pending orders with a due date: overdue / due today / coming up. Phones of everyone with Retail Shops access are also
+  // notified from the "push_hour" each morning (day before, on the day, then daily while unpaid) — see api.php retail_due_pass.
+  async function loadDue() {
+    try { renderDue(await withRetry(() => api.get('retail.due'))); }
+    catch (err) { document.getElementById('dueCard').style.display = 'none'; }   // older api.php without retail.due
+  }
+  function renderDue(d) {
+    const items = d.items || [];
+    const sum = (x, cls, txt) => x && x.n ? `<span class="chip ${cls}">${x.n} ${txt} · ${inr(x.amount)}</span>` : '';
+    document.getElementById('dueSum').innerHTML = sum(d.overdue, 'c-red', 'overdue') + sum(d.due_today, 'c-amber', 'due today') + sum(d.soon, 'c-blue', 'coming up');
+    document.getElementById('dueTools').innerHTML = !d.linked
+      ? '<span class="sub">Phone alerts need this login to be linked to an employee.</span>'
+      : (!d.phones
+        ? '<button class="btn secondary" id="btnDueAlerts" style="width:auto; padding:7px 12px; font-size:12.5px; min-height:0;">🔔 Turn on phone alerts</button>'
+        : `<span class="sub">📱 Phone alerts on${d.phones > 1 ? ' (' + d.phones + ' phones)' : ''}</span><button class="link" id="btnDueTest">Send test</button>`);
+    document.getElementById('dueList').innerHTML = items.length ? items.map(i => {
+      const msg = encodeURIComponent(`Namaste${i.owner_name ? ' ' + i.owner_name : ''}, payment reminder from TM Perfume House: ${inr(i.amount)} for order ${i.order_no} (due ${fmtDS(i.due_date)}). Please pay at the earliest. Thank you.`);
+      const m = String(i.mobile || '').replace(/\D/g, '');
+      return `<div class="dr">
+        <span><span class="chip ${dueCls(i.days)}">${dueLabel(i.days)}</span></span>
+        <div class="dm"><b>${esc(i.shop_name)}</b><div class="sub">${esc(i.order_no)} · due ${fmtDS(i.due_date)}${i.area ? ' · ' + esc(i.area) : ''}</div></div>
+        <b class="da" style="color:${i.days < 0 ? '#c81e1e' : '#111827'};">${inr(i.amount)}</b>
+        <div class="ra">${m ? `<a class="pill-btn" href="${waUrl(i.mobile)}?text=${msg}" target="_blank" rel="noopener" style="color:#128c4a;">WhatsApp</a><a class="pill-btn" href="tel:${esc(i.mobile)}">Call</a>` : ''}<button class="pill-btn" data-dopen="${i.shop_id}">Open</button></div>
+      </div>`;
+    }).join('') : '<div class="empty-state" style="padding:16px 20px;">No shop payment is overdue, due today or due in the next few days.</div>';
+    document.getElementById('dueFoot').innerHTML = (d.no_date > 0 ? `<b>${d.no_date}</b> pending order${d.no_date === 1 ? ' has' : 's have'} no due date — open the order and add one to get reminders. ` : '')
+      + `Phones are notified at ${d.push_hour || 10} AM: the day before, on the due date, then every day for ${d.late_days || 7} days while unpaid.`;
+    document.getElementById('dueCard').style.display = '';
+  }
+  document.getElementById('dueCard').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.dopen) { openShop(Number(b.dataset.dopen)); return; }
+    if (b.id === 'btnDueAlerts') {
+      b.disabled = true;
+      try {
+        const ok = typeof hrmsPushSubscribe === 'function' && await hrmsPushSubscribe(true);
+        if (ok) showAlert('Phone alerts are on for this device.');
+        else showAlert(('Notification' in window && Notification.permission === 'denied') ? 'Notifications are blocked for this site — allow them in the browser settings, then try again.' : 'This browser cannot show phone notifications. On iPhone, add the HRMS to the Home Screen first.', 'error');
+      } catch (err) { showAlert(err.message, 'error'); }
+      loadDue();
+    } else if (b.id === 'btnDueTest') {
+      b.disabled = true;
+      try { showAlert((await api.post('retail.due_test', {})).message); } catch (err) { showAlert(err.message, 'error'); }
+      b.disabled = false;
+    }
+  });
+
+  // ---------- ledger (account statement per shop) ----------
+  // Bills are debits, payments / credit notes are credits, the balance runs down the page. The server (retail.ledger) does every sum;
+  // this page only draws it: a table on a computer, a month-wise list on a phone.
+  const fm = (n) => { n = Number(n) || 0; const a = Math.round(Math.abs(n) * 100) / 100; return (n < 0 ? '−' : '') + '₹' + a.toLocaleString('en-IN', { minimumFractionDigits: Number.isInteger(a) ? 0 : 2, maximumFractionDigits: 2 }); };
+  const balTxt = (n) => Math.abs(n) < 0.005 ? '₹0' : fm(Math.abs(n)) + '<small>' + (n > 0 ? 'Dr' : 'Cr') + '</small>';
+  const balPlain = (n) => Math.abs(n) < 0.005 ? '₹0' : fm(Math.abs(n)) + ' ' + (n > 0 ? 'Dr' : 'Cr');
+  const MODE_LABEL = { cash: 'Cash', upi: 'UPI', bank: 'Bank', cheque: 'Cheque', credit: 'Credit note' };
+  const MODE_CLS = { cash: 'c-grey', upi: 'c-blue', bank: 'c-blue', cheque: 'c-grey', credit: 'c-amber' };
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function statusChip(st, overdueDays, nextDue) {
+    if (st === 'overdue') return `<span class="chip c-red">Overdue ${overdueDays} d</span>`;
+    if (st === 'due_today') return '<span class="chip c-amber">Due today</span>';
+    if (st === 'soon') return `<span class="chip c-amber">Due in ${nextDue} d</span>`;
+    if (st === 'clear') return '<span class="chip c-green">Clear</span>';
+    if (st === 'credit') return '<span class="chip c-blue">Advance</span>';
+    return '<span class="chip c-grey">Open</span>';
+  }
+  let ld = { shopId: 0, data: null, preset: 'all', from: '', to: '', prev: 'list' };
+  let la = { data: null, filter: 'due', rows: [] };
+
+  function ldRange() {
+    const t = todayStr(), y = Number(t.slice(0, 4)), m = Number(t.slice(5, 7));
+    if (ld.preset === 'month') return { from: `${y}-${pad2(m)}-01`, to: t };
+    if (ld.preset === 'last') { const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return { from: `${py}-${pad2(pm)}-01`, to: `${py}-${pad2(pm)}-${pad2(new Date(py, pm, 0).getDate())}` }; }
+    if (ld.preset === 'fy') return { from: `${m >= 4 ? y : y - 1}-04-01`, to: t };
+    if (ld.preset === 'custom') return { from: ld.from || '', to: ld.to || '' };
+    return { from: '', to: '' };
+  }
+  function ldPeriodText() {
+    const r = (ld.data && ld.data.range) || { from: '', to: '' };
+    return r.from || r.to ? `${r.from ? fmtD(r.from) : 'start'} – ${r.to ? fmtD(r.to) : 'today'}` : 'All time';
+  }
+  async function openLedger(id) {
+    if (view !== 'ledger') ld.prev = view;
+    showView('ledger');
+    history.replaceState(null, '', location.pathname + '?ledger=' + id);
+    if (ld.shopId !== id) { ld.preset = 'all'; ld.from = ''; ld.to = ''; syncPresetUi(); }
+    document.getElementById('ldName').textContent = 'Loading…';
+    document.getElementById('ldBody').innerHTML = '<tr><td colspan="5"><div class="loading sm">Loading...</div></td></tr>';
+    document.getElementById('ldList').innerHTML = '<div class="loading sm">Loading...</div>';
+    await loadLedger(id);
+  }
+  async function loadLedger(id) {
+    const p = ldRange();
+    const q = { id }; if (p.from) q.from = p.from; if (p.to) q.to = p.to;
+    try { ld.data = await withRetry(() => api.get('retail.ledger', q)); ld.shopId = id; renderLedger(); }
+    catch (err) { showAlert(err.message, 'error'); }
+  }
+  function syncPresetUi() {
+    document.querySelectorAll('#ldPreset button').forEach(b => b.classList.toggle('on', b.dataset.p === ld.preset));
+    document.getElementById('ldCustom').style.display = ld.preset === 'custom' ? 'inline-flex' : 'none';
+    document.getElementById('ldFrom').value = ld.from; document.getElementById('ldTo').value = ld.to;
+  }
+  document.getElementById('ldPreset').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    ld.preset = b.dataset.p;
+    if (ld.preset === 'custom' && !ld.from) { ld.from = todayStr().slice(0, 8) + '01'; ld.to = todayStr(); }
+    syncPresetUi(); loadLedger(ld.shopId);
+  });
+  ['ldFrom', 'ldTo'].forEach(id => document.getElementById(id).addEventListener('change', () => { ld.from = document.getElementById('ldFrom').value; ld.to = document.getElementById('ldTo').value; loadLedger(ld.shopId); }));
+
+  // how one statement line reads (shared by the table, the phone list, the print and the Excel file)
+  function ldLine(r) {
+    if (r.kind === 'opening') return { icon: '⏮', title: 'Opening dues', chips: '', subs: ['Owed before the ledger started' + (r.date ? ' · since ' + fmtD(r.date) : '')], plain: 'Opening dues' };
+    if (r.kind === 'bill') {
+      const chips = [];
+      if (r.discount_amount > 0) chips.push(`<span class="chip c-green">${r.discount_type === 'pct' ? Number(r.discount_value) + '% off' : fm(r.discount_amount) + ' off'}</span>`);
+      if (r.remaining <= 0.004) chips.push('<span class="chip c-green">Paid</span>');
+      else if (r.overdue_days > 0) chips.push(`<span class="chip c-red">Overdue ${r.overdue_days} d</span>`);
+      else if (r.paid > 0) chips.push(`<span class="chip c-amber">${fm(r.remaining)} left</span>`);
+      else if (r.due_date) chips.push(`<span class="chip c-blue">Due ${fmtDS(r.due_date)}</span>`);
+      const subs = [];
+      if (r.items) subs.push(esc(r.items));
+      if (r.discount_amount > 0) subs.push(`${fm(r.debit + r.discount_amount)} − ${fm(r.discount_amount)} discount`);
+      if (r.remaining > 0.004 && r.paid > 0) subs.push(`${fm(r.paid)} paid · ${fm(r.remaining)} pending`);
+      if (r.remaining > 0.004 && r.due_date && !(r.overdue_days > 0) && !(r.paid > 0)) subs.push('due ' + fmtD(r.due_date));
+      if (r.overdue_days > 0) subs.push('due ' + fmtD(r.due_date));
+      if (r.note) subs.push(esc(r.note));
+      if (r.by) subs.push('by ' + esc(r.by));
+      const tl = TYPE_LABEL[r.type] || r.type;
+      return { icon: '🧾', title: `<b>${esc(r.ref)}</b> · ${esc(tl)} · ${r.qty} pc${r.qty === 1 ? '' : 's'}`, chips: chips.join(' '), subs, plain: `${r.ref} ${tl}${r.items ? ' — ' + r.items : ''}` };
+    }
+    const credit = r.mode === 'credit';
+    const subs = [];
+    if (r.allocs && r.allocs.length) subs.push('for ' + r.allocs.map(a => `${esc(a.ref)} ${fm(a.amount)}`).join(', '));
+    if (r.on_account > 0.004) subs.push(`${fm(r.on_account)} kept on account (advance)`);
+    if (r.reference) subs.push('ref ' + esc(r.reference));
+    if (r.note) subs.push(esc(r.note));
+    if (r.by) subs.push('by ' + esc(r.by));
+    return { icon: credit ? '↩' : '₹', cls: 'c', title: `<b>${esc(r.ref)}</b> · ${credit ? 'Credit note' : 'Payment received'}`, chips: credit ? '' : `<span class="chip ${MODE_CLS[r.mode] || 'c-grey'}">${esc(MODE_LABEL[r.mode] || r.mode)}</span>`, subs, plain: `${r.ref} ${credit ? 'Credit note' : 'Payment received (' + (MODE_LABEL[r.mode] || r.mode) + ')'}${r.reference ? ' ref ' + r.reference : ''}`, del: true };
+  }
+  function ldBroughtFwd(d) {
+    const r0 = d.rows[0];
+    return d.range.from ? round2(d.summary.opening - (r0 && r0.kind === 'opening' ? r0.debit - r0.credit : 0)) : null;
+  }
+  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+  function renderLedger() {
+    const d = ld.data; if (!d) return;
+    const s = d.shop, n = d.now, sm = d.summary;
+    document.getElementById('ldName').textContent = s.shop_name;
+    document.getElementById('ldChip').className = 'chip ' + (n.balance > 0.004 ? 'c-red' : (n.balance < -0.004 ? 'c-blue' : 'c-green'));
+    document.getElementById('ldChip').textContent = n.balance > 0.004 ? fm(n.balance) + ' due' : (n.balance < -0.004 ? fm(-n.balance) + ' advance' : 'Clear');
+    document.getElementById('ldMeta').textContent = [s.area, s.owner_name, s.mobile].filter(Boolean).join(' · ') + ' · ' + ldPeriodText();
+    const bf = ldBroughtFwd(d);
+    const openLbl = bf !== null ? 'Brought forward' : 'Opening dues';
+    const cards = [
+      [openLbl, fm(sm.opening), '', ''],
+      ['Billed', fm(sm.billed), `${sm.bills} bill${sm.bills === 1 ? '' : 's'}`, ''],
+      ['Received', fm(sm.received), `${sm.receipts} receipt${sm.receipts === 1 ? '' : 's'}`, 'color:#0f7a41;'],
+      ['Credit notes', fm(sm.returns), '', 'color:#0f7a41;'],
+      ['Balance due', balPlain(n.balance), n.overdue > 0.004 ? fm(n.overdue) + ' overdue' : (n.on_account > 0.004 ? fm(n.on_account) + ' on account' : ''), n.balance > 0.004 ? 'color:#c81e1e;' : 'color:#0f7a41;'],
+    ];
+    document.getElementById('ldCards').innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c[0]}</div><div class="value" style="${c[3]}">${c[1]}</div>${c[2] ? `<div class="sub"${/overdue/.test(c[2]) ? ' style="color:#c81e1e;"' : ''}>${c[2]}</div>` : ''}</div>`).join('');
+    document.getElementById('ldHero').innerHTML = `<div class="ld-hero"><div class="sm">Balance due</div><div class="big">${balPlain(n.balance)}</div>${n.overdue > 0.004 ? `<div class="sm" style="color:#fca5a5; opacity:1;">${fm(n.overdue)} overdue${n.overdue_days ? ' · ' + n.overdue_days + ' d' : ''}</div>` : (n.on_account > 0.004 ? `<div class="sm">${fm(n.on_account)} on account</div>` : '')}<div class="row"><div>${openLbl}<b>${fm(sm.opening)}</b></div><div>Billed<b>${fm(sm.billed)}</b></div><div>Received<b>${fm(sm.received)}</b></div>${sm.returns > 0 ? `<div>Credit notes<b>${fm(sm.returns)}</b></div>` : ''}</div></div>`;
+
+    // --- desktop table
+    const body = [];
+    let td = 0, tc = 0;
+    if (bf !== null) body.push(`<tr class="lrow-open"><td>${fmtD(d.range.from)}</td><td>Balance brought forward</td><td class="n"></td><td class="n"></td><td class="n lbal">${balTxt(bf)}</td></tr>`);
+    d.rows.forEach(r => {
+      const l = ldLine(r); td += r.debit; tc += r.credit;
+      const tag = l.subs.length ? `<span class="ltag">${l.subs.join(' · ')}</span>` : '';
+      const rm = l.del ? `<span class="ltag"><button class="link" data-rdel="${r.id}" style="font-size:11.5px; color:#c81e1e;">Delete this receipt</button></span>` : '';
+      body.push(`<tr class="${r.kind === 'opening' ? 'lrow-open' : ''}"><td>${r.date ? fmtD(r.date) : '—'}</td><td>${l.title} ${l.chips}${tag}${rm}</td><td class="n lg-dr">${r.debit ? fm(r.debit) : ''}</td><td class="n lg-cr">${r.credit ? fm(r.credit) : ''}</td><td class="n lbal">${balTxt(r.balance)}</td></tr>`);
+    });
+    if (!d.rows.length && bf === null) body.push('<tr><td colspan="5"><div class="empty-state">Nothing in this period.</div></td></tr>');
+    else body.push(`<tr class="lrow-close"><td colspan="2">${sm.closing > 0.004 ? esc(s.shop_name) + ' owes us' : (sm.closing < -0.004 ? 'We owe ' + esc(s.shop_name) + ' (advance)' : 'Closing balance — nothing due')}</td><td class="n">${fm(td)}</td><td class="n" style="color:#0f7a41;">${fm(tc)}</td><td class="n lbal" style="color:${sm.closing > 0.004 ? '#c81e1e' : '#0f7a41'};">${balTxt(sm.closing)}</td></tr>`);
+    document.getElementById('ldBody').innerHTML = body.join('');
+
+    // --- phone list (newest first, grouped by month)
+    const out = []; let mon = '';
+    d.rows.slice().reverse().forEach(r => {
+      const m = r.date ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
+      if (r.kind !== 'opening' && m !== mon) { mon = m; out.push(`<div class="lmon">${esc(m)}</div>`); }
+      const l = ldLine(r);
+      const amt = r.debit ? `<b>+ ${fm(r.debit)}</b>` : (r.credit ? `<b style="color:#0f7a41;">− ${fm(r.credit)}</b>` : '<b></b>');
+      out.push(`<div class="lent"${r.kind === 'opening' ? ' style="background:#f8fafc;"' : ''}><div class="ldot ${l.cls || ''}">${l.icon}</div><div class="lm">${l.title} ${l.chips}<div class="sub">${r.date ? fmtDS(r.date) : ''}${l.subs.length ? ' · ' + l.subs.join(' · ') : ''}</div>${l.del ? `<button class="link" data-rdel="${r.id}" style="font-size:11.5px; color:#c81e1e; margin-top:3px;">Delete</button>` : ''}</div><div class="la">${amt}<span>${balPlain(r.balance)}</span></div></div>`);
+    });
+    if (bf !== null) out.push(`<div class="lent" style="background:#f8fafc;"><div class="ldot">⏮</div><div class="lm"><b>Balance brought forward</b><div class="sub">${fmtD(d.range.from)}</div></div><div class="la"><b>${balPlain(bf)}</b></div></div>`);
+    if (!out.length) out.push('<div class="empty-state">Nothing in this period.</div>');
+    document.getElementById('ldList').innerHTML = out.join('');
+  }
+  document.getElementById('viewLedger').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-rdel]'); if (!b) return;
+    const r = ld.data.rows.find(x => x.kind === 'receipt' && x.id == b.dataset.rdel); if (!r) return;
+    if (!confirm(`Delete receipt ${r.ref} (${fm(r.credit)})?\n\nThe bills it paid become pending again.`)) return;
+    try { const x = await api.post('retail.payment_delete', { payment_id: r.id }); showAlert(x.message); await loadLedger(ld.shopId); loadShops(true); }
+    catch (err) { showAlert(err.message, 'error'); }
+  });
+  document.getElementById('btnLedgerBack').addEventListener('click', () => {
+    const p = ld.prev || 'list';
+    if (p === 'shop' && currentShop) { openShop(currentShop.shop_id); return; }
+    if (p === 'ledgerAll') { openLedgerAll(); return; }
+    showView(p === 'totals' || p === 'map' ? p : 'list'); if (p === 'list') loadShops(true);
+  });
+  document.getElementById('btnShopLedger').addEventListener('click', () => openLedger(currentShop.shop_id));
+  document.getElementById('shMeta').addEventListener('click', (e) => { if (e.target.closest('#btnShMetaLedger') && currentShop) openLedger(currentShop.shop_id); });
+  document.getElementById('btnLdReceive').addEventListener('click', () => openRcv(ld.shopId));
+
+  // ----- Excel (CSV), PDF (print) and WhatsApp for one shop
+  function saveCsv(name, rows) {
+    const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' }));
+    a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  const plainTxt = (h) => String(h).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  document.getElementById('btnLdCsv').addEventListener('click', () => {
+    const d = ld.data; if (!d) return;
+    const rows = [['Date', 'Ref', 'Particulars', 'Details', 'Debit', 'Credit', 'Balance (Dr + / Cr -)']];
+    const bf = ldBroughtFwd(d);
+    if (bf !== null) rows.push([d.range.from, '', 'Balance brought forward', '', '', '', bf]);
+    d.rows.forEach(r => { const l = ldLine(r); rows.push([r.date || '', r.ref || '', plainTxt(l.plain), plainTxt(l.subs.join(' · ')), r.debit || '', r.credit || '', r.balance]); });
+    rows.push(['', '', 'Closing balance', '', d.rows.reduce((a, r) => a + r.debit, 0), d.rows.reduce((a, r) => a + r.credit, 0), d.summary.closing]);
+    saveCsv('ledger-' + d.shop.shop_name.replace(/[^\w]+/g, '-') + '-' + todayStr() + '.csv', rows);
+  });
+  function printDoc(title, body) {
+    const w = window.open('', '_blank');
+    if (!w) { showAlert('Allow pop-ups for this site to print / save as PDF.', 'error'); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+      body{font:13px/1.45 Arial,Helvetica,sans-serif; color:#111827; margin:24px;} h1{font-size:20px; margin:0 0 2px;} .m{color:#6b7280; font-size:12px; margin-bottom:14px;}
+      table{width:100%; border-collapse:collapse;} th{font-size:11px; text-transform:uppercase; color:#6b7280; text-align:left; border-bottom:1.5px solid #111827; padding:6px 8px;}
+      td{padding:7px 8px; border-bottom:1px solid #e5e7eb; vertical-align:top;} .n{text-align:right; white-space:nowrap;} .s{display:block; font-size:11px; color:#6b7280;}
+      tr.t td{font-weight:700; border-top:2px solid #111827; border-bottom:none;} .cards{display:flex; gap:22px; margin:0 0 14px; flex-wrap:wrap;} .cards div{font-size:11px; color:#6b7280;} .cards b{display:block; font-size:16px; color:#111827;}
+      @media print{body{margin:10mm;}}</style><\/head><body>${body}<\/body><\/html>`);
+    w.document.close(); w.focus(); setTimeout(() => { try { w.print(); } catch (e) {} }, 400);
+  }
+  document.getElementById('btnLdPrint').addEventListener('click', () => {
+    const d = ld.data; if (!d) return;
+    const bf = ldBroughtFwd(d);
+    const rows = (bf !== null ? [`<tr><td>${fmtD(d.range.from)}</td><td>Balance brought forward</td><td class="n"></td><td class="n"></td><td class="n">${balPlain(bf)}</td></tr>`] : [])
+      .concat(d.rows.map(r => { const l = ldLine(r); return `<tr><td>${r.date ? fmtD(r.date) : ''}</td><td>${esc(plainTxt(l.plain))}${l.subs.length ? `<span class="s">${esc(plainTxt(l.subs.join(' · ')))}</span>` : ''}</td><td class="n">${r.debit ? fm(r.debit) : ''}</td><td class="n">${r.credit ? fm(r.credit) : ''}</td><td class="n">${balPlain(r.balance)}</td></tr>`; }));
+    rows.push(`<tr class="t"><td colspan="2">Closing balance</td><td class="n">${fm(d.rows.reduce((a, r) => a + r.debit, 0))}</td><td class="n">${fm(d.rows.reduce((a, r) => a + r.credit, 0))}</td><td class="n">${balPlain(d.summary.closing)}</td></tr>`);
+    const n = d.now;
+    printDoc('Statement — ' + d.shop.shop_name, `<h1>${esc(d.shop.shop_name)}</h1><div class="m">Account statement · ${esc(ldPeriodText())}${[d.shop.area, d.shop.owner_name, d.shop.mobile].filter(Boolean).length ? '<br>' + esc([d.shop.area, d.shop.owner_name, d.shop.mobile].filter(Boolean).join(' · ')) : ''}</div>
+      <div class="cards"><div>${bf !== null ? 'Brought forward' : 'Opening dues'}<b>${fm(d.summary.opening)}</b></div><div>Billed<b>${fm(d.summary.billed)}</b></div><div>Received<b>${fm(d.summary.received)}</b></div>${d.summary.returns ? `<div>Credit notes<b>${fm(d.summary.returns)}</b></div>` : ''}<div>Balance due<b>${balPlain(n.balance)}</b></div>${n.overdue > 0.004 ? `<div>Overdue<b>${fm(n.overdue)}</b></div>` : ''}</div>
+      <table><thead><tr><th style="width:90px;">Date</th><th>Particulars</th><th class="n">Debit</th><th class="n">Credit</th><th class="n">Balance</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+      <div class="m" style="margin-top:12px;">Dr = amount owed to us · Cr = advance. Generated ${esc(new Date().toLocaleString('en-IN'))}.</div>`);
+  });
+  document.getElementById('btnLdWa').addEventListener('click', () => {
+    const d = ld.data; if (!d) return;
+    const s = d.shop, n = d.now, last = d.rows.slice(-6);
+    const lines = last.map(r => `${r.date ? fmtDS(r.date) : ''}  ${plainTxt(ldLine(r).plain).slice(0, 38)}  ${r.debit ? fm(r.debit) : '− ' + fm(r.credit)}`);
+    const msg = `Namaste${s.owner_name ? ' ' + s.owner_name : ''},\nAccount statement of ${s.shop_name} (${ldPeriodText()}) from TM Perfume House:\n\nBilled: ${fm(d.summary.billed)}\nReceived: ${fm(d.summary.received)}${d.summary.returns ? '\nCredit notes: ' + fm(d.summary.returns) : ''}\n*Balance due: ${n.balance > 0.004 ? fm(n.balance) : (n.balance < -0.004 ? fm(-n.balance) + ' advance' : '₹0')}*${n.overdue > 0.004 ? '\nOverdue: ' + fm(n.overdue) : ''}\n\nLatest entries:\n${lines.join('\n')}\n\nPlease pay at the earliest. Thank you.`;
+    const dg = String(s.mobile || '').replace(/\D/g, '');
+    window.open((dg ? 'https://wa.me/' + (dg.length === 10 ? '91' + dg : dg) : 'https://wa.me/') + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  });
+
+  // ---------- all shops: who owes what ----------
+  async function openLedgerAll() { showView('ledgerAll'); await loadLedgerAll(); }
+  async function loadLedgerAll() {
+    document.getElementById('laBody').innerHTML = '<tr><td colspan="11"><div class="loading">Loading...</div></td></tr>';
+    try {
+      const area = document.getElementById('laArea').value;
+      la.data = await withRetry(() => api.get('retail.outstanding', area ? { area } : {}));
+      const sel = document.getElementById('laArea'), cur = sel.value;
+      sel.innerHTML = '<option value="">All areas</option>' + (la.data.areas || []).map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+      sel.value = cur;
+      renderLedgerAll();
+    } catch (err) { document.getElementById('laBody').innerHTML = `<tr><td colspan="11"><div class="alert error">${esc(err.message)}</div></td></tr>`; }
+  }
+  function laRemind(r) {
+    const m = encodeURIComponent(`Namaste${r.owner_name ? ' ' + r.owner_name : ''}, payment reminder from TM Perfume House: ${fm(r.balance)} is outstanding${r.overdue > 0.004 ? ' (' + fm(r.overdue) + ' overdue)' : ''}. Please pay at the earliest. Thank you.`);
+    return waUrl(r.mobile) + '?text=' + m;
+  }
+  function renderLedgerAll() {
+    const d = la.data; if (!d) return;
+    const t = d.totals;
+    document.getElementById('laSub').textContent = 'What every shop owes us · as on ' + fmtD(d.today);
+    document.getElementById('laCards').innerHTML = `
+      <div class="stat-card"><div class="label">Total outstanding</div><div class="value" style="color:#c81e1e;">${fm(t.outstanding)}</div><div class="sub">${t.outstanding_shops} shop${t.outstanding_shops === 1 ? '' : 's'}</div></div>
+      <div class="stat-card"><div class="label">Overdue</div><div class="value" style="color:#c81e1e;">${fm(t.overdue)}</div><div class="sub">${t.overdue_shops} shop${t.overdue_shops === 1 ? '' : 's'}</div></div>
+      <div class="stat-card"><div class="label">Collected this month</div><div class="value" style="color:#0f7a41;">${fm(t.collected_month)}</div><div class="sub">${t.collected_month_n} receipt${t.collected_month_n === 1 ? '' : 's'}</div></div>
+      <div class="stat-card"><div class="label">Billed this month</div><div class="value">${fm(t.billed_month)}</div><div class="sub">${t.billed_month_n} bill${t.billed_month_n === 1 ? '' : 's'}</div></div>`;
+    const q = document.getElementById('laQ').value.trim().toLowerCase();
+    let rows = d.shops.filter(r => la.filter === 'all' ? true : (la.filter === 'overdue' ? r.overdue > 0.004 : Math.abs(r.balance) > 0.004));
+    if (q) rows = rows.filter(r => (r.shop_name + ' ' + r.owner_name + ' ' + r.area + ' ' + r.mobile).toLowerCase().includes(q));
+    la.rows = rows;
+    if (!rows.length) {
+      const none = '<div class="empty-state">' + (la.filter === 'overdue' ? 'No overdue payment.' : (la.filter === 'due' ? 'No shop owes anything right now.' : 'No shops found.')) + '</div>';
+      document.getElementById('laBody').innerHTML = `<tr><td colspan="11">${none}</td></tr>`; document.getElementById('laList').innerHTML = none; return;
+    }
+    const sum = rows.reduce((a, r) => { a.debit += r.debit; a.credit += r.credit; a.balance += r.balance; r.buckets.forEach((v, i) => a.b[i] += v); return a; }, { debit: 0, credit: 0, balance: 0, b: [0, 0, 0, 0] });
+    const dash = (v, col) => v > 0.004 ? `<span${col ? ` style="color:${col};"` : ''}>${fm(v)}</span>` : '<span class="sub">—</span>';
+    document.getElementById('laBody').innerHTML = rows.map(r => `<tr${r.active ? '' : ' style="opacity:.6;"'}>
+      <td><b><a href="#" data-lopen="${r.shop_id}">${esc(r.shop_name)}</a></b>${r.active ? '' : ' <span class="chip c-grey">inactive</span>'}<div class="sub">${esc([r.area, r.owner_name].filter(Boolean).join(' · '))}</div></td>
+      <td class="n">${fm(r.debit)}</td><td class="n" style="color:#0f7a41;">${fm(r.credit)}</td>
+      <td class="n lbal" style="color:${r.balance > 0.004 ? '#c81e1e' : '#0f7a41'};">${balTxt(r.balance)}</td>
+      <td class="n">${dash(r.buckets[0])}</td><td class="n">${dash(r.buckets[1])}</td><td class="n">${dash(r.buckets[2], '#b45f06')}</td><td class="n">${dash(r.buckets[3], '#c81e1e')}</td>
+      <td>${r.last_payment ? fmtDS(r.last_payment) : '<span class="sub">—</span>'}</td>
+      <td>${statusChip(r.status, r.overdue_days, r.next_due)}</td>
+      <td><div class="row-actions"><button data-lopen="${r.shop_id}">📒 Ledger</button><button data-lrcv="${r.shop_id}" style="color:#0f7a41; font-weight:600;">+ Receive</button>${r.balance > 0.004 && r.mobile ? `<a class="pill-btn" href="${laRemind(r)}" target="_blank" rel="noopener" style="color:#128c4a;">Remind</a>` : ''}</div></td>
+    </tr>`).join('') + `<tr class="totrow"><td>TOTAL — ${rows.length} shop${rows.length === 1 ? '' : 's'}</td><td class="n">${fm(sum.debit)}</td><td class="n" style="color:#0f7a41;">${fm(sum.credit)}</td><td class="n">${balTxt(sum.balance)}</td><td class="n">${fm(sum.b[0])}</td><td class="n">${fm(sum.b[1])}</td><td class="n">${fm(sum.b[2])}</td><td class="n">${fm(sum.b[3])}</td><td></td><td></td><td></td></tr>`;
+    document.getElementById('laList').innerHTML = rows.map(r => `<div class="la-row"${r.active ? '' : ' style="opacity:.6;"'}>
+      <div class="t"><div><b><a href="#" data-lopen="${r.shop_id}">${esc(r.shop_name)}</a></b><div class="sub">${esc([r.area, r.owner_name].filter(Boolean).join(' · '))}</div></div><div style="text-align:right;"><b style="font-size:16px; color:${r.balance > 0.004 ? '#c81e1e' : '#0f7a41'};">${balPlain(r.balance)}</b><div>${statusChip(r.status, r.overdue_days, r.next_due)}</div></div></div>
+      ${r.balance > 0.004 ? `<div class="age"><span>0–30 d <b>${fm(r.buckets[0])}</b></span><span>31–60 d <b>${fm(r.buckets[1])}</b></span><span>61–90 d <b>${fm(r.buckets[2])}</b></span><span>90+ d <b>${fm(r.buckets[3])}</b></span></div>` : ''}
+      <div class="sub">${r.last_payment ? 'Last paid ' + fmtDS(r.last_payment) : 'No payment yet'}</div>
+      <div class="row-actions" style="margin-top:6px;"><button data-lopen="${r.shop_id}">📒 Ledger</button><button data-lrcv="${r.shop_id}" style="color:#0f7a41; font-weight:600;">+ Receive</button>${r.balance > 0.004 && r.mobile ? `<a class="pill-btn" href="${laRemind(r)}" target="_blank" rel="noopener" style="color:#128c4a;">Remind</a>` : ''}</div>
+    </div>`).join('') + `<div class="la-row" style="background:#f8fafc;"><div class="t"><b>TOTAL — ${rows.length} shop${rows.length === 1 ? '' : 's'}</b><b style="color:#c81e1e;">${balPlain(sum.balance)}</b></div></div>`;
+  }
+  document.getElementById('viewLedgerAll').addEventListener('click', (e) => {
+    const a = e.target.closest('[data-lopen]'); if (a) { e.preventDefault(); openLedger(Number(a.dataset.lopen)); return; }
+    const b = e.target.closest('[data-lrcv]'); if (b) openRcv(Number(b.dataset.lrcv));
+  });
+  document.getElementById('laFilter').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    la.filter = b.dataset.f; document.querySelectorAll('#laFilter button').forEach(x => x.classList.toggle('on', x === b)); renderLedgerAll();
+  });
+  document.getElementById('laArea').addEventListener('change', loadLedgerAll);
+  let laT; document.getElementById('laQ').addEventListener('input', () => { clearTimeout(laT); laT = setTimeout(renderLedgerAll, 200); });
+  document.getElementById('btnLedgerAll').addEventListener('click', () => { if (view === 'ledgerAll') showView('list'); else openLedgerAll(); });
+  document.getElementById('btnLaCsv').addEventListener('click', () => {
+    if (!la.rows.length) return;
+    const rows = [['Shop', 'Area', 'Owner', 'Mobile', 'Billed (incl. opening)', 'Paid (incl. credit notes)', 'Balance', '0-30 d', '31-60 d', '61-90 d', '90+ d', 'Overdue', 'Last paid']];
+    la.rows.forEach(r => rows.push([r.shop_name, r.area, r.owner_name, r.mobile, r.debit, r.credit, r.balance, ...r.buckets, r.overdue, r.last_payment || '']));
+    const tb = la.rows.reduce((a, r) => { r.buckets.forEach((v, i) => { a[i] += v; }); return a; }, [0, 0, 0, 0]);
+    rows.push(['TOTAL', '', '', '', la.rows.reduce((a, r) => a + r.debit, 0), la.rows.reduce((a, r) => a + r.credit, 0), la.rows.reduce((a, r) => a + r.balance, 0), ...tb, la.rows.reduce((a, r) => a + r.overdue, 0), '']);
+    saveCsv('retail-outstanding-' + todayStr() + '.csv', rows);
+  });
+  document.getElementById('btnLaPrint').addEventListener('click', () => {
+    if (!la.rows.length) return;
+    const tot = la.rows.reduce((a, r) => { a.d += r.debit; a.c += r.credit; a.b += r.balance; r.buckets.forEach((v, i) => a.k[i] += v); return a; }, { d: 0, c: 0, b: 0, k: [0, 0, 0, 0] });
+    printDoc('Retail outstanding', `<h1>Retail ledger — outstanding</h1><div class="m">As on ${esc(fmtD(la.data.today))} · ${la.rows.length} shops</div>
+      <table><thead><tr><th>Shop</th><th class="n">Billed</th><th class="n">Paid</th><th class="n">Balance</th><th class="n">0–30 d</th><th class="n">31–60 d</th><th class="n">61–90 d</th><th class="n">90+ d</th><th>Last paid</th></tr></thead><tbody>
+      ${la.rows.map(r => `<tr><td>${esc(r.shop_name)}<span class="s">${esc([r.area, r.owner_name].filter(Boolean).join(' · '))}</span></td><td class="n">${fm(r.debit)}</td><td class="n">${fm(r.credit)}</td><td class="n">${balPlain(r.balance)}</td>${r.buckets.map(v => `<td class="n">${v > 0.004 ? fm(v) : '—'}</td>`).join('')}<td>${r.last_payment ? fmtD(r.last_payment) : '—'}</td></tr>`).join('')}
+      <tr class="t"><td>TOTAL</td><td class="n">${fm(tot.d)}</td><td class="n">${fm(tot.c)}</td><td class="n">${balPlain(tot.b)}</td>${tot.k.map(v => `<td class="n">${fm(v)}</td>`).join('')}<td></td></tr></tbody></table>`);
+  });
+
+  // ---------- receive payment ----------
+  const rcvModal = document.getElementById('rcvModal');
+  let rcv = { shopId: 0, pending: [], balance: 0, manual: false, mode: 'cash', alloc: {}, shopName: '' };
+  async function openRcv(shopId) {
+    let d = (ld.data && ld.shopId === shopId && !ld.data.range.from && !ld.data.range.to) ? ld.data : null;
+    try { if (!d) d = await withRetry(() => api.get('retail.ledger', { id: shopId })); } catch (err) { showAlert(err.message, 'error'); return; }
+    rcv = { shopId, pending: d.pending || [], balance: d.now.balance, manual: false, mode: 'cash', alloc: {}, shopName: d.shop.shop_name, overdue: d.now.overdue };
+    document.getElementById('rcvAlert').innerHTML = '';
+    document.getElementById('rcvShop').value = shopId;
+    document.getElementById('rcvTitle').textContent = 'Receive payment — ' + d.shop.shop_name;
+    document.getElementById('rcvSub').textContent = rcv.balance > 0.004 ? `Balance due ${fm(rcv.balance)}${d.now.overdue > 0.004 ? ' · ' + fm(d.now.overdue) + ' overdue' : ''}` : 'Nothing is due right now — a payment will be kept on account (advance).';
+    document.getElementById('rcvAmt').value = ''; document.getElementById('rcvDate').value = todayStr(); document.getElementById('rcvDate').max = todayStr();
+    document.getElementById('rcvRef').value = ''; document.getElementById('rcvNote').value = '';
+    const full = document.getElementById('rcvFull'); full.textContent = rcv.balance > 0.004 ? `Fill full balance ${fm(rcv.balance)}` : ''; full.style.display = rcv.balance > 0.004 ? '' : 'none';
+    setRcvMode('cash'); rcvDraw();
+    modalScrollY = window.scrollY; rcvModal.classList.add('open');
+    setTimeout(() => document.getElementById('rcvAmt').focus(), 100);
+  }
+  function setRcvMode(m) { rcv.mode = m; document.querySelectorAll('#rcvMode button').forEach(b => b.classList.toggle('on', b.dataset.m === m)); }
+  function rcvAmount() { return round2(Number(document.getElementById('rcvAmt').value) || 0); }
+  function rcvDraw() {
+    const amt = rcvAmount(); let left = amt, used = 0;
+    if (!rcv.manual) { rcv.alloc = {}; rcv.pending.forEach(i => { const x = round2(Math.min(left, i.remaining)); if (x > 0.004) { rcv.alloc[i.order_id] = x; left = round2(left - x); } }); }
+    else rcv.pending.forEach(i => { const v = round2(Number(rcv.alloc[i.order_id]) || 0); rcv.alloc[i.order_id] = v; });
+    used = round2(Object.values(rcv.alloc).reduce((a, v) => a + (Number(v) || 0), 0));
+    const extra = round2(amt - used);
+    const rows = rcv.pending.map(i => {
+      const a = Number(rcv.alloc[i.order_id]) || 0, rest = round2(i.remaining - a);
+      const chip = a <= 0.004 ? '<span class="chip c-grey">—</span>' : (rest <= 0.004 ? '<span class="chip c-green">Cleared</span>' : `<span class="chip c-amber">${fm(rest)} left</span>`);
+      const lbl = `${esc(i.ref)}${i.date ? ' · ' + fmtDS(i.date) : ''} <span class="sub">(${fm(i.remaining)} pending${i.due_date && daysTo(i.due_date) < 0 ? ', overdue' : ''})</span>`;
+      return rcv.manual
+        ? `<div class="l"><span>${lbl}</span><span style="display:flex; gap:6px; align-items:center;"><input type="number" min="0" step="any" inputmode="decimal" data-ra="${i.order_id}" value="${a || ''}" placeholder="0"><button type="button" class="pill-btn" data-rfill="${i.order_id}">Fill</button></span></div>`
+        : `<div class="l"><span>${lbl}</span><b>${a > 0.004 ? fm(a) : '₹0'} ${chip}</b></div>`;
+    }).join('');
+    const credit = rcv.mode === 'credit';
+    document.getElementById('rcvAlloc').innerHTML = rcv.pending.length
+      ? `<div class="sub" style="margin:4px 0 5px;">${rcv.manual ? 'Type how much goes to each bill' : 'This ' + (credit ? 'credit note' : 'payment') + ' clears the oldest bills first'}</div><div class="rcv-alloc">${rows}</div>
+         <div style="font-size:12px; margin-top:6px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;"><button type="button" class="link" id="rcvToggle">${rcv.manual ? 'Oldest bills first' : 'Choose bills myself'}</button><span>${extra > 0.004 ? `<span style="color:#1d4ed8;">${fm(extra)} kept on account</span> · ` : (extra < -0.004 ? `<span style="color:#c81e1e;">${fm(-extra)} more than received</span> · ` : '')}Balance after: <b style="color:${rcv.balance - amt > 0.004 ? '#c81e1e' : '#0f7a41'};">${balPlain(rcv.balance - amt)}</b></span></div>`
+      : `<div class="sub" style="margin-top:4px;">No bill is pending. ${amt > 0 ? fm(amt) + ' will be kept on account and applied to the next bill.' : ''}</div>`;
+  }
+  document.getElementById('rcvAmt').addEventListener('input', rcvDraw);
+  document.getElementById('rcvMode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { setRcvMode(b.dataset.m); rcvDraw(); } });
+  document.getElementById('rcvFull').addEventListener('click', () => { document.getElementById('rcvAmt').value = rcv.balance; rcvDraw(); });
+  document.getElementById('rcvAlloc').addEventListener('click', (e) => {
+    if (e.target.closest('#rcvToggle')) { rcv.manual = !rcv.manual; if (!rcv.manual) rcv.alloc = {}; rcvDraw(); return; }
+    const f = e.target.closest('[data-rfill]');
+    if (f) {
+      const id = Number(f.dataset.rfill), it = rcv.pending.find(x => x.order_id === id);
+      const others = round2(Object.entries(rcv.alloc).filter(([k]) => Number(k) !== id).reduce((a, [, v]) => a + (Number(v) || 0), 0));
+      rcv.alloc[id] = Math.max(0, round2(Math.min(it.remaining, rcvAmount() - others))); rcvDraw();
+    }
+  });
+  document.getElementById('rcvAlloc').addEventListener('change', (e) => {
+    const i = e.target.closest('input[data-ra]'); if (!i) return;
+    rcv.alloc[Number(i.dataset.ra)] = round2(Number(i.value) || 0); rcvDraw();
+  });
+  function closeRcv() { rcvModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnRcvCancel').addEventListener('click', closeRcv);
+  rcvModal.addEventListener('click', (e) => { if (e.target === rcvModal) closeRcv(); });
+  document.getElementById('btnRcvSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnRcvSave'); btn.disabled = true;
+    try {
+      const amt = rcvAmount();
+      if (amt <= 0) throw new Error('Enter the amount received.');
+      const body = { shop_id: rcv.shopId, amount: amt, pay_date: document.getElementById('rcvDate').value, mode: rcv.mode, reference: document.getElementById('rcvRef').value.trim(), note: document.getElementById('rcvNote').value.trim() };
+      if (rcv.manual) {
+        const al = rcv.pending.map(i => ({ order_id: i.order_id, amount: Number(rcv.alloc[i.order_id]) || 0 })).filter(a => a.amount > 0.004);
+        if (al.reduce((a, x) => a + x.amount, 0) > amt + 0.005) throw new Error('The bills add up to more than the amount received.');
+        body.allocations = al;
+      }
+      const d = await api.post('retail.payment_add', body);
+      closeRcv(); showAlert(d.message);
+      if (view === 'ledger') await loadLedger(rcv.shopId); else if (view === 'ledgerAll') await loadLedgerAll();
+      loadShops(true);
+    } catch (err) { document.getElementById('rcvAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ---------- import shops, pending amounts, bills and payments from Excel ----------
+  // The file is read here in the browser and sent in batches of whole shops. Every row finds its shop by MOBILE NUMBER first (the server does the
+  // matching); a first pass only checks and reports, the second one saves.
+  const impModal = document.getElementById('impModal');
+  const impEl = (id) => document.getElementById(id);
+  const imp = { sheets: [], data: null, file: '', res: null, batches: [], stage: 'pick', running: false, stop: false, committed: false, final: null, tab: '', lvl: 'problems', q: '', lim: 120, swap: false, mode: 'set', create: true };
+  const IMP_XLSX = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  const IMP_KIND = { shops: 'Shops / pending list', orders: 'Orders (bills)', payments: 'Payments', ledger: 'Ledger', skip: 'Do not use' };
+  const IMP_F = {   // what each kind of sheet can hold (the order is the order of matching the columns)
+    shops: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['owner', 'Owner'], ['address', 'Address'], ['note', 'Note'], ['opening', 'Pending amount'], ['opening_date', 'As on date']],
+    orders: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['bill_no', 'Bill no'], ['type', 'Type'], ['product', 'Product'], ['size', 'Size'], ['qty', 'Qty'], ['rate', 'Rate'], ['amount', 'Amount'], ['discount', 'Discount'], ['payment', 'Payment'], ['paid', 'Paid amount'], ['paid_on', 'Paid on'], ['due', 'Due date'], ['note', 'Note']],
+    payments: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['amount', 'Amount'], ['mode', 'Mode'], ['reference', 'Reference'], ['bill_no', 'Bill no'], ['note', 'Note']],
+    ledger: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['debit', 'Debit'], ['credit', 'Credit'], ['narration', 'Narration'], ['bill_no', 'Bill no']],
+  };
+  const IMP_FILL = { owner_name: 'owner', mobile: 'mobile', address: 'address', note: 'note', area: 'area' };
+  // headings as people write them (letters and digits only, lower case)
+  const W_SHOP = 'shopname shop name party partyname customer customername retailer retailername store storename outlet outletname client clientname account accountname ledgername firm firmname dealer dealername company companyname';
+  const W_MOB = 'mobile mobileno mobilenumber mobno mob phone phoneno phonenumber contact contactno contactnumber cell cellno whatsapp whatsappno whatsappnumber tel telephone mobile1 phone1';
+  const W_AREA = 'area areaname location locality city zone route region town place beat market village';
+  const IMP_A = {
+    shops: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, owner: 'owner ownername contactperson contactname person proprietor incharge', address: 'address fulladdress shopaddress addr', note: 'note notes remark remarks comment comments',
+      opening: 'openingbalance opening openingdues openingdue openingoutstanding openingamount ob obal pending pendingamount pendingamt pendingbalance pendingdues pendingpayment pendingpayments paymentpending remaining remainingamount remainingamt remainingbalance remainingpayment balance balanceamount balancedue duebalance due dues dueamount amountdue outstanding outstandingamount outstandingbalance baki baaki udhar receivable totalpending totaldue totaloutstanding oldbalance previousbalance broughtforward bf',
+      opening_date: 'openingdate asondate asof balancedate obdate date' },
+    orders: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date orderdate billdate invoicedate dateofbill dt', bill_no: 'billno billnumber bill invoice invoiceno invoicenumber vchno voucherno voucher refno ref orderno ordernumber challanno challan slipno memono', type: 'type ordertype billtype kind',
+      product: 'product productname item itemname perfume perfumename fragrance fragrancename article goods description particulars sku brand', size: 'size sizeml ml sizeinml volume pack packing', qty: 'qty quantity pcs pieces nos units noofpcs piece', rate: 'rate price unitprice priceperpc rateperpc perpc unitrate sellingprice',
+      amount: 'amount total linetotal lineamount value billamount amt netamount itemtotal totalamount', discount: 'discount disc discountpct discountpercent discountamount dis rebate', payment: 'payment paymentstatus paymentmode paymenttype paystatus status mode',
+      paid: 'paid paidamount amountpaid paidamt received receivedamount', paid_on: 'paidon paiddate paymentdate receiveddate datepaid paidat datereceived', due: 'duedate due payby paymentdue payabledate duedt payduedate dueon', note: 'note notes remark remarks comment comments narration' },
+    payments: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date paymentdate paiddate receiptdate receiveddate dateofpayment dt paidon', amount: 'amount paid paidamount received receivedamount amountreceived amountpaid payment receipt collection collected amt credit',
+      mode: 'mode paymentmode paymenttype type method paymentmethod paidby via modeofpayment paymentby', reference: 'reference ref refno referenceno chequeno chequenumber utr utrno txn txnid txnno transactionid transactionno receiptno voucherno',
+      bill_no: 'billno bill invoice invoiceno invoicenumber billnumber againstbill forbill', note: 'note notes remark remarks comment comments narration particulars description details' },
+    ledger: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date voucherdate txndate transactiondate entrydate dt', debit: 'debit debitamount dr debits billed sales sale billamount invoiceamount charges', credit: 'credit creditamount cr credits received payment paid receipt collection paidamount amountreceived',
+      narration: 'narration particulars description details remark remarks note notes type vouchertype reference ref', bill_no: 'billno billnumber invoice invoiceno invoicenumber vchno voucherno bill' },
+  };
+  Object.keys(IMP_A).forEach(k => Object.keys(IMP_A[k]).forEach(f => { IMP_A[k][f] = new Set(IMP_A[k][f].split(' ')); }));
+  const IMP_ALL = new Set(); Object.values(IMP_A).forEach(t => Object.values(t).forEach(set => set.forEach(w => IMP_ALL.add(w))));
+  // when a heading is not one of the names above: a word inside it (and words that rule it out)
+  const IMP_RX = {
+    shop: [/shop|party|customer|client|retailer|outlet|store|firm|dealer|company|name/, /owner|contact|person|mobile|phone|address|area|note|remark|city|code|no$|number|date/],
+    mobile: [/mobile|phone|whatsapp|contact|cell|mob|tel/, /person|name|date|time|address/], area: [/area|locat|zone|route|city|town|region|village|beat|market/], owner: [/owner|proprietor|person|incharge/], address: [/addr/], note: [/note|remark|comment/],
+    opening: [/pending|remain|balance|due|outstanding|baki|baaki|udhar|receivable|opening|amount|amt|total/, /date|day|count|bill|invoice|no$|number|mode|paid|discount|qty|quant|pcs|piece|stock|bottle/], opening_date: [/date|asof|ason/],
+    date: [/date/, /due|paid|pay/], bill_no: [/bill|invoice|vch|voucher|challan|ref/, /date|amount|amt/], product: [/product|item|perfume|fragrance|article|descr|particular/], size: [/size|ml|volume/], qty: [/qty|quant|pcs|piece|nos/], rate: [/rate|price/],
+    amount: [/amount|amt|total|value/, /paid|due|disc|date|mode|type/], discount: [/disc/], type: [/type|kind/], payment: [/payment|pay|status|mode/, /date|due|paid|amount|amt/], paid: [/paid|received/, /date|on$/], paid_on: [/paid.*(on|date)|date.*paid|payment.*date/], due: [/due/],
+    mode: [/mode|type|method|via/], reference: [/ref|utr|cheque|chq|txn|transaction/], debit: [/debit|^dr$|sale|billed/], credit: [/credit|^cr$|receipt|received|paid/], narration: [/narration|particular|descr|detail|remark|note/],
+  };
+  const impKey = (s) => String(s ?? '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  const impTxt = (v) => String(v ?? '').trim();
+  const impIsTotal = (row) => { const f = row.find(v => impTxt(v) !== ''); return typeof f === 'string' && /^\s*(grand\s+|sub\s*)?totals?\s*:?\s*$/i.test(f); };
+  // 5000 · ₹5,000 · 5000/- · (300) · 12 Dr  ->  number;  empty -> null;  text -> NaN
+  function impNum(v) {
+    if (typeof v === 'number') return v;
+    let s = impTxt(v);
+    if (s === '' || s === '-' || s === '—' || s === '–') return null;
+    let neg = false;
+    s = s.replace(/\/-+\s*$/, '');
+    const p = s.match(/^\((.+)\)$/); if (p) { neg = true; s = p[1]; }
+    s = s.replace(/(₹|rs\.?|inr|\s|,)/gi, '').replace(/(dr|cr)\.?$/i, '');
+    if (s[0] === '-') { neg = !neg; s = s.slice(1); }
+    if (!/^(\d+(\.\d*)?|\.\d+)$/.test(s)) return NaN;
+    return (neg ? -1 : 1) * parseFloat(s);
+  }
+  const impPhones = (v) => String(v ?? '').split(/[,;\/|\n]+/).map(p => p.replace(/\D+/g, '')).filter(d => d.length >= 10 && d.length <= 20).map(d => d.slice(-10));
+  const impBillNo = (t) => { const m = String(t || '').match(/\b(?:bill|inv(?:oice)?|vch|voucher)\s*(?:no\.?|number|#)?\s*[:\-]?\s*([A-Za-z0-9\/\-]*\d[A-Za-z0-9\/\-]*)/i); return m ? m[1] : ''; };
+  function impModeWord(t) {
+    const k = String(t || '').toLowerCase();
+    if (/credit note|\bcn\b|return|discount|adjust|write.?off|rate diff/.test(k)) return 'Credit note';
+    if (/upi|gpay|google pay|phonepe|phone pe|paytm|\bqr\b|online/.test(k)) return 'UPI';
+    if (/cheque|check|chq/.test(k)) return 'Cheque';
+    if (/bank|neft|rtgs|imps|transfer/.test(k)) return 'Bank';
+    return 'Cash';
+  }
+  const impSheetShop = (name) => { const n = String(name || '').replace(/\s*\(fix\)\s*$/i, '').trim(); return /^(sheet|ledger|statement|data|page|table|report|khata)\s*\d*$/i.test(n) ? '' : n; };
+
+  // ----- reading the file
+  let impLibP = null;
+  function impLoadLib() {
+    if (window.XLSX) return Promise.resolve();
+    if (!impLibP) impLibP = new Promise((ok, no) => {
+      const s = document.createElement('script'); s.src = IMP_XLSX; s.onload = () => ok();
+      s.onerror = () => { impLibP = null; no(new Error('The Excel reader could not be loaded. Check your internet connection and try again.')); };
+      document.head.appendChild(s);
+    });
+    return impLibP;
+  }
+  function impCell(c) {
+    if (!c || c.t === 'e' || c.v === undefined || c.v === null) return '';
+    if (c.t === 'n') return c.z && /%/.test(c.z) ? (Math.round(c.v * 1e6) / 1e4) + '%' : c.v;   // a date cell stays its day number, the server reads it
+    if (c.t === 'b') return c.v ? 'TRUE' : 'FALSE';
+    return String(c.v);
+  }
+  function impSheetAoa(ws) {   // only cells that exist, so a sheet formatted down to the last row is no problem
+    const cells = []; let r0 = Infinity, r1 = -1, c1 = -1;
+    Object.keys(ws).forEach(a => {
+      if (a.charCodeAt(0) === 33) return;
+      const p = XLSX.utils.decode_cell(a);
+      if (p.c > 99) return;
+      cells.push([p.r, p.c, ws[a]]); if (p.r < r0) r0 = p.r; if (p.r > r1) r1 = p.r; if (p.c > c1) c1 = p.c;
+    });
+    if (!cells.length) return null;
+    if (r1 - r0 > 60000) r1 = r0 + 60000;
+    const aoa = Array.from({ length: r1 - r0 + 1 }, () => new Array(c1 + 1).fill(''));
+    cells.forEach(([r, c, cell]) => { if (r <= r1) aoa[r - r0][c] = impCell(cell); });
+    return { aoa, r0 };
+  }
+  async function impReadFile(file) {
+    await impLoadLib();
+    const csv = /\.(csv|txt)$/i.test(file.name);
+    const wb = csv ? XLSX.read(await file.text(), { type: 'string', raw: true }) : XLSX.read(await file.arrayBuffer(), { type: 'array', cellNF: true });
+    imp.sheets = [];
+    (wb.SheetNames || []).forEach(name => {
+      const ws = wb.Sheets[name]; if (!ws) return;
+      const a = impSheetAoa(ws); if (!a) return;
+      imp.sheets.push({ name: csv ? file.name.replace(/\.[^.]+$/, '') : name, aoa: a.aoa, r0: a.r0, hdr: 0, head: [], kind: 'skip', map: {}, n: 0, why: '', open: false });
+    });
+  }
+  function impHeadRow(aoa) {
+    const lim = Math.min(aoa.length, 30);
+    let best = 1, bi = -1;
+    for (let i = 0; i < lim; i++) {   // the row with the most known headings (at least two)
+      const sc = aoa[i].filter(v => typeof v === 'string' && v !== '' && IMP_ALL.has(impKey(v))).length;
+      if (sc > best) { best = sc; bi = i; }
+    }
+    if (bi >= 0) return bi;
+    for (let i = 0; i < lim; i++) {   // none known: the first row made of words only
+      const f = aoa[i].filter(v => impTxt(v) !== '');
+      if (f.length >= 2 && f.every(v => typeof v === 'string' && Number.isNaN(impNum(v)))) return i;
+    }
+    return 0;
+  }
+  // columns that could be "what the shop still owes" (Pending, Remaining, Balance, Baki ...); with several, the one that means "what is left" is used and the user is told
+  const IMP_AMT_YES = /pending|remain|balance|outstanding|due|baki|baaki|udhar|receivable|opening/, IMP_AMT_NO = /date|day|count|bill|invoice|no$|number|mode|paid|discount|qty|quant|pcs|piece|stock|bottle|ml$/, IMP_AMT_LEFT = /remain|balance|outstanding|baki|baaki|udhar|receivable/;
+  function impAmtCols(head, skip) {
+    const out = [];
+    head.forEach((h, c) => { const k = impKey(h); if (k && !(skip && skip.has(c)) && (IMP_A.shops.opening.has(k) || (!IMP_ALL.has(k) && IMP_AMT_YES.test(k) && !IMP_AMT_NO.test(k)))) out.push(c); });
+    return out;
+  }
+  const impOtherCols = (map) => new Set(Object.keys(map).filter(f => f !== 'opening').map(f => map[f]));
+  function impMap(head, kind) {
+    const keys = head.map(impKey), used = new Set(), map = {}, fields = IMP_F[kind].map(x => x[0]);
+    fields.forEach(f => {   // the exact names first
+      const j = keys.findIndex((k, c) => k && !used.has(c) && IMP_A[kind][f].has(k));
+      if (j >= 0) { map[f] = j; used.add(j); }
+    });
+    fields.forEach(f => {   // then a word inside the heading
+      const rx = IMP_RX[f]; if (map[f] !== undefined || !rx) return;
+      const j = keys.findIndex((k, c) => k && !used.has(c) && !IMP_ALL.has(k) && rx[0].test(k) && !(rx[1] && rx[1].test(k)));
+      if (j >= 0) { map[f] = j; used.add(j); }
+    });
+    if (kind === 'shops') {   // several amount columns: the one that means "what is left" wins (then the left-most)
+      const cand = impAmtCols(head, impOtherCols(map));
+      if (cand.length > 1) map.opening = cand.slice().sort((a, b) => (IMP_AMT_LEFT.test(keys[a]) ? 0 : 1) - (IMP_AMT_LEFT.test(keys[b]) ? 0 : 1) || a - b)[0];
+    }
+    return map;
+  }
+  function impMissing(sh) {
+    const m = sh.map, k = sh.kind, out = [];
+    if (k === 'skip') return out;
+    if (m.shop === undefined && m.mobile === undefined && !(k === 'ledger' && impSheetShop(sh.name))) out.push('Shop name or Mobile');
+    if (k === 'orders') { if (m.date === undefined) out.push('Date'); if (m.product === undefined && m.amount === undefined && m.rate === undefined) out.push('Product or Amount'); }
+    if (k === 'payments') { if (m.date === undefined) out.push('Date'); if (m.amount === undefined) out.push('Amount'); }
+    if (k === 'ledger') { if (m.date === undefined) out.push('Date'); if (m.debit === undefined && m.credit === undefined) out.push('Debit or Credit'); }
+    return out;
+  }
+  function impGuess(sh) {
+    const nk = impKey(sh.name).replace(/fix$/, '');
+    if (/^(readme|read|help|instruction|howto|guide|about|info|notes?|example|template|start)/.test(nk)) { sh.why = 'Instructions sheet - not imported'; return 'skip'; }
+    const keys = sh.head.map(impKey), ok = {};
+    ['ledger', 'orders', 'payments', 'shops'].forEach(k => { const m = impMap(sh.head, k), t = { map: m, kind: k, name: sh.name }; ok[k] = impMissing(t).length === 0 && (k !== 'ledger' || (m.debit !== undefined && m.credit !== undefined)) && (k !== 'shops' || Object.keys(m).length > 0); });
+    let hint = null;
+    if (/ledger|khata|statement/.test(nk)) hint = 'ledger';
+    else if (/payment|receipt|collection|received/.test(nk)) hint = 'payments';
+    else if (/order|bill|invoice|sale/.test(nk)) hint = 'orders';
+    else if (/pending|remain|outstanding|balance|due|baki|baaki|udhar|shop|customer|part(y|ies)|retailer|store|outlet|master|list/.test(nk)) hint = 'shops';
+    if (hint && ok[hint]) return hint;
+    const pendingish = keys.some(k => /pending|remain|balance|outstanding|baki|baaki|udhar|openingbal|dues?$/.test(k) && !/date|day/.test(k)), payish = keys.some(k => /mode|reference|utr|cheque|receipt|received|paid/.test(k));
+    if (ok.ledger) return 'ledger';
+    if (ok.orders) return 'orders';
+    if (ok.shops && pendingish && !payish) return 'shops';
+    if (ok.payments) return 'payments';
+    if (ok.shops) return 'shops';
+    sh.why = 'Columns not recognised - choose what this sheet contains';
+    return 'skip';
+  }
+
+  // ----- turning the sheets into rows for the server
+  function impLedger(o, out, shopName) {
+    const nm = impTxt(o.shop) || shopName, narr = impTxt(o.narration), base = { _sheet: o._sheet, _r: o._r, shop: nm, area: impTxt(o.area), mobile: o.mobile === undefined ? '' : o.mobile, date: o.date };
+    if (/closing\s*bal|carried\s*forward|^c\/?f\b|balance\s*c\/?f/i.test(narr)) return 0;
+    let d = impNum(o.debit), c = impNum(o.credit), dRaw = o.debit, cRaw = o.credit;
+    if (imp.swap) { [d, c] = [c, d]; [dRaw, cRaw] = [cRaw, dRaw]; }
+    if ((d === null || d === 0) && (c === null || c === 0)) return 0;   // a heading, or a balance only
+    if (Number.isNaN(d) || Number.isNaN(c) || d < 0 || c < 0) { out.orders.push(Object.assign({}, base, { amount: (Number.isNaN(d) || d < 0) ? dRaw : cRaw, payment: 'Pending', note: narr })); return 1; }   // the server reports it with its row number
+    if (/opening\s*(bal|due)|brought\s*forward|^b\/?f\b|balance\s*b\/?f|bal\s*b\/?f/i.test(narr)) { out.shops.push(Object.assign({}, base, { opening: round2((d || 0) - (c || 0)), opening_date: o.date })); return 1; }
+    let n = 0;
+    if (d > 0) { out.orders.push(Object.assign({}, base, { bill_no: impBillNo(narr) || impTxt(o.bill_no), type: 'Sale', product: '', amount: d, payment: 'Pending', note: narr })); n++; }
+    if (c > 0) { out.payments.push(Object.assign({}, base, { amount: c, mode: impModeWord(narr), reference: '', bill_no: impBillNo(narr) || impTxt(o.bill_no), note: narr })); n++; }
+    return n;
+  }
+  function impBuild() {
+    const out = { shops: [], orders: [], payments: [] };
+    imp.sheets.forEach(sh => {
+      sh.n = 0;
+      if (sh.kind === 'skip') return;
+      const m = sh.map, pctCol = sh.kind === 'orders' && m.discount !== undefined && /%|pct|percent/i.test(String(sh.head[m.discount]));
+      const ledShop = sh.kind === 'ledger' && m.shop === undefined ? impSheetShop(sh.name) : '';
+      for (let i = sh.hdr + 1; i < sh.aoa.length; i++) {
+        const row = sh.aoa[i];
+        if (row.every(v => impTxt(v) === '') || impIsTotal(row)) continue;
+        const o = { _sheet: sh.name, _r: sh.r0 + i + 1 };
+        IMP_F[sh.kind].forEach(([f]) => { if (m[f] !== undefined) o[f] = row[m[f]] === undefined ? '' : row[m[f]]; });
+        if (sh.kind === 'ledger') { sh.n += impLedger(o, out, ledShop); continue; }
+        if (Object.keys(o).every(k => k[0] === '_' || impTxt(o[k]) === '')) continue;
+        if (pctCol && /^-?[\d.,\s]+$/.test(impTxt(o.discount)) && impTxt(o.discount) !== '') o.discount = impTxt(o.discount) + '%';
+        out[sh.kind].push(o); sh.n++;
+      }
+    });
+    imp.data = out;
+  }
+  const impRows = () => imp.data.shops.length + imp.data.orders.length + imp.data.payments.length;
+  // whole shops stay together (same name or same number), up to 400 rows per request
+  function impBatches(data) {
+    const items = [];
+    ['shops', 'orders', 'payments'].forEach(t => data[t].forEach(r => items.push([t, r])));
+    const parent = new Map();
+    const add = (x) => { if (!parent.has(x)) parent.set(x, x); return x; };
+    const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+    const keys = items.map(([t, r]) => { const k = []; const n = impKey(r.shop); if (n) k.push('n' + n); impPhones(r.mobile).forEach(p => k.push('m' + p)); return k.length ? k : ['x']; });
+    keys.forEach(ks => { ks.forEach(add); ks.forEach(k => { const a = find(ks[0]), b = find(k); if (a !== b) parent.set(a, b); }); });
+    const groups = new Map();
+    items.forEach(([t, r], idx) => { const g = find(keys[idx][0]); if (!groups.has(g)) groups.set(g, []); groups.get(g).push([t, r]); });
+    const batches = []; let cur = null;
+    const put = (list) => {
+      if (!cur || cur.n + list.length > 400) { cur = { shops: [], orders: [], payments: [], n: 0 }; batches.push(cur); }
+      list.forEach(([t, r]) => cur[t].push(r)); cur.n += list.length;
+    };
+    groups.forEach(list => { if (list.length > 2500) { for (let i = 0; i < list.length; i += 2500) put(list.slice(i, i + 2500)); } else put(list); });
+    return batches;
+  }
+
+  // ----- talking to the server
+  const impAgg = () => ({ counts: {}, shops: [], issues: [], more: 0 });
+  function impMerge(a, d) {
+    const c = d.counts || {};
+    Object.keys(c).forEach(k => { a.counts[k] = round2((a.counts[k] || 0) + (Number(c[k]) || 0)); });
+    (d.shops || []).forEach(s => a.shops.push(s)); (d.issues || []).forEach(s => a.issues.push(s)); a.more += Number(d.more_issues) || 0;
+  }
+  function impSort(a) {
+    a.shops.sort((x, y) => String(x.name).localeCompare(String(y.name)));
+    const order = imp.sheets.map(s => s.name);
+    a.issues.sort((x, y) => (order.indexOf(x.sheet) - order.indexOf(y.sheet)) || (x.row - y.row));
+    ['shops_new', 'shops_existing', 'shops_updated', 'by_mobile', 'by_name', 'name_clash', 'orders_new', 'orders_skipped', 'payments_new', 'payments_skipped', 'billed', 'received', 'opening', 'file_amount', 'file_shops', 'errors', 'warnings', 'skipped'].forEach(k => { if (a.counts[k] === undefined) a.counts[k] = 0; });
+  }
+  function impProgress(frac, title, sub) {
+    impEl('impBar').style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%'; impEl('impBusyTxt').textContent = title; impEl('impBusySub').textContent = sub || '';
+  }
+  async function impSend(commit) {
+    const agg = impAgg(), n = imp.batches.length; let done = 0, failed = null;
+    imp.running = true; imp.stop = false; impEl('btnImpStop').disabled = false; impEl('btnImpStop').textContent = 'Stop';
+    for (const b of imp.batches) {
+      if (imp.stop) break;
+      impProgress(done / n, (commit ? 'Importing' : 'Checking') + ' your file…', n > 1 ? 'Part ' + (done + 1) + ' of ' + n : '');
+      try { impMerge(agg, await withRetry(() => api.post('retail.import', { shops: b.shops, orders: b.orders, payments: b.payments, commit: commit ? 1 : 0, create_shops: imp.create ? 1 : 0, open_mode: imp.mode }))); done++; }
+      catch (e) { failed = e; break; }
+    }
+    imp.running = false; impSort(agg);
+    return { agg, done, total: n, stopped: imp.stop && done < n, failed };
+  }
+  async function impCheck() {
+    imp.batches = impBatches(imp.data);
+    impStage('busy'); impProgress(0, 'Checking your file…', '');
+    const r = await impSend(false);
+    if (r.failed) throw r.failed;
+    if (r.stopped) { impStage('pick'); return; }
+    imp.res = r.agg; impPickTab(); impStage('prev'); impRender();
+  }
+  function impPickTab() {
+    const rs = imp.res.shops, nM = rs.filter(s => !s.new).length, nN = rs.length - nM, nP = imp.res.issues.filter(i => i.level !== 'skip').length;
+    if (imp.tab === 'matched' && nM || imp.tab === 'new' && nN || imp.tab === 'problems' && (nP || !(nM || nN))) return;
+    imp.tab = nM ? 'matched' : (nN ? 'new' : 'problems');
+  }
+  async function impRecheck() {
+    impBuild();
+    if (!impRows()) { imp.res = { counts: {}, shops: [], issues: [], more: 0 }; impSort(imp.res); imp.tab = 'problems'; impStage('prev'); impRender(); return; }
+    try { await impCheck(); } catch (e) { impStage('prev'); impRender(); impAlert(e.message); }
+  }
+  const impAny = (c) => (c.shops_new || 0) + (c.shops_updated || 0) + (c.orders_new || 0) + (c.payments_new || 0) > 0;
+  function impSummary(c, done) {
+    const p = [];
+    if (c.shops_updated) p.push(c.shops_updated + ' shop' + (c.shops_updated === 1 ? '' : 's') + (done ? ' updated' : ' will be updated'));
+    if (c.shops_new) p.push(c.shops_new + ' shop' + (c.shops_new === 1 ? '' : 's') + (done ? ' added' : ' will be added'));
+    if (c.orders_new) p.push(c.orders_new + ' bill' + (c.orders_new === 1 ? '' : 's') + ' (' + fm(c.billed) + ')');
+    if (c.payments_new) p.push(c.payments_new + ' payment' + (c.payments_new === 1 ? '' : 's') + ' (' + fm(c.received) + ')');
+    return p.join(' · ') || 'Nothing new to add';
+  }
+  async function impCommit() {
+    const c = imp.res.counts;
+    if (!impAny(c)) return;
+    if (!confirm('Import now?\n\n' + impSummary(c, false) + (c.errors ? '\n\n' + c.errors + ' row' + (c.errors === 1 ? '' : 's') + ' with problems will be left out.' : '') + '\n\nThere is no one-click undo, so check the list first.')) return;
+    imp.batches = impBatches(imp.data);
+    impStage('busy'); impProgress(0, 'Importing your file…', '');
+    const r = await impSend(true);
+    imp.committed = true; imp.final = r; imp.res = r.agg; imp.tab = ''; impPickTab(); imp.q = ''; impEl('impQ').value = '';
+    loadShops(true);
+    impStage('done'); impRender();
+  }
+
+  // ----- the screens
+  function impStage(s) {
+    imp.stage = s;
+    impEl('impPick').style.display = s === 'pick' ? '' : 'none';
+    impEl('impBusy').style.display = s === 'busy' ? '' : 'none';
+    impEl('impPrev').style.display = s === 'prev' || s === 'done' ? '' : 'none';
+    impEl('impFoot').style.display = s === 'prev' || s === 'done' ? '' : 'none';
+    impEl('impTitle').textContent = { pick: 'Import from Excel', busy: 'Import from Excel', prev: 'Check before importing', done: imp.final && (imp.final.failed || imp.final.stopped) ? 'Import stopped' : 'Import finished' }[s];
+  }
+  function impAlert(msg) { impEl('impAlert').innerHTML = `<div class="alert error">${esc(msg)}</div>`; }
+  const impBal = (n) => Math.abs(n) < 0.005 ? '<b>₹0</b>' : `<b class="${n > 0 ? 'dr' : 'cr'}">${balPlain(n)}</b>`;
+  const impHead = (sh, c) => impTxt(sh.head[c]);
+  function impSheetCard(sh, i) {
+    const miss = impMissing(sh);
+    const sel = `<select data-shk="${i}">${Object.keys(IMP_KIND).map(k => `<option value="${k}"${k === sh.kind ? ' selected' : ''}>${IMP_KIND[k]}</option>`).join('')}</select>`;
+    let det = '';
+    if (sh.kind !== 'skip') {
+      const sum = IMP_F[sh.kind].filter(([f]) => sh.map[f] !== undefined).map(([f, l]) => `${l} = ${esc(impHead(sh, sh.map[f]))}`).join(' · ');
+      const opts = (cur) => '<option value="">— none —</option>' + sh.head.map((h, c) => impTxt(h) === '' ? '' : `<option value="${c}"${cur === c ? ' selected' : ''}>${esc(XLSX.utils.encode_col(c) + ': ' + impTxt(h))}</option>`).join('');
+      det = `<details class="imp-map" data-shd="${i}"${miss.length || sh.open ? ' open' : ''}><summary>${sum || 'No columns recognised'}${miss.length ? ` <b style="color:#b45f06;">· missing: ${esc(miss.join(', '))}</b>` : ''} <span class="link">change columns</span></summary><div class="imp-map-grid">${IMP_F[sh.kind].map(([f, l]) => `<label>${l}<select data-shm="${i}" data-f="${f}">${opts(sh.map[f])}</select></label>`).join('')}</div></details>`;
+    }
+    return `<div class="imp-sh${miss.length || (sh.kind === 'skip' && sh.why && !/^Instructions/.test(sh.why)) ? ' bad' : ''}"><div class="imp-sh-top"><span><b>${esc(sh.name)}</b> <span class="sub">${sh.kind === 'skip' ? esc(sh.why || 'not used') : sh.n + ' row' + (sh.n === 1 ? '' : 's')}</span></span>${sel}</div>${det}</div>`;
+  }
+  function impShopRow(s) {
+    const how = s.new ? '<span class="chip c-blue">New shop</span>' : (s.by === 'mobile' ? '<span class="chip c-green">Matched by mobile</span>' : '<span class="chip c-amber">Matched by name</span>');
+    const fill = !s.new && s.filled && s.filled.length ? `<div class="sub">Fills in: ${s.filled.map(f => esc(IMP_FILL[f] || f)).join(', ')}</div>` : '';
+    const bits = [];
+    if (s.bills) bits.push(s.bills + ' bill' + (s.bills === 1 ? '' : 's') + ' ' + fm(s.billed));
+    if (s.receipts) bits.push(s.receipts + ' payment' + (s.receipts === 1 ? '' : 's') + ' ' + fm(s.received));
+    const hasFile = s.file_amount !== null && s.file_amount !== undefined;
+    return `<div class="imp-row"><div><b>${esc(s.name)}</b> ${how}<div class="sub">${[s.area, s.mobile].filter(Boolean).map(esc).join(' · ') || '&nbsp;'}</div>${s.xl ? `<div class="sub">In your file: “${esc(s.xl)}”</div>` : ''}${fill}${s.skipped ? `<div class="sub">${s.skipped} row${s.skipped === 1 ? '' : 's'} already in the app</div>` : ''}${s.hint ? `<div class="hint">⚠ ${esc(s.hint)}</div>` : ''}</div>
+      <div><span class="m-l">In your file</span>${hasFile ? '<b>' + balPlain(s.file_amount) + '</b>' : '<span class="sub">—</span>'}${bits.length ? `<div class="sub">${bits.join(' · ')}</div>` : ''}</div>
+      <div><span class="m-l">Now in the app</span>${s.new ? '<span class="sub">—</span>' : balPlain(s.before)}</div>
+      <div><span class="m-l">After import</span>${impBal(s.after)}</div></div>`;
+  }
+  function impList() {
+    const r = imp.res, q = imp.q.trim().toLowerCase(), box = impEl('impList');
+    let html = '', total = 0, shown = 0;
+    if (imp.tab === 'problems') {
+      const lv = imp.lvl;
+      const a = r.issues.filter(i => (lv === 'all' || (lv === 'problems' ? i.level !== 'skip' : i.level === lv)) && (!q || (i.sheet + ' ' + i.row + ' ' + i.msg).toLowerCase().includes(q)));
+      total = a.length;
+      html = a.slice(0, imp.lim).map(i => { shown++; return `<div class="imp-pr"><div><span class="chip ${i.level === 'error' ? 'c-red' : (i.level === 'warn' ? 'c-amber' : 'c-grey')}">${i.level === 'error' ? 'Error' : (i.level === 'warn' ? 'Warning' : 'Skipped')}</span></div><div class="sub">${esc(i.sheet)}${i.row ? ' · row ' + i.row : ''}</div><div>${esc(i.msg)}</div></div>`; }).join('');
+      if (!total) html = `<div class="imp-empty">${r.issues.length ? 'Nothing matches this filter.' : 'No problems found.'}</div>`;
+    } else {
+      const a = r.shops.filter(s => (imp.tab === 'new' ? s.new : !s.new) && (!q || (s.name + ' ' + s.area + ' ' + s.mobile + ' ' + (s.xl || '')).toLowerCase().includes(q)));
+      total = a.length;
+      html = (total ? `<div class="imp-row h"><div>Shop</div><div>In your file</div><div>Now in the app</div><div>After import</div></div>` : '') + a.slice(0, imp.lim).map(s => { shown++; return impShopRow(s); }).join('');
+      if (!total) html = `<div class="imp-empty">${r.shops.length ? 'Nothing matches the search.' : 'No shops found in this file yet.'}</div>`;
+    }
+    if (total > shown) html += `<button type="button" class="imp-more" data-more="1">Show ${Math.min(120, total - shown)} more (${total - shown} left)</button>`;
+    box.innerHTML = html;
+  }
+  function impRender() {
+    const r = imp.res, c = r.counts, done = imp.committed, fin = imp.final;
+    const nM = r.shops.filter(s => !s.new).length, nN = r.shops.length - nM, nP = r.issues.filter(i => i.level !== 'skip').length;
+    impEl('impFileLine').innerHTML = `File: <b>${esc(imp.file)}</b>`;
+    // what happened (after the import)
+    if (done) {
+      const bad = fin.failed || fin.stopped;
+      impEl('impDone').innerHTML = `<div class="imp-done"><div class="big">${bad ? '⚠️' : '✅'}</div><h4>${fin.failed ? 'The import stopped part-way' : (fin.stopped ? 'You stopped the import' : 'Import finished')}</h4><p>${esc(impSummary(c, true))}</p>${fin.failed ? `<p style="color:#c81e1e;">${esc(fin.failed.message)}<br>Nothing from the part that failed was saved. Upload the same file again to carry on — what is already in the app is skipped.</p>` : ''}${fin.stopped ? '<p>Upload the same file again to carry on — what is already in the app is skipped.</p>' : ''}</div>`;
+    } else impEl('impDone').innerHTML = '';
+    impEl('impSheets').innerHTML = done ? '' : imp.sheets.map(impSheetCard).join('');
+    // is the amount "old dues" or "what they owe in all"?
+    const hasOpen = imp.sheets.some(s => s.kind === 'shops' && s.map.opening !== undefined), act = r.shops.some(s => !s.new && Math.abs(s.activity || 0) > 0.004);
+    impEl('impMode').innerHTML = !done && hasOpen && (act || imp.mode === 'total') ? `<div class="imp-mode"><div class="t">Some of these shops already have bills or payments in the app. The pending amount in your file is…</div>
+      <label><input type="radio" name="impMode" value="set"${imp.mode === 'set' ? ' checked' : ''}><span><b>Old dues from before the app</b> — added on top of what the app already shows</span></label>
+      <label><input type="radio" name="impMode" value="total"${imp.mode === 'total' ? ' checked' : ''}><span><b>What the shop owes in total today</b> — the balance after the import is exactly this amount</span></label></div>` : '';
+    const hasMob = imp.sheets.some(s => s.kind !== 'skip' && s.map.mobile !== undefined), notes = [];
+    if (!done) {
+      if (!impRows()) notes.push(['info', 'Choose what each sheet contains and which column is which — the file is checked again straight away.']);
+      imp.sheets.forEach(sh => {   // two columns could be the pending amount: say which one is used
+        if (sh.kind !== 'shops' || sh.amtOk || sh.map.opening === undefined) return;
+        const cand = impAmtCols(sh.head, impOtherCols(sh.map));
+        if (cand.length > 1) notes.push(['warn', `Sheet “${esc(sh.name)}” has more than one column that could be the pending amount (${cand.map(c => esc(impHead(sh, c))).join(', ')}). Using “${esc(impHead(sh, sh.map.opening))}”. If that is not the right one, choose it under “change columns”.`]);
+      });
+      if (imp.sheets.some(s => s.kind === 'ledger')) notes.push(['info', `<label class="imp-opt" style="margin:0;"><input type="checkbox" id="impSwap"${imp.swap ? ' checked' : ''}> Debit and Credit are the other way round in my file</label><span class="sub">Ledger: every Debit line becomes a bill, every Credit line a payment, a line “Opening balance” the shop's pending amount.</span>`]);
+      if (c.errors) notes.push(['warn', `${c.errors} row${c.errors === 1 ? ' has a problem and is' : 's have problems and are'} left out (see Problems). Fix them in Excel and upload again — everything already in the app is skipped automatically.`]);
+      if (r.more) notes.push(['info', `${r.more} more messages are not listed.`]);
+      if (c.name_clash) notes.push(['warn', `${c.name_clash} new shop${c.name_clash === 1 ? ' has' : 's have'} the same name as a shop in the app but a different mobile number, so ${c.name_clash === 1 ? 'it is' : 'they are'} added as NEW. If it is the same shop, fix the number in Excel or in the app first (see New shops).`]);
+      if (impRows() && !hasMob) notes.push(['warn', 'No Mobile column was found, so shops are matched by name only. If your file has mobile numbers, choose that column under “change columns”.']);
+      else if (impRows() && !nM && c.shops_new && !imp.sheets.every(s => s.kind === 'skip')) notes.push(['info', 'No mobile number matched a shop that is already in the app, so everything below is added as new. If that is not what you expect, check the Mobile column choice above.']);
+      if (impRows() && !impAny(c)) notes.push(['info', 'Nothing to import — everything in this file is already in the app' + (c.errors ? ', apart from the rows with problems.' : '.')]);
+    } else if (!fin.failed && !fin.stopped) notes.push(['ok', 'Saved. The shop list is up to date — open a shop and its Ledger to see the pending amount.']);
+    impEl('impNotes').innerHTML = notes.map(([t, h]) => `<div class="imp-note ${t}">${h}</div>`).join('');
+    const card = (l, v, s) => `<div class="imp-card"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s || '&nbsp;'}</div></div>`;
+    const cards = [card(done ? 'Shops matched' : 'Shops matched', c.by_mobile + c.by_name, c.by_mobile + ' by mobile' + (c.by_name ? ' · ' + c.by_name + ' by name' : '')),
+      card(done ? 'Shops added' : 'New shops', c.shops_new, imp.create ? (c.shops_new ? (done ? 'not in the app before' : 'not in the app yet') : '') : 'adding is switched off')];
+    if (c.file_shops) cards.push(card('Pending amount in file', fm(c.file_amount), c.file_shops + ' shop' + (c.file_shops === 1 ? '' : 's')));
+    if (c.orders_new || c.orders_skipped) cards.push(card(done ? 'Bills added' : 'Bills', c.orders_new, fm(c.billed) + (c.orders_skipped ? ' · ' + c.orders_skipped + ' already in the app' : '')));
+    if (c.payments_new || c.payments_skipped) cards.push(card(done ? 'Payments added' : 'Payments', c.payments_new, fm(c.received) + (c.payments_skipped ? ' · ' + c.payments_skipped + ' already in the app' : '')));
+    cards.push(card('Problems', nP, c.errors + ' error' + (c.errors === 1 ? '' : 's') + ' · ' + c.warnings + ' warning' + (c.warnings === 1 ? '' : 's')));
+    impEl('impCards').innerHTML = impRows() ? cards.join('') : '';
+    impEl('impTabBtns').innerHTML = [['matched', `Matched shops (${nM})`], ['new', `New shops (${nN})`], ['problems', `Problems (${nP})`]].map(([k, l]) => `<button type="button" data-tab="${k}" class="${imp.tab === k ? 'on' : ''}">${l}</button>`).join('');
+    impEl('impLvl').style.display = imp.tab === 'problems' ? '' : 'none'; impEl('impLvl').value = imp.lvl;
+    impList();
+    // footer
+    const prob = r.issues.some(i => i.level === 'error' || (i.level === 'skip' && /^Not imported/.test(i.msg)));
+    impEl('impFoot').innerHTML = done
+      ? `<div class="t">${esc(impSummary(c, true))}${c.errors ? ' · ' + c.errors + ' row' + (c.errors === 1 ? '' : 's') + ' with problems left out' : ''}</div><div class="b">${prob ? '<button type="button" class="btn secondary" data-act="dl">⬇ Rows with problems</button>' : ''}<button type="button" class="btn secondary" data-act="again">Import another file</button><button type="button" class="btn" data-act="close">Close</button></div>`
+      : `<div class="t">${esc(impRows() ? impSummary(c, false) : 'Nothing to check yet')}${c.errors ? ' · ' + c.errors + ' row' + (c.errors === 1 ? '' : 's') + ' with problems left out' : ''}</div><div class="b">${prob ? '<button type="button" class="btn secondary" data-act="dl">⬇ Rows with problems</button>' : ''}<button type="button" class="btn secondary" data-act="again">Choose another file</button><button type="button" class="btn green" data-act="go"${impAny(c) ? '' : ' disabled'}>Import now</button></div>`;
+  }
+
+  // ----- the template and the problem rows as Excel files
+  async function impTemplate() {
+    try { await impLoadLib(); } catch (e) { impAlert(e.message); return; }
+    const wb = XLSX.utils.book_new();
+    const sheet = (head, rows) => { const ws = XLSX.utils.aoa_to_sheet([head].concat(rows || [])); ws['!cols'] = head.map(h => ({ wch: Math.max(13, h.length + 4) })); return ws; };
+    const H = { shops: ['Shop name', 'Mobile', 'Area', 'Owner', 'Address', 'Note', 'Pending amount', 'As on date'],
+      orders: ['Shop name', 'Mobile', 'Area', 'Date', 'Bill no', 'Type', 'Product', 'Size (ml)', 'Qty', 'Rate', 'Amount', 'Discount', 'Payment', 'Paid amount', 'Paid on', 'Due date', 'Note'],
+      payments: ['Shop name', 'Mobile', 'Area', 'Date', 'Amount', 'Mode', 'Reference', 'Bill no', 'Note'] };
+    const guide = [['Old data import — how to fill this file'], [''],
+      ['Easiest: only the Shops sheet. One row per shop with its Mobile and the Pending amount. Each row is matched to a shop in the app by the MOBILE NUMBER (any format: 98250 12345, +91 98250-12345 …).'],
+      ['Matched shops keep their own name; their pending amount is set from this file and blank Owner / Address / Mobile are filled in. Shops that are not in the app yet are added.'],
+      ['Pending amount = what the shop still has to pay (a minus number = it paid in advance). The Mobile column can be used on its own when you do not know the exact shop name.'], [''],
+      ['Orders sheet (old bills, optional): one row per perfume line. Rows with the same Bill no and Date make one bill. Only know the total? Leave Product empty and fill Amount.'],
+      ['   Type: Sale / Display / Replacement / Return (empty = Sale).   Payment: Pending / Cash / UPI / Bank / Cheque / On sale / Free (empty = Pending).   Discount: 10% or an amount.'],
+      ['   Do not list the pending amount again as a bill — the Shops sheet already has it.'],
+      ['Payments sheet (optional): money you received. It clears the oldest bills first, or the bill named in Bill no.   Mode: Cash / UPI / Bank / Cheque / Credit note.'],
+      ['Dates as dd/mm/yyyy. Amounts: numbers (commas, ₹ and 5000/- are fine). You can upload the same file again safely — what is already in the app is skipped.'], [''],
+      ['Examples (typed here only to show the format — they are not imported):'], [''], ['Shops'], H.shops,
+      ['Krishna Gift', '98251 12345', 'Adajan', 'Ramesh Patel', 'Shop 4, Rander Road', '', 12000, '01/04/2026'], ['Shree Perfumes', '+91 90000 11111', 'Vesu', '', '', 'near circle', 4500, ''], [''],
+      ['Orders'], H.orders,
+      ['Krishna Gift', '98251 12345', '', '05/04/2026', 'B-101', 'Sale', 'Oud Royale', 50, 6, 450, '', '10%', 'Pending', '', '', '20/04/2026', ''],
+      ['Krishna Gift', '98251 12345', '', '05/04/2026', 'B-101', 'Sale', 'Rose Mist', 30, 4, 300, '', '', '', '', '', '', ''],
+      ['Krishna Gift', '98251 12345', '', '12/05/2026', 'B-102', 'Sale', '', '', '', '', 8000, '', 'Paid cash', '', '', '', 'old bill - total only'], [''],
+      ['Payments'], H.payments, ['Krishna Gift', '98251 12345', '', '20/04/2026', 5000, 'UPI', 'UTR 4821', 'B-101', 'part payment']];
+    const g = XLSX.utils.aoa_to_sheet(guide); g['!cols'] = [{ wch: 130 }];
+    XLSX.utils.book_append_sheet(wb, g, 'Read me');
+    XLSX.utils.book_append_sheet(wb, sheet(H.shops), 'Shops');
+    XLSX.utils.book_append_sheet(wb, sheet(H.orders), 'Orders');
+    XLSX.utils.book_append_sheet(wb, sheet(H.payments), 'Payments');
+    XLSX.writeFile(wb, 'retail-import-template.xlsx');
+  }
+  async function impProblemsXlsx() {
+    try { await impLoadLib(); } catch (e) { impAlert(e.message); return; }
+    const by = new Map();
+    imp.res.issues.forEach(i => {
+      if (!i.row || !(i.level === 'error' || (i.level === 'skip' && /^Not imported/.test(i.msg)))) return;
+      const k = i.sheet + '|' + i.row;
+      if (!by.has(k)) by.set(k, { sheet: i.sheet, row: i.row, msgs: [] });
+      by.get(k).msgs.push(i.msg);
+    });
+    const wb = XLSX.utils.book_new(), per = new Map();
+    by.forEach(v => { if (!per.has(v.sheet)) per.set(v.sheet, []); per.get(v.sheet).push(v); });
+    per.forEach((list, name) => {
+      const sh = imp.sheets.find(s => s.name === name); if (!sh) return;
+      const rows = [sh.head.concat(['Problem'])];
+      list.sort((a, b) => a.row - b.row).forEach(v => { const r = sh.aoa[v.row - 1 - sh.r0]; if (r) { const x = r.slice(); while (x.length < sh.head.length) x.push(''); rows.push(x.concat([v.msgs.join(' | ')])); } });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), (name.replace(/[\[\]:*?\/\\]/g, ' ').slice(0, 23) + ' (fix)').trim());
+    });
+    if (!per.size) return;
+    XLSX.writeFile(wb, 'import-rows-to-fix.xlsx');
+  }
+
+  // ----- opening, closing, events
+  function impReset() {
+    imp.sheets = []; imp.data = null; imp.res = null; imp.final = null; imp.committed = false; imp.swap = false; imp.mode = 'set'; imp.q = ''; imp.lim = 120; imp.tab = ''; imp.lvl = 'problems'; imp.file = '';
+    impEl('impQ').value = ''; impEl('impAlert').innerHTML = '';
+  }
+  function openImport() {
+    if (!imp.running) { impReset(); impStage('pick'); }
+    impLoadLib().catch(() => {});
+    modalScrollY = window.scrollY; impModal.classList.add('open');
+  }
+  function closeImport() {
+    if (imp.running) { if (!confirm('The import is still running. Stop it and close?')) return; imp.stop = true; }
+    impModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+  }
+  async function impLoad(file) {
+    impEl('impAlert').innerHTML = '';
+    imp.file = file.name; imp.create = impEl('impCreate').checked; imp.mode = 'set'; imp.swap = false; imp.committed = false; imp.final = null; imp.tab = ''; imp.q = ''; impEl('impQ').value = '';
+    impStage('busy'); impProgress(0.1, 'Reading ' + file.name + '…', '');
+    try {
+      await impReadFile(file);
+      if (!imp.sheets.length) throw new Error('No data found in this file.');
+      imp.sheets.forEach(sh => { sh.hdr = impHeadRow(sh.aoa); sh.head = sh.aoa[sh.hdr]; sh.kind = impGuess(sh); sh.map = sh.kind === 'skip' ? {} : impMap(sh.head, sh.kind); });
+      await impRecheck();
+    } catch (e) { impStage('pick'); impAlert(e.message); }
+  }
+  impEl('btnImport').addEventListener('click', openImport);
+  impEl('btnImpX').addEventListener('click', closeImport);
+  impEl('btnImpTpl').addEventListener('click', impTemplate);
+  impEl('btnImpStop').addEventListener('click', () => { imp.stop = true; impEl('btnImpStop').disabled = true; impEl('btnImpStop').textContent = 'Stopping…'; });
+  const impDrop = impEl('impDrop');
+  impDrop.addEventListener('click', () => impEl('impFile').click());
+  ['dragenter', 'dragover'].forEach(ev => impDrop.addEventListener(ev, (e) => { e.preventDefault(); impDrop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => impDrop.addEventListener(ev, (e) => { e.preventDefault(); impDrop.classList.remove('over'); }));
+  impDrop.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) impLoad(f); });
+  impEl('impFile').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) impLoad(f); });
+  impEl('impPrev').addEventListener('click', (e) => {
+    const t = e.target.closest('[data-tab]'); if (t) { imp.tab = t.dataset.tab; imp.lim = 120; impRender(); return; }
+    if (e.target.closest('[data-more]')) { imp.lim += 120; impList(); }
+  });
+  impEl('impPrev').addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.id === 'impLvl') { imp.lvl = t.value; imp.lim = 120; impList(); return; }
+    if (t.id === 'impSwap') { imp.swap = t.checked; impRecheck(); return; }
+    if (t.name === 'impMode') { imp.mode = t.value; impRecheck(); return; }
+    if (t.dataset.shk !== undefined) {
+      const sh = imp.sheets[Number(t.dataset.shk)]; sh.kind = t.value; sh.why = ''; sh.amtOk = false; sh.map = sh.kind === 'skip' ? {} : impMap(sh.head, sh.kind); if (sh.kind === 'skip') sh.why = 'Not used'; impRecheck(); return;
+    }
+    if (t.dataset.shm !== undefined) {
+      const sh = imp.sheets[Number(t.dataset.shm)]; if (t.value === '') delete sh.map[t.dataset.f]; else sh.map[t.dataset.f] = Number(t.value); sh.open = true; if (t.dataset.f === 'opening') sh.amtOk = true; impRecheck();
+    }
+  });
+  impEl('impPrev').addEventListener('toggle', (e) => { const d = e.target; if (d.dataset && d.dataset.shd !== undefined) imp.sheets[Number(d.dataset.shd)].open = d.open; }, true);
+  impEl('impQ').addEventListener('input', (e) => { imp.q = e.target.value; imp.lim = 120; impList(); });
+  impEl('impFoot').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const a = b.dataset.act;
+    if (a === 'close') closeImport();
+    else if (a === 'again') { impReset(); impStage('pick'); }
+    else if (a === 'go') impCommit();
+    else if (a === 'dl') impProblemsXlsx();
+  });
+
   // ---------- start ----------
   loadShops().then(() => {
-    const id = Number(new URLSearchParams(location.search).get('shop'));
-    if (id) openShop(id);
+    const qp = new URLSearchParams(location.search);
+    const id = Number(qp.get('shop')), lid = Number(qp.get('ledger'));
+    if (id) openShop(id); else if (lid) openLedger(lid);
   });
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>

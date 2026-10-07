@@ -314,7 +314,10 @@
         <button type="button" class="btn secondary" id="monthNext" style="width:auto; min-height:34px; padding:0 12px;">›</button>
       </div>
     </div>
-    <div id="monthSummary" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 8px;"></div>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:12px 0 8px;">
+      <div id="monthSummary" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+      <button type="button" class="btn secondary" id="monthDownload" disabled style="width:auto; min-height:34px; padding:0 14px; font-size:12.5px; white-space:nowrap;">&#8681; Download Excel</button>
+    </div>
     <div id="monthBody" style="max-height:58vh; overflow:auto;"></div>
     <div class="actions">
       <a id="monthProfile" href="#" class="btn secondary" style="width:auto; text-decoration:none;">Open profile</a>
@@ -331,6 +334,7 @@
     </div>
   </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
@@ -673,9 +677,65 @@
   };
 
   let monthDays = {};
+  let monthData = null;   // the month currently on screen (what the Download button exports)
+  const monthDl = document.getElementById('monthDownload');
+
+  // Everything shown in the month popup, as an Excel file: one row per day + a summary sheet.
+  monthDl.addEventListener('click', () => {
+    if (!monthData) return;
+    if (typeof XLSX === 'undefined') { alert('Excel export could not load. Check your internet connection and try again.'); return; }
+    const { d, month } = monthData;
+    const s = d.summary || {};
+    const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const rows = d.days.map((r) => {
+      const dt = new Date(r.date + 'T00:00:00');
+      let att = '', status = '';
+      if (r.punch_in) {
+        att = 'Present';
+        status = (r.punch_out ? 'Completed' : 'Working') + (Number(r.late_minutes) > 0 ? ' · Late' : ' · On time');
+      } else if (r.mark) {
+        att = MARKS[r.mark] ? MARKS[r.mark][0] : r.mark;
+      } else if (!Number(r.future)) {
+        att = 'Absent';
+      }
+      return {
+        'Date': `${String(dt.getDate()).padStart(2, '0')} ${dt.toLocaleDateString('en-IN', { month: 'short' })} ${dt.getFullYear()}`,
+        'Day': wd[r.weekday] !== undefined ? wd[r.weekday] : wd[dt.getDay()],
+        'Punch In': r.punch_in ? fmtT(r.punch_in) : '',
+        'Punch Out': r.punch_out ? fmtT(r.punch_out) : '',
+        'Hours': r.hours !== null && r.hours !== undefined && r.hours !== '' ? Number(r.hours) : '',
+        'Attendance': att,
+        'Late (min)': r.punch_in ? (Number(r.late_minutes) || 0) : '',
+        'Status': status,
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 13 }, { wch: 6 }, { wch: 10 }, { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 11 }, { wch: 20 }];
+    const sum = [
+      ['Employee', monthName],
+      ['Month', month],
+      ['Present days', Number(s.present) || 0],
+      ['WFH days', Number(s.wfh) || 0],
+      ['Leave days', Number(s.leave) || 0],
+      ['Half leave days', Number(s.half_leave) || 0],
+      ['Absent days', Number(s.absent) || 0],
+      ['Late days', Number(s.late) || 0],
+      ['Late minutes', Number(s.late_minutes) || 0],
+      ['Total hours', Number(s.hours) || 0],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(sum);
+    ws2['!cols'] = [{ wch: 16 }, { wch: 28 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+    const safe = String(monthName || 'employee').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'employee';
+    XLSX.writeFile(wb, `Attendance_${safe}_${month}.xlsx`);
+  });
+
   async function loadMonth() {
     const month = monthPick.value;
     if (!month) return;
+    monthData = null; monthDl.disabled = true;
     const body = document.getElementById('monthBody');
     document.getElementById('monthTitle').textContent = monthName;
     document.getElementById('monthSummary').innerHTML = '';
@@ -684,6 +744,7 @@
       const d = await api.get('attendance.month', { employee_id: monthEmp, month });
       if (month !== monthPick.value) return;
       monthDays = {}; d.days.forEach(x => { monthDays[x.date] = x; });
+      monthData = { d, month }; monthDl.disabled = false;
       const s = d.summary;
       const chip = (label, val, bg, fg) => `<span style="background:${bg}; color:${fg}; border-radius:8px; padding:6px 10px; font-size:12.5px;"><b>${val}</b> ${label}</span>`;
       document.getElementById('monthSummary').innerHTML =

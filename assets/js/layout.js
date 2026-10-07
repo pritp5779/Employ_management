@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261005.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261006.1';   // shown under your name in the sidebar
 
 // Site icon: the TMPH logo as the browser-tab icon and the home-screen icon, on every page that loads this file.
 (function () {
@@ -152,7 +152,7 @@ function startPenaltyNotice() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') poll(); });
 }
 
-function renderSidebar(active) {
+function renderSidebarCore(active) {
   const user = api.currentUser() || { username: '', role: '' };
   const linkClass = (key) => (active === key ? 'active' : '');
   const isAdmin = user.role === 'Admin';
@@ -200,6 +200,7 @@ function renderSidebar(active) {
     excel_files: [['excel_files.html', 'Excel Files', 'excel']],
     assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
     salary: [['salary.html', 'Salary', 'salary']],
+    commission: [['commission.html', 'Commission', 'commission']],
     commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
     penalties: [['penalties.html', 'Penalties', 'penalties']],
     agreements: [['agreements.html', 'Agreements', 'agreements']],
@@ -366,6 +367,7 @@ function renderSidebar(active) {
       ['performance.html', 'Performance', 'performance'],
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
+      ['commission.html', 'Commission', 'commission'],
       ['commission_rules.html', 'Commission Rules', 'commission_rules'],
       ['penalties.html', 'Penalties', 'penalties'],
       ['agreements.html', 'Agreements', 'agreements'],
@@ -423,6 +425,180 @@ function renderSidebar(active) {
         badge.style.display = 'inline-block';
       }
     }).catch(() => {});
+  }
+}
+
+/* ===== Icon rail (look & feel only) =====
+   renderSidebarCore() above builds the menu exactly as before (permissions,
+   Employee / custom-role variants, groups). renderSidebar() below runs it and
+   then dresses the result: logo on top, an icon + label for every link,
+   avatar and log-out at the bottom, and a wide/narrow toggle. Links that
+   arrive later (custom roles and employees get theirs after me.flags) are
+   dressed by a MutationObserver. */
+const RAIL_ICONS = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>',
+  bag: '<path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 016 0"/>',
+  split: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="19" r="2.5"/><path d="M6 8.5c0 4 6 3 6 8M18 8.5c0 4-6 3-6 8"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
+  shop: '<path d="M4 9l1.5-5h13L20 9"/><path d="M4 9a2.7 2.7 0 005.3 0 2.7 2.7 0 005.4 0A2.7 2.7 0 0020 9"/><path d="M5 12v8h14v-8"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pin: '<path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12h11l2-8H6"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  query: '<circle cx="12" cy="8" r="3.5"/><path d="M5 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/><path d="M19 3v4M17 5h4"/>',
+  wallet: '<path d="M3 7a2 2 0 012-2h13v4"/><path d="M3 7v11a2 2 0 002 2h15V9H5a2 2 0 01-2-2z"/><circle cx="16.5" cy="14.5" r="1.2"/>',
+  percent: '<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  sliders: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  alert: '<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h0"/>',
+  file: '<path d="M7 3h7l5 5v13H7V3z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  building: '<path d="M4 21V5l8-2v18M12 8h8v13M4 21h16"/><path d="M8 9h0M8 13h0M8 17h0M16 12h0M16 16h0"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.8-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14c2.2.6 3.5 2.4 3.5 6"/>',
+  folder: '<path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/>',
+  chat: '<path d="M4 5h16v11H9l-5 4V5z"/>',
+  sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>',
+  userx: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.8-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 9l4 4M21 9l-4 4"/>',
+  history: '<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.4L3 9"/><path d="M3 4v5h5M12 8v4l3 2"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+  dot: '<circle cx="12" cy="12" r="3"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  out: '<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',
+  chev: '<path d="M9 6l6 6-6 6"/>',
+};
+const RAIL_ICON_FOR = {
+  dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop',
+  attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
+  performance: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
+  commission_rules: 'sliders', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
+  departments: 'building', employees: 'users', documents: 'folder', whatsapp_groups: 'chat', excel_files: 'sheet',
+  ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart',
+};
+function railSvg(name) {
+  return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (RAIL_ICONS[name] || RAIL_ICONS.dot) + '</svg>';
+}
+
+function setupRail() {
+  const side = document.querySelector('aside.sidebar');
+  if (!side || side.dataset.rail) return;
+  side.dataset.rail = '1';
+  const user = api.currentUser() || { username: '', role: '' };
+  const mq = window.matchMedia('(max-width: 820px)');
+  const KEY = 'hrms_rail_wide';
+  let wide = false;
+  try { wide = localStorage.getItem(KEY) === '1'; } catch (e) {}
+
+  // Brand: logo tile (falls back to "HR" if the icon file is missing) + name when wide.
+  const brand = side.querySelector('.brand');
+  if (brand) {
+    brand.innerHTML = '<img src="icons/apple-touch-icon.png" alt="" onerror="this.outerHTML=\'<span class=&quot;logo-fb&quot;>HR</span>\'">'
+      + '<span class="brand-txt">HR<span>MS</span></span>';
+  }
+
+  // User box: avatar + (wide) name/role + log-out icon. The original buttons stay in the DOM, hidden.
+  const box = side.querySelector('.user-box');
+  if (box) {
+    const nm = String(user.username || '?').trim();
+    const ini = nm.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+    box.insertAdjacentHTML('afterbegin', '<span class="avatar" title="' + nm.replace(/"/g, '') + ' · ' + String(user.role || '') + '">' + ini + '</span>');
+    const nameEl = box.querySelector('.name'), roleEl = box.querySelector('.role');
+    const who = document.createElement('span');
+    who.className = 'who';
+    if (nameEl) who.appendChild(nameEl);
+    if (roleEl) who.appendChild(roleEl);
+    box.querySelector('.avatar').after(who);
+    const out = document.createElement('button');
+    out.type = 'button'; out.className = 'rail-out'; out.title = 'Log out'; out.setAttribute('aria-label', 'Log out');
+    out.innerHTML = railSvg('out');
+    out.addEventListener('click', () => { if (typeof logout === 'function') logout(); });
+    box.appendChild(out);
+  }
+
+  // Wide / narrow toggle (desktop).
+  const tools = document.createElement('div');
+  tools.className = 'rail-tools';
+  tools.innerHTML = '<button type="button" id="railToggle" title="Show / hide page names" aria-label="Show or hide page names">' + railSvg('chev') + '</button>';
+  const nav = side.querySelector('nav');
+  if (nav) nav.after(tools);
+  tools.querySelector('button').addEventListener('click', () => {
+    wide = !wide;
+    try { localStorage.setItem(KEY, wide ? '1' : '0'); } catch (e) {}
+    apply();
+  });
+
+  function apply() {
+    const phone = mq.matches;
+    side.classList.toggle('wide', phone || wide);
+    document.body.classList.toggle('rail-wide', !phone && wide);
+    tools.style.display = phone ? 'none' : '';
+  }
+  apply();
+  if (mq.addEventListener) mq.addEventListener('change', apply); else if (mq.addListener) mq.addListener(apply);
+
+  // Dress every link: icon + label + tooltip. Idempotent, so it can re-run.
+  function dress() {
+    side.querySelectorAll('nav a').forEach((a) => {
+      if (a.querySelector(':scope > .ico')) return;
+      const file = (a.getAttribute('href') || '').split('?')[0].replace(/\.html$/, '');
+      const key = file === 'history' ? 'history' : file;
+      const label = a.textContent.replace(/\s+/g, ' ').trim();
+      const lbl = document.createElement('span');
+      lbl.className = 'lbl';
+      while (a.firstChild) lbl.appendChild(a.firstChild);
+      const ico = document.createElement('span');
+      ico.className = 'ico';
+      ico.innerHTML = railSvg(RAIL_ICON_FOR[key] || 'dot');
+      a.appendChild(ico);
+      a.appendChild(lbl);
+      const bd = lbl.querySelector('#approvalBadge');
+      if (bd) a.appendChild(bd);   // keep the count visible on the narrow rail
+      a.setAttribute('data-tip', label);
+      a.setAttribute('aria-label', label);
+    });
+    // Phone: tapping a link closes the drawer.
+  }
+  dress();
+
+  // Keep the menu where it was: remember how far it is scrolled and restore that
+  // on the next page, so opening a page never throws the rail back to the top.
+  // If the current page's icon would still be out of sight, bring it into view.
+  const SKEY = 'hrms_rail_scroll';
+  let userScrolled = false;
+  function restoreScroll() {
+    if (!nav) return;
+    let y = 0;
+    try { y = parseInt(localStorage.getItem(SKEY) || '0', 10) || 0; } catch (e) {}
+    nav.scrollTop = y;
+    const act = nav.querySelector('a.active');
+    if (act) {
+      const n = nav.getBoundingClientRect(), r = act.getBoundingClientRect();
+      if (r.top < n.top || r.bottom > n.bottom) act.scrollIntoView({ block: 'center' });
+    }
+  }
+  if (nav) {
+    restoreScroll();
+    requestAnimationFrame(restoreScroll);
+    nav.addEventListener('scroll', () => {
+      userScrolled = true;
+      try { localStorage.setItem(SKEY, String(Math.round(nav.scrollTop))); } catch (e) {}
+    }, { passive: true });
+    window.addEventListener('pagehide', () => {
+      try { localStorage.setItem(SKEY, String(Math.round(nav.scrollTop))); } catch (e) {}
+    });
+  }
+  // Links added later (custom roles / employees) or a width change: re-apply, unless the person has scrolled meanwhile.
+  new MutationObserver(() => { dress(); if (!userScrolled) restoreScroll(); }).observe(side, { childList: true, subtree: true });
+}
+
+function renderSidebar(active) {
+  renderSidebarCore(active);
+  try { setupRail(); } catch (e) { /* styling only — never block the menu */ }
+  // The "Order code rules" section lives in its own file and adds itself to the Commission Rules page.
+  if (active === 'commission_rules' && !document.getElementById('codeRulesJs')) {
+    const sc = document.createElement('script');
+    sc.id = 'codeRulesJs'; sc.src = 'assets/js/code_rules.js';
+    document.body.appendChild(sc);
   }
 }
 
