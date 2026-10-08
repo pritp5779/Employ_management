@@ -197,6 +197,11 @@
   .pcm.ar-pc{margin-top:8px; padding-top:7px; border-top:1px dashed var(--line); font-size:15px;} .pcm.ar-pc small{font-size:11.5px;}
   .tkr{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-top:7px; padding-top:6px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--muted); white-space:nowrap;}
   .tkr b{color:#1d4ed8; font-weight:700; font-size:13px;}
+  /* group boxes under All Orders & Revenue: TM Perfume House + TM Fragrance, and TM4U */
+  .stat-card.gx .pc-tot{margin-top:4px;} .stat-card.gx .pc-tot .r{font-size:22px; color:var(--ink);} .stat-card.gx .pc-tot .r small{color:var(--muted); font-weight:600;}
+  .stat-card.gx .tkr{margin-top:3px; padding-top:0; border-top:0;} .stat-card.gx .tkr:first-of-type{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);}
+  .stat-card.gx .tkr.sp{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);}
+  @media (max-width:820px){ .stat-card.gx{grid-column:span 3;} .stat-card.gx .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   .tkr + .tkr{margin-top:3px; padding-top:0; border-top:0;} .tkr b.n{color:var(--ink);} .tkr b.g{color:#0f7a41;} .tkr b.a{color:#b45f06;} .tkr b.r{color:#c81e1e;}
   @media (max-width:820px){ .tkr{flex-direction:column; align-items:flex-start; gap:1px; font-size:10.5px;} .stat-card.ar .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   /* store picker: tick one or several stores */
@@ -1077,6 +1082,32 @@
       grandTotal += Number(o.total || 0);
     });
 
+    // Group boxes (after All Orders & Revenue): "TM Perfume House + TM Fragrance" and "TM4U" — orders, ratios and prepaid / COD, by platform (house).
+    const grp = (label, houses, cls) => {
+      const hs = houses.filter(h => shownKeys.includes(h));
+      if (EMP_VIEW || !hs.length) return '';
+      const g = { n: 0, t: 0, qo: 0, co: 0, pre: 0, cod: 0, q: 0, c: 0 };
+      hs.forEach(h => { const pq = platformQueries[h] || {}; g.q += pq.query || 0; g.c += pq.campaign || 0; });
+      base.forEach(o => {
+        if (!hs.includes(o.house || STORE_HOUSE_MAP[o.store_key])) return;
+        const amt = Number(o.total) || 0, ty = orderTagType(o.tags);
+        g.n++; g.t += amt;
+        if (orderOutstanding(o, amt) > 0) g.cod += amt; else g.pre += amt;
+        if (ty === 'query') g.qo++; else if (ty === 'campaign') g.co++;
+      });
+      const pp = share(g.pre, g.t);
+      return `<div class="stat-card gx ${cls}">
+        <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label}</span></div>
+        <div class="pc-tot"><span class="r">${g.n} <small>${g.n === 1 ? 'order' : 'orders'}</small></span></div>
+        <div class="tkr"><span>All orders ratio</span> ${qRatio(g.n, g.q + g.c)}</div>
+        <div class="tkr"><span>Query order</span> <b class="n">${g.qo}</b></div>
+        <div class="tkr"><span>Query ratio</span> ${qRatio(g.qo, g.q)}</div>
+        <div class="tkr"><span>Campaign order</span> <b class="n">${g.co}</b></div>
+        <div class="tkr"><span>Campaign ratio</span> ${qRatio(g.co, g.c)}</div>
+        <div class="pcm ar-pc"><span class="p"><b>${fmtMoney(g.pre, 'INR')}</b><small>${pp[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(g.cod, 'INR')}</b><small>${pp[1]}% COD</small></span></div>
+      </div>`;
+    };
+
     // One box per panel — also a panel with no orders (shown with zeros) so none goes missing.
     // Top-box order: TM Perfume House, TM Fragrance, TM4U, TM House 4th, TM Shower Gel. Anything else (MySales, Manual) follows when it has orders.
     const boxes = [];
@@ -1098,6 +1129,8 @@
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
       </div>
+      ${grp('TM Perfume House + TM Fragrance', ['tmph', 'tmf'], 'g-ph')}
+      ${grp('TM4U', ['tm4u'], 'g-4u')}
       ${boxes.map(([label, s]) => `
         <div class="stat-card">
           <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
@@ -1553,7 +1586,7 @@
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
     rat: [['Per order', 'or']]
   };
-  const esOn = { to: 1, tk: 1, qry: 1, cmp: 0, pay: 1, rat: 1 };   // Campaign columns are off until ticked
+  const esOn = { to: 1, tk: 1, qry: 1, cmp: 1, pay: 1, rat: 1 };   // every column group (Campaign too) starts ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
   const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)

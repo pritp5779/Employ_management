@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261008.2';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261008.3';   // shown under your name in the sidebar
 
 // Opening splash (TM·PH comet chain + name). Loaded on every page; assets/js/splash.js decides whether to
 // play (new tab / app launch, or back after 10+ min away). Add ?splash=1 to any page address to force it.
@@ -201,6 +201,7 @@ function renderSidebarCore(active) {
     leave_requests: [['leave_requests.html', 'Leave Requests', 'leave_requests']],
     offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
+    leave: [['leave.html', 'My Leave', 'leave']],
     targets: [['targets.html', 'Targets', 'targets']],
     order_targets: [['order_targets.html', 'Order Targets', 'order_targets']],
     performance: [['performance.html', 'Performance', 'performance']],
@@ -341,7 +342,7 @@ function renderSidebarCore(active) {
         // 'punch' is skipped: every employee already has "Attendance" above,
         // which is the same Punch In / Out page — listing it again showed two
         // highlighted links for one page.
-        const morePerms = perms.filter(p => p !== 'punch');
+        const morePerms = perms.filter(p => p !== 'punch' && p !== 'leave');
         if (morePerms.length) {
           links += `
         <div class="nav-label">More</div>`;
@@ -433,7 +434,20 @@ function renderSidebarCore(active) {
   initNavCategories(categories, active);
 
   if (isAdmin) {
-    api.get('me.flags').then(syncRole).catch(() => {});
+    api.get('me.flags').then((d) => {
+      if (syncRole(d)) return;
+      // Admin can apply for leave too, when the login is linked to an employee record.
+      if (d && d.has_employee) {
+        const body = document.querySelector('[data-cat-body="main"]');
+        if (body && !body.querySelector('a[href="leave.html"]')) {
+          const a = document.createElement('a');
+          a.href = 'leave.html'; a.textContent = 'My Leave';
+          if (active === 'leave') a.className = 'active';
+          const lr = body.querySelector('a[href="leave_requests.html"]');
+          if (lr && lr.nextSibling) body.insertBefore(a, lr.nextSibling); else body.appendChild(a);
+        }
+      }
+    }).catch(() => {});
     api.get('leave_admin.count').then((d) => {
       const badge = document.getElementById('leaveBadge');
       if (badge && d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline-block'; }
