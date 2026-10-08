@@ -87,6 +87,7 @@
   .g-rat{background:#be185d !important;} .g-tk{background:#0369a1 !important;}
   .es-tk{font-size:11px; color:var(--muted); font-weight:600; white-space:nowrap;}
   .unalloc-note{margin:0 0 12px; padding:9px 14px; border-radius:8px; background:#FFF8E6; color:#8a5a00; font-size:12.5px; display:flex; gap:6px 12px; align-items:center; flex-wrap:wrap;}
+  .unalloc-note[hidden]{display:none;}
   .unalloc-note a{color:#8a5a00; font-weight:700; text-decoration:underline; cursor:pointer;}
   .es-tbl .gl{border-left:2px solid #e5e7eb;}
   .es-tbl tbody tr:hover td{background:#f8faff;}
@@ -330,6 +331,7 @@
       </div>
 
       <div class="unalloc-note" id="unallocNote" hidden></div>
+      <div class="unalloc-note" id="empZeroNote" hidden></div>
 
       <!-- Employee sheet (Admin / HR): one row per sales employee for the dates above -->
       <div class="vtabs" id="vtabs" hidden>
@@ -503,10 +505,13 @@
   guardPage();
   renderSidebar('orders');
 
-  // Employee view: same page, scoped by the server to their own orders.
-  if ((api.currentUser() || {}).role === 'Employee') {
+  // Employee view: same page, scoped by the server to their own orders. No Day timing button and no Platform summary
+  // (those are company-wide / Admin things); the Query ratio box line is left out too, as it needs the company-wide query count.
+  const EMP_VIEW = (api.currentUser() || {}).role === 'Employee';
+  if (EMP_VIEW) {
     document.querySelector('.topbar h1').textContent = 'My Orders';
     document.getElementById('btnAddOrder').style.display = 'none';
+    document.getElementById('btnTiming').style.display = 'none';
   }
 
   const alertBox = document.getElementById('alertBox');
@@ -606,6 +611,7 @@
       const orders = (data.orders || []).filter(o => o.store_key !== HIDDEN_STORE);   // MySales 4P is not shown or counted on this page
       (data.errors || []).forEach(e => showAlert(e, 'error'));
       render(orders);
+      renderEmpZero(data.scope, orders);
     } catch (err) {
       if (reqId !== ordersReqId) return;
       showAlert(err.message, 'error');
@@ -614,6 +620,21 @@
     }
   }
   let ordersReqId = 0;
+
+  // Employee view with nothing to show: say why, from what the server found for these dates.
+  function renderEmpZero(scope, orders) {
+    const el = document.getElementById('empZeroNote');
+    if (!el) return;
+    if (!EMP_VIEW || !scope || orders.length) { el.hidden = true; return; }
+    const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
+    const when = from === to ? dateLabel(from) : dateLabel(from) + ' – ' + dateLabel(to);
+    const tag = ocEsc(scope.tag || '');
+    let why = `The stores had <b>${scope.fetched}</b> order${scope.fetched === 1 ? '' : 's'} in this window, but none is tagged “${tag}” or allocated to you.`;
+    if (!scope.fetched) why = 'No orders came in for these dates yet.';
+    else if (scope.elsewhere) why += ` <b>${scope.elsewhere}</b> tagged “${tag}” ${scope.elsewhere === 1 ? 'was' : 'were'} given to someone else on Order Allocation.`;
+    el.innerHTML = `<span><b>No orders for you on ${when}.</b> ${why} An order shows here once it carries your tag and is allocated.</span>`;
+    el.hidden = false;
+  }
 
   let allOrders = [];
   let filteredOrders = [];
@@ -904,6 +925,7 @@
   let platformQueries = {};          // house -> { query, campaign } for the loaded dates
   let platformQueriesFor = '';
   async function loadPlatformQueries(from, to) {
+    if (EMP_VIEW) return;
     const key = from + '|' + to;
     if (platformQueriesFor === key) return;
     try {
@@ -916,6 +938,7 @@
   }
   function renderPlatformSummary() {
     const card = document.getElementById('platformCard');
+    if (EMP_VIEW) { card.style.display = 'none'; return; }          // Employee view: no Platform summary
     const base = scopedOrders().filter(o => STORE_HOUSE_MAP[o.store_key] || o.house);   // Shopify orders only
     const shown = platformShown();
     if (!shown.length || (!base.length && !Object.keys(platformQueries).length)) { card.style.display = 'none'; return; }
@@ -1072,7 +1095,7 @@
         <div class="pcm ar-pc"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
         <div class="tkr"><span>Ticket size</span> <b>${ticket(grandTotal, base.length, 'INR')}</b></div>
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
-        <div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>
+        ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
       </div>
       ${boxes.map(([label, s]) => `
@@ -1654,7 +1677,7 @@
         out.push(Object.assign({}, base, {
           b, q, k, tot: q + k, or: pp && pp.order_rating ? [Number(pp.order_rating.avg) || 0, Number(pp.order_rating.n) || 0] : [0, 0],
           tg: pp ? Number(pp.target) || 0 : 0, tsrc: pp ? pp.src || 'none' : 'none', how: pp ? pp.how || '' : '', shared: !!(pp && pp.shared),
-          ab: !!(pp && pp.absent), abd: pp ? Number(pp.absent_days) || 0 : 0,      // absent (every day / this many days of the range): that target is not counted
+          ab: !!(pp && (pp.absent || pp.off)), abd: pp ? Number(pp.absent_days) || 0 : 0, lvd: pp ? Number(pp.leave_days) || 0 : 0,      // absent / on leave (every day / this many days of the range): that target is not counted
           fl: pp ? Number(pp.floor) || 0 : 0      // a new Sales Executive's automatic target for the day: it can be raised by hand, not lowered
         }, a || slot0()));
       });
@@ -1719,10 +1742,10 @@
   function esTgtCell(e) {
     if (!e.real || PANEL_GK[e.b] === undefined) return '<span class="es-sl">—</span>';     // "No panel" has no target
     const can = esCanEdit(), d = `data-id="${e.id}" data-b="${e.b}"`;
-    if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">Absent — target not counted</div>`;
+    if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">${esEsc(e.how || 'Absent — target not counted')}</div>`;
     if (can && esEditTg === e.id + '|' + e.b) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="${e.fl || 0}" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="${e.fl ? '≥ ' + esInr(e.fl) : 'Daily target'}"${e.fl ? ` title="New Sales Executive: at least ${esInr(e.fl)} — you can raise it, not lower it"` : ''}><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span>`;
     const pill = e.tsrc === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (e.tsrc === 'rule' || e.tsrc === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
-    const absNote = e.abd > 0 ? `<div class="tgt-how">${e.abd} absent day${e.abd === 1 ? '' : 's'} not counted</div>` : '';      // a range with some absent days
+    const absNote = (e.abd > 0 ? `<div class="tgt-how">${e.abd} absent day${e.abd === 1 ? '' : 's'} not counted</div>` : '') + (e.lvd > 0 ? `<div class="tgt-how">${e.lvd} leave day${e.lvd === 1 ? '' : 's'} not counted</div>` : '');      // a range with some absent / leave days
     if (!can) return (e.tg > 0 ? `<span class="tgt-chip ro">${esInr(e.tg)}</span>` : '<span class="es-sl">—</span>') + absNote;
     const chip = `<span class="tgt-chip ${e.tg > 0 ? '' : 'empty'}" data-tg="edit" ${d} title="Click to set by hand">${e.tg > 0 ? esInr(e.tg) : 'Set target'} ${pill} ✎</span>`;
     const sub = e.tsrc === 'manual' && !e.shared ? `<div><button type="button" class="tgt-revert" data-tg="rev" ${d}>↺ Back to automatic</button></div>` : (e.how ? `<div class="tgt-how" title="${esEsc(e.how)}">${esEsc(e.how)}</div>` : '');

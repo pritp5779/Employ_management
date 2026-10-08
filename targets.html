@@ -388,6 +388,9 @@
    */
   function resolveTarget(r) {
     const { overrides, hist, histDays, rule, day } = dailyCache;
+    // On leave (or absent) that day: no target, whatever else is set.
+    const away = (dailyCache.away || {})[r.employee_id];
+    if (away) return { amount: 0, source: 'away', how: away === 'leave' ? 'On leave — target not counted' : 'Absent — target not counted' };
     const ek = r.employee_id + '|' + r.group_key;
     const nk = r.full_name + '|' + r.group_key;
     // A new Sales Executive's first four weeks (10,000 / 15,000 / 20,000 / 25,000 a day): the lowest target of the day. It
@@ -422,6 +425,10 @@
 
   // Target chip + how it was worked out + "back to auto" when set by hand.
   function targetCell(r, t, compact) {
+    if (t.source === 'away') {      // on leave / absent: ₹0, not editable
+      const z = `<span class="tgt-chip" style="cursor:default;" title="${t.how}">${inr(0)}</span>`;
+      return compact ? z : z + `<div class="tgt-how">${t.how}</div>`;
+    }
     const pill = t.source === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (t.source === 'rule' || t.source === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
     const chip = `<span class="tgt-chip ${t.amount > 0 ? '' : 'empty'}" data-value="${t.source === 'manual' ? t.amount : ''}"
         onclick="startEdit(this, ${r.employee_id}, '${r.group_key}', 'day')" title="Click to set by hand">${t.amount > 0 ? inr(t.amount) : 'Set target'} ${pill} ✎</span>`;
@@ -556,7 +563,7 @@
       });
 
       // New Sales Executives (first four weeks): the automatic ladder for this day, per employee and the row it sits on.
-      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, codeLists, queriesByKey, overrides, ladder: ovData.ladder || {}, day, hist, histDays, rule };
+      dailyCache = { sums, counts, scoutSums, champSums, afterPunch, prepaidSums, codeLists, queriesByKey, overrides, ladder: ovData.ladder || {}, away: ovData.away || {}, day, hist, histDays, rule };
       renderDaily();
     } catch (err) {
       if (reqId !== dailyReqId) return;

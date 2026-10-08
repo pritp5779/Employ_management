@@ -24,6 +24,13 @@
   .qc .qn{font-size:28px; font-weight:700; line-height:1.15; margin-top:4px;} .qc .qn small{font-size:12px; font-weight:500; color:var(--muted); margin-left:4px;}
   .qc .ln{display:flex; justify-content:space-between; gap:8px; font-size:13px; padding-top:6px; margin-top:6px; border-top:1px dashed var(--line); color:var(--muted);}
   .qc .ln b{color:var(--ink); white-space:nowrap;} .qc .ln.pn{border-top:0; margin-top:2px; padding-top:0; font-size:12px;}
+  #statGrid{grid-template-columns:repeat(3,1fr);}   /* 6 tiles = two tidy rows of three */
+  /* commission tiles */
+  .stat-card.com .value{color:#0f7a41;}
+  .stat-card .sub{font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.3;}
+  .stat-card .sub:empty{display:none;}
+  .stat-card .value.wait{color:#9ca3af; font-weight:600;}
+  @media (max-width:520px){ .stat-card .sub{font-size:10px;} }
   @media (max-width:520px){ .qc{gap:8px;} .qc .qb{padding:10px;} .qc .qn{font-size:24px;} .qc .ln{flex-direction:column; gap:0;} }
 </style>
 </head>
@@ -94,6 +101,162 @@
   }
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // ---------- Month figures and commission ----------
+  // Worked out here from this employee's own orders and the commission rules — the same calculation as the Commission page
+  // (slab rate by target / ticket size / prepaid share, then the order-code rules), so the numbers match what Admin sees.
+  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [] };
+  const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  const isPre = (fs) => { fs = String(fs || '').toLowerCase(); return fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1; };
+
+  function calcCommission(achieved, target, ticket, prepaidPct) {
+    const R = CM.rules;
+    if (!R || !R.length || achieved <= 0) return null;
+    const overPct = target > 0 ? ((achieved / target) - 1) * 100 : 0;
+    const hit = target > 0 ? achieved >= target : false;
+    const over = R.filter((r) => r.rule_type === 'over_target' && overPct >= Number(r.over_pct) && ticket >= Number(r.ticket_min));
+    over.sort((a, b) => Number(b.over_pct) - Number(a.over_pct) || Number(b.ticket_min) - Number(a.ticket_min));
+    let rate;
+    if (over.length) rate = Number(over[0].rate);
+    else {
+      const base = R.filter((r) => r.rule_type === 'base' && Number(r.achieved_target) === (hit ? 1 : 0) && ticket >= Number(r.ticket_min));
+      base.sort((a, b) => Number(b.ticket_min) - Number(a.ticket_min));
+      rate = base.length ? Number(base[0].rate) : 0;
+      const pm = R.filter((r) => r.rule_type === 'prepaid' && prepaidPct >= Number(r.prepaid_min));
+      pm.sort((a, b) => Number(b.prepaid_min) - Number(a.prepaid_min));
+      if (pm.length) rate += Number(pm[0].rate);
+    }
+    rate = Math.round(rate * 100) / 100;
+    return { rate, hit, ticket };
+  }
+  // Order-code rules: a share set by hand wins, else the first switched-on rule that matches, else the full 100%.
+  function shareFor(x, ctx) {
+    const m = CM.code.shares[x.key];
+    if (m) return { mode: 'pct', v: Number(m.share_pct) };
+    if (!CM.code.on) return null;
+    const has = !!x.code;
+    for (const r of CM.code.rules) {
+      if (!Number(r.enabled)) continue;
+      if (r.houses && String(r.houses).split(',').indexOf(x.house) === -1) continue;
+      const wt = r.when_target || 'any', wk = r.when_ticket || 'any';
+      if (wt !== 'any' || wk !== 'any') {
+        if (!ctx) continue;
+        if (wt === 'hit' && !ctx.hit) continue;
+        if (wt === 'miss' && ctx.hit) continue;
+        if (wk === 'lt' && !(ctx.ticket < Number(r.when_ticket_val))) continue;
+        if (wk === 'gte' && !(ctx.ticket >= Number(r.when_ticket_val))) continue;
+      }
+      if (r.match_type === 'no_code' && has) continue;
+      if (r.match_type === 'has_code' && !has) continue;
+      if (r.match_type === 'prefix' && !(has && String(x.code).toUpperCase().indexOf(String(r.prefix).toUpperCase()) === 0)) continue;
+      return { mode: r.pay_mode, v: Number(r.pay_value) };
+    }
+    return null;
+  }
+  function calcPrice(x, ctx) {
+    const sh = shareFor(x, ctx);
+    if (!sh) return { eff: x.amt, flat: 0 };
+    if (sh.mode === 'flat') return { eff: 0, flat: sh.v };
+    if (sh.mode === 'rate') return { eff: 0, flat: x.amt * sh.v / 100 };
+    return { eff: x.amt * sh.v / 100, flat: 0 };
+  }
+  const hasCond = () => CM.code.on && CM.code.rules.some((r) => Number(r.enabled) && ((r.when_target || 'any') !== 'any' || (r.when_ticket || 'any') !== 'any'));
+
+  function bizDayOf(dt, dayStart) {
+    const d = new Date(dt);
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm < dayStart[d.getDay()]) d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function buildOrders(orders, from, to, dayStart) {
+    CM.idx = {}; CM.ord = [];
+    (orders || []).forEach((o) => {
+      if (o.cancelled) return;                                                    // cancelled orders earn nothing
+      if (!STORE_TO_GROUP[o.store_key] && !(o.allocated && o.house)) return;       // only the house stores (+ MySales orders moved to a panel)
+      const day = o.biz_date || bizDayOf(o.created_at, dayStart);
+      if (day < from || day > to) return;
+      const rk = o.house === 'tm4u' ? 'tm4u' : '';
+      const amt = Number(o.total || 0), pre = isPre(o.financial_status);
+      const x = { key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', code: o.code || '', amt, pre };
+      const p = calcPrice(x); x.eff = p.eff; x.flat = p.flat;
+      CM.ord.push(x);
+      const cell = ((CM.idx[rk] = CM.idx[rk] || {})[day] = CM.idx[rk][day] || { ach: 0, n: 0, pre: 0, eff: 0, flat: 0, orders: [] });
+      cell.ach += amt; cell.n++; if (pre) cell.pre += amt; cell.eff += x.eff; cell.flat += x.flat; cell.orders.push(x);
+    });
+  }
+  // One row ('' = all panels, 'tm4u' = the TM4U row) over a set of days.
+  function aggRow(rk, days) {
+    let ach = 0, n = 0, pre = 0, eff = 0, flat = 0, target = 0;
+    const orders = [];
+    days.forEach((d) => {
+      const x = (CM.idx[rk] || {})[d];
+      if (x) { ach += x.ach; n += x.n; pre += x.pre; eff += x.eff; flat += x.flat; orders.push(...x.orders); }
+      target += Number(((CM.target || {})[rk] || {})[d] || 0);
+    });
+    const ticket = n ? ach / n : 0, prePct = ach > 0 ? Math.min(100, pre / ach * 100) : 0;
+    const c = calcCommission(ach, target, ticket, prePct);
+    if (c && hasCond()) {                  // rules that depend on this employee's target / ticket size price each order in that context
+      eff = 0; flat = 0;
+      orders.forEach((o) => { const p = calcPrice(o, { hit: c.hit, ticket: c.ticket }); eff += p.eff; flat += p.flat; });
+    }
+    return { ach, n, target, rate: c ? c.rate : 0, amount: c ? c.rate * eff / 100 + flat : 0, rated: !!c };
+  }
+  function period(days) {
+    const rows = ['', 'tm4u'].map((rk) => aggRow(rk, days));
+    const sum = (k) => rows.reduce((a, r) => a + r[k], 0);
+    const live = rows.filter((r) => r.ach > 0 && r.rated);
+    return { ach: sum('ach'), n: sum('n'), amount: sum('amount'), rate: live.length === 1 ? live[0].rate : null, rated: live.length > 0 };
+  }
+  const rateTxt = (r) => r === null ? '' : (Math.round(r * 100) / 100) + '% rate';
+
+  async function loadCommission(d) {
+    const setBoth = (txt, sub) => {
+      ['tCom', 'mCom'].forEach((id) => { const el = document.getElementById(id); if (el) { el.textContent = txt; el.classList.add('wait'); } });
+      ['tComSub', 'mComSub'].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = sub || ''; });
+    };
+    const fallbackMonth = () => {      // month figures as stored by the Targets page, when the live ones could not be worked out
+      const a = document.getElementById('mSales'), b = document.getElementById('mOrders');
+      if (a) { a.innerHTML = money(d.month.sales); a.classList.remove('wait'); }
+      if (b) { b.textContent = d.month.orders; b.classList.remove('wait'); }
+    };
+    try {
+      const to = d.business_day, from = to.slice(0, 8) + '01';
+      const [cm, od, tm] = await Promise.all([
+        api.get('my.commission'),
+        api.get('shopify.orders', { date_from: from, date_to: to }),
+        api.get('day_timing.get').catch(() => null),
+      ]);
+      if (cm.applicable === false) {      // not a sales role: no commission
+        document.getElementById('tComCard').remove(); document.getElementById('mComCard').remove();
+        fallbackMonth();
+        return;
+      }
+      const dayStart = tm && Array.isArray(tm.start) && tm.start.length === 7 ? tm.start : ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+      CM.rules = cm.rules || [];
+      CM.code = { on: !!(cm.code && cm.code.on), rules: (cm.code && cm.code.rules) || [], shares: (cm.shares && !Array.isArray(cm.shares)) ? cm.shares : {} };
+      CM.target = cm.target || {}; CM.status = cm.status || {};
+      buildOrders(od.orders || [], from, to, dayStart);
+      const days = []; for (let x = from; x <= to; ) { days.push(x); const t = new Date(x + 'T00:00:00'); t.setDate(t.getDate() + 1); x = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+      const m = period(days), t = period([to]);
+      const set = (id, html) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.classList.remove('wait'); } };
+      set('mSales', money(m.ach)); set('mOrders', String(m.n));
+      const ml = document.getElementById('monthLine'), mb = document.getElementById('monthBar');   // keep the "This Month" bar in step with the tile
+      if (ml) ml.textContent = inr(m.ach) + ' of ' + (d.month.target > 0 ? inr(d.month.target) : '—') + ' monthly target';
+      if (mb) mb.innerHTML = bar(m.ach, d.month.target);
+      set('tCom', money(t.amount)); set('mCom', money(m.amount));
+      document.getElementById('tComSub').textContent = t.rated ? rateTxt(t.rate) : (t.ach > 0 ? '' : 'No sales yet today');
+      document.getElementById('mComSub').textContent = m.rated ? rateTxt(m.rate) : (m.ach > 0 ? '' : 'No sales yet this month');
+      if (!CM.rules.length) setBoth('—', 'Commission rules not set');
+      const errs = (od.errors || []).filter(Boolean);
+      if (errs.length) showErr('Some orders could not be loaded, so month figures may be incomplete: ' + errs.join(' · '));
+    } catch (err) {
+      fallbackMonth();
+      setBoth('—', 'Could not load');
+      showErr('Commission could not be worked out: ' + err.message);
+    }
+  }
+  function showErr(msg) { document.getElementById('alertBox').innerHTML = `<div class="alert error">${esc(msg)}</div>`; }
+
   async function load() {
     try {
       const d = await api.get('my.stats');
@@ -107,10 +270,13 @@
       grid.innerHTML = `
         <div class="stat-card"><div class="label">Today Sales</div><div class="value">${money(d.today.sales)}</div></div>
         <div class="stat-card"><div class="label">Today Orders</div><div class="value">${d.today.orders}</div></div>
-        <div class="stat-card"><div class="label">Month Sales</div><div class="value">${money(d.month.sales)}</div></div>
-        <div class="stat-card"><div class="label">Month Orders</div><div class="value">${d.month.orders}</div></div>
+        <div class="stat-card"><div class="label">Month Sales</div><div class="value wait" id="mSales">…</div></div>
+        <div class="stat-card"><div class="label">Month Orders</div><div class="value wait" id="mOrders">…</div></div>
+        <div class="stat-card com" id="tComCard"><div class="label">Today Commission</div><div class="value wait" id="tCom">…</div><div class="sub" id="tComSub"></div></div>
+        <div class="stat-card com" id="mComCard"><div class="label">Monthly Commission</div><div class="value wait" id="mCom">…</div><div class="sub" id="mComSub"></div></div>
       `;
       grid.style.display = 'grid';
+      loadCommission(d);
 
       const dayLabel = new Date(d.business_day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
       document.getElementById('detailBox').innerHTML = `
@@ -122,8 +288,8 @@
         </div>
         <div>
           <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">This Month</div>
-          <div style="font-size:14px; margin-top:4px;">${inr(d.month.sales)} of ${d.month.target > 0 ? inr(d.month.target) : '—'} monthly target</div>
-          ${bar(d.month.sales, d.month.target)}
+          <div id="monthLine" style="font-size:14px; margin-top:4px;">${inr(d.month.sales)} of ${d.month.target > 0 ? inr(d.month.target) : '—'} monthly target</div>
+          <div id="monthBar">${bar(d.month.sales, d.month.target)}</div>
         </div>
         ${d.today.error ? `<div class="alert error" style="margin-top:12px;">${d.today.error}</div>` : ''}
       `;

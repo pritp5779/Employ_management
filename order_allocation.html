@@ -15,6 +15,11 @@
 <style>
   .sel{padding:7px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; width:100%; min-width:104px; max-width:100%;}
   .sel.changed{border-color:var(--accent); box-shadow:0 0 0 2px #dbe6ff;}
+  .dcode{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; background:#e7f7ee; border:1px dashed #86c9a2; color:#0f7a41; font-size:12px; font-weight:700; letter-spacing:.02em;}
+  .chain-sel{min-width:70px; width:78px;}
+  .chain-sel.yes{background:#e7f7ee; border-color:#bfe3cd; color:#0f7a41; font-weight:700;}
+  .chain-sel.saving{opacity:.6;} .chain-sel.failed{border-color:#dc2626; box-shadow:0 0 0 2px #fee2e2;}
+  @media (max-width:820px){ .chain-sel{width:100%;} }
   .sel.inline{width:auto;}
   .ok-btn{width:38px; height:36px; min-height:0; border:none; border-radius:6px; background:#0f7a41; color:#fff; font-size:16px; font-weight:700; cursor:pointer;}
   .ok-btn:disabled{background:#cbd5e1; cursor:not-allowed;}
@@ -206,8 +211,8 @@
         </div>
         <div class="tscroll">
         <table>
-          <thead><tr><th>Order</th><th style="width:112px;" title="Order code — type it here, or upload the Excel on the Order Codes page and it fills in">Code</th><th>Employee</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Type</th><th>Panel</th><th style="width:124px;" title="Ticket size convincing — same per-order rating as the Performance page">Rating</th><th id="thAddon" style="width:120px;" title="Extra products sold onto this order — same as the Add-on on the Performance page">Add-on</th><th style="width:84px;"></th></tr></thead>
-          <tbody id="tbody"><tr><td colspan="12" class="loading">Loading...</td></tr></tbody>
+          <thead><tr><th>Order</th><th style="width:112px;" title="Order code — type it here, or upload the Excel on the Order Codes page and it fills in">Code</th><th>Employee</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Type</th><th>Panel</th><th style="width:92px;" title="Chain order — Yes or No">Chain</th><th style="width:124px;" title="Ticket size convincing — same per-order rating as the Performance page">Rating</th><th id="thAddon" style="width:120px;" title="Extra products sold onto this order — same as the Add-on on the Performance page">Add-on</th><th style="width:84px;"></th></tr></thead>
+          <tbody id="tbody"><tr><td colspan="13" class="loading">Loading...</td></tr></tbody>
         </table>
         </div>
         <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
@@ -366,7 +371,7 @@
   // allocated rows locked. Admin / HR / Sales Head / other roles keep everything.
   const IS_EMP = String((api.currentUser() || {}).role || '').trim().toLowerCase() === 'employee';
   // The Employee role has no Add-on column at all (it can't add or see add-ons here).
-  const NCOL = IS_EMP ? 11 : 12;
+  const NCOL = IS_EMP ? 12 : 13;
   if (IS_EMP) document.getElementById('thAddon').remove();
   const RATE_WORDS = ['Not rated','Very poor','Poor','Weak','Fair','Okay','Good','Very good','Great','Excellent','Outstanding'];
   function starCells(v) {
@@ -491,6 +496,30 @@
     else if (e.key === 'Escape') { const o = orders.find(x => key(x) === e.target.dataset.k); e.target.value = o ? (o.extra_phone || '') : ''; e.target.blur(); }
   });
 
+  // Chain: Yes / No per order (saved straight away; only "Yes" is stored, no row means No).
+  function chainCell(o, canEdit) {
+    const yes = o.chain === 'yes';
+    if (!canEdit) return `<span class="sub" style="${yes ? 'color:#0f7a41; font-weight:700;' : ''}">${yes ? 'Yes' : 'No'}</span>`;
+    return `<select class="sel chain-sel ${yes ? 'yes' : ''}" data-k="${key(o)}" title="Chain order">` +
+      `<option value="no" ${yes ? '' : 'selected'}>No</option><option value="yes" ${yes ? 'selected' : ''}>Yes</option></select>`;
+  }
+  async function saveChain(sel) {
+    const o = orders.find(x => key(x) === sel.dataset.k);
+    if (!o) return;
+    const v = sel.value === 'yes' ? 'yes' : 'no', prev = o.chain === 'yes' ? 'yes' : 'no';
+    if (v === prev) return;
+    sel.disabled = true; sel.classList.add('saving'); sel.classList.remove('failed');
+    try {
+      await api.post('order_chain.set', { source: o.store_key, order_id: String(o.id), order_name: o.order_name, chain: v });
+      o.chain = v; sel.classList.toggle('yes', v === 'yes');
+    } catch (err) {
+      sel.value = prev; sel.classList.add('failed'); setTimeout(() => sel.classList.remove('failed'), 2500);
+      showAlert(err.message, 'error');
+    }
+    sel.disabled = false; sel.classList.remove('saving');
+  }
+  document.addEventListener('change', (e) => { if (e.target.classList && e.target.classList.contains('chain-sel')) saveChain(e.target); });
+
   function rowHtml(o) {
     const k = key(o);
     const p = pending[k] || {};
@@ -535,6 +564,7 @@
       <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${esc(o.financial_status || '—')}</span>${o.financial_status === 'partially_paid' && o.paid != null ? `<div class="paid-amt" title="Already paid by the customer${o.outstanding != null ? ' — ' + inr(o.outstanding) + ' still to pay' : ''}">Paid ${inr(o.paid)}</div>` : ''}</td>
       <td>${typeCell}</td>
       <td>${panelCell}</td>
+      <td>${chainCell(o, !o.cancelled && !(IS_EMP && lock))}</td>
       <td>${ratingCell(o, empSel, noEmpMsg(o, p))}</td>
       ${IS_EMP ? '' : `<td>${addonCell(o)}</td>`}
       <td>${action}${cx}</td>
@@ -623,7 +653,7 @@
       const totalsHtml = `
         <div style="margin-left:auto; max-width:260px; font-size:13.5px;">
           ${line('Subtotal', fmtMoney(d.subtotal, d.currency))}
-          ${Number(d.discounts) > 0 ? line('Discount', '−' + fmtMoney(d.discounts, d.currency), 'color:var(--ok-fg);') : ''}
+          ${Number(d.discounts) > 0 || (d.discount_codes || []).length ? line('Discount' + ((d.discount_codes || []).length ? ' <span class="dcode">' + d.discount_codes.map(c => esc(c.code)).join(', ') + '</span>' : ''), '−' + fmtMoney(d.discounts, d.currency), 'color:var(--ok-fg);') : ''}
           ${line('Shipping', fmtMoney(d.shipping, d.currency))}
           ${Number(d.tax) > 0 ? line('Tax', fmtMoney(d.tax, d.currency)) : ''}
           ${line('Total', fmtMoney(d.total, d.currency), 'padding:6px 0; border-top:1px solid var(--line); font-weight:700;')}

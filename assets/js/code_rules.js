@@ -1,4 +1,4 @@
-    /**
+/**
  * Order code rules — the "Order code rules" section on the Commission Rules page.
  *
  * layout.js loads this file on commission_rules.html only, and it adds its own
@@ -7,6 +7,9 @@
  * What the rules do: an order's commission is the normal commission (from the
  * slabs above) times a share. A rule says "orders with no code / with a code /
  * with a code starting with X pay N% of the normal commission (or a flat ₹)".
+ * A rule can also pay a fixed rate % instead (e.g. "no code → 3%"), and can be
+ * limited to employees who hit / missed their target and / or whose average
+ * ticket is below / above an amount ("only when").
  * Rules are checked top to bottom, the first switched-on match wins, and a
  * master switch turns the whole thing off. The Commission page applies them.
  */
@@ -98,8 +101,15 @@
       <div class="seg" id="crcWhen"><button type="button" data-v="no_code">Has no code</button><button type="button" data-v="has_code">Has a code</button><button type="button" data-v="prefix">Code starts with…</button></div>
       <input id="crcPrefix" maxlength="20" placeholder="e.g. AG" style="margin-top:10px; text-transform:uppercase; display:none;">
     </div>
+    <div class="field"><label>Only when <span style="text-transform:none; font-weight:400;">(optional — about the employee's target and ticket size)</span></label>
+      <div style="font-size:12px; color:var(--muted); margin:2px 0 6px;">Target</div>
+      <div class="seg sm" id="crcTarget"><button type="button" data-v="any">Any</button><button type="button" data-v="hit">Target achieved</button><button type="button" data-v="miss">Target not achieved</button></div>
+      <div style="font-size:12px; color:var(--muted); margin:10px 0 6px;">Ticket size (average order value)</div>
+      <div class="seg sm" id="crcTicket"><button type="button" data-v="any">Any</button><button type="button" data-v="lt">Below ₹…</button><button type="button" data-v="gte">₹… or more</button></div>
+      <input id="crcTicketVal" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 2300" style="margin-top:10px; width:140px; display:none;">
+    </div>
     <div class="field"><label>Pays</label>
-      <div class="seg sm" id="crcMode"><button type="button" data-v="pct">% of normal commission</button><button type="button" data-v="flat">Flat ₹ per order</button></div>
+      <div class="seg sm" id="crcMode"><button type="button" data-v="pct">% of normal commission</button><button type="button" data-v="rate">Fixed rate %</button><button type="button" data-v="flat">Flat ₹ per order</button></div>
       <div class="payrow"><input id="crcVal" type="number" min="0" step="0.01" inputmode="decimal"><span id="crcUnit">%</span></div>
       <div class="hint" id="crcHint"></div>
     </div>
@@ -110,9 +120,16 @@
   document.body.appendChild(modal);
   const $m = (id) => modal.querySelector('#' + id);
 
-  const describe = (r) => r.match_type === 'no_code' ? 'Order has <b>no code</b>'
+  const describe = (r) => (r.match_type === 'no_code' ? 'Order has <b>no code</b>'
     : r.match_type === 'has_code' ? 'Order has <b>a code</b>'
-    : 'Code starts with <b>“' + esc(r.prefix) + '”</b>';
+    : 'Code starts with <b>“' + esc(r.prefix) + '”</b>') + condText(r);
+  const isCond = (r) => (r.when_target || 'any') !== 'any' || (r.when_ticket || 'any') !== 'any';
+  function condText(r) {
+    const p = [];
+    if (r.when_target === 'hit') p.push('target <b>achieved</b>'); else if (r.when_target === 'miss') p.push('target <b>not achieved</b>');
+    if (r.when_ticket === 'lt') p.push('ticket <b>below ' + inr(r.when_ticket_val) + '</b>'); else if (r.when_ticket === 'gte') p.push('ticket <b>' + inr(r.when_ticket_val) + ' or more</b>');
+    return p.length ? ' · employee: ' + p.join(', ') : '';
+  }
   const housePills = (r) => {
     const ids = String(r.houses || '').split(',').filter(Boolean);
     return ids.length ? ids.map((h) => `<span class="pill">${esc(HOUSES[h] || h)}</span>`).join(' ') : '<span class="pill">All stores</span>';
@@ -121,7 +138,7 @@
   // The normal-commission share a sample order would get, using only rules that apply to every store.
   function sample(hasCode) {
     for (const r of RULES) {
-      if (!Number(r.enabled) || r.houses) continue;
+      if (!Number(r.enabled) || r.houses || isCond(r)) continue;
       if (r.match_type === 'prefix') continue;
       if (r.match_type === 'no_code' && hasCode) continue;
       if (r.match_type === 'has_code' && !hasCode) continue;
@@ -132,15 +149,15 @@
   function pvOut(r, order, rate) {
     const full = order * rate / 100;
     if (!r) return full;
-    return r.pay_mode === 'flat' ? Number(r.pay_value) : full * Number(r.pay_value) / 100;
+    return r.pay_mode === 'flat' ? Number(r.pay_value) : r.pay_mode === 'rate' ? order * Number(r.pay_value) / 100 : full * Number(r.pay_value) / 100;
   }
 
   function render() {
     const list = RULES.map((r, i) => `
       <div class="rule ${Number(r.enabled) ? '' : 'off'}" data-id="${r.rule_id}">
         <div class="ord"><button type="button" data-mv="up" ${i === 0 ? 'disabled' : ''} title="Move up">▲</button><button type="button" data-mv="down" ${i === RULES.length - 1 ? 'disabled' : ''} title="Move down">▼</button></div>
-        <div class="r-main"><div class="r-name">${esc(r.label) || describe(r)}</div><div class="r-sub">${r.label ? describe(r) : (r.match_type === 'no_code' ? 'Orders where nobody has set an order code' : r.match_type === 'has_code' ? 'Any order that has an order code' : 'Orders whose code begins with this')}</div></div>
-        <div class="r-pay">${r.pay_mode === 'flat' ? `<span class="pct">${inr(r.pay_value)}</span><small>flat per order</small>` : `<span class="pct">${num(r.pay_value)}%</span><small>of normal commission</small>`}</div>
+        <div class="r-main"><div class="r-name">${esc(r.label) || describe(r)}</div><div class="r-sub">${r.label ? describe(r) : (r.match_type === 'no_code' ? 'Orders where nobody has set an order code' : r.match_type === 'has_code' ? 'Any order that has an order code' : 'Orders whose code begins with this') + condText(r)}</div></div>
+        <div class="r-pay">${r.pay_mode === 'flat' ? `<span class="pct">${inr(r.pay_value)}</span><small>flat per order</small>` : r.pay_mode === 'rate' ? `<span class="pct">${num(r.pay_value)}%</span><small>fixed rate (replaces slab rate)</small>` : `<span class="pct">${num(r.pay_value)}%</span><small>of normal commission</small>`}</div>
         <div class="r-scope">${housePills(r)}</div>
         <label class="sw" title="Turn this rule on or off"><input type="checkbox" data-en ${Number(r.enabled) ? 'checked' : ''}><i></i></label>
         <div class="r-act"><button type="button" class="mini" data-edit>Edit</button><button type="button" class="mini del" data-del>Delete</button></div>
@@ -150,14 +167,14 @@
     card.innerHTML = `
       <div class="card-head">
         <div><h2>Order code rules <span class="chip">New</span></h2>
-          <p class="sub2">Pay a different share of the commission depending on whether the order has an order code. Rules run top to bottom — the first one that is switched on and matches is used. Orders no rule matches earn the normal commission.</p></div>
+          <p class="sub2">Pay a different share of the commission depending on whether the order has an order code. Rules run top to bottom — the first one that is switched on and matches is used. Orders no rule matches earn the normal commission. A rule can also be limited to employees who hit / missed their target or whose ticket size is below / above an amount.</p></div>
         <label class="sw master"><span>${ON ? 'Order code rules ON' : 'Order code rules OFF'}</span><input type="checkbox" id="crcMaster" ${ON ? 'checked' : ''}><i></i></label>
       </div>
       ${ON ? '' : '<div class="off-note">The rules below are saved but <b>not used</b> — every order earns the normal commission. Switch “Order code rules” on to start using them.</div>'}
       <div class="rules" style="${ON ? '' : 'opacity:.55;'}">${list || '<div class="empty">No rules yet. Add one — for example “no code → 50%”.</div>'}</div>
       <div class="addrow"><button type="button" class="btn" id="crcAdd">+ Add rule</button><span class="sub2" style="margin:0;">Turn a rule off to stop using it — it stays saved, so you can switch it back on any time.</span></div>
       <div class="pv">
-        <h4>Live preview <span style="font-weight:400;">(rules that apply to every store)</span></h4>
+        <h4>Live preview <span style="font-weight:400;">(rules that apply to every store and have no “only when” condition)</span></h4>
         <div class="in"><span>Sample order ₹</span><input id="pvOrder" type="number" min="0" value="${ord}"><span>Slab rate %</span><input id="pvRate" type="number" min="0" step="0.1" value="${rate}"></div>
         <div class="out"><div><small>With a code</small><div class="big">${inr(pvOut(ON ? wc : null, ord, rate))}</div></div><div><small>No code</small><div class="big org">${inr(pvOut(ON ? nc : null, ord, rate))}</div></div></div>
       </div>`;
@@ -226,7 +243,9 @@
     $m('crcUnit').textContent = mode === 'flat' ? '₹' : '%';
     $m('crcHint').innerHTML = mode === 'flat'
       ? `Every matching order pays a fixed <b>${inr(v)}</b>, whatever its amount.`
-      : `Example: ₹10,000 order at a 6.8% slab → pays <b>${inr(10000 * 6.8 / 100 * v / 100)}</b> instead of ${inr(680)}`;
+      : mode === 'rate'
+        ? `Matching orders pay <b>${num(v)}%</b> of the order amount, whatever the employee's slab rate is. Example: ₹10,000 order → <b>${inr(10000 * v / 100)}</b>. Use 0 to pay nothing.`
+        : `Example: ₹10,000 order at a 6.8% slab → pays <b>${inr(10000 * 6.8 / 100 * v / 100)}</b> instead of ${inr(680)}`;
   }
   function openModal(r) {
     EDIT = r;
@@ -236,6 +255,10 @@
     setSeg($m('crcWhen'), r ? r.match_type : 'no_code');
     $m('crcPrefix').value = r ? r.prefix : '';
     $m('crcPrefix').style.display = (r && r.match_type === 'prefix') ? '' : 'none';
+    setSeg($m('crcTarget'), r ? (r.when_target || 'any') : 'any');
+    setSeg($m('crcTicket'), r ? (r.when_ticket || 'any') : 'any');
+    $m('crcTicketVal').value = r && Number(r.when_ticket_val) > 0 ? num(r.when_ticket_val) : '';
+    $m('crcTicketVal').style.display = (r && (r.when_ticket || 'any') !== 'any') ? '' : 'none';
     setSeg($m('crcMode'), r ? r.pay_mode : 'pct');
     $m('crcVal').value = r ? num(r.pay_value) : 50;
     const sel = r ? String(r.houses || '').split(',').filter(Boolean) : [];
@@ -248,6 +271,8 @@
   $m('crcCancel').onclick = closeModal;
   modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
   $m('crcWhen').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; setSeg($m('crcWhen'), b.dataset.v); $m('crcPrefix').style.display = b.dataset.v === 'prefix' ? '' : 'none'; };
+  $m('crcTarget').onclick = (e) => { const b = e.target.closest('button'); if (b) setSeg($m('crcTarget'), b.dataset.v); };
+  $m('crcTicket').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; setSeg($m('crcTicket'), b.dataset.v); $m('crcTicketVal').style.display = b.dataset.v === 'any' ? 'none' : ''; if (b.dataset.v !== 'any') $m('crcTicketVal').focus(); };
   $m('crcMode').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; setSeg($m('crcMode'), b.dataset.v); hint(); };
   $m('crcVal').oninput = hint;
   $m('crcHouses').onclick = (e) => { const b = e.target.closest('button'); if (b) b.classList.toggle('on'); };
@@ -260,6 +285,9 @@
         match_type: segVal($m('crcWhen')),
         prefix: $m('crcPrefix').value.trim(),
         pay_mode: segVal($m('crcMode')),
+        when_target: segVal($m('crcTarget')) || 'any',
+        when_ticket: segVal($m('crcTicket')) || 'any',
+        when_ticket_val: $m('crcTicketVal').value,
         pay_value: $m('crcVal').value,
         houses: [...$m('crcHouses').querySelectorAll('.on')].map((b) => b.dataset.h),
         enabled: $m('crcEn').checked,
@@ -271,4 +299,4 @@
   };
 
   load();
-})();
+})();   

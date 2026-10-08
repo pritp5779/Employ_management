@@ -3,7 +3,20 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261006.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261008.1';   // shown under your name in the sidebar
+
+// Opening splash (TM·PH comet chain + name): plays once each time the app is opened
+// (once per browser session), on whichever page opens first. Details in assets/js/splash.js.
+(function () {
+  try {
+    if (window.__hrmsSplash || sessionStorage.getItem('hrms_splash_done')) return;
+    var cs = document.currentScript;
+    var src = (cs && cs.src) ? cs.src.replace(/layout\.js.*$/, 'splash.js?v=1') : 'assets/js/splash.js?v=1';
+    var s = document.createElement('script');
+    s.src = src;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) { /* splash is cosmetic */ }
+})();
 
 // Site icon: the TMPH logo as the browser-tab icon and the home-screen icon, on every page that loads this file.
 (function () {
@@ -185,6 +198,7 @@ function renderSidebarCore(active) {
     order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
     retail: [['retail_shops.html', 'Retail Shops', 'retail_shops']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
+    leave_requests: [['leave_requests.html', 'Leave Requests', 'leave_requests']],
     offices: [['offices.html', 'Office Locations', 'offices']],
     punch: [['attendance.html', 'Punch In / Out', 'attendance']],
     targets: [['targets.html', 'Targets', 'targets']],
@@ -271,7 +285,7 @@ function renderSidebarCore(active) {
     // Pages every employee may open. Anything else is hidden immediately —
     // before its own script can show admin data — until me.flags confirms
     // the Employee role was granted that module on the Roles page.
-    const EMPLOYEE_PAGES = ['attendance', 'my_salary', 'my_penalties', 'my_agreements', 'my_sales', 'orders'];
+    const EMPLOYEE_PAGES = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements', 'my_sales', 'orders'];
     const needsCheck = !EMPLOYEE_PAGES.includes(active);
     if (needsCheck) { document.documentElement.style.visibility = 'hidden'; setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000); }
 
@@ -299,7 +313,7 @@ function renderSidebarCore(active) {
       if (syncRole(d)) return;
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
-      const allowed = ['attendance', 'my_salary', 'my_penalties', 'my_agreements'].concat(grantedActives);
+      const allowed = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements'].concat(grantedActives);
       if (d.is_sales) allowed.push('my_sales', 'orders');
       // replace(): the refused page never enters the history, so the back
       // button goes to the previous employee page, not back to this one.
@@ -320,6 +334,7 @@ function renderSidebarCore(active) {
         <a href="my_salary.html" class="${linkClass('my_salary')}">My Salary</a>`;
         }
         links += `
+        <a href="leave.html" class="${linkClass('leave')}">My Leave</a>
         <a href="my_penalties.html" class="${linkClass('my_penalties')}">My Penalties</a>
         <a href="my_agreements.html" class="${linkClass('my_agreements')}">My Agreements</a>`;
         // Admin-side pages granted to the Employee role via Roles page.
@@ -361,6 +376,7 @@ function renderSidebarCore(active) {
       ['order_codes.html', 'Order Codes', 'order_codes'],
       ['retail_shops.html', 'Retail Shops', 'retail_shops'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
+      ['leave_requests.html', 'Leave Requests <span id="leaveBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'leave_requests'],
       ['offices.html', 'Office Locations', 'offices'],
       ['targets.html', 'Targets', 'targets'],
       ['order_targets.html', 'Order Targets', 'order_targets'],
@@ -418,6 +434,10 @@ function renderSidebarCore(active) {
 
   if (isAdmin) {
     api.get('me.flags').then(syncRole).catch(() => {});
+    api.get('leave_admin.count').then((d) => {
+      const badge = document.getElementById('leaveBadge');
+      if (badge && d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline-block'; }
+    }).catch(() => {});
     api.get('approvals.count').then((d) => {
       const badge = document.getElementById('approvalBadge');
       if (badge && d.count > 0) {
@@ -460,6 +480,7 @@ const RAIL_ICONS = {
   userx: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.8-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 9l4 4M21 9l-4 4"/>',
   history: '<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.4L3 9"/><path d="M3 4v5h5M12 8v4l3 2"/>',
   check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 14.5l2 2 4-4"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
   dot: '<circle cx="12" cy="12" r="3"/>',
@@ -473,7 +494,7 @@ const RAIL_ICON_FOR = {
   performance: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
   commission_rules: 'sliders', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
   departments: 'building', employees: 'users', documents: 'folder', whatsapp_groups: 'chat', excel_files: 'sheet',
-  ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart',
+  ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart', leave: 'calendar', leave_requests: 'calendar',
 };
 function railSvg(name) {
   return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (RAIL_ICONS[name] || RAIL_ICONS.dot) + '</svg>';
@@ -551,7 +572,7 @@ function setupRail() {
       ico.innerHTML = railSvg(RAIL_ICON_FOR[key] || 'dot');
       a.appendChild(ico);
       a.appendChild(lbl);
-      const bd = lbl.querySelector('#approvalBadge');
+      const bd = lbl.querySelector('#approvalBadge, #leaveBadge');
       if (bd) a.appendChild(bd);   // keep the count visible on the narrow rail
       a.setAttribute('data-tip', label);
       a.setAttribute('aria-label', label);
@@ -587,6 +608,33 @@ function setupRail() {
       try { localStorage.setItem(SKEY, String(Math.round(nav.scrollTop))); } catch (e) {}
     });
   }
+  // Tooltip: one floating label, placed from the hovered icon's real position,
+  // so it always sits beside that icon however far the menu is scrolled.
+  // The tooltip's own styles live here too (and the old CSS-only tooltip is switched off),
+  // so this file alone is enough to fix a tooltip that drifts away from its icon.
+  if (!document.getElementById('railTipCss')) {
+    const st = document.createElement('style'); st.id = 'railTipCss';
+    st.textContent = '.sidebar a[data-tip]:hover::after{display:none !important;content:none !important}'
+      + '.rail-tip{position:fixed;z-index:2000;background:var(--ink,#111827);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;padding:6px 11px;border-radius:10px;pointer-events:none;transform:translateY(-50%);opacity:0;transition:opacity .12s}'
+      + '.rail-tip.show{opacity:1}@media (max-width:820px){.rail-tip{display:none !important}}';
+    document.head.appendChild(st);
+  }
+  let tip = document.getElementById('railTip');
+  if (!tip) { tip = document.createElement('div'); tip.id = 'railTip'; tip.className = 'rail-tip'; document.body.appendChild(tip); }
+  const hideTip = () => tip.classList.remove('show');
+  side.addEventListener('mouseover', (e) => {
+    const a = e.target.closest && e.target.closest('nav a[data-tip]');
+    if (!a || mq.matches || side.classList.contains('wide')) { hideTip(); return; }
+    const r = a.getBoundingClientRect(), sr = side.getBoundingClientRect();
+    tip.textContent = a.getAttribute('data-tip');
+    tip.style.left = Math.round(sr.right + 8) + 'px';
+    tip.style.top = Math.round(r.top + r.height / 2) + 'px';
+    tip.classList.add('show');
+  });
+  side.addEventListener('mouseleave', hideTip);
+  if (nav) nav.addEventListener('scroll', hideTip, { passive: true });
+  window.addEventListener('blur', hideTip);
+
   // Links added later (custom roles / employees) or a width change: re-apply, unless the person has scrolled meanwhile.
   new MutationObserver(() => { dress(); if (!userScrolled) restoreScroll(); }).observe(side, { childList: true, subtree: true });
 }
