@@ -11,7 +11,7 @@ const LAYOUT_BUILD = '261008.2';   // shown under your name in the sidebar
   try {
     if (window.__hrmsSplashInit) return;
     var cs = document.currentScript;
-    var src = (cs && cs.src) ? cs.src.replace(/layout\.js.*$/, 'splash.js?v=3') : 'assets/js/splash.js?v=3';
+    var src = (cs && cs.src) ? cs.src.replace(/layout\.js.*$/, 'splash.js?v=4') : 'assets/js/splash.js?v=4';
     var s = document.createElement('script');
     s.src = src;
     (document.head || document.documentElement).appendChild(s);
