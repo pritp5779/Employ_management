@@ -21,6 +21,7 @@
   'use strict';
   if (window.__hrmsSplashInit) return;
   window.__hrmsSplashInit = true;
+  if (window.__hsGo) return;   // index.html is bouncing a signed-in user to the home page; the splash plays there
 
   var BRAND = 'TM Perfume House';
   var FLAG = 'hrms_splash_done';          // sessionStorage: already played in this tab / app launch
@@ -115,6 +116,9 @@
       '</div>';
     el.querySelector('b').textContent = BRAND;
 
+    window.__hrmsSplashActive = true;   // index.html waits for this before redirecting, so the splash plays once, uninterrupted
+    setFlag(); touch();                 // mark as played right away: no other page may start a second one
+
     var prevOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
     (document.head || root).appendChild(styleEl);
@@ -133,6 +137,8 @@
       setFlag();
       touch();
       active = false;
+      window.__hrmsSplashActive = false;
+      try { document.dispatchEvent(new Event('hrms-splash-done')); } catch (e) { /* old browser */ }
     }
     function skip() {
       if (finished || el.classList.contains('hs-skip')) return;

@@ -11,7 +11,20 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Login — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
-<script src="assets/js/splash.js?v=2"></script>
+<script>
+  // Already signed in: go straight to the home page before anything is drawn — no login page flash.
+  // The opening splash then plays on that page (dashboard.html / attendance.html).
+  (function () {
+    try {
+      if (localStorage.getItem('hrms_token')) {
+        var u = JSON.parse(localStorage.getItem('hrms_user') || 'null');
+        window.__hsGo = true;
+        window.location.replace((u && u.role === 'Employee') ? 'attendance.html' : 'dashboard.html');
+      }
+    } catch (e) { /* fall through to the login form */ }
+  })();
+</script>
+<script src="assets/js/splash.js?v=3"></script>
 </head>
 <body>
   <div class="auth-wrap">
@@ -49,7 +62,7 @@
   // admin Dashboard. replace() keeps the login page out of the history, so
   // the phone's back button can't land on it (or on a page it bounced off).
   const homeFor = (u) => (u && u.role === 'Employee') ? 'attendance.html' : 'dashboard.html';
-  if (api.token()) window.location.replace(homeFor(api.currentUser()));
+  if (api.token()) window.location.replace(homeFor(api.currentUser()));   // safety net; normally handled in <head>
 
   const togglePassword = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
