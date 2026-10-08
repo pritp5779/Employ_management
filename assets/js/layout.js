@@ -3,15 +3,15 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261008.1';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261008.2';   // shown under your name in the sidebar
 
-// Opening splash (TM·PH comet chain + name): plays once each time the app is opened
-// (once per browser session), on whichever page opens first. Details in assets/js/splash.js.
+// Opening splash (TM·PH comet chain + name). Loaded on every page; assets/js/splash.js decides whether to
+// play (new tab / app launch, or back after 10+ min away). Add ?splash=1 to any page address to force it.
 (function () {
   try {
-    if (window.__hrmsSplash || sessionStorage.getItem('hrms_splash_done')) return;
+    if (window.__hrmsSplashInit) return;
     var cs = document.currentScript;
-    var src = (cs && cs.src) ? cs.src.replace(/layout\.js.*$/, 'splash.js?v=1') : 'assets/js/splash.js?v=1';
+    var src = (cs && cs.src) ? cs.src.replace(/layout\.js.*$/, 'splash.js?v=2') : 'assets/js/splash.js?v=2';
     var s = document.createElement('script');
     s.src = src;
     (document.head || document.documentElement).appendChild(s);
