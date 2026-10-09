@@ -216,8 +216,12 @@
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
 <script>
+  // Embed mode: the Orders page opens this page in a hidden frame (commission.html?embed=1&from=..&to=..) and reads the finished numbers,
+  // so both pages always show exactly the same commission.
+  const EMBED = new URLSearchParams(location.search).get('embed') === '1';
   guardPage();
-  renderSidebar('commission');
+  if (!EMBED) renderSidebar('commission');
+  else document.documentElement.classList.add('embed');
 
   const $ = (id) => document.getElementById(id);
   const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -820,7 +824,7 @@
   $('dDl').onclick = downloadDetail;
 
   // ---------- Wiring ----------
-  function renderAll() { setRanges(); renderTable('t'); renderTable('m'); renderDetail(); }
+  function renderAll() { setRanges(); renderTable('t'); renderTable('m'); renderDetail(); if (EMBED && READY) embedSoon(); }
   [['t', () => renderTable('t')], ['m', () => { renderTable('m'); }]].forEach(([k, fn]) => {
     const st = ST[k];
     $(k + 'Sort').innerHTML = Object.keys(SORTS).map((s) => `<option value="${s}">${SORTS[s][0]}</option>`).join('');
@@ -967,6 +971,7 @@
       const msg = `<div class="alert error" style="margin:14px 18px;">${esc(err.message)}</div>`;
       $('tBody').innerHTML = $('mBody').innerHTML = msg;
       $('tRange').textContent = $('mRange').textContent = '';
+      if (EMBED) embedSend({ error: err.message || 'Could not load' });
     }
   }
   // The first targets skip the automatic daily-target rule (instant); this asks again WITH it and refreshes the figures.
@@ -1015,6 +1020,46 @@
   try { PAGING = localStorage.getItem('hrms_comm_paging') !== '0'; } catch (e) { /* default ON */ }
   syncPg();
   document.querySelectorAll('.pgOn').forEach((cb) => { cb.onchange = () => { PAGING = cb.checked; try { localStorage.setItem('hrms_comm_paging', PAGING ? '1' : '0'); } catch (e) { /* ignore */ } ST.t.page = ST.m.page = ST.d.page = 1; syncPg(); if (READY) renderAll(); }; });
+
+  // ---------- embed mode (used by the Orders page) ----------
+  // For the range loaded here, work out each employee's commission per panel (house), and each order's commission, and which rule decided it.
+  function embedResults() {
+    const aggs = {}, rows = ROWS.map((r) => agg(r, DAYS)); rows.forEach((a) => { aggs[a.row.key] = a; });
+    const emps = {}, ord = {}, TAGN = { panel: 'Panel rule', fixed: 'Fixed commission', mix: 'Order-code mix rule', star: '★ rating rule', code: 'Order-code rule' };
+    rows.forEach((a) => {
+      const c = a.c, id = a.row.emp.employee_id;
+      a.orders.forEach((o) => {
+        const r = comOf(o, aggs), hs = o.house || '', full = (c && c.steps && c.rate ? c.rate : 0) * o.amt / 100;
+        const byH = emps[id] = emps[id] || {}, E = byH[hs] = byH[hs] || { amt: 0, n: 0, coll: 0, rate: c && c.steps ? c.rate : 0, tags: {} };
+        E.amt += r.v; E.n++; E.coll += o.amt;
+        let k = '', label = '';
+        const pr = panelRuleFor(o);
+        if (pr) { k = 'panel'; label = (pr.label || 'Panel rule') + ' ' + fmtN(pr.pct) + '%'; }
+        else if (c && c.fixedPlan) { k = 'fixed'; label = 'Fixed ' + c.fixedPlan.badge; }
+        else if (c && c.mix && c.mix.mode !== 'full') { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · ' + c.mix.badge; }
+        else if (starMul(o)) { k = 'star'; const sm = starMul(o); label = starTxt(o.stars) + ' · ' + (sm.r.label || 'rating rule'); }
+        else if (c && c.mix) { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · full commission'; }
+        else if (Math.abs(r.v - full) > 0.005) { k = 'code'; label = (r.note || '').split(' · ')[0] || TAGN.code; }
+        if (k) { const T = E.tags[k + '|' + label] = E.tags[k + '|' + label] || { k, l: label, n: 0, d: 0 }; T.n++; T.d += r.v - full; }
+        ord[o.key] = [Math.round(r.v * 100) / 100, r.note || '', k];
+      });
+    });
+    Object.keys(emps).forEach((id) => Object.keys(emps[id]).forEach((h) => { const E = emps[id][h]; E.tags = Object.keys(E.tags).map((x) => { const T = E.tags[x]; T.d = Math.round(T.d * 100) / 100; return T; }); E.amt = Math.round(E.amt * 100) / 100; }));
+    return { emps, ord };
+  }
+  function embedSend(extra) { try { parent.postMessage(Object.assign({ t: 'comm_res', from: RFROM, to: RTO }, extra), location.origin); } catch (e) { /* no parent */ } }
+  let embedTimer = 0;
+  function embedSoon() { clearTimeout(embedTimer); embedTimer = setTimeout(() => { try { embedSend(embedResults()); } catch (e) { embedSend({ error: 'Could not work out the commission (' + e.message + ')' }); } }, 60); }
+  if (EMBED) {
+    const qs = new URLSearchParams(location.search), f = qs.get('from'), t = qs.get('to'), okD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+    if (okD(f) && okD(t) && f <= t) { RFROM = f; RTO = t; }
+    addEventListener('message', (e) => {
+      if (e.origin !== location.origin) return;
+      const d = e.data || {};
+      if (d.t === 'comm_req' && okD(d.from) && okD(d.to) && d.from <= d.to) { RFROM = d.from; RTO = d.to; load({ fresh: !!d.fresh }); }
+    });
+    try { parent.postMessage({ t: 'comm_hello' }, location.origin); } catch (e) { /* no parent */ }
+  }
 
   load();
 </script>

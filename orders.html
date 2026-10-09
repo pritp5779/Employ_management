@@ -19,6 +19,7 @@
   .plat-card h3 small{font-size:11px; color:var(--muted); font-weight:400;}
   .plat-card .li{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:5px 0; border-bottom:1px dashed var(--line); font-size:13px;}
   .plat-card .li span{color:var(--muted);} .plat-card .li b{font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .plat-card .li[data-mb]{cursor:pointer;} .plat-card .li[data-mb]:hover{background:#f3f4f6;} .plat-card .li[data-mb]:hover span{text-decoration:underline;}
   .plat-card .li[data-go]{cursor:pointer;} .plat-card .li[data-go]:hover{background:#f3f4f6;} .plat-card .li[data-go]:hover span{text-decoration:underline;}
   .plat-card .li.q span{color:#1d4ed8;} .plat-card .li.c span{color:#b45f06;}
   .plat-card .li.p span{color:#0f7a41;} .plat-card .li.d span{color:#b45f06;}
@@ -84,7 +85,53 @@
   .es-tbl thead tr.g1 th.g-emp,.es-tbl tr.hd.g1 th.g-emp{position:sticky; left:0; z-index:5;}
   .g-emp{background:#111827 !important;} .g-tgt{background:#2563eb !important;} .g-ord{background:#0f7a41 !important;}
   .g-qry{background:#7c3aed !important;} .g-cmp{background:#b45309 !important;} .g-pay{background:#0e7490 !important;}
-  .g-rat{background:#be185d !important;} .g-tk{background:#0369a1 !important;}
+  .g-rat{background:#be185d !important;} .g-tk{background:#0369a1 !important;} .g-cm{background:#ea580c !important;}
+  /* live commission column */
+  .es-tbl td.cmc{text-align:left; min-width:230px; white-space:normal;}
+  .cmv{font-size:14px; font-weight:800;} .cmp{display:inline-block; font-size:11px; font-weight:800; background:#fff4db; color:#8a5a00; border-radius:8px; padding:1px 7px; margin-left:4px;}
+  .cmt{display:inline-block; font-size:10.5px; font-weight:800; border-radius:8px; padding:1px 8px; margin:3px 4px 0 0; white-space:nowrap; background:#e0e7ff; color:#3730a3;}
+  .cmt.k-panel{background:#e7f7ee; color:#0f7a41;} .cmt.k-fixed{background:#dbeafe; color:#1d4ed8;} .cmt.k-star{background:#fde8e8; color:#b91c1c;} .cmt.k-code,.cmt.k-mix{background:#fff4db; color:#8a5a00;}
+  .cmlive{display:inline-flex; align-items:center; gap:5px; margin-left:8px; font-size:10px; font-weight:800; letter-spacing:.4px;} .cmlive i{width:7px; height:7px; border-radius:50%; background:#fff; display:inline-block; animation:cmpulse 1.6s infinite;}
+  @keyframes cmpulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+  .cmclk{cursor:pointer; border-radius:10px; padding:4px 6px; margin:-4px -6px; transition:background .15s;} .cmclk:hover{background:#fff4ec; box-shadow:inset 0 0 0 1px #fdba74;}
+  .cmclk .cmgo{display:inline-block; font-size:10.5px; font-weight:800; color:#c2410c; margin-top:3px;}
+  html.cm-lock{overflow:hidden;}
+  .cmd .hd .acts{display:flex; gap:8px; align-items:center; flex:none;}
+  .cmd .dl{display:inline-flex; align-items:center; gap:6px; background:#16a34a; color:#fff; border:none; border-radius:20px; padding:8px 14px; font-weight:800; font-size:12.5px; cursor:pointer; min-height:0; width:auto;} .cmd .dl:hover{background:#15803d;} .cmd .dl svg{width:14px; height:14px;}
+  .cmd .big .pp b{color:#0f7a41;} .cmd .big .cd b{color:#b45f06;} .cmd .big small{font-size:12px; font-weight:700; color:var(--muted); margin-left:6px;}
+  .cmd .pay{display:inline-block; font-size:10.5px; font-weight:800; border-radius:8px; padding:1px 8px;} .cmd .pay.p{background:#e7f7ee; color:#0f7a41;} .cmd .pay.c{background:#fff4db; color:#8a5a00;}
+  .cmd .bd{overscroll-behavior:contain;}
+  .cmo{position:fixed; inset:0; z-index:300; background:rgba(15,23,42,.5); display:flex; align-items:center; justify-content:center; padding:18px;} .cmo[hidden]{display:none;}
+  .cmd{background:#fff; border-radius:18px; width:min(900px,100%); max-height:calc(100vh - 36px); display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35); overflow:hidden;}
+  .cmd .hd{padding:16px 20px 12px; border-bottom:1px solid #eef0f3; display:flex; gap:12px; align-items:flex-start; justify-content:space-between;}
+  .cmd .hd h3{margin:0; font-size:17px;} .cmd .hd p{margin:3px 0 0; color:var(--muted); font-size:12.5px;}
+  .cmd .x{border:none; background:#f1f5f9; border-radius:50%; width:32px; height:32px; font-size:16px; cursor:pointer; min-height:0; flex:none; padding:0;}
+  .cmd .bd{padding:14px 20px 20px; overflow:auto;}
+  .cmd .big{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;} .cmd .big div{background:#f8fafc; border:1px solid #eef0f3; border-radius:12px; padding:9px 14px; min-width:120px;}
+  .cmd .big b{display:block; font-size:19px;} .cmd .big span{font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em;} .cmd .big .or{background:#fff4ec; border-color:#fdba74;} .cmd .big .or b{color:#c2410c;}
+  .cmd h4{margin:14px 0 6px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .cmd .rl{display:flex; align-items:center; gap:10px; padding:9px 12px; border:1px solid #eef0f3; border-radius:12px; margin-bottom:6px; flex-wrap:wrap;} .cmd .rl .cmt{margin:0; font-size:12px; padding:3px 10px;}
+  .cmd .rl .n{font-weight:700; font-size:13px;} .cmd .rl .d{margin-left:auto; font-weight:800; font-size:13px;} .cmd .rl .d.neg{color:#b91c1c;} .cmd .rl .d.pos{color:#15803d;}
+  .cmd table{width:100%; border-collapse:collapse; font-size:12.5px;} .cmd th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:6px 8px; border-bottom:1px solid #e5e7eb; white-space:nowrap;}
+  .cmd td{padding:7px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top;} .cmd td.r,.cmd th.r{text-align:right; white-space:nowrap;} .cmd tr.tt td{font-weight:800; border-top:2px solid #e5e7eb; border-bottom:none;}
+  .cmd .why{color:#475569; font-size:12px;} .cmd .why.hl{color:#9a3412; font-weight:600;}
+  @media (max-width:820px){ .cmo{padding:0; align-items:flex-end;} .cmd{border-radius:18px 18px 0 0; max-height:92vh;} .cmd .hd,.cmd .bd{padding-left:14px; padding-right:14px;} .cmd th.hm,.cmd td.hm{display:none;} }
+  /* Excel buttons */
+  .vrow{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
+  .vrow .vtabs{flex:1 1 auto;}
+  .xlw{position:relative; margin:4px 0 12px;} .xlw[hidden]{display:none;}
+  .xlb{display:inline-flex; align-items:center; gap:7px; background:#16a34a; color:#fff; border:none; border-radius:22px; padding:10px 16px; font-size:13.5px; font-weight:800; cursor:pointer; min-height:0; width:auto;}
+  .xlb:hover{background:#15803d;} .xlb:disabled{opacity:.6; cursor:wait;} .xlb svg{width:15px; height:15px;}
+  .xlm{position:absolute; right:0; top:46px; z-index:60; width:380px; max-width:calc(100vw - 24px); background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 14px 40px rgba(15,23,42,.22); padding:8px;}
+  .xlm[hidden]{display:none;}
+  .xlm h6{margin:8px 10px 4px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  .xlm .it{display:flex; justify-content:space-between; gap:10px; width:100%; padding:9px 10px; border:none; background:none; border-radius:10px; font-weight:700; font-size:13px; text-align:left; cursor:pointer; min-height:0; color:var(--ink);}
+  .xlm .it:hover{background:#f1f5f9;} .xlm .it small{display:block; font-weight:500; color:var(--muted); font-size:11.5px; margin-top:1px;}
+  .xlm .it em{font-style:normal; color:#15803d; font-weight:800; font-size:11px; align-self:center; background:#e7f7ee; border-radius:8px; padding:2px 8px; white-space:nowrap;}
+  .xlm hr{border:0; border-top:1px solid #eef0f3; margin:6px 4px;}
+  .pbx{display:inline-flex; align-items:center; gap:5px; margin-left:14px; background:#fff; color:#15803d; border:1px solid rgba(255,255,255,.7); border-radius:16px; padding:3px 11px; font-size:11.5px; font-weight:800; cursor:pointer; min-height:0; width:auto; vertical-align:middle;}
+  .pbx:hover{background:#e7f7ee;} .pbx svg{width:12px; height:12px;}
+  @media (max-width:820px){ .vrow{display:block;} .xlw{margin:0 0 12px;} .xlb{width:100%; justify-content:center;} .xlm{left:0; right:0; width:auto;} }
   .es-tk{font-size:11px; color:var(--muted); font-weight:600; white-space:nowrap;}
   .unalloc-note{margin:0 0 12px; padding:9px 14px; border-radius:8px; background:#FFF8E6; color:#8a5a00; font-size:12.5px; display:flex; gap:6px 12px; align-items:center; flex-wrap:wrap;}
   .unalloc-note[hidden]{display:none;}
@@ -351,6 +398,7 @@
       <div class="unalloc-note" id="empZeroNote" hidden></div>
 
       <!-- Employee sheet (Admin / HR): one row per sales employee for the dates above -->
+      <div class="vrow">
       <div class="vtabs" id="vtabs" hidden>
         <button type="button" data-v="sheet" class="on">Employee sheet<span class="cnt" id="cntSheet"></span></button>
         <button type="button" data-v="orders">All orders<span class="cnt" id="cntOrders"></span></button>
@@ -358,6 +406,11 @@
         <button type="button" data-v="campaign">Campaign orders<span class="cnt" id="cntCampaign"></span></button>
         <button type="button" data-v="unalloc">Not allocated<span class="cnt" id="cntUnalloc"></span></button>
         <button type="button" data-v="cancelled">Cancelled orders<span class="cnt" id="cntCancelled"></span></button>
+      </div>
+      <div class="xlw" id="xlWrap" hidden>
+        <button type="button" class="xlb" id="xlBtn" aria-haspopup="true" title="Download as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg><span id="xlBtnT">Excel</span> ▾</button>
+        <div class="xlm" id="xlMenu" hidden></div>
+      </div>
       </div>
       <div class="pchips" id="pChips" hidden></div>
       <div id="paneSheet" hidden>
@@ -518,6 +571,9 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
+<div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
+<div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   guardPage();
   renderSidebar('orders');
@@ -621,6 +677,7 @@
     // must not overwrite the newest one's results when it finally arrives.
     const reqId = ++ordersReqId;
     try {
+      COMM.fresh = true;
       loadPlatformQueries(from, to);
       loadHourly(from, to);
       loadTeamSheet(from, to);
@@ -1043,14 +1100,14 @@
       ['', 'Ticket size', `<b>${p.to ? inr(p.tc / p.to) : '—'}</b>`],
       ['p', 'Total prepaid', `<b>${inr(p.pre)}${p.tc > 0 ? sh(p.pre, p.tc) : ''}</b>`],
       ['d', 'Total COD', `<b>${inr(p.cod)}${p.tc > 0 ? `<small>${100 - Math.round(p.pre / p.tc * 100)}%</small>` : ''}</b>`],
-      ['bfm w2', '<i class="cd c-mb"></i>Before 12 AM', `<b>${inr(p.bt)}${p.tc > 0 ? sh(p.bt, p.tc) : ''}</b>`],
-      ['bfm', '<i class="cd c-mb"></i>Before 12 AM order', `<b>${p.bn}</b>`],
-      ['afm w2', '<i class="cd c-ma"></i>After 12 AM', `<b>${inr(p.at)}${p.tc > 0 ? `<small>${100 - Math.round(p.bt / p.tc * 100)}%</small>` : ''}</b>`],
-      ['afm', '<i class="cd c-ma"></i>After 12 AM order', `<b>${p.an}</b>`],
+      ['bfm w2', '<i class="cd c-mb"></i>Before 12 AM', `<b>${inr(p.bt)}${p.tc > 0 ? sh(p.bt, p.tc) : ''}</b>`, '', 'b'],
+      ['bfm', '<i class="cd c-mb"></i>Before 12 AM order', `<b>${p.bn}</b>`, '', 'b'],
+      ['afm w2', '<i class="cd c-ma"></i>After 12 AM', `<b>${inr(p.at)}${p.tc > 0 ? `<small>${100 - Math.round(p.bt / p.tc * 100)}%</small>` : ''}</b>`, '', 'a'],
+      ['afm', '<i class="cd c-ma"></i>After 12 AM order', `<b>${p.an}</b>`, '', 'a'],
       clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER'),
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`, 'orders'],
       ['t', 'Total order', `<b>${p.to}</b>`, 'orders'],
-    ].map(([c, l, v, go]) => go ? `<div class="li ${c}" data-go="${go}" data-h="${k}" title="Click to see these orders"><span>${l}</span>${v}</div>` : `<div class="li ${c}"><span>${l}</span>${v}</div>`).join('');
+    ].map(([c, l, v, go, mb]) => go ? `<div class="li ${c}" data-go="${go}" data-h="${k}" title="Click to see these orders"><span>${l}</span>${v}</div>` : (mb ? `<div class="li ${c}" data-mb="${k}|${mb}" title="Click for prepaid / COD and the order IDs"><span>${l}</span>${v}</div>` : `<div class="li ${c}"><span>${l}</span>${v}</div>`)).join('');
     const colors = { tmph: '#1d4ed8', tmf: '#b45f06', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
     document.getElementById('platCards').innerHTML = shown.map(([k, label]) =>
       `<div class="plat-card" style="--c:${colors[k]};"><h3>${label}<small>${stats[k].to} order${stats[k].to === 1 ? '' : 's'}</small></h3><div class="plat-lines">${lines(stats[k], k)}</div></div>`).join('');
@@ -1639,7 +1696,8 @@
   let teamReqId = 0;
   const ES_GROUPS = [
     { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'tk', n: 'Ticket size', cls: 'g-tk' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
-    { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' }
+    { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' },
+    { k: 'cm', n: 'Commission', cls: 'g-cm' }
   ];
   const ES_COLS = {
     to: [['Target · Collection · Orders', 'to']],      // one box: Target, Collection, Orders, Total query, Ratio
@@ -1647,14 +1705,68 @@
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
-    rat: [['Per order', 'or']]
+    rat: [['Per order', 'or']],
+    cm: [['Commission · % · rules applied', 'cm']]      // live: read from the Commission page, so the numbers are the same
   };
-  const esOn = { to: 1, tk: 1, qry: 1, cmp: 1, pay: 1, rat: 1 };   // every column group (Campaign too) starts ticked
+  const esOn = { to: 1, tk: 1, qry: 1, cmp: 1, pay: 1, rat: 1, cm: 1 };   // every column group (Campaign too) starts ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
   const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)
   const esEsc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const esRt = (v) => v === null ? '<span class="es-rt n">—</span>' : `<span class="es-rt ${v >= 25 ? 'g' : (v >= 10 ? 'a' : 'r')}">${v}%</span>`;
+
+  // ---------- Live commission (read from the Commission page, so both pages always show the same numbers) ----------
+  // The Commission page is opened in a hidden frame for the same dates; it works the commission out (slabs, order codes, ★ rating,
+  // fixed plans, panel & date rules) and posts back, for every person and panel, the amount, the % and the rules that decided it.
+  const COMM = { want: '', res: null, err: '', frame: null, ready: false, sent: '', fresh: false, cache: {}, waiters: [], tOut: 0, tDraw: 0 };
+  const commKey = (f, t) => f + '|' + t;
+  const commValid = () => !!(COMM.res && COMM.res.key === COMM.want && !COMM.err);
+  function commDraw() {
+    clearTimeout(COMM.tDraw);
+    COMM.tDraw = setTimeout(() => {
+      try { if (typeof renderTeamSheet === 'function' && teamData) renderTeamSheet(); } catch (e) { /* the sheet draws itself again on the next change */ }
+      if (commValid() || COMM.err) { const w = COMM.waiters.splice(0); w.forEach(f => f()); }
+    }, 120);
+  }
+  function commFail(msg) { COMM.err = msg; COMM.res = null; clearTimeout(COMM.tOut); commDraw(); }
+  function commRequest(from, to, fresh) {
+    if (!ES_ALLOWED || !from || !to) return;
+    const key = commKey(from, to);
+    COMM.want = key; COMM.err = '';
+    if (fresh) delete COMM.cache[key];
+    if (COMM.cache[key]) { COMM.res = COMM.cache[key]; clearTimeout(COMM.tOut); commDraw(); return; }
+    COMM.res = null; commDraw();
+    clearTimeout(COMM.tOut);
+    COMM.tOut = setTimeout(() => { if (COMM.want === key && !commValid()) commFail('The commission is taking too long to load — press Refresh to try again.'); }, 90000);
+    if (!COMM.frame) {
+      const f = document.createElement('iframe');
+      f.src = 'commission.html?embed=1&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to);
+      f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1; f.title = 'commission (background)';
+      f.style.cssText = 'position:absolute; left:-9999px; top:0; width:1200px; height:800px; border:0; visibility:hidden; pointer-events:none;';
+      document.body.appendChild(f);
+      COMM.frame = f; COMM.sent = key;
+      setTimeout(() => { if (!COMM.ready && COMM.want === key && !commValid()) commFail('The commission could not be opened (this role may not have the Commission page).'); }, 25000);
+    } else if (COMM.ready) {
+      COMM.sent = key;
+      COMM.frame.contentWindow.postMessage({ t: 'comm_req', from, to, fresh: true }, location.origin);
+    }
+  }
+  window.addEventListener('message', (ev) => {
+    if (ev.origin !== location.origin || !COMM.frame || ev.source !== COMM.frame.contentWindow) return;
+    const d = ev.data || {};
+    if (d.t === 'comm_hello') {
+      COMM.ready = true;
+      const [f, t] = COMM.want.split('|');
+      if (COMM.want && COMM.want !== COMM.sent && f && t) { COMM.sent = COMM.want; COMM.frame.contentWindow.postMessage({ t: 'comm_req', from: f, to: t, fresh: true }, location.origin); }
+    } else if (d.t === 'comm_res') {
+      const key = commKey(d.from, d.to);
+      if (d.error) { if (key === COMM.want) commFail(d.error); return; }
+      if (!d.emps) return;
+      COMM.cache[key] = { key, emps: d.emps, ord: d.ord || {} };
+      if (key === COMM.want) { COMM.err = ''; COMM.res = COMM.cache[key]; clearTimeout(COMM.tOut); commDraw(); }
+    }
+  });
+  const commWait = () => new Promise(res => { if (commValid() || COMM.err) res(); else COMM.waiters.push(res); });
   // Ratings are stored 1-10 and shown as 5 stars (value / 2).
   const esStars = (v10, n) => {
     if (!v10) return '<span class="es-sl">—</span>';
@@ -1701,6 +1813,7 @@
       teamData.rulePending = !!d.auto_rule;        // the Target with the automatic rule is still on its way
       try { renderTeamSheet(); } catch (re) { teamData = null; throw new Error('could not draw the sheet (' + re.message + ')'); }
       summaryRefresh();
+      commRequest(from, to, COMM.fresh); COMM.fresh = false;      // the live commission starts after the sheet is on screen
       // Target with the automatic daily rule needs Shopify history, so it comes in a second, slower call.
       if (d.auto_rule) {
         api.get('team.sheet', { date_from: from, date_to: to, rule: 1 }).then(r => {
@@ -1719,7 +1832,7 @@
     } catch (err) {
       if (id !== teamReqId) return;
       teamData = null;
-      if (/permission|forbidden|not allowed|403/i.test(err.message || '')) { esEl('vtabs').hidden = true; esEl('paneSheet').hidden = true; esEl('paneOrders').hidden = false; }
+      if (/permission|forbidden|not allowed|403/i.test(err.message || '')) { esEl('vtabs').hidden = true; esEl('xlWrap').hidden = true; esEl('paneSheet').hidden = true; esEl('paneOrders').hidden = false; }
       else { clearTimeout(esSlowTimer); esMsg('<span style="color:var(--bad-fg);">Employee sheet could not load: ' + esEsc(/unknown action/i.test(err.message || '') ? 'your server api.php is old — upload the latest api.php' : err.message) + '</span> <button type="button" class="btn secondary" id="esRetry" style="width:auto; margin-left:8px;">Try again</button>'); }
     }
   }
@@ -1791,6 +1904,8 @@
     Object.keys(other).forEach(b => {
       if (other[b].ord) out.push(Object.assign({ id: 0, n: 'Other / unassigned', c: '', p: false, days: 0, t: '', tg: 0, tsrc: 'none', how: '', mark: null, man: false, tout: '', q: 0, k: 0, tot: 0, or: [0, 0], real: false, b }, other[b]));
     });
+    // Commission of each person in each panel (read from the Commission page): amount, orders, collection, rate and the rules applied.
+    if (commValid()) out.forEach(e => { e.cm = e.real ? (((COMM.res.emps || {})[e.id] || {})[e.b] || null) : null; });
     return out;
   }
   function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, col: [0, 0, 0, 0] }; }
@@ -1813,11 +1928,12 @@
     return esSortRows(r.filter(e => e.real), s, (all[0] || {}).b).concat(r.filter(e => !e.real));
   }
   function esTotals(rows) {
-    const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0 });
+    const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0, cmAmt: 0, cmColl: 0 });
     rows.forEach(e => {
       ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat'].forEach(f => t[f] += e[f]);
       e.col.forEach((v, i) => t.col[i] += v);
       if (e.or[1]) { t.orN += e.or[1]; t.orS += e.or[0] * e.or[1]; }
+      if (e.cm) { t.cmAmt += e.cm.amt; t.cmColl += e.cm.coll; }
     });
     t.orAvg = t.orN ? t.orS / t.orN : 0;
     return t;
@@ -1879,6 +1995,24 @@
     return `<div class="tob"><div class="tb1"><div class="tbt">${cv('tg')}</div><div class="tbc">${cv('coll')}</div></div>` +
       `<div class="tb2"><span>Orders ${cv('ord')}</span><span>Total query <b>${cv('tq')}</b></span><span>Ratio ${cv('ratio')}</span></div>${esPo(e, tot)}</div>`;
   }
+  // ---- live commission cell: amount, the % of the collection it comes to, and a chip for every rule that decided orders
+  const esPf = (v) => (Math.round(v * 10) / 10) + '%';
+  const esDeltaTxt = (d) => (d < 0 ? '−' : '+') + esInr(Math.abs(d));
+  function esCm(e) {
+    const dash = '<span class="es-sl">—</span>';
+    if (COMM.err) return `<span class="es-sl" title="${esEsc(COMM.err)}">—</span>`;
+    if (!commValid()) return '<span class="es-sl">…</span>';
+    const c = e.cm; if (!c) return dash;
+    const tags = c.tags || [], slabN = c.n - tags.filter(t => t.k === 'panel' || t.k === 'fixed' || (t.k === 'mix' && !/full commission/.test(t.l))).reduce((a, t) => a + t.n, 0);
+    const chips = (c.rate > 0 && slabN > 0 ? `<span class="cmt k-rate" title="The slab rate worked out for this person for these dates">${esPf(c.rate)} slab</span>` : '') +
+      tags.map(t => `<span class="cmt k-${t.k}" title="${esEsc(t.n + ' order' + (t.n === 1 ? '' : 's') + (t.d ? ' · ' + esDeltaTxt(t.d) + ' compared with the normal commission' : ''))}">${esEsc(t.l)} · ${t.n}${t.d ? ' · ' + esDeltaTxt(t.d) : ''}</span>`).join('');
+    return `<div class="cmclk" data-cm="${e.id}|${e.b}" title="Click to see every rule applied"><span class="cmv">${esInr(c.amt)}</span><span class="cmp">${c.coll > 0 ? esPf(c.amt / c.coll * 100) : '—'}</span>${chips ? '<div>' + chips + '</div>' : ''}<span class="cmgo">View rules ›</span></div>`;
+  }
+  function esCmTot(t) {
+    if (COMM.err) return '<span class="es-sl">—</span>';
+    if (!commValid()) return '<span class="es-sl">…</span>';
+    return t.cmColl > 0 ? `<span class="cmv">${esInr(t.cmAmt)}</span><span class="cmp">${esPf(t.cmAmt / t.cmColl * 100)}</span>` : '<span class="es-sl">—</span>';
+  }
   function esCell(k, e, abs) {
     const d = abs ? ' dim' : '', dash = '<span class="es-sl">—</span>';
     switch (k) {
@@ -1900,6 +2034,7 @@
       case 'cod':   return e.ord ? `<td class="gl">${esInr(e.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(e.codPaid)}</span></td>` : `<td class="gl">${dash}</td>`;
       case 'pre':   return `<td>${e.ord ? esInr(e.pre) : dash}</td>`;
       case 'or':    return `<td class="gl">${e.or[1] ? esStars(e.or[0], e.or[1]) : dash}</td>`;
+      case 'cm':    return `<td class="gl cmc">${esCm(e)}</td>`;
     }
     return '<td></td>';
   }
@@ -1907,8 +2042,8 @@
     if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg), tkt: esTk(t) };
-    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or'].includes(k) ? ' class="gl"' : ''}>${m[k]}</td>`;
+      or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t) };
+    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : '') + '"' : ''}>${m[k]}</td>`;
   }
 
   // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
@@ -1918,16 +2053,17 @@
       : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
     return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${e.real ? `<div class="el2">${esStatus(e)}</div>` : ''}</div>`;
   }
+  const PBX = (k) => '<button type="button" class="pbx" data-xl="panel:' + k + '" title="Download this panel as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button>';
   // ---- the sheet as a table (computer) ...
   function esTableHtml(blocks, gs) {
     const ncol = 1 + gs.reduce((n, g) => n + ES_COLS[g.k].length, 0);
     // The column heads repeat inside every panel block, so each block reads on its own.
-    const hd = '<tr class="g1 hd"><th class="g-emp l">Employee</th>' + gs.map(g => `<th class="${g.cls}" colspan="${ES_COLS[g.k].length}">${g.n}</th>`).join('') + '</tr>' +
+    const hd = '<tr class="g1 hd"><th class="g-emp l">Employee</th>' + gs.map(g => `<th class="${g.cls}" colspan="${ES_COLS[g.k].length}">${g.n}${g.k === 'cm' ? '<span class="cmlive"><i></i>LIVE</span>' : ''}</th>`).join('') + '</tr>' +
       '<tr class="g2 hd"><th class="emp l">Employee</th>' + gs.map(g => ES_COLS[g.k].map((c, i) => `<th class="${i === 0 ? 'gl' : ''}${g.k === 'to' ? ' to' : ''}">${c[0]}</th>`).join('')).join('') + '</tr>';
     let b = '';
     blocks.forEach((bl, bi) => {
       b += (bi ? `<tr class="sp"><td colspan="${ncol}"></td></tr>` : '') +
-        `<tr class="pb" style="--c:${bl.color};"><td class="emp l">${esEsc(bl.label)}</td><td class="pbs" colspan="${ncol - 1}">${bl.stats}</td></tr>` + hd;
+        `<tr class="pb" style="--c:${bl.color};"><td class="emp l">${esEsc(bl.label)}</td><td class="pbs" colspan="${ncol - 1}">${bl.stats}${PBX(bl.k)}</td></tr>` + hd;
       bl.rows.forEach(e => {
         const abs = e.real && !e.p && !esMk(e);
         b += `<tr class="${abs ? 'abs' : (e.real ? '' : 'un')}"${e.real ? ` data-id="${e.id}" data-b="${e.b}"` : ''}><td class="emp l"><div class="em">${e.real ? '<span class="grip" data-grip title="Drag to change the order">⋮⋮</span>' : ''}${esEmp(e, bl.label, abs)}</div></td>` +
@@ -1956,11 +2092,12 @@
       sec('qry', 'Query', '#7c3aed', [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']]) +
       sec('cmp', 'Campaign', '#b45309', [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']]) +
       sec('pay', 'Payments', '#0e7490', [['COD / Paid', 'cod'], ['Prepaid', 'pre']]) +
-      sec('rat', 'Ratings', '#be185d', [['Per order', 'or']]) + '</div>';
+      sec('rat', 'Ratings', '#be185d', [['Per order', 'or']]) +
+      sec('cm', 'Commission', '#ea580c', [['Commission · rules', 'cm']]) + '</div>';
   }
   function esCardsHtml(blocks) {
     if (!blocks.length) return '<div class="es-empty l" style="padding:22px 14px; text-align:center;">No employee matches.</div>';
-    return blocks.map(bl => `<div class="mb" style="--c:${bl.color};"><div class="mbh"><b>${esEsc(bl.label)}</b><span>${bl.stats}</span></div>` +
+    return blocks.map(bl => `<div class="mb" style="--c:${bl.color};"><div class="mbh"><b>${esEsc(bl.label)}</b><span>${bl.stats}</span>${PBX(bl.k)}</div>` +
       bl.rows.map(e => esCard(e, bl.label)).join('') + esCard(Object.assign({}, bl.t, { __tot: true, present: bl.real.filter(e => e.p).length }), bl.label) + '</div>').join('');
   }
 
@@ -2053,7 +2190,7 @@
     esEl('paneOrders').hidden = v === 'sheet';
     const lt = v === 'query' || v === 'campaign' || v === 'cancelled' || v === 'unalloc' ? v : '';
     if (lt !== listType) { listType = lt; currentPage = 1; applyFilters(); }
-    document.querySelectorAll('#vtabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    document.querySelectorAll('#vtabs button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   }
   function esPick(name, house, panel) {
     pickSalesman = name || '';
@@ -2129,9 +2266,9 @@
     } catch (er) { alert(er.message); }
   }
   if (ES_ALLOWED) {
-    esEl('vtabs').hidden = false;
+    esEl('vtabs').hidden = false; esEl('xlWrap').hidden = false;
     esView('sheet');
-    document.querySelectorAll('#vtabs button').forEach(b => b.addEventListener('click', () => esView(b.dataset.v)));
+    document.querySelectorAll('#vtabs button[data-v]').forEach(b => b.addEventListener('click', () => esView(b.dataset.v)));
     ES_GROUPS.forEach(g => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'es-chip' + (esOn[g.k] ? ' on' : ''); b.textContent = g.n;
@@ -2151,6 +2288,8 @@
     });
     const esSheetClick = (ev) => {
       if (ev.target.closest('#esRetry')) { ev.preventDefault(); esReload(); return; }
+      const cmk = ev.target.closest('[data-cm]');
+      if (cmk) { ev.preventDefault(); const [cid, cb] = cmk.dataset.cm.split('|'); esCmOpen(Number(cid), cb); return; }
       const sx = ev.target.closest('[data-sx]');
       if (sx) { ev.preventDefault(); esOpenStatus(sx, Number(sx.dataset.sx)); return; }
       const tg = ev.target.closest('[data-tg]');
@@ -2174,10 +2313,236 @@
     esEl('paneOrders').hidden = false;
   }
 
+
+
+  // ---------- Click a commission: which rules were applied (summary, then order by order) ----------
+  function esCmOpen(id, b) {
+    const e = esRows().find(r => r.id === id && r.b === b), c = e && e.cm; if (!c) return;
+    const from = esEl('dateFrom').value, to = esEl('dateTo').value, nm = String(e.n || '').trim().toLowerCase();
+    const list = allOrders.filter(o => !o.cancelled && isCounted(o) && String(o.salesman || '').trim().toLowerCase() === nm && panelOf(o) === b).sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
+    const tags = c.tags || [], special = tags.reduce((a, t) => a + (t.k === 'panel' || t.k === 'fixed' || (t.k === 'mix' && !/full commission/.test(t.l)) ? t.n : 0), 0), slabN = Math.max(0, c.n - special);
+    const sgn = (d) => (d < 0 ? '−' : '+') + esInr(Math.abs(d));
+    const money = (v) => '₹' + (Math.round(v * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    let sum = 0;
+    const rows = list.map(o => {
+      const k = (o.store_key || o.source || '') + ':' + o.id, r = (COMM.res.ord || {})[k], d = new Date(o.created_at), v = r ? r[0] : 0; sum += v;
+      const t = isNaN(d) ? '' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      const why = r && r[1] ? r[1] : (c.rate > 0 ? 'Slab ' + esPf(c.rate) + ' of the order' : '—');
+      return `<tr><td><b>${esEsc(o.order_name || '')}</b></td><td class="hm">${t}</td><td class="hm">${esEsc(o.code || '—')}</td><td class="hm">${o.ticket_rating == null ? '—' : (Number(o.ticket_rating) / 2) + '★'}</td><td class="r">${esInr(Number(o.total) || 0)}</td><td class="r"><b>${money(v)}</b></td><td class="why${r && r[2] ? ' hl' : ''}">${esEsc(why)}</td></tr>`;
+    }).join('');
+    const rl = (chip, text, d) => `<div class="rl">${chip}<span class="n">${text}</span>${d ? `<span class="d ${d < 0 ? 'neg' : 'pos'}">${sgn(d)} vs normal</span>` : ''}</div>`;
+    const rules = (slabN > 0 && c.rate > 0 ? rl(`<span class="cmt k-rate">${esPf(c.rate)} slab</span>`, `Base: ${slabN} order${slabN === 1 ? '' : 's'} start from the slab rate of ${esPf(c.rate)} (from this person's target, ticket size and prepaid share). The rules below then change some orders.`, 0) : '') +
+      tags.map(t => rl(`<span class="cmt k-${t.k}">${esEsc(t.l)}</span>`, `${t.n} order${t.n === 1 ? '' : 's'}`, t.d)).join('');
+    esEl('cmTtl').textContent = 'Commission — ' + e.n + ' · ' + (PANEL_NAME[b] || '');
+    esEl('cmSub').textContent = (from === to ? dateLabel(from) : dateLabel(from) + ' – ' + dateLabel(to)) + ' · live from the Commission page';
+    esEl('cmBd').innerHTML = `<div class="big"><div class="or"><span>Commission</span><b>${money(c.amt)}</b></div><div><span>of collection</span><b>${c.coll > 0 ? esPf(c.amt / c.coll * 100) : '—'}</b></div><div><span>Collection</span><b>${esInr(c.coll)}</b></div><div><span>Orders</span><b>${c.n}</b></div></div>` +
+      `<h4>Rules applied</h4>${rules || '<div class="rl"><span class="n">No special rule — every order paid at the normal slab rate.</span></div>'}` +
+      `<h4>Order by order</h4><div style="overflow-x:auto;"><table><thead><tr><th>Order</th><th class="hm">Time</th><th class="hm">Code</th><th class="hm">Rating</th><th class="r">Amount</th><th class="r">Commission</th><th>Rule</th></tr></thead><tbody>${rows}<tr class="tt"><td>Total</td><td class="hm"></td><td class="hm"></td><td class="hm"></td><td class="r">${esInr(c.coll)}</td><td class="r">${money(sum)}</td><td></td></tr></tbody></table></div>`;
+    cmY = window.scrollY; esEl('cmOv').hidden = false; esEl('cmBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, cmY);      // lock the page behind without moving it
+  }
+  let cmY = 0;
+  const esCmClose = () => { esEl('cmOv').hidden = true; document.documentElement.classList.remove('cm-lock'); window.scrollTo(0, cmY); };
+  esEl('cmX').addEventListener('click', esCmClose);
+  esEl('cmOv').addEventListener('click', (ev) => { if (ev.target.id === 'cmOv') esCmClose(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !esEl('cmOv').hidden) esCmClose(); });
+
+
+  // ---------- Platform summary: click "Before 12 AM" / "After 12 AM" → prepaid & COD (₹ and %), total orders, order IDs, Excel ----------
+  let mbCur = null;
+  function mbOpen(h, side) {
+    const after = side === 'a', pn = (PLATFORMS.find(p => p[0] === h) || [])[1] || h;
+    const list = scopedOrders().filter(o => (STORE_HOUSE_MAP[o.store_key] || o.house) && (o.house || STORE_HOUSE_MAP[o.store_key]) === h && afterMidnight(o) === after)
+      .sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
+    let tot = 0, pre = 0, cod = 0;
+    const rows = list.map(o => { const amt = Number(o.total) || 0, isCod = orderOutstanding(o, amt) > 0; tot += amt; if (isCod) cod += amt; else pre += amt; return { o, amt, isCod }; });
+    const pc = (v) => tot > 0 ? Math.round(v / tot * 100) : 0, inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
+    const from = esEl('dateFrom').value, to = esEl('dateTo').value, same = DAY_START.every(x => x === DAY_START[0]);
+    const win = after ? '12 AM – ' + (same ? fmtHM(DAY_START[0]) : 'start of the business day') : (same ? fmtHM(DAY_START[0]) : 'start of the business day') + ' – 11:59 PM';
+    const label = after ? 'After 12 AM' : 'Before 12 AM';
+    mbCur = { h, side, pn, label, win, rows, tot, pre, cod, from, to };
+    esEl('mbTtl').textContent = pn + ' · ' + label + ' orders';
+    esEl('mbSub').textContent = win + ' · ' + (from === to ? dateLabel(from) : dateLabel(from) + ' – ' + dateLabel(to));
+    const body = rows.map(({ o, amt, isCod }) => {
+      const d = new Date(o.created_at), t = isNaN(d) ? '' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      return `<tr><td><b>${esEsc(o.order_name || '')}</b></td><td class="hm">${t}</td><td class="hm">${esEsc(o.salesman || '—')}</td><td class="r">${inr(amt)}</td><td><span class="pay ${isCod ? 'c' : 'p'}">${isCod ? 'COD' : 'Prepaid'}</span></td></tr>`;
+    }).join('');
+    esEl('mbBd').innerHTML = `<div class="big"><div><span>Total orders</span><b>${rows.length}</b></div><div><span>Collection</span><b>${inr(tot)}</b></div><div class="pp"><span>Prepaid</span><b>${inr(pre)}<small>${pc(pre)}%</small></b></div><div class="cd"><span>COD</span><b>${inr(cod)}<small>${tot > 0 ? 100 - pc(pre) : 0}%</small></b></div></div>` +
+      `<h4>Order IDs</h4>` + (rows.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Order ID</th><th class="hm">Time</th><th class="hm">Salesman</th><th class="r">Amount</th><th>Payment</th></tr></thead><tbody>${body}<tr class="tt"><td>Total · ${rows.length}</td><td class="hm"></td><td class="hm"></td><td class="r">${inr(tot)}</td><td></td></tr></tbody></table></div>` : '<div class="rl"><span class="n">No orders in this window.</span></div>');
+    cmY = window.scrollY; esEl('mbOv').hidden = false; esEl('mbBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, cmY);
+  }
+  const mbClose = () => { esEl('mbOv').hidden = true; document.documentElement.classList.remove('cm-lock'); window.scrollTo(0, cmY); };
+  esEl('mbX').addEventListener('click', mbClose);
+  esEl('mbOv').addEventListener('click', (ev) => { if (ev.target.id === 'mbOv') mbClose(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !esEl('mbOv').hidden) mbClose(); });
+  esEl('mbDl').addEventListener('click', () => {
+    const m = mbCur; if (!m) return;
+    if (typeof XLSX === 'undefined') { alert('The Excel library could not load (no internet?). Reload the page and try again.'); return; }
+    const rd = (v) => Math.round(v * 100) / 100, pc = (v) => m.tot > 0 ? rd(v / m.tot * 100) : 0;
+    const aoa = [['Order ID', 'Business day', 'Date & time', 'Salesman', 'Code', 'Amount', 'Payment']];
+    m.rows.forEach(({ o, amt, isCod }) => { const d = new Date(o.created_at), ok = !isNaN(d), z = (n) => String(n).padStart(2, '0');
+      aoa.push([o.order_name || '', ok ? bizDayOf(d) : '', ok ? ymdOf(d) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) : '', o.salesman || '', o.code || '', rd(amt), isCod ? 'COD' : 'Prepaid']); });
+    aoa.push(['TOTAL', '', '', '', m.rows.length + ' orders', rd(m.tot), '']);
+    const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [14, 13, 17, 22, 12, 12, 10].map(w => ({ wch: w }));
+    for (let r = 1; r < aoa.length; r++) { const c = ws[XLSX.utils.encode_cell({ r, c: 5 })]; if (c && c.t === 'n') c.z = '#,##0'; }
+    XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+    const sm = [['Platform', m.pn], ['Window', m.label + ' (' + m.win + ')'], ['Dates', m.from === m.to ? m.from : m.from + ' to ' + m.to], [], ['', 'Amount', '% of collection', 'Orders'],
+      ['Prepaid', rd(m.pre), pc(m.pre), m.rows.filter(r => !r.isCod).length], ['COD', rd(m.cod), m.tot > 0 ? rd(100 - pc(m.pre)) : 0, m.rows.filter(r => r.isCod).length], ['Total', rd(m.tot), m.tot > 0 ? 100 : 0, m.rows.length]];
+    const ws2 = XLSX.utils.aoa_to_sheet(sm); ws2['!cols'] = [{ wch: 14 }, { wch: 34 }, { wch: 16 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+    XLSX.writeFile(wb, 'Orders_' + (m.from === m.to ? m.from : m.from + '_to_' + m.to) + '_' + m.pn.replace(/[^A-Za-z0-9]+/g, '') + '_' + (m.side === 'a' ? 'After12AM' : 'Before12AM') + '.xlsx');
+  });
+
+  // ---------- Excel download ----------
+  // Employee sheets and order lists, for the whole page, every panel, every tab or one panel. Commission columns come from the Commission page.
+  if (ES_ALLOWED) (function () {
+    const TABS = [['all', 'All orders'], ['query', 'Query orders'], ['campaign', 'Campaign orders'], ['unalloc', 'Not allocated'], ['cancelled', 'Cancelled']];
+    const TAB_TEST = { all: (o) => !o.cancelled && isCounted(o), query: (o) => !o.cancelled && isCounted(o) && orderTagType(o.tags) === 'query', campaign: (o) => !o.cancelled && isCounted(o) && orderTagType(o.tags) === 'campaign',
+      unalloc: (o) => !o.cancelled && !isCounted(o), cancelled: (o) => !!o.cancelled };
+    const rd = (v) => Math.round(v * 100) / 100;
+    const pad = (n) => String(n).padStart(2, '0');
+    const range = () => esEl('dateFrom').value + '|' + esEl('dateTo').value;
+    const panelsShown = () => { const rs = teamData ? esRows() : []; return PANELS.filter(p => panelAllowed(p[0]) && (rs.some(e => e.b === p[0] && (e.real || e.ord)) || allOrders.some(o => panelOf(o) === p[0]))); };
+    const sheetName = (n, used) => { let b = String(n).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 28).trim() || 'Sheet', x = b, i = 2; while (used.has(x.toLowerCase())) x = b.slice(0, 26) + ' ' + i++; used.add(x.toLowerCase()); return x; };
+    const money = '#,##0', pct1 = '0.0', stars = '0.0';
+
+    const commText = (c) => c ? [c.rate > 0 ? 'Slab ' + rd(c.rate) + '%' : ''].filter(Boolean).concat((c.tags || []).map(t => t.l + ' · ' + t.n + ' order' + (t.n === 1 ? '' : 's') + (t.d ? ' · ' + (t.d < 0 ? '-' : '+') + '₹' + Math.abs(Math.round(t.d)) : ''))).join('; ') : '';
+
+    // ---- employee rows (one panel, or all panels in one sheet)
+    const EMP_HEAD = ['Panel', 'Employee', 'Code', 'Status', 'Target', 'Collection', 'Achieved %', 'Orders', 'Total query', 'Order ratio %', 'Ticket size', 'Query', 'Q orders', 'Q ratio %', 'Q collection',
+      'Campaign', 'C orders', 'C ratio %', 'C collection', 'COD', 'COD paid', 'Prepaid', 'Rating avg (of 5)', 'Rated orders', 'Commission ₹', 'Commission %', 'Slab %', 'Rules applied'];
+    const EMP_FMT = [0, 0, 0, 0, money, money, 0, 0, 0, 0, money, 0, 0, 0, money, 0, 0, 0, money, money, money, money, stars, 0, money, pct1, pct1, 0];
+    const EMP_W = [18, 24, 10, 16, 11, 12, 11, 8, 11, 11, 11, 8, 9, 10, 12, 10, 9, 10, 12, 11, 11, 11, 12, 11, 13, 12, 9, 70];
+    function statusOf(e) {
+      if (!e.real) return '';
+      if (!(teamData && teamData.single)) return e.p ? e.days + ' of ' + teamData.days + ' days' : 'Absent';
+      return e.p ? 'Present' + (e.t ? ' ' + e.t : '') : (esMk(e) ? ES_MARKS[e.mark] : 'Absent');
+    }
+    function empLine(e, label) {
+      const c = e.cm;
+      return [label, e.n, e.c, statusOf(e), e.tg || '', rd(e.coll), e.tg ? Math.round(e.coll / e.tg * 100) : '', e.ord, e.tot || '', esPct(e.ord, e.tot) == null ? '' : esPct(e.ord, e.tot), e.ord ? rd(e.coll / e.ord) : '',
+        e.q || '', e.qo || '', esPct(e.qo, e.q) == null ? '' : esPct(e.qo, e.q), rd(e.qc), e.k || '', e.ko || '', esPct(e.ko, e.k) == null ? '' : esPct(e.ko, e.k), rd(e.kc),
+        rd(e.cod), rd(e.codPaid), rd(e.pre), e.or[1] ? rd(e.or[0] / 2) : '', e.or[1] || '', c ? c.amt : '', c && c.coll > 0 ? rd(c.amt / c.coll * 100) : '', c && c.rate ? rd(c.rate) : '', commText(c)];
+    }
+    function totLine(t, label, who) {
+      return [label, who, '', '', t.tg || '', rd(t.coll), t.tg ? Math.round(t.coll / t.tg * 100) : '', t.ord, t.tot || '', esPct(t.ord, t.tot) == null ? '' : esPct(t.ord, t.tot), t.ord ? rd(t.coll / t.ord) : '',
+        t.q || '', t.qo || '', esPct(t.qo, t.q) == null ? '' : esPct(t.qo, t.q), rd(t.qc), t.k || '', t.ko || '', esPct(t.ko, t.k) == null ? '' : esPct(t.ko, t.k), rd(t.kc),
+        rd(t.cod), rd(t.codPaid), rd(t.pre), t.orN ? rd(t.orAvg / 2) : '', t.orN || '', t.cmColl > 0 ? rd(t.cmAmt) : '', t.cmColl > 0 ? rd(t.cmAmt / t.cmColl * 100) : '', '', ''];
+    }
+    // Rows of the panels asked for. filtered = follow the search / status / sort boxes above the sheet; otherwise everyone, in the chosen sort.
+    function empSheet(keys, filtered) {
+      const all = esRows(), aoa = [EMP_HEAD], bold = [];
+      let grand = null; const gAcc = [];
+      keys.forEach(k => {
+        const lab = PANEL_NAME[k], pr = all.filter(e => e.b === k);
+        const rows = filtered ? esVisible(pr) : esSortRows(pr.filter(e => e.real), esEl('esSort').value, k).concat(pr.filter(e => !e.real));
+        if (!rows.length) return;
+        rows.forEach(e => aoa.push(empLine(e, lab)));
+        if (keys.length > 1 || true) { aoa.push(totLine(esTotals(rows), lab, 'Total'));  bold.push(aoa.length - 1); }
+        gAcc.push(...rows);
+      });
+      if (keys.length > 1 && gAcc.length) { aoa.push(totLine(esTotals(gAcc), 'All panels', 'GRAND TOTAL')); bold.push(aoa.length - 1); }
+      return { aoa, fmt: EMP_FMT, w: EMP_W, bold, filter: true };
+    }
+
+    // ---- order rows
+    const ORD_HEAD = ['Order', 'Business day', 'Date & time', 'Store', 'Panel', 'Salesman', 'Code', 'Type', 'Status', 'Amount', 'Payment', 'Rating (★ of 5)', 'Commission ₹', 'Commission rule'];
+    const ORD_FMT = [0, 0, 0, 0, 0, 0, 0, 0, 0, money, 0, stars, '#,##0.00', 0];
+    const ORD_W = [14, 13, 17, 20, 18, 22, 12, 11, 14, 12, 14, 13, 13, 80];
+    function ordSheet(list) {
+      const aoa = [ORD_HEAD], rows = list.slice().sort((a, b) => String(a.created_at) < String(b.created_at) ? -1 : 1);
+      let sum = 0, cs = 0, hasC = false;
+      rows.forEach(o => {
+        const d = new Date(o.created_at), ok = !isNaN(d), amt = Number(o.total) || 0, key = (o.store_key || o.source || '') + ':' + o.id;
+        const cm = commValid() && !o.cancelled && isCounted(o) ? COMM.res.ord[key] : null, ty = orderTagType(o.tags);
+        sum += amt; if (cm) { cs += cm[0]; hasC = true; }
+        aoa.push([o.order_name || '', ok ? bizDayOf(d) : '', ok ? ymdOf(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) : '', o.store || '', PANEL_NAME[panelOf(o)] || '', o.salesman || '', o.code || '',
+          ty === 'query' ? 'Query' : (ty === 'campaign' ? 'Campaign' : 'Other'), o.cancelled ? 'Cancelled' : (isCounted(o) ? 'Counted' : 'Not allocated'), rd(amt), o.financial_status || '',
+          o.ticket_rating == null ? '' : rd(Number(o.ticket_rating) / 2), cm ? cm[0] : '', cm ? cm[1] : '']);
+      });
+      if (rows.length) aoa.push(['TOTAL', '', '', '', '', '', '', '', rows.length + ' orders', rd(sum), '', '', hasC ? rd(cs) : '', '']);
+      return { aoa, fmt: ORD_FMT, w: ORD_W, bold: rows.length ? [aoa.length - 1] : [], filter: rows.length > 0 };
+    }
+    const ordersFor = (tab, panel) => allOrders.filter(o => (!panel || panelOf(o) === panel) && TAB_TEST[tab](o) && panelAllowed(panelOf(o)));
+
+    // ---- workbook
+    function addSheet(wb, used, name, sh) {
+      const ws = XLSX.utils.aoa_to_sheet(sh.aoa);
+      ws['!cols'] = sh.w.map(w => ({ wch: w }));
+      const R = sh.aoa.length;
+      for (let r = 1; r < R; r++) sh.fmt.forEach((f, c) => { if (!f) return; const cell = ws[XLSX.utils.encode_cell({ r, c })]; if (cell && cell.t === 'n') cell.z = f; });
+      if (sh.filter && R > 2) ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: R - 2, c: sh.aoa[0].length - 1 } }) };
+      XLSX.utils.book_append_sheet(wb, ws, sheetName(name, used));
+    }
+    const slug = (x) => String(x).replace(/[^A-Za-z0-9]+/g, '').slice(0, 24);
+    async function build(action, btn) {
+      if (typeof XLSX === 'undefined') { alert('The Excel library could not load (no internet?). Reload the page and try again.'); return; }
+      if (!allOrders.length && !teamData) { alert('Nothing is loaded yet — wait for the sheet to appear, then try again.'); return; }
+      const t0 = btn ? btn.innerHTML : '';
+      if (btn) { btn.disabled = true; if (btn.id === 'xlBtn') esEl('xlBtnT').textContent = 'Preparing…'; }
+      try {
+        await Promise.race([commWait(), new Promise(r => setTimeout(r, 100000))]);
+        const [from, to] = range().split('|'), wb = XLSX.utils.book_new(), used = new Set(), keys = panelsShown().map(p => p[0]);
+        let scope = 'AllPanels';
+        const tabNow = (esEl('paneSheet').hidden ? (listType || 'all') : '');
+        if (action === 'view') {
+          if (!tabNow) {
+            const ks = panelPick ? [panelPick] : keys; scope = panelPick ? slug(PANEL_NAME[panelPick]) : 'AllPanels';
+            addSheet(wb, used, panelPick ? PANEL_NAME[panelPick] : 'All panels', empSheet(ks, true));
+          } else {
+            scope = slug(LIST_NAMES[listType] || 'Orders');
+            addSheet(wb, used, LIST_NAMES[listType] || 'Orders', ordSheet(filteredOrders));
+          }
+        } else if (action === 'panels-emp') {
+          scope = 'EveryPanel_Employees'; keys.forEach(k => addSheet(wb, used, PANEL_NAME[k], empSheet([k], false)));
+        } else if (action === 'panels-ord') {
+          scope = 'EveryPanel_Orders'; keys.forEach(k => addSheet(wb, used, PANEL_NAME[k], ordSheet(ordersFor('all', k))));
+        } else if (action.indexOf('panel:') === 0) {
+          const k = action.slice(6); scope = slug(PANEL_NAME[k]);
+          addSheet(wb, used, 'Employees', empSheet([k], false)); addSheet(wb, used, 'Orders', ordSheet(ordersFor('all', k)));
+          if (ordersFor('cancelled', k).length) addSheet(wb, used, 'Cancelled', ordSheet(ordersFor('cancelled', k)));
+        } else if (action === 'tabs') {
+          scope = 'OrderTabs'; TABS.forEach(([t, n]) => addSheet(wb, used, n, ordSheet(ordersFor(t, panelPick))));
+        } else if (action === 'all') {
+          scope = 'Everything'; addSheet(wb, used, 'Employees', empSheet(keys, false));
+          TABS.forEach(([t, n]) => addSheet(wb, used, n, ordSheet(ordersFor(t, ''))));
+        }
+        XLSX.writeFile(wb, 'Orders_' + (from === to ? from : from + '_to_' + to) + '_' + scope + '.xlsx');
+        if (COMM.err) alert('The Excel file is ready, but the Commission columns are empty: ' + COMM.err);
+      } catch (e) {
+        alert('Could not make the Excel file: ' + (e && e.message ? e.message : e));
+      } finally {
+        if (btn) { btn.disabled = false; if (btn.id === 'xlBtn') esEl('xlBtnT').textContent = 'Excel'; else btn.innerHTML = t0; }
+      }
+    }
+
+    // ---- the menu next to the tabs
+    const menu = esEl('xlMenu');
+    function menuHtml() {
+      const ks = panelsShown(), inSheet = !esEl('paneSheet').hidden;
+      const nm = inSheet ? (panelPick ? PANEL_NAME[panelPick] : 'All panels') + ' — employee sheet' : (LIST_NAMES[listType] || 'Orders') + (pickSalesman || housePick || pickPanel || esEl('orderSearch').value ? ' (as filtered)' : '');
+      const it = (a, t, sub, em) => `<button type="button" class="it" data-xl="${a}"><span>${esEsc(t)}${sub ? `<small>${esEsc(sub)}</small>` : ''}</span>${em ? `<em>${esEsc(em)}</em>` : ''}</button>`;
+      return '<h6>This screen</h6>' + it('view', nm, inSheet ? 'What you see now, with commission columns' : 'Exactly the orders listed now', 'Current') +
+        '<hr><h6>Every panel</h6>' + it('panels-emp', 'Every panel — employee sheets', 'One sheet per panel') + it('panels-ord', 'Every panel — orders', 'One sheet per panel') +
+        '<hr><h6>One panel (employees + orders)</h6>' + ks.map(p => it('panel:' + p[0], p[1], '', '')).join('') +
+        '<hr><h6>Order tabs</h6>' + it('tabs', 'All order tabs — one sheet each', 'All orders · Query · Campaign · Not allocated · Cancelled') +
+        '<hr>' + it('all', 'Everything in one workbook', 'Employees + every order tab');
+    }
+    esEl('xlBtn').addEventListener('click', (ev) => { ev.stopPropagation(); if (menu.hidden) { menu.innerHTML = menuHtml(); menu.hidden = false; } else menu.hidden = true; });
+    document.addEventListener('click', (ev) => {
+      const b = ev.target.closest('[data-xl]');
+      if (b) { ev.preventDefault(); ev.stopPropagation(); menu.hidden = true; build(b.dataset.xl, b.classList.contains('pbx') ? b : esEl('xlBtn')); return; }
+      if (!ev.target.closest('#xlWrap')) menu.hidden = true;
+    }, true);
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') menu.hidden = true; });
+    window.__xl = { build };
+  })();
+
   esEl('esWhoX').addEventListener('click', () => { if (!ES_ALLOWED) listType = ''; esPick(''); });
 
   // Platform card: click Query order / Campaign order / Total order (or the collection) to see only those orders of that platform.
   document.getElementById('platCards').addEventListener('click', (ev) => {
+    const mb = ev.target.closest('.li[data-mb]'); if (mb) { const [mh, ms] = mb.dataset.mb.split('|'); mbOpen(mh, ms); return; }
     const li = ev.target.closest('.li[data-go]'); if (!li) return;
     esPick('', li.dataset.h);
     if (ES_ALLOWED) esView(li.dataset.go === 'orders' ? 'orders' : li.dataset.go);
