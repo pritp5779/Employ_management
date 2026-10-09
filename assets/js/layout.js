@@ -659,8 +659,12 @@ function renderSidebar(active) {
   // The "Order code rules" section lives in its own file and adds itself to the Commission Rules page.
   if (active === 'commission_rules' && !document.getElementById('codeRulesJs')) {
     const sc = document.createElement('script');
-    sc.id = 'codeRulesJs'; sc.src = 'assets/js/code_rules.js';
+    sc.id = 'codeRulesJs'; sc.src = 'assets/js/code_rules.js'; sc.async = false;
     document.body.appendChild(sc);
+    // The manual rules (order-rating rules, order-code rules, fixed commission) — they used to be on the Commission page.
+    const sm = document.createElement('script');
+    sm.id = 'manualRulesJs'; sm.src = 'assets/js/manual_rules.js?v=261009a'; sm.async = false;
+    document.body.appendChild(sm);
   }
 }
 

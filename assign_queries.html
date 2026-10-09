@@ -120,6 +120,8 @@
           <option value="tmph">TM Perfume House</option>
           <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
+          <option value="tmsg">TM Shower Gel</option>
+          <option value="tmh4">TM House 4th</option>
         </select>
         <div class="daynav" style="display:flex; gap:6px; align-items:center;"><button type="button" class="btn secondary" id="dayPrev" title="Previous day" style="padding:7px 10px;">&lsaquo;</button>
         <input type="date" id="dayPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -213,7 +215,7 @@
 
   // House label -> accent color, so the same house reads consistently
   // everywhere (Assign Queries, Targets, Performance).
-  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', '': '#6B7280' };
+  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706', tm4u: '#7C3AED', tmsg: '#15803D', tmh4: '#BE123C', '': '#6B7280' };
 
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
@@ -433,9 +435,9 @@
   // ---------- Orders today, per employee, for the selected house ----------
   // Today's Shopify orders with the house-tag rule (a tag beats the store),
   // counted per salesman for the house being viewed only.
-  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
+  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf', tmsg: 'tmsg', 'tm shower gel': 'tmsg', tmh4: 'tmh4', 'tm house 4th': 'tmh4' };
   const STORE_HOUSE = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
-  const HOUSE_NAME = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U' };
+  const HOUSE_NAME = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   function houseOf(o) {
     if (o.house) return o.house;
     const ht = [...new Set(String(o.tags || '').split(',').map(t => HOUSE_TAGS[t.trim().toLowerCase()]).filter(Boolean))];

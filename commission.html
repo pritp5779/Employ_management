@@ -93,25 +93,6 @@
 #cm .demo-banner b{background:#1d4ed8; color:#fff; border-radius:6px; padding:1px 7px; font-size:11px; letter-spacing:.05em; margin-right:6px;}
 #cm .newtag{display:inline-block; background:#16a34a; color:#fff; font-size:9.5px; font-weight:800; letter-spacing:.06em; padding:2px 7px; border-radius:8px; vertical-align:2px; margin-right:6px;}
 #cm .newtag.sm{padding:1px 5px; margin:0 0 0 4px; font-size:8.5px;}
-#cm .dot.r{background:#f59e0b;}
-#cm .rgrid{display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px 18px 18px; align-items:start;}
-#cm .rgrid[hidden]{display:none;}
-#cm .rcard{border:1px solid var(--line); border-radius:14px; padding:14px 16px 16px; background:#fff;}
-#cm .rcard h4{margin:0 0 3px; font-size:14.5px;} #cm .rcard .rsub{font-size:12.5px; color:var(--muted); line-height:1.5; margin-bottom:12px;}
-#cm .rrule{display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:11px 12px; border:1px solid #e6e9ee; border-radius:12px; background:#fafbfc; margin-bottom:8px;}
-#cm .rrule .rtxt{flex:1 1 260px; font-size:13px; line-height:1.55;}
-#cm .rrule input[type=number]{width:62px; padding:5px 8px; border:1px solid var(--line); border-radius:10px; font-size:13px; font-weight:700; text-align:center; font-family:inherit;}
-#cm .rrule .x, #cm .rtbl .x{border:1px solid var(--line); background:#fff; border-radius:999px; width:26px; height:26px; cursor:pointer; font-size:12px; color:#6b7280; padding:0;} #cm .x:hover{color:#b91c1c; border-color:#f1b4b4;}
-#cm .rnow{font-size:12.5px; margin-top:10px; padding:9px 12px; border-radius:12px; background:var(--green-bg); color:#14532d; line-height:1.6;}
-#cm .rnow .nm{display:inline-block; background:#fff; border:1px solid #cfe9da; border-radius:10px; padding:0 8px; margin:2px 3px 0 0; font-size:11.5px; font-weight:600;}
-#cm .radd{margin-top:6px; border:1px dashed #b9c0cc; background:#fff; border-radius:12px; padding:8px 14px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--ink);} #cm .radd:hover{border-color:var(--accent);}
-#cm .rtbl{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px;}
-#cm .rtbl th{font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); font-weight:700; background:none;}
-#cm .rtbl td{padding:9px 8px; border-bottom:1px solid #f0f1f3; vertical-align:middle; white-space:normal;}
-#cm .rtbl tr:last-child td{border-bottom:none;}
-#cm .pbar{width:96px; height:6px; background:#e8ebf0; border-radius:4px; overflow:hidden; margin-top:4px;} #cm .pbar i{display:block; height:100%; background:#f59e0b;} #cm .pbar i.ok{background:#16a34a;}
-#cm .lockpill{display:inline-block; font-size:10.5px; font-weight:700; background:#fff4db; color:#8a5a00; border-radius:9px; padding:1px 8px; margin-top:3px;}
-#cm .okpill{display:inline-block; font-size:10.5px; font-weight:700; background:#e7f7ee; color:#0f7a41; border-radius:9px; padding:1px 8px; margin-top:3px;}
 /* switch */
 #cm .tgl{display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-size:12.5px; font-weight:600; color:#4b5563; user-select:none;}
 #cm .tgl input{position:absolute; opacity:0; width:0; height:0;}
@@ -133,16 +114,12 @@
 #cm b.zero{color:#9ca3af;}
 #cm .rate.fx{color:var(--blue); background:var(--blue-bg); border-color:#c7d8fb;}
 #cm .held.mixn{color:var(--green);} #cm .held.fxn{color:var(--blue);}
+#cm .stars{position:relative; display:inline-block; font-size:15px; line-height:1; color:#d5d9e0; white-space:nowrap;} #cm .stars i{position:absolute; left:0; top:0; overflow:hidden; color:#f59e0b; font-style:normal; white-space:nowrap;} #cm .stnum{display:block; font-size:10.5px; color:var(--muted); margin-top:2px;}
 #cm .ordsum .chk{color:var(--green); font-weight:700;}
 #cm tr.click .emp b{color:var(--blue);} #cm tr.click:hover .emp b{text-decoration:underline;}
 #cm .d-h .seg{margin-left:auto;}
-@media (max-width:1000px){ #cm .rgrid{grid-template-columns:1fr;} }
-@media (max-width:820px){ #cm .rngbar{gap:8px;} #cm .rgrid{padding:12px;} #cm .rtbl thead{display:none;} #cm .rtbl tr{display:block; padding:8px 0; border-bottom:1px solid #f0f1f3;} #cm .rtbl td{display:flex; justify-content:space-between; border:none; padding:3px 6px;} #cm .rtbl td::before{content:attr(data-label); color:var(--muted); font-size:11px; font-weight:700;} }
-#cm .lnk{border:none; background:none; padding:0; font:inherit; font-weight:700; color:var(--blue); cursor:pointer; text-align:left;} #cm .lnk:hover{text-decoration:underline;}
-@media (min-width:821px){ #cm table.oT{min-width:900px;} }
-#cm .rgrid > *{min-width:0;}
-.mxpeople{max-height:170px; overflow-y:auto; border:1px solid var(--line); border-radius:12px; padding:6px 10px; margin-top:8px;} .mxpeople[hidden]{display:none;} .mxpeople label{display:flex; gap:8px; align-items:center; font-size:13px; padding:4px 0; text-transform:none; letter-spacing:0; font-weight:500; margin:0;} .mxpeople input{width:auto;}
-@media (max-width:820px){ #cm .rtbl, #cm .rtbl tbody{display:block;} #cm .rcard{padding:12px;} #cm .rrule .rtxt{flex-basis:200px;} #cm .rtbl td{align-items:center;} #cm .rtbl td .pbar{display:none;} }
+@media (max-width:820px){ #cm .rngbar{gap:8px;} }
+@media (min-width:821px){ #cm table.oT{min-width:980px;} }
 
 @media (max-width:820px){
   #cm .scroll > table{min-width:0;}
@@ -166,18 +143,6 @@
     <div class="content">
       <div id="alertBox"></div>
       <div id="cm">
-        <section class="card sec" id="secRules" hidden>
-          <div class="sec-h">
-            <div><h2><span class="dot r"></span> Manual commission rules</h2><div class="range">Rules added by hand. They change how the commission below is worked out.</div></div>
-            <button type="button" class="closebtn" id="rulesToggle">Hide</button>
-          </div>
-          <div class="rgrid" id="rulesBody">
-            <div class="rcard" id="mixCard"></div>
-            <div class="rcard" id="fixCard"></div>
-          </div>
-        </section>
-
-
         <!-- ================= TODAY ================= -->
         <section class="card sec" id="secToday">
           <div class="sec-h">
@@ -246,43 +211,6 @@
     <div class="actions"><button type="button" class="btn secondary" id="shRemove" style="margin-right:auto;">Remove manual</button><button type="button" class="btn secondary" id="shCancel">Cancel</button><button type="button" class="btn" id="shSave">Save</button></div>
   </div>
 </div>
-<div class="modal-overlay" id="mxModal">
-  <div class="modal" style="max-width:500px;">
-    <h3 id="mxTitle">Add a commission rule</h3>
-    <div class="field"><label for="mxName">Rule name <span style="text-transform:none; font-weight:400;">(optional)</span></label><input id="mxName" maxlength="120" placeholder="e.g. Good code habit"></div>
-    <div class="field-grid">
-      <div class="field"><label for="mxOp">When orders with a code are</label><select id="mxOp"><option value="gte">at least</option><option value="lte">at most</option></select></div>
-      <div class="field"><label for="mxThr">% of the employee's orders</label><input id="mxThr" type="number" min="0" max="100" step="0.01" inputmode="decimal"></div>
-    </div>
-    <div class="field-grid">
-      <div class="field"><label for="mxMode">Then pay</label><select id="mxMode"><option value="full">Full commission (no cut)</option><option value="rate">Fixed commission % of sales</option><option value="pct">% of the normal commission</option><option value="flat">₹ per order</option></select></div>
-      <div class="field" id="mxValWrap"><label for="mxVal" id="mxValLbl">Commission %</label><input id="mxVal" type="number" min="0" step="0.01" inputmode="decimal"></div>
-    </div>
-    <div class="field"><label for="mxWho">Applies to</label><select id="mxWho"><option value="all">Everyone</option><option value="sel">Selected people</option></select>
-      <div id="mxPeople" class="mxpeople" hidden></div></div>
-    <div id="mxPrev" style="font-size:12.5px; background:#f6f7f9; border-radius:12px; padding:9px 12px; line-height:1.55;"></div>
-    <div id="mxAlert"></div>
-    <div class="actions"><button type="button" class="btn secondary" id="mxCancel">Cancel</button><button type="button" class="btn" id="mxSave">Save</button></div>
-  </div>
-</div>
-<div class="modal-overlay" id="fxModal">
-  <div class="modal" style="max-width:470px;">
-    <h3 id="fxTitle">Fixed commission for a person</h3>
-    <div class="field"><label for="fxEmp">Employee</label><select id="fxEmp"></select></div>
-    <div class="field-grid">
-      <div class="field"><label for="fxMode">Fixed commission as</label><select id="fxMode"><option value="rate">% of sales</option><option value="flat">₹ per order</option></select></div>
-      <div class="field"><label for="fxPer" id="fxPerLbl">Fixed commission (%)</label><input id="fxPer" type="number" min="0" step="0.01" inputmode="decimal"></div>
-    </div>
-    <div class="field-grid">
-      <div class="field"><label for="fxType">Minimum is counted in</label><select id="fxType"><option value="count">Number of orders</option><option value="amount">Achieved amount (₹)</option></select></div>
-      <div class="field"><label for="fxMin" id="fxMinLbl">Minimum orders to unlock</label><input id="fxMin" type="number" min="1" step="1" inputmode="numeric"></div>
-    </div>
-    <div id="fxPrev" style="font-size:12.5px; background:#f6f7f9; border-radius:12px; padding:9px 12px; line-height:1.55;"></div>
-    <div id="fxAlert"></div>
-    <div class="actions"><button type="button" class="btn secondary" id="fxCancel">Cancel</button><button type="button" class="btn" id="fxSave">Save</button></div>
-  </div>
-</div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
@@ -325,7 +253,7 @@
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };   // same rule as Targets
   let TODAY = '', FROM = '', TO = '', MSTART = '', RFROM = '', RTO = '', DAYS = [];   // FROM..TO = what is loaded; RFROM..RTO = the Monthly date range; DAYS = days of that range
   let PAGING = true;                                  // NEW: pagination ON / OFF (manual switch)
-  const NEW = { mix: [], fixed: [] };                 // NEW: manual rules (code-mix rule, fixed-by-count plans)
+  const NEW = { mix: [], fixed: [], star: [], panel: [] };                 // NEW: manual rules (code-mix rule, fixed-by-count plans)
   let EMPS = [];          // from commission_page.days: employee, role, target[rowKey][date], status[date]
   let ORD = [];           // orders that count toward commission
   let IDX = {};           // "employeeId|rowKey" -> date -> { ach, n, pre, orders[] }
@@ -450,7 +378,7 @@
       if (day < FROM || day > TO) return;
       const rk = o.house === 'tm4u' ? 'tm4u' : '';
       const amt = Number(o.total || 0), pre = isPre(o.financial_status);
-      const x = { id: o.id, key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', name: o.order_name, code: o.code || '', emp: id, rk, day, created: o.created_at, amt, pre, fs: o.financial_status || '', store: o.store || '' };
+      const x = { id: o.id, key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', name: o.order_name, code: o.code || '', stars: o.ticket_rating == null ? null : Number(o.ticket_rating) / 2, emp: id, rk, day, created: o.created_at, amt, pre, fs: o.financial_status || '', store: o.store || '' };
       priceOrder(x);
       ORD.push(x); ORDBY[x.key] = x;
       const k = id + '|' + rk, cell = ((IDX[k] = IDX[k] || {})[day] = IDX[k][day] || { ach: 0, n: 0, pre: 0, eff: 0, flat: 0, orders: [] });
@@ -514,7 +442,7 @@
       worked += (st === 'present' || st === 'wfh') ? 1 : (st === 'half_leave' ? 0.5 : (x && x.n ? 1 : 0));
     });
     const ticket = n ? ach / n : 0, prePct = ach > 0 ? Math.min(100, pre / ach * 100) : 0;
-    const c = calcCommission(ach, target, ticket, prePct);
+    let c = calcCommission(ach, target, ticket, prePct);
     let pm = null;
     // NEW — manual code rules: when the share of this employee's orders with a code is at least / at most a number you set,
     // pay full commission (no order-code cut), a fixed % of sales, a % of the normal commission, or ₹ per order.
@@ -547,6 +475,29 @@
       c.amount = plan.mode === 'rate' ? ach * v / 100 : v * n; c.held = 0; c.adj = false; c.mix = null; c.full = c.amount;
       c.steps = [{ label: 'Fixed commission', detail: `${plan.mode === 'rate' ? fmtN(v) + '% of ' + inr(ach) + ' sales' : n + ' order' + (n === 1 ? '' : 's') + ' × ' + inr(v)} (minimum ${planMinTxt(plan)} reached)`, value: inr(c.amount) }];
     }
+    // NEW — order-rating rules: each order's commission is cut by its star rating (and by "no code"), see starMul()
+    if (c && c.steps && n > 0 && NEW.star.some((r) => r.on)) {
+      const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm };
+      let cut = 0, cnt = 0;
+      orders.forEach((o) => { const sm = starMul(o); if (!sm) return; const b = comBase(o, tmp).v, sb = starBase(o, tmp).v, d = sb * sm.m - b; if (Math.abs(d) > 0.005) { cut += d; cnt++; } });
+      if (cnt) {
+        c.amount += cut; c.starCut = { cut, cnt };
+        c.steps.push({ label: 'Order rating', detail: `${cnt} order${cnt === 1 ? '' : 's'} with a low star rating pay less (rating rules)`, value: (cut < 0 ? '−' : '+') + inr(Math.abs(cut)) });
+      }
+    }
+    // NEW — panel + date rules: the order pays a fixed % of its amount, whatever it would have earned above (see panelRuleFor())
+    if (n > 0 && NEW.panel.some((r) => r.on)) {
+      const hits = orders.filter((o) => panelRuleFor(o));
+      if (hits.length) {
+        if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
+        const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm };
+        let delta = 0; const names = {}, rl = {};
+        hits.forEach((o) => { const r = panelRuleFor(o); delta += o.amt * r.pct / 100 - comStar(o, tmp).v; names[r.label || 'Panel rule'] = 1; rl[r.id] = r; });
+        c.amount += delta; c.panelCnt = hits.length;
+        const ids = Object.keys(rl); if (ids.length === 1 && hits.length === n) c.panelBadge = fmtN(rl[ids[0]].pct) + '% fixed';
+        c.steps.push({ label: 'Panel rule', detail: `${hits.length} order${hits.length === 1 ? '' : 's'} pay a fixed % of sales · ${Object.keys(names).join(', ')}`, value: (delta < 0 ? '−' : '+') + inr(Math.abs(delta)) });
+      }
+    }
     return { pm, row, ach, n, pre, target, ticket, prePct, pending: Math.max(0, target - ach), leave, absent, worked, orders, c: c || { rate: 0, amount: 0, steps: null, held: 0 } };
   }
   // Average = achieved per working day, from the 1st up to the given day.
@@ -558,7 +509,7 @@
   const ini = (n) => String(n).split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   const progress = (a) => { const p = a.target > 0 ? a.ach / a.target * 100 : 0; return `<div class="prog"><i class="${p > 130 ? 'over' : p >= 100 ? 'done' : ''}" style="width:${Math.min(100, p)}%"></i></div>`; };
   const pctTxt = (a) => a.target > 0 ? `<span class="pct">${Math.round(a.ach / a.target * 100)}%</span>` : '';
-  const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.fixedPlan ? a.c.fixedPlan.badge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
+  const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || a.c.panelBadge || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.panelBadge ? a.c.panelBadge : a.c.fixedPlan ? a.c.fixedPlan.badge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
   const pendCell = (a) => a.target <= 0 ? '<span class="muted">—</span>' : a.pending > 0 ? `<span class="pend">${inr(a.pending)}</span>` : '<span class="pend zero">✓ Done</span>';
   const nameHtml = (row, chev) => `<b>${esc(row.emp.full_name)}${row.rk === 'tm4u' ? ' <span class="pill p-blue">TM4U</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
 
@@ -615,7 +566,7 @@
 
   // The pricing of one order in its employee's period: { sh, eff, flat } and the employee's rate.
   // NEW: what ONE order earns, with a short reason when it is ₹0 or special
-  function comOf(o, aggs) {
+  function comBase(o, aggs) {
     const A = aggs[o.emp + '|' + o.rk], c = A && A.c;
     if (c && c.fixedPlan) return { v: c.fixedPlan.mode === 'rate' ? o.amt * c.fixedPlan.v / 100 : c.fixedPlan.v, note: 'fixed · ' + payTxt(c.fixedPlan.mode, c.fixedPlan.v), cls: 'fx' };
     const p = (A && A.pm && A.pm[o.key]) || o, rate = c ? (c.rate || 0) : 0;
@@ -631,6 +582,49 @@
     if (p.sh && p.sh.why === 'rule' && p.sh.mode === 'pct' && p.sh.v < 100) return { v, note: ruleName(p.sh.rule) + ' · ' + shTxt(p.sh), cls: 'cut' };
     return { v, note: '', cls: '' };
   }
+  // NEW — order-rating rules (set on the Commission Rules page): an order rated up to N stars pays X% of its commission,
+  // and if it also has no code, Y% of that. The lowest-star rule an order fits wins. Unrated orders pay normally.
+  const starTxt = (v) => fmtN(v) + '★';
+  // the order's star rating (given on the Orders / Performance page), read-only here
+  const starCell = (o) => o.stars == null ? '<span class="muted">—</span>' : `<span class="stars" title="${fmtN(o.stars)} of 5 stars">★★★★★<i style="width:${Math.max(0, Math.min(100, o.stars / 5 * 100))}%">★★★★★</i></span><span class="stnum">${fmtN(o.stars)} / 5</span>`;
+  function starMul(o) {
+    if (o.stars == null) return null;
+    let best = null;
+    NEW.star.forEach((r) => { if (r.on && (!r.who.length || r.who.indexOf(o.emp) !== -1) && o.stars <= r.star && (!best || r.star < best.star)) best = r; });
+    return best ? { r: best, m: best.pay / 100 * (o.code ? 1 : best.nc / 100) } : null;
+  }
+  // A rated order that fits a rating rule starts from its FULL commission (rate × amount) — the rating rule decides the cut,
+  // including the "no code" cut, so the order-code rule is not applied on top of it. (Fixed commission / a rule paying
+  // a fixed %, % or ₹ keep their own amount and the rating cut is applied to that.)
+  function starBase(o, aggs) {
+    const A = aggs[o.emp + '|' + o.rk], c = A && A.c, b = comBase(o, aggs);
+    if (!c || !c.steps || c.fixedPlan || (c.mix && c.mix.mode !== 'full')) return { v: b.v, replaces: false };
+    return { v: (c.rate || 0) * o.amt / 100, replaces: true };
+  }
+  function comStar(o, aggs) {
+    const b = comBase(o, aggs), s = starMul(o);
+    if (!s) return b;
+    const sb = starBase(o, aggs);
+    if (!(sb.v > 0)) return b;
+    const v = sb.v * s.m;
+    return { v, note: starTxt(o.stars) + ' rating · ' + (s.r.label || 'rating rule') + ' · pays ' + fmtN(s.r.pay) + '%' + (!o.code && Number(s.r.nc) !== 100 ? ', no code → ' + fmtN(s.r.nc) + '% of that' : ''), cls: v < 0.005 ? 'z' : 'cut' };
+  }
+  // NEW — panel + date rules (set on the Commission Rules page): orders of the chosen panels on the chosen business days pay a fixed % of
+  // their amount. This wins over the slab, the order-code rules, the person's fixed commission and the rating rules (an order whose share
+  // was changed by hand keeps that share). The earliest rule that fits is used.
+  function panelRuleFor(o) {
+    if (CODE.shares && CODE.shares[o.key]) return null;
+    let best = null;
+    NEW.panel.forEach((r) => { if (r.on && o.day >= r.from && o.day <= r.to && r.panels.indexOf(o.house) !== -1 && (!r.who.length || r.who.indexOf(o.emp) !== -1) && (!best || r.id < best.id)) best = r; });
+    return best;
+  }
+  function comOf(o, aggs) {
+    const r = panelRuleFor(o);
+    if (!r) return comStar(o, aggs);
+    return { v: o.amt * r.pct / 100, note: (r.label || 'Panel rule') + ' · fixed ' + fmtN(r.pct) + '%', cls: 'fx' };
+  }
+  const shNote = (o, aggs) => panelRuleFor(o) ? 'panel rule' : byRating(o, aggs) ? 'by rating' : '';
+  const byRating = (o, aggs) => !!starMul(o) && starBase(o, aggs).replaces && starBase(o, aggs).v > 0;
   const comCell = (r) => `<b class="${r.cls === 'z' ? 'zero' : ''}">${inr(r.v)}</b>${r.note ? `<div class="cn ${r.cls}">${esc(r.note)}</div>` : ''}`;
   const priceIn = (aggs, o) => { const A = aggs[o.emp + '|' + o.rk]; return { p: (A && A.pm && A.pm[o.key]) || o, rate: A && A.c ? (A.c.rate || 0) : 0 }; };
   function ordTable(list, st, withDate, id, aggs) {
@@ -638,11 +632,12 @@
     const byEmp = {}; EMPS.forEach((e) => { byEmp[e.employee_id] = e; });
     const pg = paginate(list, st), shown = pg.rows, tot = list.reduce((s, o) => s + o.amt, 0);
     const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    return `<table style="min-width:900px"><thead><tr><th>Order</th><th>${withDate ? 'Date · Time' : 'Time'}</th><th>Employee</th><th class="r">Amount</th><th>Payment</th><th>Code</th><th class="r">Share</th><th class="r">Commission</th></tr></thead><tbody>
+    return `<table style="min-width:980px"><thead><tr><th>Order</th><th>${withDate ? 'Date · Time' : 'Time'}</th><th>Employee</th><th class="r">Amount</th><th>Payment</th><th>Code</th><th>Rating</th><th class="r">Share</th><th class="r">Commission</th></tr></thead><tbody>
       ${shown.map((o) => { const q = priceIn(aggs, o); return `<tr><td data-label="Order"><b>${esc(o.name)}</b><div class="small muted">${esc(o.store)}</div></td><td data-label="${withDate ? 'Date · Time' : 'Time'}">${withDate ? esc(dFmt(o.day)) + ' · ' : ''}${esc(tm(o.created))}</td>
         <td data-label="Employee">${esc(byEmp[o.emp].full_name)}${o.rk === 'tm4u' ? ' <span class="pill p-blue">TM4U</span>' : ''}</td><td class="r" data-label="Amount"><b>${inr(o.amt)}</b></td>
         <td data-label="Payment"><span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></td><td data-label="Code">${o.code ? `<span class="ocode">${esc(o.code)}</span>` : '<span class="pill p-leave" style="font-size:10.5px;">no code</span>'}</td>
-        <td class="r" data-label="Share" style="white-space:nowrap;">${shChip(o, true, q.p)}</td>
+        <td data-label="Rating">${starCell(o)}</td>
+        <td class="r" data-label="Share" style="white-space:nowrap;">${shNote(o, aggs) ? '<span class="muted small">' + shNote(o, aggs) + '</span>' : shChip(o, true, q.p)}</td>
         <td class="r" data-label="Commission">${comCell(comOf(o, aggs))}</td></tr>`; }).join('')}
       </tbody></table>
       <div class="ordsum">${list.length} order${list.length === 1 ? '' : 's'} · <b>${inr(tot)}</b></div>
@@ -681,7 +676,7 @@
     $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk === 'tm4u' ? ' · TM4U' : '');
     $('dSub').textContent = e.role + (e.employee_code ? ' · ' + e.employee_code : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)));
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
-    $('dKpis').innerHTML = `<div class="kpi g"><div class="l">Commission</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi"><div class="l">${m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
+    $('dKpis').innerHTML = `<div class="kpi g"><div class="l">Commission</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi"><div class="l">${m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
     $('dView').style.display = dScope === 't' ? 'none' : '';
     if (dScope === 't') ST.d.tab = 'ord';
     [...$('dView').children].forEach((b) => b.classList.toggle('on', b.dataset.v === ST.d.tab));
@@ -700,7 +695,7 @@
         <td class="r" data-label="Average">${inr(avgTo(row, d, RFROM))}<div class="small muted">per day so far</div></td>
         <td class="r" data-label="Est. commission">${a.c.steps ? `<span class="com">${inr(a.c.amount)}</span>${rateBtn(a, key)}` : '<span class="com none">₹0</span>'}</td>
         <td data-label="Leave">${statusPill(st)}</td></tr>`;
-      if (open) h += `<tr class="ord"><td colspan="8">${a.orders.slice().sort((x, y) => String(y.created).localeCompare(String(x.created))).map((o) => `<div class="oline"><span>${esc(tm(o.created))} · <b>${esc(o.name)}</b>${o.code ? ` <span class="ocode">${esc(o.code)}</span>` : ' <span class="pill p-leave" style="font-size:10.5px;">no code</span>'}${((a.pm && a.pm[o.key]) || o).sh ? ' ' + shChip(o, false, (a.pm && a.pm[o.key]) || o) : ''}</span><span><b>${inr(o.amt)}</b> <span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></span></div>`).join('')}</td></tr>`;
+      if (open) h += `<tr class="ord"><td colspan="8">${a.orders.slice().sort((x, y) => String(y.created).localeCompare(String(x.created))).map((o) => `<div class="oline"><span>${esc(tm(o.created))} · <b>${esc(o.name)}</b>${o.code ? ` <span class="ocode">${esc(o.code)}</span>` : ' <span class="pill p-leave" style="font-size:10.5px;">no code</span>'}${((a.pm && a.pm[o.key]) || o).sh ? ' ' + shChip(o, false, (a.pm && a.pm[o.key]) || o) : ''}</span><span><b>${inr(o.amt)}</b> <span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span>${o.stars == null ? '' : ' <span class="small muted">' + starTxt(o.stars) + '</span>'}</span></div>`).join('')}</td></tr>`;
       return h;
     }).join('');
     $('dBody').innerHTML = `<table><thead><tr><th>Date</th><th class="r">Target</th><th class="r">Ticket Size</th><th class="r">Achieved</th><th class="r">Pending</th><th class="r">Average</th><th class="r">Est. commission</th><th>Leave</th></tr></thead><tbody>${rowsHtml}</tbody></table>
@@ -716,13 +711,14 @@
     const rows = list.map((o) => ({ o, r: comOf(o, aggs) }));
     const sumCom = rows.reduce((s, x) => s + x.r.v, 0), sumAmt = list.reduce((s, o) => s + o.amt, 0), zeros = rows.filter((x) => x.r.v === 0).length;
     const st = ST.d, pg = paginate(rows, st);
-    $('dBody').innerHTML = !rows.length ? '<div class="empty">' + (dScope === 't' ? 'No orders today yet.' : 'No orders in this date range.') + '</div>' : `<table class="oT"><thead><tr><th>Order</th><th>Date · Time</th><th class="r">Amount</th><th>Payment</th><th>Code</th><th class="r">Share</th><th class="r">Commission</th></tr></thead><tbody>
+    $('dBody').innerHTML = !rows.length ? '<div class="empty">' + (dScope === 't' ? 'No orders today yet.' : 'No orders in this date range.') + '</div>' : `<table class="oT"><thead><tr><th>Order</th><th>Date · Time</th><th class="r">Amount</th><th>Payment</th><th>Code</th><th>Rating</th><th class="r">Share</th><th class="r">Commission</th></tr></thead><tbody>
       ${pg.rows.map(({ o, r }) => `<tr><td data-label="Order"><b>${esc(o.name)}</b><div class="small muted">${esc(o.store)}</div></td>
         <td data-label="Date · Time">${esc(dFmt(o.day))} · ${esc(tm(o.created))}</td>
         <td class="r" data-label="Amount"><b>${inr(o.amt)}</b></td>
         <td data-label="Payment"><span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></td>
         <td data-label="Code">${o.code ? `<span class="ocode">${esc(o.code)}</span>` : '<span class="pill p-leave" style="font-size:10.5px;">no code</span>'}</td>
-        <td class="r" data-label="Share" style="white-space:nowrap;">${m.c.fixedPlan ? '<span class="muted small">fixed</span>' : shChip(o, false, (m.pm && m.pm[o.key]) || o)}</td>
+        <td data-label="Rating">${starCell(o)}</td>
+        <td class="r" data-label="Share" style="white-space:nowrap;">${m.c.fixedPlan ? '<span class="muted small">fixed</span>' : shNote(o, aggs) ? '<span class="muted small">' + shNote(o, aggs) + '</span>' : shChip(o, false, (m.pm && m.pm[o.key]) || o)}</td>
         <td class="r" data-label="Commission">${comCell(r)}</td></tr>`).join('')}
       </tbody></table>
       <div class="ordsum">${list.length} order${list.length === 1 ? '' : 's'} · <b>${inr(sumAmt)}</b> sales · commission <b style="color:var(--ok-fg)">${inr(sumCom)}</b>${zeros ? ` · <b>${zeros}</b> order${zeros === 1 ? '' : 's'} earned ₹0` : ''}${Math.abs(sumCom - m.c.amount) < 1 ? ' · <span class="chk">✓ adds up to the ' + (dScope === 't' ? 'Today' : 'Monthly') + ' row</span>' : ''}</div>
@@ -772,11 +768,11 @@
     const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     return list.map((o) => {
       const q = priceIn(aggs, o);
-      return [o.name, o.store, o.day, tm(o.created), byEmp[o.emp].full_name, panelOf(o.rk), Math.round(o.amt), o.pre ? 'Prepaid' : 'COD / pending', o.code || 'no code', shNum(q.p), Math.round(comOf(o, aggs).v * 100) / 100];
+      return [o.name, o.store, o.day, tm(o.created), byEmp[o.emp].full_name, panelOf(o.rk), Math.round(o.amt), o.pre ? 'Prepaid' : 'COD / pending', o.code || 'no code', o.stars == null ? '' : o.stars, shNum(q.p), Math.round(comOf(o, aggs).v * 100) / 100];
     });
   }
-  const ORD_HEAD = ['Order', 'Store', 'Business day', 'Time', 'Employee', 'Panel', 'Amount (₹)', 'Payment', 'Code', 'Share', 'Commission (₹)'];
-  const ORD_W = [14, 22, 13, 10, 24, 26, 12, 15, 14, 18, 15];
+  const ORD_HEAD = ['Order', 'Store', 'Business day', 'Time', 'Employee', 'Panel', 'Amount (₹)', 'Payment', 'Code', 'Rating (★ of 5)', 'Share', 'Commission (₹)'];
+  const ORD_W = [14, 22, 13, 10, 24, 26, 12, 15, 14, 12, 18, 15];
   function downloadScope(k) {
     if (!READY || typeof XLSX === 'undefined') { showAlert('The Excel library is still loading — try again in a moment.', 'error'); return; }
     const st = ST[k], isT = k === 't', q = st.q.trim().toLowerCase();
@@ -797,8 +793,8 @@
     const olist = ORD.filter((o) => (isT ? o.day === TODAY : (o.day >= RFROM && o.day <= RTO)) && names.has(o.emp)).slice().sort((a, b) => String(a.created).localeCompare(String(b.created)));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, xlsxSheet(eHead, E, [24, 11, 18, 26, 12, 8, 14, 13, 13, 10, 15, 8, 15, 18, 13, 12], tot), 'Employee-wise');
-    const oTot = ['TOTAL', '', '', '', '', '', olist.reduce((s, o) => s + Math.round(o.amt), 0), '', '', '', ''];
-    const oRows = ordRows(olist, aggs); oTot[10] = Math.round(oRows.reduce((s, r) => s + r[10], 0) * 100) / 100;
+    const oTot = ['TOTAL', '', '', '', '', '', olist.reduce((s, o) => s + Math.round(o.amt), 0), '', '', '', '', ''];
+    const oRows = ordRows(olist, aggs); oTot[11] = Math.round(oRows.reduce((s, r) => s + r[11], 0) * 100) / 100;
     XLSX.utils.book_append_sheet(wb, xlsxSheet(ORD_HEAD, oRows, ORD_W, oTot), 'Orders');
     XLSX.writeFile(wb, isT ? `Commission_Today_${TODAY}.xlsx` : `Commission_${RFROM}_to_${RTO}.xlsx`);
   }
@@ -816,7 +812,7 @@
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, xlsxSheet(['Date', 'Target (₹)', 'Orders', 'Ticket size (₹)', 'Achieved (₹)', 'Pending (₹)', 'Average / day (₹)', 'Est. commission (₹)', 'Status'], D, [14, 12, 8, 14, 13, 13, 16, 17, 18], tot), 'Date-wise');
     const oRows = ordRows(olist, aggs);
-    XLSX.utils.book_append_sheet(wb, xlsxSheet(ORD_HEAD, oRows, ORD_W, ['TOTAL', '', '', '', '', '', olist.reduce((s, o) => s + Math.round(o.amt), 0), '', '', '', Math.round(oRows.reduce((s, r) => s + r[10], 0) * 100) / 100]), 'Orders');
+    XLSX.utils.book_append_sheet(wb, xlsxSheet(ORD_HEAD, oRows, ORD_W, ['TOTAL', '', '', '', '', '', olist.reduce((s, o) => s + Math.round(o.amt), 0), '', '', '', '', Math.round(oRows.reduce((s, r) => s + r[11], 0) * 100) / 100]), 'Orders');
     XLSX.writeFile(wb, `Commission_${e.full_name.replace(/[^A-Za-z0-9]+/g, '_')}${row.rk === 'tm4u' ? '_TM4U' : ''}_${dScope === 't' ? 'Today_' + TODAY : dFrom() + '_to_' + dTo()}.xlsx`);
   }
   $('tDl').onclick = () => downloadScope('t');
@@ -824,7 +820,7 @@
   $('dDl').onclick = downloadDetail;
 
   // ---------- Wiring ----------
-  function renderAll() { setRanges(); renderTable('t'); renderTable('m'); renderDetail(); if (typeof renderRulesCards === 'function') renderRulesCards(); }
+  function renderAll() { setRanges(); renderTable('t'); renderTable('m'); renderDetail(); }
   [['t', () => renderTable('t')], ['m', () => { renderTable('m'); }]].forEach(([k, fn]) => {
     const st = ST[k];
     $(k + 'Sort').innerHTML = Object.keys(SORTS).map((s) => `<option value="${s}">${SORTS[s][0]}</option>`).join('');
@@ -943,14 +939,14 @@
     $('detail').hidden = true;
     // everything below starts at the same moment
     const pDays = api.get('commission_page.days', { date_from: FROM, date_to: TO });
-    const pOrders = api.get('shopify.orders', Object.assign({ date_from: FROM, date_to: TO, lite: 1 }, opts.fresh ? { fresh: 1 } : {}));
+    const pOrders = api.get('shopify.orders', Object.assign({ date_from: FROM, date_to: TO, lite: 1, ratings: 1 }, opts.fresh ? { fresh: 1 } : {}));
     const pShares = api.get('commission_page.order_shares', { date_from: FROM, date_to: TO });
     const shOf = (sh) => (sh && sh.shares && !Array.isArray(sh.shares)) ? sh.shares : {};
     const pRules = S ? S.rules.then((d) => { RULES = d.rules || []; }, () => { RULES = null; }) : Promise.resolve();
     const pCode = S
       ? Promise.all([S.codeList, pShares]).then(([r, sh]) => { CODE = { on: !!r.on, rules: r.rules || [], shares: shOf(sh), ok: true }; }, () => { CODE = { on: false, rules: [], shares: {}, ok: false }; })
       : pShares.then((sh) => { CODE.shares = shOf(sh); }, () => { /* keep the shares we have */ });
-    const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; }) : Promise.resolve();
+    const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; NEW.star = []; NEW.panel = []; }) : Promise.resolve();
     try {
       const [dd, od] = await Promise.all([pDays, pOrders]);
       await pRules; await pCode; await pManual;
@@ -988,142 +984,15 @@
   // =====================================================================================================
   // NEW  — manual rules cards, date range, pagination ON/OFF
   // =====================================================================================================
-  // ---------- manual rules: loaded from the server, saved through commission_rules.mix_* / fixed_* ----------
-  const ME = (api.currentUser && api.currentUser()) || {};
-  const CAN = ME.role === 'Admin' || ME.role === 'HR';     // only Admin / HR change rules; everyone with this page sees the result
+  // ---------- manual rules: set on the Commission Rules page, read here and applied to the numbers ----------
   NEW.ok = true;
   function setManual(d) {
     NEW.ok = true;
     NEW.mix = ((d && d.mix) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', op: r.op === 'lte' ? 'lte' : 'gte', thr: Number(r.thr), mode: ['full', 'rate', 'pct', 'flat'].indexOf(r.pay_mode) > -1 ? r.pay_mode : 'full', v: Number(r.pay_value || 0), who: (r.who || []).map(Number) }));
     NEW.fixed = ((d && d.fixed) || []).map((p) => ({ id: Number(p.plan_id), emp: Number(p.employee_id), per: Number(p.per), mode: p.pay_mode === 'rate' ? 'rate' : 'flat', minType: p.min_type === 'amount' ? 'amount' : 'count', min: Number(p.min), on: !!Number(p.enabled) }));
+    NEW.panel = ((d && d.panel) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', panels: r.panels || [], from: String(r.date_from), to: String(r.date_to), pct: Number(r.pct), who: (r.who || []).map(Number) }));
+    NEW.star = ((d && d.star) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', star: Number(r.max_star), pay: Number(r.pay_pct), nc: Number(r.nocode_pct), who: (r.who || []).map(Number) }));
   }
-  async function manualAct(fn) {
-    try { await fn(); setManual(await api.get('commission_rules.manual_list')); renderAll(); }
-    catch (err) { showAlert(esc(err.message), 'error'); try { setManual(await api.get('commission_rules.manual_list')); renderAll(); } catch (e2) { /* keep what is shown */ } }
-  }
-  const empName = (id) => { const e = EMPS.find((x) => x.employee_id === id); return e ? e.full_name : 'Employee ' + id; };
-
-  const mixText = (r) => `If orders with a code are <b>${r.op === 'lte' ? 'at most' : 'at least'} ${fmtN(r.thr)}%</b> of an employee's orders → pay <b>${esc(payTxt(r.mode, r.v))}</b>`;
-  function renderRulesCards() {
-    if (!$('mixCard')) return;
-    $('secRules').hidden = !CAN;
-    if (!CAN) return;
-    if (!NEW.ok) { $('mixCard').innerHTML = '<div class="muted small">The manual rules could not be read — upload the new api.php, then press Refresh.</div>'; $('fixCard').innerHTML = ''; return; }
-    // ---------- card 1: code rules you add by hand ----------
-    const rowsNow = READY ? ROWS.filter((r) => r.rk === '').map((r) => agg(r, DAYS)).filter((a) => a.n) : [];
-    const win = rowsNow.filter((a) => a.c && a.c.mix);
-    $('mixCard').innerHTML = `<h4>Order-code rules</h4>
-      <div class="rsub">Add a rule by hand: when the share of an employee's orders that have a code is above or below a number you choose, pay them the way you choose — full commission, a fixed % of sales, a % of the normal commission, or ₹ per order.</div>
-      ${NEW.mix.map((r) => `<div class="rrule">
-        <label class="tgl" title="Switch this rule on or off"><input type="checkbox" data-mix-on="${r.id}" ${r.on ? 'checked' : ''}><i></i></label>
-        <div class="rtxt">${r.label ? `<b>${esc(r.label)}</b><br>` : ''}${mixText(r)} <span class="muted">· ${r.who.length ? r.who.length + ' selected ' + (r.who.length === 1 ? 'person' : 'people') : 'everyone'}</span></div>
-        <button type="button" class="x" data-mix-edit="${r.id}" title="Change this rule" aria-label="Change this rule">✎</button>
-        <button type="button" class="x" data-mix-del="${r.id}" title="Delete this rule" aria-label="Delete this rule">✕</button></div>`).join('') || '<div class="muted small" style="margin-bottom:8px;">No rule yet — add the first one.</div>'}
-      <button type="button" class="radd" id="mixAdd">+ Add a rule</button>
-      ${NEW.mix.some((r) => r.on) ? `<div class="rnow">${!READY ? 'Loading…' : `For <b>${esc($('mRange').textContent.split(' · ')[0])}</b>: <b>${win.length} of ${rowsNow.length}</b> employees match a rule${win.length ? ':' : '.'}<br>${win.map((a) => `<span class="nm">${esc(a.row.emp.full_name)} · ${a.c.mix.pct}% → ${esc(payBadge(a.c.mix.mode, a.c.mix.v) || 'full')}</span>`).join('')}`}</div>` : ''}`;
-
-    // ---------- card 2: fixed commission for selected people ----------
-    const fx = NEW.fixed;
-    $('fixCard').innerHTML = `<h4>Fixed commission — selected people</h4>
-      <div class="rsub">For the people listed, commission is a <b>fixed % of sales</b> (or ₹ per order) instead of the slab. A minimum is <b>optional</b>: if you set one, the option stays locked until the person reaches it (counted from the 1st of this month until today); if you leave it blank, it is never locked.</div>
-      ${fx.length ? `<table class="rtbl"><thead><tr><th>Employee</th><th>Fixed commission</th><th>Minimum</th><th>This month</th><th>Option</th><th></th></tr></thead><tbody>
-      ${fx.map((p) => { const s = monthStat(p.emp), ok = planReached(p), noMin = !(Number(p.min) > 0), cur = p.minType === 'amount' ? s.ach : s.n, pc = noMin ? 100 : Math.min(100, cur / Number(p.min) * 100), need = Number(p.min) - cur;
-        return `<tr><td data-label="Employee"><button type="button" class="lnk" data-fx-edit="${p.id}" title="Change">${esc(empName(p.emp))} ✎</button></td>
-          <td data-label="Fixed commission"><b>${esc(payTxt(p.mode, p.per))}</b></td>
-          <td data-label="Minimum">${esc(planMinTxt(p))}</td>
-          <td data-label="This month">${p.minType === 'amount' ? inr(s.ach) : s.n + ' orders'}${noMin ? '' : `<div class="pbar"><i class="${ok ? 'ok' : ''}" style="width:${pc}%"></i></div>`}${noMin ? '' : ok ? '<span class="okpill">✓ minimum reached</span>' : `<span class="lockpill">🔒 ${p.minType === 'amount' ? inr(need) + ' more' : need + ' more order' + (need === 1 ? '' : 's')}</span>`}</td>
-          <td data-label="Option"><label class="tgl" title="${ok ? 'Switch the fixed commission on or off' : 'Locked until the minimum is reached'}"><input type="checkbox" data-fx-on="${p.id}" ${p.on && ok ? 'checked' : ''} ${ok ? '' : 'disabled'}><i></i></label></td>
-          <td><button type="button" class="x" data-fx-del="${p.id}" title="Remove" aria-label="Remove">✕</button></td></tr>`; }).join('')}
-      </tbody></table>` : '<div class="muted small" style="margin-bottom:8px;">No one is on a fixed commission yet.</div>'}
-      <button type="button" class="radd" id="fxAdd">+ Add person</button>`;
-  }
-
-  const mixBody = (r, over) => Object.assign({ rule_id: r.id, label: r.label, op: r.op, thr: r.thr, pay_mode: r.mode, pay_value: r.v, who: r.who, enabled: r.on ? 1 : 0 }, over || {});
-  $('rulesBody').addEventListener('change', (e) => {
-    const t = e.target;
-    if (t.dataset.mixOn) { const r = NEW.mix.find((x) => x.id == t.dataset.mixOn); manualAct(() => api.post('commission_rules.mix_save', mixBody(r, { enabled: t.checked ? 1 : 0 }))); }
-    else if (t.dataset.fxOn) { const p = NEW.fixed.find((x) => x.id == t.dataset.fxOn); manualAct(() => api.post('commission_rules.fixed_toggle', { plan_id: p.id, enabled: t.checked && planReached(p) ? 1 : 0 })); }
-  });
-  $('rulesBody').addEventListener('click', (e) => {
-    const t = e.target.closest('button'); if (!t) return;
-    if (t.id === 'mixAdd') openMx(null);
-    else if (t.dataset.mixEdit) openMx(Number(t.dataset.mixEdit));
-    else if (t.dataset.mixDel) { if (confirm('Delete this rule?')) manualAct(() => api.post('commission_rules.mix_delete', { rule_id: Number(t.dataset.mixDel) })); }
-    else if (t.dataset.fxDel) { if (confirm('Remove this person from fixed commission?')) manualAct(() => api.post('commission_rules.fixed_delete', { plan_id: Number(t.dataset.fxDel) })); }
-    else if (t.id === 'fxAdd') openFx(null);
-    else if (t.dataset.fxEdit) openFx(Number(t.dataset.fxEdit));
-  });
-
-  // ---------- add / change a code rule ----------
-  let mxEdit = null;
-  const mxPicked = () => [...$('mxPeople').querySelectorAll('input:checked')].map((i) => Number(i.value));
-  function mxSync() {
-    const mode = $('mxMode').value;
-    $('mxValWrap').style.display = mode === 'full' ? 'none' : '';
-    $('mxValLbl').textContent = mode === 'rate' ? 'Commission (% of sales)' : mode === 'pct' ? 'Share of the normal commission (%)' : 'Amount per order (₹)';
-    $('mxPeople').hidden = $('mxWho').value !== 'sel';
-    const thr = $('mxThr').value, op = $('mxOp').value;
-    if (thr === '' || !READY) { $('mxPrev').textContent = 'Fill in the percentage to see who this rule would match right now.'; return; }
-    const who = $('mxWho').value === 'sel' ? mxPicked() : null;
-    const hit = ROWS.filter((r) => r.rk === '' && (!who || who.indexOf(r.emp.employee_id) !== -1)).map((r) => agg(r, DAYS)).filter((a) => a.n && (op === 'lte' ? a.orders.filter((o) => o.code).length / a.n * 100 <= Number(thr) : a.orders.filter((o) => o.code).length / a.n * 100 >= Number(thr)));
-    $('mxPrev').innerHTML = `For <b>${esc($('mRange').textContent.split(' · ')[0])}</b>: <b>${hit.length}</b> employee${hit.length === 1 ? '' : 's'} would match${hit.length ? ' — ' + hit.slice(0, 8).map((a) => esc(a.row.emp.full_name)).join(', ') + (hit.length > 8 ? '…' : '') : '.'}`;
-  }
-  function openMx(id) {
-    mxEdit = id ? NEW.mix.find((r) => r.id === id) : null;
-    $('mxTitle').textContent = mxEdit ? 'Change this rule' : 'Add a commission rule';
-    $('mxName').value = mxEdit ? mxEdit.label : ''; $('mxOp').value = mxEdit ? mxEdit.op : 'gte';
-    $('mxThr').value = mxEdit ? mxEdit.thr : ''; $('mxMode').value = mxEdit ? mxEdit.mode : 'full'; $('mxVal').value = mxEdit && mxEdit.mode !== 'full' ? mxEdit.v : '';
-    $('mxWho').value = mxEdit && mxEdit.who.length ? 'sel' : 'all';
-    $('mxPeople').innerHTML = EMPS.map((e) => `<label><input type="checkbox" value="${e.employee_id}" ${mxEdit && mxEdit.who.indexOf(e.employee_id) !== -1 ? 'checked' : ''}> ${esc(e.full_name)}</label>`).join('');
-    $('mxAlert').innerHTML = ''; mxSync(); $('mxModal').classList.add('open');
-  }
-  ['mxOp', 'mxThr', 'mxVal', 'mxMode', 'mxWho'].forEach((i) => $(i).addEventListener('input', () => { $('mxAlert').innerHTML = ''; mxSync(); }));
-  $('mxPeople').addEventListener('change', mxSync);
-  $('mxCancel').onclick = () => $('mxModal').classList.remove('open');
-  $('mxModal').addEventListener('click', (e) => { if (e.target === $('mxModal')) $('mxModal').classList.remove('open'); });
-  $('mxSave').onclick = () => {
-    const mode = $('mxMode').value, thr = $('mxThr').value, val = $('mxVal').value, who = $('mxWho').value === 'sel' ? mxPicked() : [];
-    if (thr === '' || Number(thr) < 0 || Number(thr) > 100) { $('mxAlert').innerHTML = '<div class="alert error">Enter the % of orders with a code (0 to 100).</div>'; return; }
-    if (mode !== 'full' && (val === '' || Number(val) < 0)) { $('mxAlert').innerHTML = '<div class="alert error">Enter how much the rule pays.</div>'; return; }
-    if ($('mxWho').value === 'sel' && !who.length) { $('mxAlert').innerHTML = '<div class="alert error">Tick at least one person, or choose Everyone.</div>'; return; }
-    $('mxModal').classList.remove('open');
-    manualAct(() => api.post('commission_rules.mix_save', { rule_id: mxEdit ? mxEdit.id : 0, label: $('mxName').value.trim(), op: $('mxOp').value, thr: Number(thr), pay_mode: mode, pay_value: mode === 'full' ? 0 : Number(val), who, enabled: mxEdit ? (mxEdit.on ? 1 : 0) : 1 }));
-  };
-  $('rulesToggle').onclick = () => { const b = $('rulesBody'); b.hidden = !b.hidden; $('rulesToggle').textContent = b.hidden ? 'Show' : 'Hide'; };
-
-  // ---------- add / change a fixed commission ----------
-  let fxEdit = null;
-  function fxPrev() {
-    const id = Number($('fxEmp').value), type = $('fxType').value, min = Number($('fxMin').value || 0), s = monthStat(id), mode = $('fxMode').value;
-    $('fxPerLbl').textContent = mode === 'rate' ? 'Fixed commission (% of sales)' : 'Fixed commission (₹ per order)';
-    $('fxMinLbl').textContent = (type === 'amount' ? 'Minimum achieved amount to unlock (₹)' : 'Minimum orders to unlock') + ' — optional';
-    if (!(min > 0)) { $('fxPrev').innerHTML = `<b>${esc(empName(id))}</b> — this month so far: <b>${s.n} orders</b>, ${inr(s.ach)}.<br>No minimum — the option is never locked.`; return; }
-    const ok = type === 'amount' ? s.ach >= min : s.n >= min, need = type === 'amount' ? inr(min - s.ach) + ' more' : (min - s.n) + ' more order' + (min - s.n === 1 ? '' : 's');
-    $('fxPrev').innerHTML = `<b>${esc(empName(id))}</b> — this month so far: <b>${s.n} orders</b>, ${inr(s.ach)}.<br>${ok ? '✓ Minimum already reached — the option can be switched on.' : '🔒 Not reached yet (' + need + ') — the option stays locked until then.'}`;
-  }
-  function openFx(pid) {
-    fxEdit = pid ? NEW.fixed.find((p) => p.id === pid) : null;
-    $('fxTitle').textContent = fxEdit ? 'Change fixed commission' : 'Add a person on fixed commission';
-    $('fxEmp').innerHTML = EMPS.map((e) => `<option value="${e.employee_id}">${esc(e.full_name)}</option>`).join('');
-    $('fxEmp').value = fxEdit ? fxEdit.emp : (EMPS[0] ? EMPS[0].employee_id : '');
-    $('fxMode').value = fxEdit ? fxEdit.mode : 'rate';
-    $('fxPer').value = fxEdit ? fxEdit.per : ''; $('fxType').value = fxEdit ? fxEdit.minType : 'count'; $('fxMin').value = fxEdit ? fxEdit.min : '';
-    $('fxEmp').disabled = !!fxEdit; $('fxAlert').innerHTML = '';
-    fxPrev(); $('fxModal').classList.add('open');
-  }
-  ['fxEmp', 'fxMode', 'fxType', 'fxPer', 'fxMin'].forEach((i) => $(i).addEventListener('input', () => { $('fxAlert').innerHTML = ''; fxPrev(); }));
-  $('fxCancel').onclick = () => $('fxModal').classList.remove('open');
-  $('fxModal').addEventListener('click', (e) => { if (e.target === $('fxModal')) $('fxModal').classList.remove('open'); });
-  $('fxSave').onclick = () => {
-    const mode = $('fxMode').value, per = $('fxPer').value, min = $('fxMin').value;
-    if (per === '' || Number(per) < 0 || (mode === 'rate' && Number(per) > 100)) { $('fxAlert').innerHTML = `<div class="alert error">${mode === 'rate' ? 'Enter the fixed commission % (0 to 100).' : 'Enter the ₹ per order.'}</div>`; return; }
-    if (min !== '' && Number(min) < 0) { $('fxAlert').innerHTML = '<div class="alert error">The minimum cannot be negative — or leave it blank for no minimum.</div>'; return; }
-    const rec = { emp: Number($('fxEmp').value), per: Number(per), mode, minType: $('fxType').value, min: min === '' ? 0 : Number(min) };
-    const old = NEW.fixed.find((p) => p.emp === rec.emp);       // one plan per person: saving again updates it
-    const on = old ? (planReached({ ...old, ...rec }) ? old.on : false) : (rec.min > 0 ? false : true);   // no minimum → a new plan starts ON
-    $('fxModal').classList.remove('open');
-    manualAct(() => api.post('commission_rules.fixed_save', { employee_id: rec.emp, pay_mode: rec.mode, per: rec.per, min_type: rec.minType, min: rec.min, enabled: on ? 1 : 0 }));
-  };
 
   // ---------- date range (Monthly Data) ----------
   const lastMonthRange = () => { const e = addDay(MSTART, -1); return [e.slice(0, 8) + '01', e]; };

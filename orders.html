@@ -197,6 +197,18 @@
   .pcm.ar-pc{margin-top:8px; padding-top:7px; border-top:1px dashed var(--line); font-size:15px;} .pcm.ar-pc small{font-size:11.5px;}
   .tkr{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-top:7px; padding-top:6px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--muted); white-space:nowrap;}
   .tkr b{color:#1d4ed8; font-weight:700; font-size:13px;}
+  /* "Queries by hour" list inside the top boxes (o_details) */
+  .qh{margin-top:9px;padding:7px 9px;background:#f6f9ff;border:1px solid #dbe7ff;border-radius:12px;font-size:12px;}
+  .qh details summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10.5px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.04em;}
+  .qh details summary::-webkit-details-marker{display:none;}
+  .qh details summary span{font-size:12px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:700;white-space:nowrap;}
+  .qh .hl{max-height:150px;overflow:auto;margin-top:7px;border-top:1px solid #dbe7ff;}
+  .qh .r{display:grid;grid-template-columns:46px 1fr 1fr;gap:5px;align-items:center;padding:3px 0;border-bottom:1px dashed #dbe7ff;}
+  .qh .r > span{font-size:11px;font-weight:700;color:#4b5563;} .qh .r.now > span:first-child{color:#16a34a;} .qh .r.hd > span{font-size:9.5px;color:var(--muted);text-transform:uppercase;}
+  .qh .r b{text-align:center;font-size:13px;} .qh .r b.q{color:#0ea5e9;} .qh .r b.c{color:#d97706;}
+  .qh input{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;padding:3px 4px;font-size:12.5px;font-weight:800;text-align:center;background:#fff;outline:none;}
+  .qh input.q{color:#0ea5e9;} .qh input.c{color:#d97706;} .qh input:focus{border-color:#2563eb;box-shadow:0 0 0 2px #bfdbfe;} .qh input:disabled{opacity:.5;}
+  .qh .ro{font-size:10.5px;color:var(--muted);margin-top:5px;}
   /* group boxes under All Orders & Revenue: TM Perfume House + TM Fragrance, and TM4U */
   .stat-card.gx .pc-tot{margin-top:4px;} .stat-card.gx .pc-tot .r{font-size:22px; color:var(--ink);} .stat-card.gx .pc-tot .r small{color:var(--muted); font-weight:600;}
   .stat-card.gx .tkr{margin-top:3px; padding-top:0; border-top:0;} .stat-card.gx .tkr:first-of-type{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);}
@@ -610,6 +622,7 @@
     const reqId = ++ordersReqId;
     try {
       loadPlatformQueries(from, to);
+      loadHourly(from, to);
       loadTeamSheet(from, to);
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
       if (reqId !== ordersReqId) return;
@@ -941,6 +954,53 @@
     renderPlatformSummary();
     renderSummary();            // the top boxes show the query totals too
   }
+  // ---- "Queries by hour" (o_details): the day's Query / Campaign counts per hour for each panel, from Assign Queries ----
+  let hourData = {}, hourFor = '', hourReq = 0;      // panel key -> queries.hourly reply, for the single day picked
+  const HOUR_KEYS = ['tmph', 'tmf', 'tm4u', 'tmsg', 'tmh4'];
+  const qhOpen = new Set();                          // boxes whose hour list is open (kept across redraws)
+  async function loadHourly(from, to, force) {
+    if (EMP_VIEW) return;
+    if (from !== to) { hourData = {}; hourFor = ''; hourReq++; summaryRefresh(); return; }     // hours only make sense for one day
+    if (!force && hourFor === from) return;
+    const id = ++hourReq;
+    const res = await Promise.all(HOUR_KEYS.map(k => api.get('queries.hourly', { date: from, store_group: k }).then(d => [k, d]).catch(() => [k, null])));
+    if (id !== hourReq) return;
+    hourData = {}; res.forEach(([k, d]) => { if (d && Array.isArray(d.hours)) hourData[k] = d; });
+    hourFor = Object.keys(hourData).length ? from : '';
+    summaryRefresh();
+  }
+  const hrLabel = (h) => ((h % 12) || 12) + (h < 12 ? ' AM' : ' PM');
+  // keys = the panel(s) this box covers; edit = typeable (only a single panel box). The group / All boxes just add their panels up.
+  function qhHtml(keys, edit, id) {
+    const ds = keys.map(k => hourData[k]).filter(Boolean);
+    if (EMP_VIEW || !ds.length) return '';
+    const rows = ds[0].hours.map((h, i) => ({ hour: h.hour, future: h.future, now: h.now, q: ds.reduce((a, d) => a + (Number(d.hours[i].scout) || 0), 0), c: ds.reduce((a, d) => a + (Number(d.hours[i].champion) || 0), 0) }));
+    const eq = ds.reduce((a, d) => a + ((d.earlier || {}).scout || 0), 0), ec = ds.reduce((a, d) => a + ((d.earlier || {}).champion || 0), 0);
+    const tq = ds.reduce((a, d) => a + ((d.total || {}).scout || 0), 0), tc = ds.reduce((a, d) => a + ((d.total || {}).champion || 0), 0);
+    const k = keys[0], can = edit && ES_ALLOWED && keys.length === 1;
+    const list = rows.filter(r => !r.future).reverse().map(r => `<div class="r ${r.now ? 'now' : ''}"><span>${hrLabel(r.hour)}${r.now ? ' ●' : ''}</span>${can
+      ? `<input class="q" type="number" min="0" max="9999" value="${r.q}" data-qh="${k}" data-h="${r.hour}" data-f="scout" aria-label="${hrLabel(r.hour)} Query"><input class="c" type="number" min="0" max="9999" value="${r.c}" data-qh="${k}" data-h="${r.hour}" data-f="champion" aria-label="${hrLabel(r.hour)} Campaign">`
+      : `<b class="q">${r.q}</b><b class="c">${r.c}</b>`}</div>`).join('');
+    return `<div class="qh"><details data-qid="${id}" ${qhOpen.has(id) ? 'open' : ''}><summary>Queries by hour<span>Day ${tq} / ${tc} ▾</span></summary>
+      <div class="hl"><div class="r hd"><span>Hour</span><span>Query</span><span>Camp.</span></div>${list}${eq || ec ? `<div class="r"><span>Earlier</span><b class="q">${eq}</b><b class="c">${ec}</b></div>` : ''}</div>
+      ${can ? '' : '<div class="ro">Totals of the panels — type in a single panel box.</div>'}</details></div>`;
+  }
+  document.getElementById('summaryGrid').addEventListener('toggle', (ev) => {
+    const d = ev.target; if (!d.matches || !d.matches('details[data-qid]')) return;
+    d.open ? qhOpen.add(d.dataset.qid) : qhOpen.delete(d.dataset.qid);
+  }, true);
+  document.getElementById('summaryGrid').addEventListener('change', async (ev) => {
+    const i = ev.target.closest && ev.target.closest('input[data-qh]'); if (!i || !hourFor) return;
+    const v = Math.max(0, Math.min(9999, parseInt(i.value, 10) || 0));
+    i.disabled = true;
+    try {
+      await api.post('queries.panel_hour_set', { group_key: i.dataset.qh, date: hourFor, hour: Number(i.dataset.h), kind: i.dataset.f, value: v });
+      const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
+      platformQueriesFor = '';
+      await Promise.all([loadHourly(from, to, true), loadPlatformQueries(from, to)]);
+      esReload();
+    } catch (er) { alert(er.message); loadHourly(document.getElementById('dateFrom').value, document.getElementById('dateTo').value, true); }
+  });
   function renderPlatformSummary() {
     const card = document.getElementById('platformCard');
     if (EMP_VIEW) { card.style.display = 'none'; return; }          // Employee view: no Platform summary
@@ -1098,13 +1158,14 @@
       const pp = share(g.pre, g.t);
       return `<div class="stat-card gx ${cls}">
         <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label}</span></div>
-        <div class="pc-tot"><span class="r">${g.n} <small>${g.n === 1 ? 'order' : 'orders'}</small></span></div>
+        <div class="pc-tot"><span class="r">${g.n} <small>${g.n === 1 ? 'order' : 'orders'}</small></span><span class="r">${fmtMoney(g.t, 'INR')} <small>revenue</small></span></div>
         <div class="tkr"><span>All orders ratio</span> ${qRatio(g.n, g.q + g.c)}</div>
         <div class="tkr"><span>Query order</span> <b class="n">${g.qo}</b></div>
         <div class="tkr"><span>Query ratio</span> ${qRatio(g.qo, g.q)}</div>
         <div class="tkr"><span>Campaign order</span> <b class="n">${g.co}</b></div>
         <div class="tkr"><span>Campaign ratio</span> ${qRatio(g.co, g.c)}</div>
         <div class="pcm ar-pc"><span class="p"><b>${fmtMoney(g.pre, 'INR')}</b><small>${pp[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(g.cod, 'INR')}</b><small>${pp[1]}% COD</small></span></div>
+        ${qhHtml(hs, false, 'g-' + cls)}
       </div>`;
     };
 
@@ -1128,6 +1189,7 @@
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
+        ${qhHtml(shownKeys, false, 'all')}
       </div>
       ${grp('TM Perfume House + TM Fragrance', ['tmph', 'tmf'], 'g-ph')}
       ${grp('TM4U', ['tm4u'], 'g-4u')}
@@ -1141,6 +1203,7 @@
           <div class="tkr"><span>Ticket size</span> <b>${ticket(s.total, s.count, s.currency)}</b></div>
           <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
           ${panelTargetHtml(label, s)}
+          ${(() => { const pk = (PANELS.find(p => p[1] === label) || [])[0]; return pk && HOUR_KEYS.includes(pk) ? qhHtml([pk], true, 'p-' + pk) : ''; })()}
         </div>`).join('')}
       <div class="stat-card">
         <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
