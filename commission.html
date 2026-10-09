@@ -112,6 +112,9 @@
 #cm .cn{font-size:10.5px; font-weight:600; color:var(--muted); margin-top:1px; white-space:normal;}
 #cm .cn.z{color:#b91c1c;} #cm .cn.mx{color:var(--green);} #cm .cn.fx{color:var(--blue);} #cm .cn.cut{color:var(--gold);}
 #cm b.zero{color:#9ca3af;}
+#cm .tgb{background:none; border:0; border-bottom:1px dotted var(--muted); padding:0; margin:0; font:inherit; color:inherit; cursor:pointer; min-height:0; width:auto; border-radius:0; box-shadow:none;}
+#cm .tgb:hover{color:var(--blue); border-bottom-color:var(--blue);}
+#cm .pop .sub{display:block; font-size:11px; color:var(--muted); font-weight:400;} #cm .pop .note{margin-top:8px; font-size:11px; color:var(--muted); line-height:1.45;}
 #cm .rate.fx{color:var(--blue); background:var(--blue-bg); border-color:#c7d8fb;}
 #cm .held.mixn{color:var(--green);} #cm .held.fxn{color:var(--blue);}
 #cm .stars{position:relative; display:inline-block; font-size:15px; line-height:1; color:#d5d9e0; white-space:nowrap;} #cm .stars i{position:absolute; left:0; top:0; overflow:hidden; color:#f59e0b; font-style:normal; white-space:nowrap;} #cm .stnum{display:block; font-size:10.5px; color:var(--muted); margin-top:2px;}
@@ -265,7 +268,7 @@
   let CODE = { on: false, rules: [], shares: {}, ok: true };   // order-code rules (Commission Rules page) + shares set by hand
   let RAW = [];           // the orders as loaded, kept so a manual change can re-price without reloading
   let ORDBY = {};         // order key -> order record
-  let ROWS = [];          // one per employee and row ('' = all panels together, 'tm4u' = the TM4U row)
+  let ROWS = [];          // one per employee and row: '' = TM Perfume House + TM Fragrance together; 'tm4u', 'tmsg', 'tmh4' = TM4U, TM Shower Gel, TM House 4th — each counted on its own
   let READY = false, openKey = null, dScope = 'm';   // dScope: which table the open employee detail belongs to ('t' = Today, 'm' = Monthly)
   const dDays = () => dScope === 't' ? [TODAY] : DAYS, dFrom = () => dScope === 't' ? TODAY : RFROM, dTo = () => dScope === 't' ? TODAY : RTO;
   let SPAN = [];          // every day that was loaded
@@ -367,6 +370,8 @@
 
   // ---------- Build rows from the loaded data ----------
   const statusOf = (emp, d) => (emp.status || {})[d] || '';
+  const OWN_ROWS = ['tm4u', 'tmsg', 'tmh4'];                                   // panels that are their own commission row
+  const PLAB = { '': 'TM Perfume House / Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   const targetOf = (row, d) => Number(((row.emp.target || {})[row.rk] || {})[d] || 0);
   const isPre = (fs) => { fs = String(fs || '').toLowerCase(); return fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1; };   // not COD / pending = prepaid, as on Targets
 
@@ -380,7 +385,7 @@
       if (!id || !byEmp[id]) return;
       const day = o.biz_date || bizDayOf(o.created_at);
       if (day < FROM || day > TO) return;
-      const rk = o.house === 'tm4u' ? 'tm4u' : '';
+      const rk = OWN_ROWS.indexOf(o.house) > -1 ? o.house : '';
       const amt = Number(o.total || 0), pre = isPre(o.financial_status);
       const x = { id: o.id, key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', name: o.order_name, code: o.code || '', stars: o.ticket_rating == null ? null : Number(o.ticket_rating) / 2, emp: id, rk, day, created: o.created_at, amt, pre, fs: o.financial_status || '', store: o.store || '' };
       priceOrder(x);
@@ -393,7 +398,7 @@
   }
   function buildRows() {
     ROWS = [];
-    EMPS.forEach((e) => ['', 'tm4u'].forEach((rk) => {
+    EMPS.forEach((e) => [''].concat(OWN_ROWS).forEach((rk) => {
       const k = e.employee_id + '|' + rk;
       const hasT = DAYS.some((d) => Number(((e.target || {})[rk] || {})[d] || 0) > 0);
       if (hasT || IDX[k]) ROWS.push({ key: k, emp: e, rk });
@@ -515,9 +520,13 @@
   const pctTxt = (a) => a.target > 0 ? `<span class="pct">${Math.round(a.ach / a.target * 100)}%</span>` : '';
   const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || a.c.panelBadge || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.panelBadge ? a.c.panelBadge : a.c.fixedPlan ? a.c.fixedPlan.badge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
   const pendCell = (a) => a.target <= 0 ? '<span class="muted">—</span>' : a.pending > 0 ? `<span class="pend">${inr(a.pending)}</span>` : '<span class="pend zero">✓ Done</span>';
-  const nameHtml = (row, chev) => `<b>${esc(row.emp.full_name)}${row.rk === 'tm4u' ? ' <span class="pill p-blue">TM4U</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
+  const nameHtml = (row, chev) => `<b>${esc(row.emp.full_name)}${row.rk ? ' <span class="pill p-blue">' + esc(PLAB[row.rk]) + '</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
 
   function statusPill(st) { const t = LEAVE_TXT[st]; return t ? `<span class="pill ${t[1]}"${st === 'absent' ? ` title="${AB_TITLE}"` : ''}>${t[0]}</span>` : '<span class="muted">—</span>'; }
+
+  // Target cell: click it to see which panel each rupee of the target came from (and whether it was set by hand or is automatic).
+  const TG = {};
+  const tgtBtn = (a, key, days) => { if (!(a.target > 0)) return '<span class="muted">—</span>'; TG[key] = { a, days }; return `<button type="button" class="tgb" data-tg="${esc(key)}" title="Where this target comes from">${inr(a.target)}</button>`; };
 
   function empRow(a, key, mode) {
     const e = a.row.emp;
@@ -526,7 +535,7 @@
     else leave = (a.leave ? `<span class="pill p-leave">${a.leave} leave</span>` : '<span class="pill p-mut">0 leave</span>') + (a.absent ? ` <span class="pill p-wait" title="${AB_TITLE}">${a.absent} absent</span>` : '');
     return `<tr class="click ${openKey === a.row.key && dScope === (mode === 'today' ? 't' : 'm') ? 'sel' : ''}" data-k="${esc(a.row.key)}">
       <td><div class="emp"><div class="av">${esc(ini(e.full_name))}</div><div>${nameHtml(a.row, true)}<span>${esc(e.role)}${e.employee_code ? ' · ' + esc(e.employee_code) : ''}</span></div></div></td>
-      <td class="r" data-label="Target">${a.target > 0 ? inr(a.target) : '<span class="muted">—</span>'}</td>
+      <td class="r" data-label="Target">${tgtBtn(a, 'e' + key, mode === 'today' ? [TODAY] : DAYS)}</td>
       <td class="r" data-label="Ticket Size">${a.n ? inr(a.ticket) + `<div class="small muted">${a.n} order${a.n === 1 ? '' : 's'}</div>` : '<span class="muted">—</span>'}</td>
       <td class="r" data-label="Achieved"><b>${inr(a.ach)}</b>${pctTxt(a)}${a.target > 0 ? progress(a) : ''}</td>
       <td class="r" data-label="Pending">${pendCell(a)}</td>
@@ -638,7 +647,7 @@
     const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     return `<table style="min-width:980px"><thead><tr><th>Order</th><th>${withDate ? 'Date · Time' : 'Time'}</th><th>Employee</th><th class="r">Amount</th><th>Payment</th><th>Code</th><th>Rating</th><th class="r">Share</th><th class="r">Commission</th></tr></thead><tbody>
       ${shown.map((o) => { const q = priceIn(aggs, o); return `<tr><td data-label="Order"><b>${esc(o.name)}</b><div class="small muted">${esc(o.store)}</div></td><td data-label="${withDate ? 'Date · Time' : 'Time'}">${withDate ? esc(dFmt(o.day)) + ' · ' : ''}${esc(tm(o.created))}</td>
-        <td data-label="Employee">${esc(byEmp[o.emp].full_name)}${o.rk === 'tm4u' ? ' <span class="pill p-blue">TM4U</span>' : ''}</td><td class="r" data-label="Amount"><b>${inr(o.amt)}</b></td>
+        <td data-label="Employee">${esc(byEmp[o.emp].full_name)}${o.rk ? ' <span class="pill p-blue">' + esc(PLAB[o.rk]) + '</span>' : ''}</td><td class="r" data-label="Amount"><b>${inr(o.amt)}</b></td>
         <td data-label="Payment"><span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></td><td data-label="Code">${o.code ? `<span class="ocode">${esc(o.code)}</span>` : '<span class="pill p-leave" style="font-size:10.5px;">no code</span>'}</td>
         <td data-label="Rating">${starCell(o)}</td>
         <td class="r" data-label="Share" style="white-space:nowrap;">${shNote(o, aggs) ? '<span class="muted small">' + shNote(o, aggs) + '</span>' : shChip(o, true, q.p)}</td>
@@ -677,7 +686,7 @@
     if (!row) { box.hidden = true; return; }
     box.hidden = false;
     const e = row.emp, m = agg(row, dDays());
-    $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk === 'tm4u' ? ' · TM4U' : '');
+    $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '');
     $('dSub').textContent = e.role + (e.employee_code ? ' · ' + e.employee_code : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)));
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
     $('dKpis').innerHTML = `<div class="kpi g"><div class="l">Commission</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi"><div class="l">${m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
@@ -692,7 +701,7 @@
       const key = 'd' + row.key + d;
       let h = `<tr class="day ${st === 'absent' || st === 'leave' ? 'leaveday' : ''}" data-d="${d}">
         <td data-label="Date"><b>${esc(dFmt(d))}</b>${d === TODAY ? ' <span class="pill p-wait">Today</span>' : ''}${a.n ? '<span class="chev">' + (open ? '▾' : '›') + '</span>' : ''}</td>
-        <td class="r" data-label="Target">${a.target > 0 ? inr(a.target) : '<span class="muted">—</span>'}</td>
+        <td class="r" data-label="Target">${tgtBtn(a, 'g' + key, [d])}</td>
         <td class="r" data-label="Ticket Size">${a.n ? inr(a.ticket) + `<div class="small muted">${a.n} order${a.n === 1 ? '' : 's'}</div>` : '<span class="muted">—</span>'}</td>
         <td class="r" data-label="Achieved"><b>${inr(a.ach)}</b>${pctTxt(a)}</td>
         <td class="r" data-label="Pending">${pendCell(a)}</td>
@@ -748,7 +757,31 @@
     pop.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
     pop.style.top = (r.bottom + h + 10 > innerHeight ? Math.max(10, r.top - h - 8) : r.bottom + 8) + 'px';
   }
+  const PNAME = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const TSRC = { manual: 'Set by hand', shared: 'Set on the Targets page', ladder: 'New Sales Executive ladder', rule: 'Automatic rule', profile: 'Profile / monthly target' };
+  function showTgt(btn) {
+    const t = TG[btn.dataset.tg]; if (!t) return;
+    const a = t.a, e = a.row.emp, parts = ((e.parts || {})[a.row.rk]) || [];
+    const lines = parts.map((p) => {
+      let amt = 0; const ss = {};
+      t.days.forEach((d) => { const v = Number((p.by_day || {})[d] || 0); if (v > 0) { amt += v; ss[(p.src || {})[d] || ''] = 1; } });
+      return amt > 0 ? { panel: p.panel, amt, src: Object.keys(ss).map((k) => TSRC[k] || '').filter(Boolean).join(' + ') } : null;
+    }).filter(Boolean);
+    const sum = lines.reduce((s, l) => s + l.amt, 0);
+    pop.innerHTML = `<h5>${esc(e.full_name)} — target ${inr(a.target)}</h5>
+      ${lines.length ? lines.map((l) => `<div class="ln"><span>${esc(PNAME[l.panel] || l.panel)}<span class="sub">${esc(l.src)}</span></span><b>${inr(l.amt)}</b></div>`).join('') : '<div class="ln"><span>No target detail for this period</span><b>—</b></div>'}
+      <div class="ln tot"><span>Target used for commission</span><span>${inr(a.target)}</span></div>
+      ${lines.length && Math.abs(sum - a.target) > 1 ? `<div class="note">Panel parts add up to ${inr(sum)}.</div>` : ''}
+      <div class="note">${a.row.rk ? esc(PLAB[a.row.rk]) + ' is counted on its own: its own target and its own commission.' : 'TM Perfume House and TM Fragrance share one automatic target. TM4U, TM Shower Gel and TM House 4th are separate rows.'} Days marked Absent or Leave count no target.</div>`;
+    pop.hidden = false;
+    pop.style.left = '0px'; pop.style.top = '0px';
+    const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
+    pop.style.top = (r.bottom + h + 10 > innerHeight ? Math.max(10, r.top - h - 8) : r.bottom + 8) + 'px';
+  }
   document.addEventListener('click', (e) => {
+    const tb = e.target.closest && e.target.closest('[data-tg]');
+    if (tb) { e.stopPropagation(); showTgt(tb); return; }
     const w = e.target.closest && e.target.closest('[data-why]');
     if (w) { e.stopPropagation(); showWhy(w); return; }
     if (!e.target.closest || !e.target.closest('.pop')) pop.hidden = true;
@@ -757,7 +790,7 @@
 
   // ---------- Excel download (Today, Monthly and the date-wise detail) ----------
   // Exports every row of the table (not just the page on screen), with the current search applied.
-  const panelOf = (rk) => rk === 'tm4u' ? 'TM4U' : 'TM Perfume House / Fragrance';
+  const panelOf = (rk) => PLAB[rk] || PLAB[''];
   const shNum = (o) => { const sh = o.sh; return !sh ? '100%' : shTxt(sh) + (sh.why === 'manual' ? ' (manual' + (sh.note ? ': ' + sh.note : '') + ')' : ''); };
   const LEAVE_PLAIN = (st) => (LEAVE_TXT[st] || ['', ''])[0];
   function xlsxSheet(head, rows, widths, totals) {
@@ -817,7 +850,7 @@
     XLSX.utils.book_append_sheet(wb, xlsxSheet(['Date', 'Target (₹)', 'Orders', 'Ticket size (₹)', 'Achieved (₹)', 'Pending (₹)', 'Average / day (₹)', 'Est. commission (₹)', 'Status'], D, [14, 12, 8, 14, 13, 13, 16, 17, 18], tot), 'Date-wise');
     const oRows = ordRows(olist, aggs);
     XLSX.utils.book_append_sheet(wb, xlsxSheet(ORD_HEAD, oRows, ORD_W, ['TOTAL', '', '', '', '', '', olist.reduce((s, o) => s + Math.round(o.amt), 0), '', '', '', '', Math.round(oRows.reduce((s, r) => s + r[11], 0) * 100) / 100]), 'Orders');
-    XLSX.writeFile(wb, `Commission_${e.full_name.replace(/[^A-Za-z0-9]+/g, '_')}${row.rk === 'tm4u' ? '_TM4U' : ''}_${dScope === 't' ? 'Today_' + TODAY : dFrom() + '_to_' + dTo()}.xlsx`);
+    XLSX.writeFile(wb, `Commission_${e.full_name.replace(/[^A-Za-z0-9]+/g, '_')}${row.rk ? '_' + PLAB[row.rk].replace(/[^A-Za-z0-9]+/g, '') : ''}_${dScope === 't' ? 'Today_' + TODAY : dFrom() + '_to_' + dTo()}.xlsx`);
   }
   $('tDl').onclick = () => downloadScope('t');
   $('mDl').onclick = () => downloadScope('m');
@@ -847,7 +880,7 @@
       const pb = e.target.closest('button[data-pg]');
       if (pb) { if (pb.disabled) return; st.page = Number(pb.dataset.pg) || 1; fn(); $(k === 't' ? 'secToday' : 'secMonth').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
       if (e.target.closest('[data-size]')) return;
-      if (e.target.closest('[data-why]')) return;
+      if (e.target.closest('[data-why]') || e.target.closest('[data-tg]')) return;
       const tr = e.target.closest('tr[data-k]'); if (!tr) return;
       const same = openKey === tr.dataset.k && dScope === k;
       openKey = same ? null : tr.dataset.k; dScope = k; dayOpen.clear(); ST.d.page = 1;
@@ -863,7 +896,7 @@
     const pb = e.target.closest('button[data-pg]');
     if (pb) { if (!pb.disabled) { ST.d.page = Number(pb.dataset.pg) || 1; renderDetail(); $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (e.target.closest('[data-size]')) return;
-    if (e.target.closest('[data-why]')) return;
+    if (e.target.closest('[data-why]') || e.target.closest('[data-tg]')) return;
     const tr = e.target.closest('tr.day'); if (!tr) return;
     const d = tr.dataset.d; dayOpen.has(d) ? dayOpen.delete(d) : dayOpen.add(d); renderDetail();
   };

@@ -74,13 +74,18 @@
   .xform{display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;}
   .xform .lbl{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;}
   .xform select, .xform input{padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:13.5px; background:#fff; min-width:128px; font-family:inherit; color:var(--ink);}
-  .xform input{font-weight:700; width:130px;}
+  .xform input{font-weight:700; width:130px;} .xform input.xq,.xform input.xc{width:104px; min-width:0;} .xform input.xq{border-color:#bfd3ff;} .xform input.xc{border-color:#fcd9a8;}
   .xform select:focus, .xform input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px #dbe6ff;}
   .xform .prev{flex:1 1 300px; background:#e8f0ff; border-radius:8px; padding:9px 11px; font-size:12.5px; color:#1e3a8a; line-height:1.55;}
   .xform .prev .bad{color:#c81e1e;}
   .xform .acts{display:flex; gap:8px;}
   .xform .acts .btn{padding:8px 15px; font-size:12.5px; min-height:0; width:auto;}
 
+  /* query / campaign columns */
+  table.ot th.qc-h.q{color:#1d4ed8;} table.ot th.qc-h.c{color:#b45309;}
+  table.ot td.qc{font-variant-numeric:tabular-nums;} table.ot td.qc.q b{color:#1d4ed8;} table.ot td.qc.c b{color:#b45309;}
+  .qct{display:flex; justify-content:center; gap:3px; margin-top:3px;} .qct span{font-size:9.5px; font-weight:800; border-radius:6px; padding:0 4px; line-height:15px;} .qct .q{background:#e0ecff; color:#1d4ed8;} .qct .c{background:#fff1d6; color:#b45309;}
+  .xform .prev>div+div{margin-top:3px;}
   /* hour grid */
   .hc{display:inline-flex; align-items:center; justify-content:center; width:46px; height:30px; border:1px solid var(--line); border-radius:6px; font-size:13px; font-weight:600; background:#fff; padding:0; text-align:center; font-family:inherit; color:var(--ink);}
   input.hc::placeholder{color:#b3bac7; font-weight:400;}
@@ -319,9 +324,9 @@
   }
   const CHIP = { ok: '<span class="chip ok">Done</span>', on: '<span class="chip on">On track</span>', low: '<span class="chip low">Behind</span>', miss: '<span class="chip miss">Missed</span>', soon: '<span class="chip soon">Upcoming</span>', none: '<span class="sub">No target</span>' };
   function teamOf(rows) {
-    let T = 0, A = 0, P = 0;
-    rows.forEach(r => { if (r.target > 0) { T += r.target; A += r.achieved; P += pendOf(r.achieved, r.target); } });
-    return { T, A, P, pct: pctOf(A, T), pp: P > 0 ? Math.max(1, Math.min(100, Math.round(P / T * 100))) : 0 };
+    let T = 0, A = 0, P = 0, Q = 0, K = 0;
+    rows.forEach(r => { Q += r.query || 0; K += r.campaign || 0; if (r.target > 0) { T += r.target; A += r.achieved; P += pendOf(r.achieved, r.target); } });
+    return { T, A, P, Q, K, pct: pctOf(A, T), pp: P > 0 ? Math.max(1, Math.min(100, Math.round(P / T * 100))) : 0 };
   }
 
   // ---------- state ----------
@@ -339,6 +344,7 @@
       const d = await get('order_targets.day', date ? { date } : {});
       if (seq !== loadSeq) return;
       D = d; D.at = Date.now(); date = d.date; $('dayInput').value = date;
+      D.rows.forEach(r => { r.qh = r.qhours || {}; r.ch = r.chours || {}; r.query = r.query || 0; r.campaign = r.campaign || 0; });
       renderDay();
     } catch (e) {
       if (seq !== loadSeq) return;
@@ -384,6 +390,8 @@
     ? `<button type="button" class="plus" data-act="add" data-emp="${r.employee_id}">+ Add orders</button>`
     : `<button type="button" class="plus" disabled title="Hours open as the day starts">+ Add orders</button>`;
 
+  const qcStr = (r, k, h) => (r[k] && r[k][h]) ? String(r[k][h]) : '';
+  const qcSum = (r, k) => Object.values(r[k] || {}).reduce((a, v) => a + v, 0);
   function defaultHour(r) {
     const open = D.open_hours; if (!open.length) return null;
     const done = open.filter(h => h !== D.now_hour);
@@ -395,9 +403,14 @@
     if (a.val === '') return '<span class="sub">Type the orders done in that hour to see the new totals.</span>';
     const v = Number(a.val);
     if (!Number.isInteger(v) || v < 0 || v > 9999) return '<span class="bad">Enter a whole number from 0 to 9999.</span>';
+    const q = parseWhole(a.q), c = parseWhole(a.c), qq = q === null ? 0 : q, cc = c === null ? 0 : c;
+    if (Number.isNaN(q) || Number.isNaN(c)) return '<span class="bad">Query and Campaign must be whole numbers.</span>';
+    if (qq + cc > v) return `<span class="bad">Query ${qq} + Campaign ${cc} = ${qq + cc} is more than the ${v} orders of this hour.</span>`;
     const old = r.hours[a.hour] == null ? 0 : r.hours[a.hour], na = r.achieved - old + v;
-    if (!(t > 0)) return `Achieved <b>${r.achieved} → ${na}</b>`;
-    return `Achieved <b>${r.achieved} → ${na} (${pctOf(na, t)}%)</b> &nbsp;·&nbsp; Pending <b>${pendOf(r.achieved, t)} → ${pendOf(na, t)} (${penPct(na, t)}%)</b>`;
+    const oq = (r.qh && r.qh[a.hour]) || 0, oc = (r.ch && r.ch[a.hour]) || 0, nq = r.query - oq + qq, nc = r.campaign - oc + cc;
+    const qcLine = `<div>Query <b>${r.query} → ${nq}</b> &nbsp;·&nbsp; Campaign <b>${r.campaign} → ${nc}</b> &nbsp;·&nbsp; Other <b>${(na - nq - nc)}</b></div>`;
+    if (!(t > 0)) return `<div>Achieved <b>${r.achieved} → ${na}</b></div>${qcLine}`;
+    return `<div>Achieved <b>${r.achieved} → ${na} (${pctOf(na, t)}%)</b> &nbsp;·&nbsp; Pending <b>${pendOf(r.achieved, t)} → ${pendOf(na, t)} (${penPct(na, t)}%)</b></div>${qcLine}`;
   }
   function formHtml(r) {
     const opts = D.open_hours.map(h => `<option value="${h}"${h === adding.hour ? ' selected' : ''}>${hrRange(h)}${r.hours[h] != null ? ' — now ' + r.hours[h] : ''}</option>`).join('');
@@ -405,20 +418,23 @@
       <div><div class="lbl">Adding for</div><b style="font-size:13.5px;">${esc(r.full_name)}</b><div class="sub">${r.target > 0 ? 'target ' + r.target + ' · ' : ''}so far ${r.achieved}</div></div>
       <div><div class="lbl">For the hour</div><select class="xhr">${opts}</select></div>
       <div><div class="lbl">Orders done in that hour</div><input class="xval" type="number" min="0" max="9999" inputmode="numeric" value="${esc(adding.val)}"></div>
+      <div><div class="lbl" style="color:#1d4ed8;">of which Query</div><input class="xq" type="number" min="0" max="9999" inputmode="numeric" placeholder="0" value="${esc(adding.q)}"></div>
+      <div><div class="lbl" style="color:#b45309;">of which Campaign</div><input class="xc" type="number" min="0" max="9999" inputmode="numeric" placeholder="0" value="${esc(adding.c)}"></div>
       <div class="prev" data-prev>${prevHtml(r)}</div>
       <div class="acts"><button type="button" class="btn secondary" data-act="x-cancel">Cancel</button><button type="button" class="btn" data-act="x-save">Save</button></div>
     </div>`;
   }
 
+  const qcCells = (r) => `<td class="qc q">${r.query > 0 ? '<b>' + r.query + '</b>' : '<span class="sub">—</span>'}</td><td class="qc c">${r.campaign > 0 ? '<b>' + r.campaign + '</b>' : '<span class="sub">—</span>'}</td>`;
   function sumTable() {
-    let h = '<div class="tscroll"><table class="ot no-stack"><thead><tr><th>Employee</th><th>Target</th><th>Achieved</th><th>Pending</th><th>Pace</th><th>Last update</th><th></th></tr></thead><tbody>';
+    let h = '<div class="tscroll"><table class="ot no-stack"><thead><tr><th>Employee</th><th>Target</th><th>Achieved</th><th>Pending</th><th class="qc-h q">Query</th><th class="qc-h c">Campaign</th><th>Pace</th><th>Last update</th><th></th></tr></thead><tbody>';
     D.rows.forEach(r => {
       const m = calc(r), open = adding && adding.id === r.employee_id;
-      h += `<tr class="${open ? 'hl' : ''}"><td>${empCell(r)}</td><td>${tgtCell(r)}</td><td class="ach">${achCell(r, m)}${barOf(r, m)}</td><td class="pen">${penCell(r, m)}</td><td>${CHIP[m.state]}</td><td><span class="sub" style="font-size:12.5px;">${r.last_update ? fmtTime(r.last_update) : '—'}</span></td><td class="r">${addBtn(r)}</td></tr>`;
-      if (open) h += `<tr class="xp"><td colspan="7">${formHtml(r)}</td></tr>`;
+      h += `<tr class="${open ? 'hl' : ''}"><td>${empCell(r)}</td><td>${tgtCell(r)}</td><td class="ach">${achCell(r, m)}${barOf(r, m)}</td><td class="pen">${penCell(r, m)}</td>${qcCells(r)}<td>${CHIP[m.state]}</td><td><span class="sub" style="font-size:12.5px;">${r.last_update ? fmtTime(r.last_update) : '—'}</span></td><td class="r">${addBtn(r)}</td></tr>`;
+      if (open) h += `<tr class="xp"><td colspan="9">${formHtml(r)}</td></tr>`;
     });
     const t = teamOf(D.rows);
-    h += `<tr class="tot"><td>Team total</td><td>${t.T}</td><td>${t.A}<span class="pc">(${t.pct}%)</span></td><td>${t.P}<span class="pc">(${t.pp}%)</span></td><td></td><td></td><td></td></tr>`;
+    h += `<tr class="tot"><td>Team total</td><td>${t.T}</td><td>${t.A}<span class="pc">(${t.pct}%)</span></td><td>${t.P}<span class="pc">(${t.pp}%)</span></td><td class="qc q"><b>${t.Q}</b></td><td class="qc c"><b>${t.K}</b></td><td></td><td></td><td></td></tr>`;
     return h + '</tbody></table></div>';
   }
   function sumCards() {
@@ -428,35 +444,40 @@
       h += `<div class="mc${open ? ' hl' : ''}">
         <div class="mc-h">${avatar(r.employee_id, r.full_name)}<div class="grow"><b>${esc(r.full_name)}</b><span class="sub">${esc(r.department_name || 'Employee')}${r.employee_code ? ' · ' + esc(r.employee_code) : ''}</span></div>${CHIP[m.state]}</div>
         <div class="mc-n"><div><div class="k">Target</div><div class="v">${tgtCell(r)}</div></div><div><div class="k">Achieved</div><div class="v">${achCell(r, m)}</div></div><div><div class="k">Pending</div><div class="v">${penCell(r, m)}</div></div></div>
+        <div class="mc-n" style="margin-top:6px;"><div><div class="k" style="color:#1d4ed8;">Query</div><div class="v">${r.query || 0}</div></div><div><div class="k" style="color:#b45309;">Campaign</div><div class="v">${r.campaign || 0}</div></div><div><div class="k">Other</div><div class="v">${Math.max(0, r.achieved - (r.query || 0) - (r.campaign || 0))}</div></div></div>
         <div style="margin-top:8px;">${barOf(r, m)}</div>
         <div class="mc-f"><span class="sub">Last update ${r.last_update ? fmtTime(r.last_update) : '—'}</span>${addBtn(r)}</div>
         ${open ? formHtml(r) : ''}
       </div>`;
     });
     const t = teamOf(D.rows);
-    h += `<div class="mc team"><div class="mc-h"><div class="grow"><b>Team total</b></div></div><div class="mc-n"><div><div class="k">Target</div><div class="v">${t.T}</div></div><div><div class="k">Achieved</div><div class="v">${t.A}<span class="pc">(${t.pct}%)</span></div></div><div><div class="k">Pending</div><div class="v">${t.P}<span class="pc">(${t.pp}%)</span></div></div></div></div>`;
+    h += `<div class="mc team"><div class="mc-h"><div class="grow"><b>Team total</b></div></div><div class="mc-n"><div><div class="k">Target</div><div class="v">${t.T}</div></div><div><div class="k">Achieved</div><div class="v">${t.A}<span class="pc">(${t.pct}%)</span></div></div><div><div class="k">Pending</div><div class="v">${t.P}<span class="pc">(${t.pp}%)</span></div></div></div><div class="mc-n" style="margin-top:6px;"><div><div class="k" style="color:#1d4ed8;">Query</div><div class="v">${t.Q}</div></div><div><div class="k" style="color:#b45309;">Campaign</div><div class="v">${t.K}</div></div></div></div>`;
     return h + '</div>';
   }
 
+  const qcTag = (r, x) => {
+    const q = (r.qh && r.qh[x]) || 0, c = (r.ch && r.ch[x]) || 0;
+    return (q || c) ? `<div class="qct">${q ? '<span class="q">Q' + q + '</span>' : ''}${c ? '<span class="c">C' + c + '</span>' : ''}</div>` : '';
+  };
   function hrTable() {
     const open = new Set(D.open_hours);
     let h = '<div class="tscroll"><table class="ot no-stack" id="hrTable"><thead><tr><th>Employee</th><th>Target</th>';
     D.hours.forEach(x => { h += `<th class="hh${x === D.now_hour ? ' now' : ''}">${hrLabel(x)}${x === D.now_hour ? '<br>now' : ''}</th>`; });
-    h += '<th>Achieved</th><th>Pending</th></tr></thead><tbody>';
+    h += '<th>Achieved</th><th>Pending</th><th class="qc-h q">Query</th><th class="qc-h c">Campaign</th></tr></thead><tbody>';
     D.rows.forEach(r => {
       const m = calc(r);
       h += `<tr data-emp="${r.employee_id}"><td>${empCell(r)}</td><td><b>${r.target > 0 ? r.target : '—'}</b></td>`;
       D.hours.forEach(x => {
         const now = x === D.now_hour ? ' now' : '';
         h += open.has(x)
-          ? `<td class="hd${now}"><input class="hc" type="number" min="0" max="9999" inputmode="numeric" placeholder="–" value="${r.hours[x] == null ? '' : r.hours[x]}" data-emp="${r.employee_id}" data-h="${x}" aria-label="${esc(r.full_name)} ${hrRange(x)}"></td>`
+          ? `<td class="hd${now}"><input class="hc" type="number" min="0" max="9999" inputmode="numeric" placeholder="–" value="${r.hours[x] == null ? '' : r.hours[x]}" data-emp="${r.employee_id}" data-h="${x}" aria-label="${esc(r.full_name)} ${hrRange(x)}">${qcTag(r, x)}</td>`
           : `<td class="hd${now}"><span class="hc fut" title="${hrLabel(x)} has not started">·</span></td>`;
       });
-      h += `<td class="c-ach">${achCell(r, m)}</td><td class="c-pen">${penCell(r, m)}</td></tr>`;
+      h += `<td class="c-ach">${achCell(r, m)}</td><td class="c-pen">${penCell(r, m)}</td>${qcCells(r).replace('class="qc q"', 'class="qc q c-q"').replace('class="qc c"', 'class="qc c c-c"')}</tr>`;
     });
     h += '<tr class="tot" id="hrTot"><td>Team total</td><td class="t-t"></td>';
     D.hours.forEach(x => { h += `<td class="hd" data-th="${x}" style="font-size:13px;"></td>`; });
-    h += '<td class="t-a"></td><td class="t-p"></td></tr></tbody></table></div>';
+    h += '<td class="t-a"></td><td class="t-p"></td><td class="qc q t-q"></td><td class="qc c t-k"></td></tr></tbody></table></div>';
     setTimeout(updateHourTotals, 0);
     return h;
   }
@@ -468,6 +489,8 @@
       const m = calc(r);
       tr.querySelector('.c-ach').innerHTML = achCell(r, m);
       tr.querySelector('.c-pen').innerHTML = penCell(r, m);
+      tr.querySelector('.c-q').innerHTML = r.query > 0 ? '<b>' + r.query + '</b>' : '<span class="sub">—</span>';
+      tr.querySelector('.c-c').innerHTML = r.campaign > 0 ? '<b>' + r.campaign + '</b>' : '<span class="sub">—</span>';
     });
     D.hours.forEach(x => {
       const c = tbl.querySelector(`td[data-th="${x}"]`); if (!c) return;
@@ -478,6 +501,7 @@
     tbl.querySelector('.t-t').textContent = t.T;
     tbl.querySelector('.t-a').innerHTML = `${t.A}<span class="pc">(${t.pct}%)</span>`;
     tbl.querySelector('.t-p').innerHTML = `${t.P}<span class="pc">(${t.pp}%)</span>`;
+    tbl.querySelector('.t-q').innerHTML = '<b>' + t.Q + '</b>'; tbl.querySelector('.t-k').innerHTML = '<b>' + t.K + '</b>';
   }
 
   // ---------- daily: saving ----------
@@ -486,13 +510,20 @@
     r.achieved = Object.values(r.hours).reduce((s, v) => s + v, 0);
     r.last_update = nowHM();
   }
-  async function saveHour(id, hour, val) {
+  async function saveHour(id, hour, val, q, c) {
     const r = rowOf(id); if (!r) return false;
     const before = JSON.parse(JSON.stringify(r));
     setHourLocal(r, hour, val);
+    const withQC = q !== undefined;
+    r.qh = r.qh || {}; r.ch = r.ch || {};
+    if (val === null) { delete r.qh[hour]; delete r.ch[hour]; }
+    else if (withQC) { if (q > 0) r.qh[hour] = q; else delete r.qh[hour]; if (c > 0) r.ch[hour] = c; else delete r.ch[hour]; }
+    r.query = qcSum(r, 'qh'); r.campaign = qcSum(r, 'ch');
     saving++;
     try {
-      await post('order_targets.hours_save', { cells: [{ employee_id: id, date, hour, orders: val === null ? '' : val }] });
+      const cell = { employee_id: id, date, hour, orders: val === null ? '' : val };
+      if (withQC) { cell.query = q; cell.campaign = c; }
+      await post('order_targets.hours_save', { cells: [cell] });
       flash($('saveNote'), 'Saved ✓');
       return true;
     } catch (e) {
@@ -527,15 +558,16 @@
       const r = rowOf(id); if (!r) return;
       editingTarget = null;
       const hr = defaultHour(r);
-      adding = { id, hour: hr, val: r.hours[hr] == null ? '' : String(r.hours[hr]) };
+      adding = { id, hour: hr, val: r.hours[hr] == null ? '' : String(r.hours[hr]), q: qcStr(r, 'qh', hr), c: qcStr(r, 'ch', hr) };
       renderDay(); return;
     }
     if (act === 'x-cancel') { adding = null; renderDay(); return; }
     if (act === 'x-save') submitAdd();
   });
   body.addEventListener('input', (e) => {
-    if (e.target.classList.contains('xval') && adding) {
-      adding.val = e.target.value;
+    const cl = e.target.classList;
+    if ((cl.contains('xval') || cl.contains('xq') || cl.contains('xc')) && adding) {
+      if (cl.contains('xval')) adding.val = e.target.value; else if (cl.contains('xq')) adding.q = e.target.value; else adding.c = e.target.value;
       const f = e.target.closest('.xform'), r = rowOf(adding.id);
       f.querySelector('[data-prev]').innerHTML = prevHtml(r);
     }
@@ -546,8 +578,9 @@
       adding.hour = Number(t.value);
       const r = rowOf(adding.id);
       adding.val = r.hours[adding.hour] == null ? '' : String(r.hours[adding.hour]);
+      adding.q = qcStr(r, 'qh', adding.hour); adding.c = qcStr(r, 'ch', adding.hour);
       const f = t.closest('.xform'), inp = f.querySelector('.xval');
-      inp.value = adding.val;
+      inp.value = adding.val; f.querySelector('.xq').value = adding.q; f.querySelector('.xc').value = adding.c;
       f.querySelector('[data-prev]').innerHTML = prevHtml(r);
       inp.focus(); inp.select();
       return;
@@ -564,7 +597,7 @@
   });
   body.addEventListener('keydown', (e) => {
     const t = e.target;
-    if (t.classList.contains('xval')) {
+    if (t.classList.contains('xval') || t.classList.contains('xq') || t.classList.contains('xc')) {
       if (e.key === 'Enter') { e.preventDefault(); submitAdd(); }
       else if (e.key === 'Escape') { adding = null; renderDay(); }
     } else if (t.classList.contains('tin')) {
@@ -593,9 +626,11 @@
     const r = rowOf(adding.id), v = parseWhole(adding.val);
     if (v === null) { showAlert('Type how many orders were done in that hour.', 'error'); return; }
     if (Number.isNaN(v)) { showAlert('Orders must be a whole number from 0 to 9999.', 'error'); return; }
-    const hour = adding.hour;
+    const hour = adding.hour, q = parseWhole(adding.q), c = parseWhole(adding.c), qq = q === null ? 0 : q, cc = c === null ? 0 : c;
+    if (Number.isNaN(q) || Number.isNaN(c)) { showAlert('Query and Campaign must be whole numbers from 0 to 9999.', 'error'); return; }
+    if (qq + cc > v) { showAlert('Query (' + qq + ') + Campaign (' + cc + ') cannot be more than the orders of that hour (' + v + ').', 'error'); return; }
     adding = null;
-    const done = saveHour(r.employee_id, hour, v);   // the numbers change at once; the save follows
+    const done = saveHour(r.employee_id, hour, v, qq, cc);   // the numbers change at once; the save follows
     renderDay();
     if (!(await done)) loadDay(true);
   }

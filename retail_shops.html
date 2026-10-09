@@ -137,6 +137,29 @@
     .ld-top h2{font-size:19px;} .ld-btns .btn{flex:1 1 auto;}
     #laCard table{min-width:0;}
   }
+  /* orders register */
+  #rgCard table{min-width:1560px;} #rgCard th, #rgCard td{white-space:nowrap;} #rgCard td.wrap{white-space:normal; min-width:170px; max-width:280px;}
+  #rgCard td.n, #rgCard th.n{text-align:right; font-variant-numeric:tabular-nums;} #rgCard td.ck, #rgCard th.ck{width:34px;}
+  #rgCard td.ck input, #rgCard th.ck input{width:16px; height:16px; min-height:0; margin:0; cursor:pointer;}
+  #rgCard tr.sel{background:#eff6ff;} #rgCard .row-actions{flex-wrap:nowrap;} #rgCard td.act{width:150px;}
+  .rg-filters{display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:0 22px 12px;}
+  .rg-filters input, .rg-filters select{padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-height:0; width:auto; background:#fff;}
+  .rg-filters input[type=text]{min-width:210px;} .rg-filters label{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:5px;}
+  .rg-bulk{display:none; align-items:center; gap:10px; flex-wrap:wrap; padding:9px 22px; background:#eff6ff; border-top:1px solid #bfdbfe; border-bottom:1px solid #bfdbfe; font-size:13px;}
+  .rg-bulk.on{display:flex;} .rg-bulk .btn{width:auto; padding:6px 12px; font-size:12.5px; min-height:0;} .rg-bulk .danger{background:#c81e1e; border-color:#c81e1e; color:#fff;}
+  .rg-pager{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:12px 22px; font-size:13px; color:#374151;}
+  .rg-pager .btn{width:auto; padding:6px 12px; font-size:12.5px; min-height:0;} .rg-pager select{padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:auto; min-height:0;}
+  .rg-hint{font-size:12px; margin-top:4px; line-height:1.4;} .rg-hint.new{color:#b45f06;} .rg-hint.ok{color:#0f7a41;}
+  .rg-lines{background:#fdf3e3; border:1px solid #f0c36d; color:#8a5a00; border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin:0 0 10px;}
+  .rg-sum{background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12.5px; margin:0 0 6px; display:flex; gap:16px; flex-wrap:wrap;}
+  @media (max-width:820px){
+    #rgCard table{min-width:0;}
+    #rgCard tbody tr:not(:has(td[colspan])){display:grid; grid-template-columns:1fr 1fr; column-gap:14px;}
+    #rgCard tbody td{flex-direction:column; gap:2px;} #rgCard tbody td + td{border-top:none;}
+    #rgCard tbody td::before{width:auto !important;}
+    #rgCard td.ck{grid-column:1 / -1; flex-direction:row; width:auto;} #rgCard td.wide{grid-column:1 / -1;} #rgCard td.wrap{max-width:none; min-width:0;}
+    .rg-filters, .rg-bulk, .rg-pager{padding-left:14px; padding-right:14px;} .rg-filters input, .rg-filters select{font-size:16px; flex:1 1 140px;} .rg-filters input[type=text]{min-width:0; flex:1 1 100%;}
+  }
   /* import from Excel */
   .modal.imp{max-width:1000px; padding:0;}
   .imp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 22px; position:sticky; top:0; background:#fff; z-index:3; border-bottom:1px solid var(--line);}
@@ -211,6 +234,7 @@
     <div class="topbar">
       <div><h1>Retail Shops</h1><div class="sub" style="margin-top:2px;">Partner shops that keep our perfumes on display — shop, contact, pinned location and their orders</div></div>
       <div class="view-toggle" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnRegister">📋 Orders</button>
         <button class="btn secondary" id="btnLedgerAll">📒 Ledger</button>
         <button class="btn secondary" id="btnTotals">📊 Totals</button>
         <button class="btn secondary" id="btnMapView">📍 Map view</button>
@@ -248,6 +272,43 @@
             <tbody id="shopsBody"><tr><td colspan="8"><div class="loading">Loading...</div></td></tr></tbody>
           </table>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== ORDERS REGISTER ===== -->
+      <div id="viewRegister" style="display:none;">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Orders</div><div class="value" id="rgStN">—</div></div>
+          <div class="stat-card"><div class="label">Pieces</div><div class="value" id="rgStQ">—</div></div>
+          <div class="stat-card"><div class="label">Total amount</div><div class="value" id="rgStT">—</div></div>
+          <div class="stat-card"><div class="label">Prepaid</div><div class="value" id="rgStP" style="color:#0f7a41;">—</div></div>
+          <div class="stat-card"><div class="label">COD / to collect</div><div class="value" id="rgStC" style="color:#c81e1e;">—</div></div>
+        </div>
+        <div class="card" id="rgCard">
+          <div class="card-head"><h2>All orders</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="btn" id="rgAdd" style="padding:8px 12px; font-size:13px;">+ Add order</button>
+              <button type="button" class="btn secondary" id="rgImport" style="padding:8px 12px; font-size:13px;">⬆ Import Excel</button>
+              <button type="button" class="btn secondary" id="rgExport" style="padding:8px 12px; font-size:13px;">⬇ Excel</button>
+            </div>
+          </div>
+          <div class="rg-filters">
+            <input type="text" id="rgQ" placeholder="Search party / number / order no / bill no / remarks…">
+            <label>From <input type="date" id="rgFrom"></label>
+            <label>To <input type="date" id="rgTo"></label>
+            <select id="rgKind"><option value="">Order + Sample</option><option value="order">Orders only</option><option value="sample">Samples only</option></select>
+            <select id="rgStatus"><option value="">Any status</option><option value="delivered">Delivered</option><option value="pending">Pending</option><option value="returned">Returned</option></select>
+            <select id="rgPay"><option value="">Cash + Prepaid</option><option value="cash">Cash</option><option value="prepaid">Prepaid</option><option value="none">Not set</option></select>
+            <button type="button" class="link" id="rgClear">Clear filters</button>
+          </div>
+          <div class="rg-bulk" id="rgBulk"><b id="rgBulkN">0 selected</b><button type="button" class="btn danger" id="rgBulkDel">Delete selected</button><button type="button" class="btn secondary" id="rgBulkClr">Clear</button></div>
+          <div class="tscroll">
+          <table>
+            <thead><tr><th class="ck"><input type="checkbox" id="rgAll" title="Select all on this page"></th><th>DATE</th><th>ORDER NO</th><th>PARTY NAME</th><th>NUMBER</th><th>BILL NO.</th><th>ORDER/SAMPLE</th><th class="n">QUANTITY</th><th class="n">TOTAL AMOUNT</th><th class="n">COLLECTABLE AMOUNT</th><th class="n">PREPAID</th><th class="n">COD</th><th>STATUS</th><th>Cash/Prepaid</th><th>Discount</th><th>REMARKS</th><th style="width:130px;">Actions</th></tr></thead>
+            <tbody id="rgBody"><tr><td colspan="17"><div class="loading">Loading...</div></td></tr></tbody>
+          </table>
+          </div>
+          <div class="rg-pager" id="rgPager"></div>
         </div>
       </div>
 
@@ -452,6 +513,69 @@
   </div>
 </div>
 
+<!-- Orders register: add / edit one order -->
+<div class="modal-overlay" id="rgModal">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="rgTitle">Edit order</h3>
+    <div class="sub" id="rgSub" style="margin:-8px 0 12px;"></div>
+    <div id="rgAlert"></div>
+    <input type="hidden" id="rgId">
+    <div class="field-grid">
+      <div class="field"><label>Party name</label><input id="rgParty" list="rgShopList" placeholder="Shop name" autocomplete="off"><datalist id="rgShopList"></datalist><div class="rg-hint" id="rgPartyHint"></div></div>
+      <div class="field"><label>Number</label><input id="rgNumber" inputmode="tel" placeholder="Mobile number"></div>
+      <div class="field"><label>Date</label><input type="date" id="rgDate"></div>
+      <div class="field"><label>Order no</label><input id="rgOrderNo" placeholder="blank = next number"></div>
+      <div class="field"><label>Bill no.</label><input id="rgBillNo"></div>
+      <div class="field"><label>Order / Sample</label><select id="rgKindSel"><option value="order">Order</option><option value="sample">Sample (free)</option></select></div>
+    </div>
+    <div class="rg-lines" id="rgLinesBox" style="display:none;"></div>
+    <div class="field-grid">
+      <div class="field"><label>Quantity</label><input type="number" id="rgQty" min="1" step="1" inputmode="numeric"></div>
+      <div class="field"><label>Total amount (₹)</label><input type="number" id="rgTotal" min="0" step="any" inputmode="decimal"></div>
+      <div class="field"><label>Discount (10% or ₹)</label><input id="rgDisc" placeholder="e.g. 10% or 200"></div>
+      <div class="field"><label>Cash / Prepaid</label><select id="rgPayT"><option value="">— not set —</option><option value="cash">Cash (collect on delivery)</option><option value="prepaid">Prepaid</option></select></div>
+      <div class="field"><label>Prepaid (₹)</label><input type="number" id="rgPrep" min="0" step="any" inputmode="decimal"></div>
+      <div class="field"><label>COD / Collectable (₹)</label><input type="number" id="rgCod" min="0" step="any" inputmode="decimal"></div>
+      <div class="field"><label>Status</label><select id="rgStat"><option value="Delivered">Delivered</option><option value="Pending">Pending</option><option value="Returned">Returned</option></select></div>
+    </div>
+    <div class="rg-sum" id="rgSum"></div>
+    <div class="field"><label>Remarks</label><input id="rgNote" placeholder="e.g. courier, 2 testers"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="rgCancel">Cancel</button><button type="button" class="btn" id="rgSave">Save order</button></div>
+  </div>
+</div>
+
+<!-- Ledger: edit a receipt / credit note -->
+<div class="modal-overlay" id="pedModal">
+  <div class="modal" style="max-width:480px;">
+    <h3 id="pedTitle">Edit receipt</h3>
+    <div id="pedAlert"></div>
+    <input type="hidden" id="pedId">
+    <div class="field-grid">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="pedAmt" min="0" step="any" inputmode="decimal" style="font-size:18px; font-weight:700;"></div>
+      <div class="field"><label>Date</label><input type="date" id="pedDate"></div>
+      <div class="field"><label>Mode</label><select id="pedMode"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank</option><option value="cheque">Cheque</option><option value="credit">Credit note</option></select></div>
+      <div class="field"><label>Reference</label><input id="pedRef" maxlength="120"></div>
+    </div>
+    <div class="field"><label>Note</label><input id="pedNote" maxlength="255"></div>
+    <div class="rg-lines" id="pedWarn" style="display:none;">The amount changed, so this payment is spread again over the oldest pending bills.</div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnPedCancel">Cancel</button><button type="button" class="btn" id="btnPedSave">Save</button></div>
+  </div>
+</div>
+
+<!-- Ledger: edit the opening dues -->
+<div class="modal-overlay" id="opdModal">
+  <div class="modal" style="max-width:420px;">
+    <h3>Opening dues</h3>
+    <div class="sub" style="margin:-8px 0 12px;">What the shop owed before the ledger started. A minus amount = it paid in advance.</div>
+    <div id="opdAlert"></div>
+    <div class="field-grid">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="opdAmt" step="any" inputmode="decimal" style="font-size:18px; font-weight:700;"></div>
+      <div class="field"><label>As on date</label><input type="date" id="opdDate"></div>
+    </div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnOpdCancel">Cancel</button><button type="button" class="btn" id="btnOpdSave">Save</button></div>
+  </div>
+</div>
+
 <!-- Display photo (shop visit) -->
 <div class="modal-overlay" id="photoModal">
   <div class="modal" style="max-width:460px;">
@@ -542,11 +666,12 @@
         <button type="button" class="btn secondary" id="btnImpTpl" style="width:auto;">⬇ Download template (.xlsx)</button>
         <div class="imp-drop" id="impDrop"><b>Drop your Excel file here</b> or click to choose<br><span class="sub">.xlsx, .xls or .csv — a list with Shop name, Mobile and Pending amount is enough</span></div>
         <input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="display:none;">
-        <label class="imp-opt"><input type="checkbox" id="impCreate" checked> Add shops that are not in the app yet</label>
+        <label class="imp-opt"><input type="checkbox" id="impCreate" checked> Add shops that are not in the app yet (a new PARTY NAME becomes a shop)</label>
         <details class="imp-help">
           <summary>What the file can contain</summary>
           <p><b>Shops / pending list</b> — Shop name, Mobile, Pending amount (and, if you have them, Area, Owner, Address, Note, As on date). Matched shops keep their own name; blank Owner / Address / Mobile in the app are filled from your file. A minus amount means the shop paid in advance.</p>
-          <p><b>Orders</b> (old bills) — Shop name or Mobile, Date, Bill no, Product, Size, Qty, Rate (or only Amount), Discount, Payment, Paid amount, Due date. Rows with the same Bill no make one bill.</p>
+          <p><b>Order register</b> — DATE, ORDER NO, PARTY NAME, NUMBER, BILL NO., ORDER/SAMPLE, QUANTITY, TOTAL AMOUNT, COLLECTABLE AMOUNT, PREPAID, COD, STATUS, Cash/Prepaid, Discount, REMARKS: one row per order. A PARTY NAME that is not a shop yet is added as a new shop (with its NUMBER). Samples are free; STATUS is Delivered / Pending / Returned. Every order then shows in <b>📋 Orders</b>, where you can edit or delete it.</p>
+          <p><b>Orders</b> (old bills with perfume lines) — Shop name or Mobile, Date, Bill no, Product, Size, Qty, Rate (or only Amount), Discount, Payment, Paid amount, Due date. Rows with the same Bill no make one bill.</p>
           <p><b>Payments</b> — Shop name or Mobile, Date, Amount, Mode (Cash / UPI / Bank / Cheque / Credit note), Reference, Bill no. A payment clears the oldest bills first, or the bill you name.</p>
           <p><b>Ledger</b> — Shop name or Mobile, Date, Debit, Credit, Narration: debit lines become bills, credit lines become payments, a line “Opening balance” becomes the shop's pending amount.</p>
           <p class="sub">Dates as dd/mm/yyyy · ₹, commas and “5000/-” are fine · each sheet is recognised by its headings and you can change the columns before importing · uploading the same file again is safe, what is already in the app is skipped.</p>
@@ -661,6 +786,8 @@
     document.getElementById('viewTotals').style.display = v === 'totals' ? '' : 'none';
     document.getElementById('viewLedger').style.display = v === 'ledger' ? '' : 'none';
     document.getElementById('viewLedgerAll').style.display = v === 'ledgerAll' ? '' : 'none';
+    document.getElementById('viewRegister').style.display = v === 'register' ? '' : 'none';
+    document.getElementById('btnRegister').textContent = v === 'register' ? '☰ List view' : '📋 Orders';
     document.getElementById('btnLedgerAll').textContent = v === 'ledgerAll' ? '☰ List view' : '📒 Ledger';
     document.getElementById('btnMapView').textContent = v === 'map' ? '☰ List view' : '📍 Map view';
     document.getElementById('btnTotals').textContent = v === 'totals' ? '☰ List view' : '📊 Totals';
@@ -1101,6 +1228,8 @@
       const sid = Number(document.getElementById('oShop').value);
       await loadShops();
       if (view === 'shop') openShop(sid);
+      if (view === 'register') loadRegister();
+      if (view === 'ledger') loadLedger(ld.shopId);
     } catch (err) { document.getElementById('orderAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   });
@@ -1616,6 +1745,12 @@
     if (r.by) subs.push('by ' + esc(r.by));
     return { icon: credit ? '↩' : '₹', cls: 'c', title: `<b>${esc(r.ref)}</b> · ${credit ? 'Credit note' : 'Payment received'}`, chips: credit ? '' : `<span class="chip ${MODE_CLS[r.mode] || 'c-grey'}">${esc(MODE_LABEL[r.mode] || r.mode)}</span>`, subs, plain: `${r.ref} ${credit ? 'Credit note' : 'Payment received (' + (MODE_LABEL[r.mode] || r.mode) + ')'}${r.reference ? ' ref ' + r.reference : ''}`, del: true };
   }
+  // Edit / Delete under every statement line: bill, receipt / credit note, opening dues
+  function ldActs(r) {
+    const b = (act, id, txt, red) => `<button class="link ld-act" data-lact="${act}" data-lid="${id}" style="font-size:11.5px; margin-right:12px;${red ? ' color:#c81e1e;' : ''}">${txt}</button>`;
+    if (r.kind === 'opening') return b('open-edit', 0, '✎ Edit') + b('open-del', 0, 'Delete', 1);
+    return b(r.kind === 'bill' ? 'bill-edit' : 'pay-edit', r.id, '✎ Edit') + b(r.kind === 'bill' ? 'bill-del' : 'pay-del', r.id, 'Delete', 1);
+  }
   function ldBroughtFwd(d) {
     const r0 = d.rows[0];
     return d.range.from ? round2(d.summary.opening - (r0 && r0.kind === 'opening' ? r0.debit - r0.credit : 0)) : null;
@@ -1648,7 +1783,7 @@
     d.rows.forEach(r => {
       const l = ldLine(r); td += r.debit; tc += r.credit;
       const tag = l.subs.length ? `<span class="ltag">${l.subs.join(' · ')}</span>` : '';
-      const rm = l.del ? `<span class="ltag"><button class="link" data-rdel="${r.id}" style="font-size:11.5px; color:#c81e1e;">Delete this receipt</button></span>` : '';
+      const rm = `<span class="ltag">${ldActs(r)}</span>`;
       body.push(`<tr class="${r.kind === 'opening' ? 'lrow-open' : ''}"><td>${r.date ? fmtD(r.date) : '—'}</td><td>${l.title} ${l.chips}${tag}${rm}</td><td class="n lg-dr">${r.debit ? fm(r.debit) : ''}</td><td class="n lg-cr">${r.credit ? fm(r.credit) : ''}</td><td class="n lbal">${balTxt(r.balance)}</td></tr>`);
     });
     if (!d.rows.length && bf === null) body.push('<tr><td colspan="5"><div class="empty-state">Nothing in this period.</div></td></tr>');
@@ -1662,18 +1797,88 @@
       if (r.kind !== 'opening' && m !== mon) { mon = m; out.push(`<div class="lmon">${esc(m)}</div>`); }
       const l = ldLine(r);
       const amt = r.debit ? `<b>+ ${fm(r.debit)}</b>` : (r.credit ? `<b style="color:#0f7a41;">− ${fm(r.credit)}</b>` : '<b></b>');
-      out.push(`<div class="lent"${r.kind === 'opening' ? ' style="background:#f8fafc;"' : ''}><div class="ldot ${l.cls || ''}">${l.icon}</div><div class="lm">${l.title} ${l.chips}<div class="sub">${r.date ? fmtDS(r.date) : ''}${l.subs.length ? ' · ' + l.subs.join(' · ') : ''}</div>${l.del ? `<button class="link" data-rdel="${r.id}" style="font-size:11.5px; color:#c81e1e; margin-top:3px;">Delete</button>` : ''}</div><div class="la">${amt}<span>${balPlain(r.balance)}</span></div></div>`);
+      out.push(`<div class="lent"${r.kind === 'opening' ? ' style="background:#f8fafc;"' : ''}><div class="ldot ${l.cls || ''}">${l.icon}</div><div class="lm">${l.title} ${l.chips}<div class="sub">${r.date ? fmtDS(r.date) : ''}${l.subs.length ? ' · ' + l.subs.join(' · ') : ''}</div><div style="margin-top:3px;">${ldActs(r)}</div></div><div class="la">${amt}<span>${balPlain(r.balance)}</span></div></div>`);
     });
     if (bf !== null) out.push(`<div class="lent" style="background:#f8fafc;"><div class="ldot">⏮</div><div class="lm"><b>Balance brought forward</b><div class="sub">${fmtD(d.range.from)}</div></div><div class="la"><b>${balPlain(bf)}</b></div></div>`);
     if (!out.length) out.push('<div class="empty-state">Nothing in this period.</div>');
     document.getElementById('ldList').innerHTML = out.join('');
   }
+  const ldReload = async () => { await loadLedger(ld.shopId); loadShops(true); };
   document.getElementById('viewLedger').addEventListener('click', async (e) => {
-    const b = e.target.closest('button[data-rdel]'); if (!b) return;
-    const r = ld.data.rows.find(x => x.kind === 'receipt' && x.id == b.dataset.rdel); if (!r) return;
-    if (!confirm(`Delete receipt ${r.ref} (${fm(r.credit)})?\n\nThe bills it paid become pending again.`)) return;
-    try { const x = await api.post('retail.payment_delete', { payment_id: r.id }); showAlert(x.message); await loadLedger(ld.shopId); loadShops(true); }
-    catch (err) { showAlert(err.message, 'error'); }
+    const b = e.target.closest('button[data-lact]'); if (!b) return;
+    const act = b.dataset.lact, id = Number(b.dataset.lid), rows = (ld.data && ld.data.rows) || [];
+    try {
+      if (act === 'bill-edit') {
+        const d = await api.get('retail.shop', { id: ld.shopId });
+        const o = (d.orders || []).find(x => x.order_id == id); if (!o) throw new Error('Order not found.');
+        openOrderModal(ld.shopId, o);
+      } else if (act === 'bill-del') {
+        const r = rows.find(x => x.kind === 'bill' && x.id == id); if (!r) return;
+        if (!confirm(`Delete bill ${r.ref} (${fm(r.debit)})?\n\nPayments counted against it go back to the shop's account. This cannot be undone.`)) return;
+        const x = await api.post('retail.order_delete', { order_id: id }); showAlert(x.message); await ldReload();
+      } else if (act === 'pay-edit') {
+        const r = rows.find(x => x.kind === 'receipt' && x.id == id); if (r) pedOpen(r);
+      } else if (act === 'pay-del') {
+        const r = rows.find(x => x.kind === 'receipt' && x.id == id); if (!r) return;
+        if (!confirm(`Delete receipt ${r.ref} (${fm(r.credit)})?\n\nThe bills it paid become pending again.`)) return;
+        const x = await api.post('retail.payment_delete', { payment_id: id }); showAlert(x.message); await ldReload();
+      } else if (act === 'open-edit') opdOpen();
+      else if (act === 'open-del') {
+        if (!confirm('Remove the opening dues of this shop?\n\nIts statement will start from the first bill.')) return;
+        const x = await api.post('retail.opening_save', { shop_id: ld.shopId, opening_balance: 0, opening_date: '' }); showAlert(x.message); await ldReload();
+      }
+    } catch (err) { showAlert(err.message, 'error'); }
+  });
+
+  // ----- edit a receipt / credit note
+  const pedModal = document.getElementById('pedModal');
+  function pedOpen(r) {
+    document.getElementById('pedAlert').innerHTML = '';
+    document.getElementById('pedTitle').textContent = 'Edit ' + (r.mode === 'credit' ? 'credit note ' : 'receipt ') + r.ref;
+    document.getElementById('pedId').value = r.id;
+    document.getElementById('pedAmt').value = r.credit; document.getElementById('pedAmt').dataset.old = r.credit;
+    document.getElementById('pedDate').value = r.date ? String(r.date).slice(0, 10) : todayStr();
+    document.getElementById('pedMode').value = r.mode || 'cash';
+    document.getElementById('pedRef').value = r.reference || ''; document.getElementById('pedNote').value = r.note || '';
+    pedAmtNote();
+    modalScrollY = window.scrollY; pedModal.classList.add('open');
+  }
+  function closePed() { pedModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  function pedAmtNote() {
+    const a = document.getElementById('pedAmt');
+    document.getElementById('pedWarn').style.display = Math.abs(Number(a.value) - Number(a.dataset.old)) > 0.004 ? '' : 'none';
+  }
+  document.getElementById('pedAmt').addEventListener('input', pedAmtNote);
+  document.getElementById('btnPedCancel').addEventListener('click', closePed);
+  pedModal.addEventListener('click', (e) => { if (e.target === pedModal) closePed(); });
+  document.getElementById('btnPedSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnPedSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.payment_update', { payment_id: Number(document.getElementById('pedId').value), amount: Number(document.getElementById('pedAmt').value) || 0, pay_date: document.getElementById('pedDate').value, mode: document.getElementById('pedMode').value, reference: document.getElementById('pedRef').value.trim(), note: document.getElementById('pedNote').value.trim() });
+      closePed(); showAlert(d.message); await ldReload();
+    } catch (err) { document.getElementById('pedAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+
+  // ----- edit the opening dues
+  const opdModal = document.getElementById('opdModal');
+  function opdOpen() {
+    const sm = (ld.data && ld.data.summary) || {}, r0 = ((ld.data && ld.data.rows) || []).find(x => x.kind === 'opening');
+    document.getElementById('opdAlert').innerHTML = '';
+    document.getElementById('opdAmt').value = r0 ? round2((r0.debit || 0) - (r0.credit || 0)) : '';
+    document.getElementById('opdDate').value = r0 && r0.date ? String(r0.date).slice(0, 10) : '';
+    modalScrollY = window.scrollY; opdModal.classList.add('open');
+  }
+  function closeOpd() { opdModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnOpdCancel').addEventListener('click', closeOpd);
+  opdModal.addEventListener('click', (e) => { if (e.target === opdModal) closeOpd(); });
+  document.getElementById('btnOpdSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnOpdSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.opening_save', { shop_id: ld.shopId, opening_balance: Number(document.getElementById('opdAmt').value) || 0, opening_date: document.getElementById('opdDate').value });
+      closeOpd(); showAlert(d.message); await ldReload();
+    } catch (err) { document.getElementById('opdAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
   });
   document.getElementById('btnLedgerBack').addEventListener('click', () => {
     const p = ld.prev || 'list';
@@ -1899,25 +2104,26 @@
   const impEl = (id) => document.getElementById(id);
   const imp = { sheets: [], data: null, file: '', res: null, batches: [], stage: 'pick', running: false, stop: false, committed: false, final: null, tab: '', lvl: 'problems', q: '', lim: 120, swap: false, mode: 'set', create: true };
   const IMP_XLSX = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-  const IMP_KIND = { shops: 'Shops / pending list', orders: 'Orders (bills)', payments: 'Payments', ledger: 'Ledger', skip: 'Do not use' };
+  const IMP_KIND = { shops: 'Shops / pending list', orders: 'Orders / order register', payments: 'Payments', ledger: 'Ledger', skip: 'Do not use' };
   const IMP_F = {   // what each kind of sheet can hold (the order is the order of matching the columns)
     shops: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['owner', 'Owner'], ['address', 'Address'], ['note', 'Note'], ['opening', 'Pending amount'], ['opening_date', 'As on date']],
-    orders: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['bill_no', 'Bill no'], ['type', 'Type'], ['product', 'Product'], ['size', 'Size'], ['qty', 'Qty'], ['rate', 'Rate'], ['amount', 'Amount'], ['discount', 'Discount'], ['payment', 'Payment'], ['paid', 'Paid amount'], ['paid_on', 'Paid on'], ['due', 'Due date'], ['note', 'Note']],
+    orders: [['shop', 'Shop / Party name'], ['mobile', 'Mobile / Number'], ['area', 'Area'], ['date', 'Date'], ['order_no', 'Order no'], ['bill_no', 'Bill no'], ['kind', 'Order / Sample'], ['type', 'Type'], ['product', 'Product'], ['size', 'Size'], ['qty', 'Qty'], ['rate', 'Rate'], ['amount', 'Total amount'], ['collectable', 'Collectable amount'], ['prepaid', 'Prepaid'], ['cod', 'COD'], ['discount', 'Discount'], ['status', 'Status (delivery)'], ['payment', 'Payment'], ['paytype', 'Cash / Prepaid'], ['paid', 'Paid amount'], ['paid_on', 'Paid on'], ['due', 'Due date'], ['note', 'Remarks / Note']],
     payments: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['amount', 'Amount'], ['mode', 'Mode'], ['reference', 'Reference'], ['bill_no', 'Bill no'], ['note', 'Note']],
     ledger: [['shop', 'Shop name'], ['mobile', 'Mobile'], ['area', 'Area'], ['date', 'Date'], ['debit', 'Debit'], ['credit', 'Credit'], ['narration', 'Narration'], ['bill_no', 'Bill no']],
   };
   const IMP_FILL = { owner_name: 'owner', mobile: 'mobile', address: 'address', note: 'note', area: 'area' };
   // headings as people write them (letters and digits only, lower case)
   const W_SHOP = 'shopname shop name party partyname customer customername retailer retailername store storename outlet outletname client clientname account accountname ledgername firm firmname dealer dealername company companyname';
-  const W_MOB = 'mobile mobileno mobilenumber mobno mob phone phoneno phonenumber contact contactno contactnumber cell cellno whatsapp whatsappno whatsappnumber tel telephone mobile1 phone1';
+  const W_MOB = 'mobile mobileno mobilenumber mobno mob number num partynumber partymobile partyphone phone phoneno phonenumber contact contactno contactnumber cell cellno whatsapp whatsappno whatsappnumber tel telephone mobile1 phone1';
   const W_AREA = 'area areaname location locality city zone route region town place beat market village';
   const IMP_A = {
     shops: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, owner: 'owner ownername contactperson contactname person proprietor incharge', address: 'address fulladdress shopaddress addr', note: 'note notes remark remarks comment comments',
       opening: 'openingbalance opening openingdues openingdue openingoutstanding openingamount ob obal pending pendingamount pendingamt pendingbalance pendingdues pendingpayment pendingpayments paymentpending remaining remainingamount remainingamt remainingbalance remainingpayment balance balanceamount balancedue duebalance due dues dueamount amountdue outstanding outstandingamount outstandingbalance baki baaki udhar receivable totalpending totaldue totaloutstanding oldbalance previousbalance broughtforward bf',
       opening_date: 'openingdate asondate asof balancedate obdate date' },
-    orders: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date orderdate billdate invoicedate dateofbill dt', bill_no: 'billno billnumber bill invoice invoiceno invoicenumber vchno voucherno voucher refno ref orderno ordernumber challanno challan slipno memono', type: 'type ordertype billtype kind',
+    orders: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date orderdate billdate invoicedate dateofbill dt', order_no: 'orderno ordernumber orderid ordno ordernum', bill_no: 'billno billnumber bill invoice invoiceno invoicenumber vchno voucherno voucher refno ref challanno challan slipno memono', kind: 'ordersample orderorsample sampleororder sampleorder ordersamples samplestatus', type: 'type ordertype billtype kind',
       product: 'product productname item itemname perfume perfumename fragrance fragrancename article goods description particulars sku brand', size: 'size sizeml ml sizeinml volume pack packing', qty: 'qty quantity pcs pieces nos units noofpcs piece', rate: 'rate price unitprice priceperpc rateperpc perpc unitrate sellingprice',
-      amount: 'amount total linetotal lineamount value billamount amt netamount itemtotal totalamount', discount: 'discount disc discountpct discountpercent discountamount dis rebate', payment: 'payment paymentstatus paymentmode paymenttype paystatus status mode',
+      amount: 'amount total linetotal lineamount value billamount amt netamount itemtotal totalamount', collectable: 'collectableamount collectable collectibleamount collectible collectamount collectionamount toreceive tocollect', prepaid: 'prepaid prepaidamount prepaidamt prepayment advancepaid', cod: 'cod codamount codamt cashondelivery', discount: 'discount disc discountpct discountpercent discountamount dis rebate',
+      status: 'status orderstatus deliverystatus delivery orderstate', payment: 'payment paymentstatus paymentmode paymenttype paystatus mode', paytype: 'cashprepaid cashorprepaid prepaidorcash prepaidcash codprepaid prepaidcod cashprepaidcod',
       paid: 'paid paidamount amountpaid paidamt received receivedamount', paid_on: 'paidon paiddate paymentdate receiveddate datepaid paidat datereceived', due: 'duedate due payby paymentdue payabledate duedt payduedate dueon', note: 'note notes remark remarks comment comments narration' },
     payments: { shop: W_SHOP, mobile: W_MOB, area: W_AREA, date: 'date paymentdate paiddate receiptdate receiveddate dateofpayment dt paidon', amount: 'amount paid paidamount received receivedamount amountreceived amountpaid payment receipt collection collected amt credit',
       mode: 'mode paymentmode paymenttype type method paymentmethod paidby via modeofpayment paymentby', reference: 'reference ref refno referenceno chequeno chequenumber utr utrno txn txnid txnno transactionid transactionno receiptno voucherno',
@@ -1932,7 +2138,7 @@
     shop: [/shop|party|customer|client|retailer|outlet|store|firm|dealer|company|name/, /owner|contact|person|mobile|phone|address|area|note|remark|city|code|no$|number|date/],
     mobile: [/mobile|phone|whatsapp|contact|cell|mob|tel/, /person|name|date|time|address/], area: [/area|locat|zone|route|city|town|region|village|beat|market/], owner: [/owner|proprietor|person|incharge/], address: [/addr/], note: [/note|remark|comment/],
     opening: [/pending|remain|balance|due|outstanding|baki|baaki|udhar|receivable|opening|amount|amt|total/, /date|day|count|bill|invoice|no$|number|mode|paid|discount|qty|quant|pcs|piece|stock|bottle/], opening_date: [/date|asof|ason/],
-    date: [/date/, /due|paid|pay/], bill_no: [/bill|invoice|vch|voucher|challan|ref/, /date|amount|amt/], product: [/product|item|perfume|fragrance|article|descr|particular/], size: [/size|ml|volume/], qty: [/qty|quant|pcs|piece|nos/], rate: [/rate|price/],
+    date: [/date/, /due|paid|pay/], bill_no: [/bill|invoice|vch|voucher|challan|ref/, /date|amount|amt/], product: [/product|item|perfume|fragrance|article|descr|particular/], size: [/size|ml|volume/], qty: [/qty|quant|pcs|piece|nos/], rate: [/rate|price/], order_no: [/order.*(no|num|id)/], kind: [/sample/], collectable: [/collect/], prepaid: [/prepaid|prepay/], cod: [/^cod|cod$|cashondel/], status: [/status/], paytype: [/cash.*prepaid|prepaid.*cash/],
     amount: [/amount|amt|total|value/, /paid|due|disc|date|mode|type/], discount: [/disc/], type: [/type|kind/], payment: [/payment|pay|status|mode/, /date|due|paid|amount|amt/], paid: [/paid|received/, /date|on$/], paid_on: [/paid.*(on|date)|date.*paid|payment.*date/], due: [/due/],
     mode: [/mode|type|method|via/], reference: [/ref|utr|cheque|chq|txn|transaction/], debit: [/debit|^dr$|sale|billed/], credit: [/credit|^cr$|receipt|received|paid/], narration: [/narration|particular|descr|detail|remark|note/],
   };
@@ -2039,6 +2245,10 @@
       const j = keys.findIndex((k, c) => k && !used.has(c) && !IMP_ALL.has(k) && rx[0].test(k) && !(rx[1] && rx[1].test(k)));
       if (j >= 0) { map[f] = j; used.add(j); }
     });
+    if (kind === 'orders') {   // STATUS means the delivery state in an order register, the payment state in an old bills sheet
+      const reg = ['order_no', 'kind', 'prepaid', 'cod', 'collectable', 'paytype'].some(f => map[f] !== undefined);
+      if (!reg && map.status !== undefined) { if (map.payment === undefined) map.payment = map.status; delete map.status; }
+    }
     if (kind === 'shops') {   // several amount columns: the one that means "what is left" wins (then the left-most)
       const cand = impAmtCols(head, impOtherCols(map));
       if (cand.length > 1) map.opening = cand.slice().sort((a, b) => (IMP_AMT_LEFT.test(keys[a]) ? 0 : 1) - (IMP_AMT_LEFT.test(keys[b]) ? 0 : 1) || a - b)[0];
@@ -2049,7 +2259,7 @@
     const m = sh.map, k = sh.kind, out = [];
     if (k === 'skip') return out;
     if (m.shop === undefined && m.mobile === undefined && !(k === 'ledger' && impSheetShop(sh.name))) out.push('Shop name or Mobile');
-    if (k === 'orders') { if (m.date === undefined) out.push('Date'); if (m.product === undefined && m.amount === undefined && m.rate === undefined) out.push('Product or Amount'); }
+    if (k === 'orders') { if (m.date === undefined) out.push('Date'); if (m.product === undefined && m.amount === undefined && m.rate === undefined && m.prepaid === undefined && m.cod === undefined && m.collectable === undefined) out.push('Product or Total amount'); }
     if (k === 'payments') { if (m.date === undefined) out.push('Date'); if (m.amount === undefined) out.push('Amount'); }
     if (k === 'ledger') { if (m.date === undefined) out.push('Date'); if (m.debit === undefined && m.credit === undefined) out.push('Debit or Credit'); }
     return out;
@@ -2193,7 +2403,7 @@
     impStage('busy'); impProgress(0, 'Importing your file…', '');
     const r = await impSend(true);
     imp.committed = true; imp.final = r; imp.res = r.agg; imp.tab = ''; impPickTab(); imp.q = ''; impEl('impQ').value = '';
-    loadShops(true);
+    loadShops(true); if (view === 'register') loadRegister(1);
     impStage('done'); impRender();
   }
 
@@ -2306,12 +2516,14 @@
     const wb = XLSX.utils.book_new();
     const sheet = (head, rows) => { const ws = XLSX.utils.aoa_to_sheet([head].concat(rows || [])); ws['!cols'] = head.map(h => ({ wch: Math.max(13, h.length + 4) })); return ws; };
     const H = { shops: ['Shop name', 'Mobile', 'Area', 'Owner', 'Address', 'Note', 'Pending amount', 'As on date'],
+      register: ['DATE', 'ORDER NO', 'PARTY NAME', 'NUMBER', 'BILL NO.', 'ORDER/SAMPLE', 'QUANTITY', 'TOTAL AMOUNT', 'COLLECTABLE AMOUNT', 'PREPAID', 'COD', 'STATUS', 'Cash/Prepaid', 'Discount', 'REMARKS'],
       orders: ['Shop name', 'Mobile', 'Area', 'Date', 'Bill no', 'Type', 'Product', 'Size (ml)', 'Qty', 'Rate', 'Amount', 'Discount', 'Payment', 'Paid amount', 'Paid on', 'Due date', 'Note'],
       payments: ['Shop name', 'Mobile', 'Area', 'Date', 'Amount', 'Mode', 'Reference', 'Bill no', 'Note'] };
     const guide = [['Old data import — how to fill this file'], [''],
       ['Easiest: only the Shops sheet. One row per shop with its Mobile and the Pending amount. Each row is matched to a shop in the app by the MOBILE NUMBER (any format: 98250 12345, +91 98250-12345 …).'],
       ['Matched shops keep their own name; their pending amount is set from this file and blank Owner / Address / Mobile are filled in. Shops that are not in the app yet are added.'],
       ['Pending amount = what the shop still has to pay (a minus number = it paid in advance). The Mobile column can be used on its own when you do not know the exact shop name.'], [''],
+      ['Order register sheet: one row per order with DATE, ORDER NO, PARTY NAME, NUMBER, BILL NO., ORDER/SAMPLE, QUANTITY, TOTAL AMOUNT, COLLECTABLE AMOUNT, PREPAID, COD, STATUS, Cash/Prepaid, Discount, REMARKS.'],
       ['Orders sheet (old bills, optional): one row per perfume line. Rows with the same Bill no and Date make one bill. Only know the total? Leave Product empty and fill Amount.'],
       ['   Type: Sale / Display / Replacement / Return (empty = Sale).   Payment: Pending / Cash / UPI / Bank / Cheque / On sale / Free (empty = Pending).   Discount: 10% or an amount.'],
       ['   Do not list the pending amount again as a bill — the Shops sheet already has it.'],
@@ -2319,7 +2531,13 @@
       ['Dates as dd/mm/yyyy. Amounts: numbers (commas, ₹ and 5000/- are fine). You can upload the same file again safely — what is already in the app is skipped.'], [''],
       ['Examples (typed here only to show the format — they are not imported):'], [''], ['Shops'], H.shops,
       ['Krishna Gift', '98251 12345', 'Adajan', 'Ramesh Patel', 'Shop 4, Rander Road', '', 12000, '01/04/2026'], ['Shree Perfumes', '+91 90000 11111', 'Vesu', '', '', 'near circle', 4500, ''], [''],
-      ['Orders'], H.orders,
+      ['Order register (one row per order - the Orders register screen shows these same columns)'], H.register,
+      ['09/10/2026', 'TM-2001', 'Krishna Gift', '98251 12345', 'B-210', 'ORDER', 12, 6000, 5000, 1000, 5000, 'Delivered', 'Cash', '', 'courier'],
+      ['09/10/2026', 'TM-2002', 'Shree Perfumes', '90000 11111', '', 'SAMPLE', 3, 0, 0, 0, 0, 'Delivered', '', '', 'tester pack'],
+      ['10/10/2026', 'TM-2003', 'Brand New Shop', '91234 56780', '', 'ORDER', 5, 3000, 0, 3000, 0, 'Pending', 'Prepaid', '10%', 'new party - shop is created'], [''],
+      ['   ORDER/SAMPLE: ORDER or SAMPLE (a sample is free, nothing to collect).   STATUS: Delivered / Pending / Returned.   Cash/Prepaid: Cash (collect on delivery) or Prepaid (paid online).   Collectable / COD = what the courier still has to collect; PREPAID = paid in advance.'],
+      ['   A PARTY NAME that is not in the app yet is created as a new shop (NUMBER is saved on it). TOTAL AMOUNT may be left empty when PREPAID + COD is filled.'], [''],
+      ['Orders (old bills with perfume lines)'], H.orders,
       ['Krishna Gift', '98251 12345', '', '05/04/2026', 'B-101', 'Sale', 'Oud Royale', 50, 6, 450, '', '10%', 'Pending', '', '', '20/04/2026', ''],
       ['Krishna Gift', '98251 12345', '', '05/04/2026', 'B-101', 'Sale', 'Rose Mist', 30, 4, 300, '', '', '', '', '', '', ''],
       ['Krishna Gift', '98251 12345', '', '12/05/2026', 'B-102', 'Sale', '', '', '', '', 8000, '', 'Paid cash', '', '', '', 'old bill - total only'], [''],
@@ -2327,6 +2545,7 @@
     const g = XLSX.utils.aoa_to_sheet(guide); g['!cols'] = [{ wch: 130 }];
     XLSX.utils.book_append_sheet(wb, g, 'Read me');
     XLSX.utils.book_append_sheet(wb, sheet(H.shops), 'Shops');
+    XLSX.utils.book_append_sheet(wb, sheet(H.register), 'Order register');
     XLSX.utils.book_append_sheet(wb, sheet(H.orders), 'Orders');
     XLSX.utils.book_append_sheet(wb, sheet(H.payments), 'Payments');
     XLSX.writeFile(wb, 'retail-import-template.xlsx');
@@ -2412,6 +2631,223 @@
     else if (a === 'again') { impReset(); impStage('pick'); }
     else if (a === 'go') impCommit();
     else if (a === 'dl') impProblemsXlsx();
+  });
+
+  // ---------- orders register: every order of every shop in the register's columns, with edit / delete ----------
+  const rg = { rows: [], count: 0, totals: {}, page: 1, per: 100, sel: new Set(), seq: 0, derive: 'cod' };
+  const rgEl = (id) => document.getElementById(id);
+  const rgDash = (n) => Number(n) ? fm(n) : '<span class="sub">—</span>';
+  const rgStatCls = (r) => r.status_key === 'returned' ? 'c-red' : (r.status_key === 'delivered' ? 'c-green' : 'c-amber');
+  const rgPayLabel = (t) => t === 'prepaid' ? 'Prepaid' : (t === 'cash' ? 'Cash' : '');
+  function rgParams() {
+    return { q: rgEl('rgQ').value.trim(), from: rgEl('rgFrom').value, to: rgEl('rgTo').value, kind: rgEl('rgKind').value, status: rgEl('rgStatus').value, pay: rgEl('rgPay').value };
+  }
+  async function loadRegister(page) {
+    if (page) rg.page = page;
+    const my = ++rg.seq;
+    try {
+      const d = await withRetry(() => api.get('retail.register', Object.assign(rgParams(), { page: rg.page, per: rg.per })));
+      if (my !== rg.seq) return;
+      rg.rows = d.rows || []; rg.count = d.count || 0; rg.totals = d.totals || {};
+      const pages = Math.max(1, Math.ceil(rg.count / rg.per));
+      if (rg.page > pages) { rg.page = pages; return loadRegister(); }
+      rgRender();
+    } catch (err) {
+      if (my !== rg.seq) return;
+      rgEl('rgBody').innerHTML = `<tr><td colspan="17"><div class="alert error">${esc(err.message)}</div></td></tr>`;
+    }
+  }
+  function rgRender() {
+    const t = rg.totals;
+    rgEl('rgStN').innerHTML = rg.count + (t.samples ? ' <small>' + t.samples + ' sample' + (t.samples === 1 ? '' : 's') + '</small>' : '');
+    rgEl('rgStQ').textContent = (t.qty || 0).toLocaleString('en-IN');
+    rgEl('rgStT').textContent = fm(t.total || 0); rgEl('rgStP').textContent = fm(t.prepaid || 0); rgEl('rgStC').textContent = fm(t.cod || 0);
+    const tb = rgEl('rgBody');
+    if (!rg.rows.length) {
+      tb.innerHTML = `<tr><td colspan="17"><div class="empty-state">${rgEl('rgQ').value || rgEl('rgFrom').value || rgEl('rgTo').value || rgEl('rgKind').value || rgEl('rgStatus').value || rgEl('rgPay').value ? 'No order matches these filters.' : 'No orders yet — use “+ Add order” or “⬆ Import Excel”.'}</div></td></tr>`;
+    } else {
+      tb.innerHTML = rg.rows.map(r => `<tr data-id="${r.order_id}" class="${rg.sel.has(r.order_id) ? 'sel' : ''}">
+        <td class="ck"><input type="checkbox" data-ck="${r.order_id}"${rg.sel.has(r.order_id) ? ' checked' : ''}></td>
+        <td data-label="Date">${fmtD(r.date)}</td>
+        <td data-label="Order no"><b>${esc(r.order_no)}</b></td>
+        <td data-label="Party name" class="wrap wide"><b>${esc(r.party)}</b>${r.area ? `<div class="sub">${esc(r.area)}</div>` : ''}</td>
+        <td data-label="Number">${r.number ? esc(r.number) : '<span class="sub">—</span>'}</td>
+        <td data-label="Bill no.">${r.bill_no ? esc(r.bill_no) : '<span class="sub">—</span>'}</td>
+        <td data-label="Order/Sample"><span class="chip ${r.kind === 'sample' ? 'c-amber' : 'c-blue'}">${r.kind === 'sample' ? 'Sample' : 'Order'}</span></td>
+        <td data-label="Quantity" class="n">${r.qty}</td>
+        <td data-label="Total amount" class="n">${r.total ? fm(r.total) : '<span class="sub">—</span>'}${r.discount_amount ? `<div class="sub">billed ${fm(r.billed)}</div>` : ''}</td>
+        <td data-label="Collectable" class="n">${rgDash(r.collectable)}</td>
+        <td data-label="Prepaid" class="n">${rgDash(r.prepaid)}</td>
+        <td data-label="COD" class="n">${rgDash(r.cod)}</td>
+        <td data-label="Status"><span class="chip ${rgStatCls(r)}">${esc(r.status)}</span></td>
+        <td data-label="Cash/Prepaid">${r.pay_type ? `<span class="chip ${r.pay_type === 'prepaid' ? 'c-green' : 'c-grey'}">${rgPayLabel(r.pay_type)}</span>` : '<span class="sub">—</span>'}</td>
+        <td data-label="Discount">${r.discount ? esc(r.discount) : '<span class="sub">—</span>'}</td>
+        <td data-label="Remarks" class="wrap wide">${r.note ? esc(r.note) : '<span class="sub">—</span>'}</td>
+        <td class="wide act"><div class="row-actions"><button data-redit="${r.order_id}">Edit</button><button data-rdel="${r.order_id}" style="color:#c81e1e;">Delete</button></div></td>
+      </tr>`).join('');
+    }
+    const pages = Math.max(1, Math.ceil(rg.count / rg.per)), from = rg.count ? (rg.page - 1) * rg.per + 1 : 0, to = Math.min(rg.count, rg.page * rg.per);
+    rgEl('rgPager').innerHTML = `<span>${from}–${to} of ${rg.count}</span><span style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><select id="rgPer">${[50, 100, 200, 500].map(n => `<option value="${n}"${n === rg.per ? ' selected' : ''}>${n} / page</option>`).join('')}</select><button type="button" class="btn secondary" data-pg="-1"${rg.page <= 1 ? ' disabled' : ''}>‹ Prev</button><span>Page ${rg.page} / ${pages}</span><button type="button" class="btn secondary" data-pg="1"${rg.page >= pages ? ' disabled' : ''}>Next ›</button></span>`;
+    rgSelUi();
+  }
+  function rgSelUi() {
+    const n = rg.sel.size;
+    rgEl('rgBulk').classList.toggle('on', n > 0); rgEl('rgBulkN').textContent = n + ' selected';
+    const ids = rg.rows.map(r => r.order_id), all = rgEl('rgAll');
+    all.checked = ids.length > 0 && ids.every(i => rg.sel.has(i)); all.indeterminate = !all.checked && ids.some(i => rg.sel.has(i));
+  }
+  let rgT; const rgReload = () => { clearTimeout(rgT); rgT = setTimeout(() => { rg.page = 1; loadRegister(); }, 300); };
+  ['rgQ'].forEach(id => rgEl(id).addEventListener('input', rgReload));
+  ['rgFrom', 'rgTo', 'rgKind', 'rgStatus', 'rgPay'].forEach(id => rgEl(id).addEventListener('change', rgReload));
+  rgEl('rgClear').addEventListener('click', () => { ['rgQ', 'rgFrom', 'rgTo', 'rgKind', 'rgStatus', 'rgPay'].forEach(id => { rgEl(id).value = ''; }); rg.page = 1; loadRegister(); });
+  rgEl('rgBody').addEventListener('change', (e) => {
+    const c = e.target.closest('[data-ck]'); if (!c) return;
+    const id = Number(c.dataset.ck); if (c.checked) rg.sel.add(id); else rg.sel.delete(id);
+    c.closest('tr').classList.toggle('sel', c.checked); rgSelUi();
+  });
+  rgEl('rgAll').addEventListener('change', (e) => {
+    rg.rows.forEach(r => { if (e.target.checked) rg.sel.add(r.order_id); else rg.sel.delete(r.order_id); });
+    rgRender();
+  });
+  rgEl('rgBulkClr').addEventListener('click', () => { rg.sel.clear(); rgRender(); });
+  rgEl('rgBody').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.redit) rgOpen(rg.rows.find(r => r.order_id == b.dataset.redit));
+    else if (b.dataset.rdel) { const r = rg.rows.find(x => x.order_id == b.dataset.rdel); if (r) rgDelete([r.order_id], `order ${r.order_no} of ${r.party}`); }
+  });
+  rgEl('rgBulkDel').addEventListener('click', () => rgDelete([...rg.sel], rg.sel.size + ' selected order' + (rg.sel.size === 1 ? '' : 's')));
+  rgEl('rgPager').addEventListener('click', (e) => { const b = e.target.closest('[data-pg]'); if (b && !b.disabled) { rg.page += Number(b.dataset.pg); loadRegister(); window.scrollTo(0, 0); } });
+  rgEl('rgPager').addEventListener('change', (e) => { if (e.target.id === 'rgPer') { rg.per = Number(e.target.value); rg.page = 1; loadRegister(); } });
+  async function rgDelete(ids, what) {
+    if (!ids.length) return;
+    if (!confirm(`Delete ${what}?\n\nThe payments counted against ${ids.length === 1 ? 'it' : 'them'} go back to the shop's account. This cannot be undone.`)) return;
+    try {
+      const d = await api.post('retail.register_delete', { ids });
+      ids.forEach(i => rg.sel.delete(i));
+      showAlert(d.message); await loadRegister(); loadShops(true);
+    } catch (err) { showAlert(err.message, 'error'); }
+  }
+
+  // ----- add / edit one order
+  const rgModal = rgEl('rgModal');
+  const rgNum = (id) => { const v = rgEl(id).value.trim(); return v === '' ? null : Number(v); };
+  const rgDigits = (v) => String(v || '').replace(/\D+/g, '').slice(-10);
+  function rgFindShop(name, number) {
+    const d = rgDigits(number), k = String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    if (d.length >= 10) { const s = shops.find(x => rgDigits(x.mobile) === d); if (s) return s; }
+    if (k) return shops.find(x => String(x.shop_name).trim().toLowerCase().replace(/\s+/g, ' ') === k && (!d || !rgDigits(x.mobile)));
+    return null;
+  }
+  function rgPartyHint() {
+    const n = rgEl('rgParty').value.trim(), h = rgEl('rgPartyHint');
+    if (!n) { h.textContent = ''; h.className = 'rg-hint'; return; }
+    const s = rgFindShop(n, rgEl('rgNumber').value);
+    if (s) { h.className = 'rg-hint ok'; h.textContent = '✓ Shop: ' + s.shop_name + (s.area ? ' · ' + s.area : ''); }
+    else { h.className = 'rg-hint new'; h.textContent = '＋ “' + n + '” is not a shop yet — it will be created when you save.'; }
+  }
+  function rgBilled() {
+    const t = rgNum('rgTotal') || 0, ds = rgEl('rgDisc').value.trim(); let disc = 0;
+    if (ds) { const m = ds.match(/^(.+?)\s*%$/); const v = parseFloat(String(m ? m[1] : ds).replace(/[₹,\s]/g, '')); if (v > 0) disc = m ? Math.min(t, t * Math.min(v, 100) / 100) : Math.min(t, v); }
+    return Math.max(0, Math.round((t - disc) * 100) / 100);
+  }
+  function rgCalc(from) {   // Prepaid and COD always add up to the bill: the one just typed decides the other
+    const billed = rgBilled();
+    if (rgEl('rgKindSel').value === 'sample' || rgEl('rgStat').value === 'Returned') { rgEl('rgSum').innerHTML = '<span>Free — nothing to collect</span>'; return; }
+    if (from === 'prep' && rgEl('rgPrep').value !== '') { rgEl('rgCod').value = Math.max(0, Math.round((billed - rgNum('rgPrep')) * 100) / 100); rg.derive = 'cod'; }
+    else if (from === 'cod' && rgEl('rgCod').value !== '') { rgEl('rgPrep').value = Math.max(0, Math.round((billed - rgNum('rgCod')) * 100) / 100); rg.derive = 'prep'; }
+    else if (from === 'total') {
+      if (rg.derive === 'cod' && rgEl('rgPrep').value !== '') rgEl('rgCod').value = Math.max(0, Math.round((billed - rgNum('rgPrep')) * 100) / 100);
+      else if (rg.derive === 'prep' && rgEl('rgCod').value !== '') rgEl('rgPrep').value = Math.max(0, Math.round((billed - rgNum('rgCod')) * 100) / 100);
+    } else if (from === 'paytype') {
+      if (rgEl('rgPayT').value === 'prepaid' && rgEl('rgPrep').value === '' && rgEl('rgCod').value === '') { rgEl('rgPrep').value = billed; rgEl('rgCod').value = 0; }
+      if (rgEl('rgPayT').value === 'cash' && rgEl('rgPrep').value === '' && rgEl('rgCod').value === '') { rgEl('rgPrep').value = 0; rgEl('rgCod').value = billed; }
+    }
+    rgEl('rgSum').innerHTML = `<span>Bill after discount <b>${fm(billed)}</b></span><span>Prepaid <b>${fm(rgNum('rgPrep') || 0)}</b></span><span>To collect <b>${fm(Math.max(0, billed - (rgNum('rgPrep') || 0)))}</b></span>`;
+  }
+  function rgOpen(r) {
+    rgEl('rgAlert').innerHTML = ''; rg.derive = 'cod';
+    rgEl('rgShopList').innerHTML = shops.map(s => `<option value="${esc(s.shop_name)}">`).join('');
+    rgEl('rgTitle').textContent = r ? 'Edit order ' + r.order_no : 'Add order';
+    rgEl('rgSub').textContent = r ? r.party : 'Type the party name — a new name creates the shop';
+    rgEl('rgId').value = r ? r.order_id : '';
+    rgEl('rgParty').value = r ? r.party : ''; rgEl('rgNumber').value = r ? r.number : '';
+    rgEl('rgDate').value = r ? r.date : todayStr(); rgEl('rgOrderNo').value = r ? r.order_no : ''; rgEl('rgBillNo').value = r ? r.bill_no : '';
+    rgEl('rgKindSel').value = r ? r.kind : 'order';
+    rgEl('rgQty').value = r ? r.qty : ''; rgEl('rgTotal').value = r && r.total ? r.total : ''; rgEl('rgDisc').value = r ? r.discount : '';
+    rgEl('rgPayT').value = r ? r.pay_type : ''; rgEl('rgPrep').value = r ? r.prepaid : ''; rgEl('rgCod').value = r ? r.cod : '';
+    rgEl('rgStat').value = r ? (r.status_key === 'returned' ? 'Returned' : (r.status_key === 'delivered' ? 'Delivered' : 'Pending')) : 'Delivered';
+    rgEl('rgNote').value = r ? r.note : '';
+    const multi = !!r && r.lines > 1;
+    rgEl('rgQty').disabled = multi; rgEl('rgTotal').disabled = multi;
+    const box = rgEl('rgLinesBox');
+    box.style.display = multi ? '' : 'none';
+    if (multi) box.innerHTML = `This order has <b>${r.lines} perfume lines</b>, so Quantity and Total amount come from them. <button type="button" class="link" id="rgLinesBtn">Edit the lines</button>`;
+    rgCalc(''); rgPartyHint();
+    modalScrollY = window.scrollY; rgModal.classList.add('open');
+  }
+  function closeRg() { rgModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  rgEl('rgCancel').addEventListener('click', closeRg);
+  rgModal.addEventListener('click', (e) => {
+    if (e.target === rgModal) { closeRg(); return; }
+    if (e.target.id === 'rgLinesBtn') rgEditLines();
+  });
+  async function rgEditLines() {
+    const id = Number(rgEl('rgId').value), r = rg.rows.find(x => x.order_id === id); if (!r) return;
+    try {
+      const d = await api.get('retail.shop', { id: r.shop_id });
+      const o = (d.orders || []).find(x => x.order_id == id); if (!o) throw new Error('Order not found.');
+      currentShop = d.shop; closeRg(); openOrderModal(r.shop_id, o);
+    } catch (err) { rgEl('rgAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  }
+  rgEl('rgParty').addEventListener('input', () => {
+    const s = shops.find(x => String(x.shop_name).trim().toLowerCase() === rgEl('rgParty').value.trim().toLowerCase());
+    if (s && !rgEl('rgNumber').value.trim() && s.mobile) rgEl('rgNumber').value = s.mobile;
+    rgPartyHint();
+  });
+  rgEl('rgNumber').addEventListener('input', rgPartyHint);
+  ['rgTotal', 'rgDisc'].forEach(id => rgEl(id).addEventListener('input', () => rgCalc('total')));
+  rgEl('rgPrep').addEventListener('input', () => rgCalc('prep'));
+  rgEl('rgCod').addEventListener('input', () => rgCalc('cod'));
+  rgEl('rgPayT').addEventListener('change', () => rgCalc('paytype'));
+  ['rgKindSel', 'rgStat'].forEach(id => rgEl(id).addEventListener('change', () => rgCalc('')));
+  rgEl('rgSave').addEventListener('click', async () => {
+    const btn = rgEl('rgSave'); btn.disabled = true;
+    try {
+      const party = rgEl('rgParty').value.trim();
+      if (!party) throw new Error('Party name is empty.');
+      if (!rgEl('rgDate').value) throw new Error('Pick the date.');
+      const d = await api.post('retail.register_save', {
+        order_id: Number(rgEl('rgId').value) || 0, party, number: rgEl('rgNumber').value.trim(), date: rgEl('rgDate').value, order_no: rgEl('rgOrderNo').value.trim(), bill_no: rgEl('rgBillNo').value.trim(),
+        kind: rgEl('rgKindSel').value, qty: rgEl('rgQty').disabled ? null : rgNum('rgQty'), total: rgEl('rgTotal').disabled ? null : rgNum('rgTotal'), discount: rgEl('rgDisc').value.trim(),
+        prepaid: rgNum('rgPrep'), cod: rgNum('rgCod'), pay_type: rgEl('rgPayT').value, status: rgEl('rgStat').value, note: rgEl('rgNote').value.trim(),
+      });
+      closeRg(); showAlert(d.message);
+      await loadRegister(); loadShops(true);
+    } catch (err) { rgEl('rgAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+  rgEl('rgAdd').addEventListener('click', () => rgOpen(null));
+  rgEl('rgImport').addEventListener('click', () => openImport());
+  rgEl('rgExport').addEventListener('click', async () => {
+    const btn = rgEl('rgExport'); btn.disabled = true; const t0 = btn.textContent; btn.textContent = 'Preparing…';
+    try {
+      await impLoadLib();
+      const d = await api.get('retail.register', Object.assign(rgParams(), { all: 1 }));
+      const dm = (iso) => String(iso).slice(8, 10) + '/' + String(iso).slice(5, 7) + '/' + String(iso).slice(0, 4);
+      const head = ['DATE', 'ORDER NO', 'PARTY NAME', 'NUMBER', 'BILL NO.', 'ORDER/SAMPLE', 'QUANTITY', 'TOTAL AMOUNT', 'COLLECTABLE AMOUNT', 'PREPAID', 'COD', 'STATUS', 'Cash/Prepaid', 'Discount', 'REMARKS'];
+      const rows = (d.rows || []).map(r => [dm(r.date), r.order_no, r.party, r.number, r.bill_no, r.kind === 'sample' ? 'SAMPLE' : 'ORDER', r.qty, r.total, r.collectable, r.prepaid, r.cod, r.status, rgPayLabel(r.pay_type), r.discount, r.note]);
+      const ws = XLSX.utils.aoa_to_sheet([head].concat(rows));
+      ws['!cols'] = [12, 12, 28, 15, 12, 13, 10, 14, 18, 11, 11, 12, 13, 10, 30].map(w => ({ wch: w }));
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+      XLSX.writeFile(wb, 'retail-orders-' + todayStr() + '.xlsx');
+      if (d.count > rows.length) showAlert('Only the first ' + rows.length + ' of ' + d.count + ' orders were downloaded - narrow the dates and download again.', 'error');
+    } catch (err) { showAlert(err.message, 'error'); }
+    finally { btn.disabled = false; btn.textContent = t0; }
+  });
+  rgModal.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); rgEl('rgSave').click(); } });
+  rgEl('btnRegister').addEventListener('click', () => {
+    if (view === 'register') showView('list');
+    else { showView('register'); loadRegister(1); }
   });
 
   // ---------- start ----------

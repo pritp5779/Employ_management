@@ -145,6 +145,13 @@
   .acc-btn{white-space:nowrap;}
   .acc-menu{position:absolute; right:0; top:calc(100% + 6px); z-index:40; width:300px; max-width:calc(100vw - 32px); background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 12px 34px rgba(15,23,42,.16); padding:12px; display:none; text-align:left;}
   .acc-menu.open{display:block;}
+  .lk-opt{display:flex; align-items:flex-start; gap:9px; padding:9px 10px; margin-top:6px; border:1px solid var(--line); border-radius:10px; cursor:pointer;} .lk-opt:hover{background:#f8fafc;} .lk-opt.on{border-color:#a5b4fc; background:#eef2ff;} .lk-opt input{margin-top:3px; width:16px; height:16px; flex:none;} .lk-opt b{display:block; font-size:13px;} .lk-opt small{display:block; color:var(--muted); font-size:11.5px; line-height:1.4; margin-top:1px;}
+  .acc-menu .lk-opt small{margin-left:0; color:var(--muted); font-size:11.5px;} .acc-menu .lk-opt{padding:9px 10px; font-size:13px;}
+  .lk-row input[type=time]{width:120px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-weight:700;}
+  .lk-row{display:flex; align-items:center; gap:8px; margin:8px 0 4px; flex-wrap:wrap;} .lk-row input[type=number]{width:84px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-weight:700;}
+  .lk-row .chip{border:1px solid var(--line); background:#f8fafc; border-radius:16px; padding:5px 11px; font-size:12px; font-weight:700; cursor:pointer; min-height:0; width:auto;} .lk-row .chip:hover,.lk-row .chip.on{background:#eef2ff; border-color:#a5b4fc; color:#3730a3;}
+  .code-in:disabled.locked{width:74px; background:#f1f5f9; color:#64748b; cursor:not-allowed; border-style:dashed;}
+  .code-lk{display:inline-block; margin-left:4px; font-size:12px; cursor:help;}
   .acc-menu h4{margin:0 0 3px; font-size:14px;}
   .acc-menu .note{font-size:12px; color:var(--muted); line-height:1.45; margin-bottom:8px;}
   .acc-menu .list{max-height:250px; overflow:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:4px 0;}
@@ -180,6 +187,10 @@
         <div class="acc-pick" id="accPick" style="display:none;">
           <button type="button" class="btn secondary acc-btn" id="accBtn" title="Which departments' employees can open this page">Employee access</button>
           <div class="acc-menu" id="accMenu"></div>
+        </div>
+        <div class="acc-pick" id="lkPick" style="display:none;">
+          <button type="button" class="btn secondary acc-btn" id="lkBtn" title="How long after allocation an Employee can add or change an order's code">Code lock</button>
+          <div class="acc-menu" id="lkMenu"></div>
         </div>
       </div>
     </div>
@@ -556,7 +567,7 @@
       : `<button type="button" class="cx-btn" onclick="cancelOrder('${k}', true, this)">✕ Cancel</button>`);
     return `<tr class="${o.cancelled ? 'row-cx' : (o.allocated ? 'row-done' : '')}" data-k="${k}">
       <td><a href="#" class="ord-link" onclick="openDetail('${k}'); return false;" title="Open order details"><b>${esc(o.order_name)}</b></a><div class="sub">${fmtT(o.created_at)} <span class="src">${esc(o.source_label || o.store_src || o.store)}</span></div></td>
-      <td>${o.cancelled ? (o.code ? `<span class="code-tag">${esc(o.code)}</span>` : '<span class="sub">—</span>') : `<input type="text" class="code-in" data-k="${k}" maxlength="40" value="${esc(o.code || '')}" placeholder="Ex:-Og12345" autocomplete="off" spellcheck="false">`}</td>
+      <td>${o.cancelled ? (o.code ? `<span class="code-tag">${esc(o.code)}</span>` : '<span class="sub">—</span>') : o.code_locked ? `<input type="text" class="code-in locked" data-k="${k}" value="${esc(o.code || '')}" placeholder="Locked" disabled title="Locked — the time allowed for adding a code after allocation has passed. Ask Admin / HR."><span class="code-lk" title="Locked — ask Admin / HR">🔒</span>` : `<input type="text" class="code-in" data-k="${k}" maxlength="40" value="${esc(o.code || '')}" placeholder="Ex:-Og12345" autocomplete="off" spellcheck="false">`}</td>
       <td>${empCell}</td>
       <td>${esc(o.customer || 'Guest')}<div class="sub">${esc(o.phone || '')}</div>${phoneBox(o)}</td>
       <td>${o.items}${clrLine(o)}</td>
@@ -704,6 +715,7 @@
     } catch (err) {
       inp.value = o.code || ''; inp.classList.remove('saving'); inp.classList.add('failed'); setTimeout(() => inp.classList.remove('failed'), 2500);
       showAlert(err.message, 'error');
+      if (/locked/i.test(err.message || '')) { o.code_locked = 1; inp.classList.add('locked'); inp.placeholder = 'Locked'; inp.title = 'Locked — ask Admin / HR.'; return; }      // stays disabled
     }
     inp.disabled = false;
   }
@@ -893,6 +905,53 @@
       } catch (err) { b.disabled = false; showAlert(err.message, 'error'); }
     });
     menu.addEventListener('change', (ev) => { const c = ev.target.closest('input[type=checkbox]'); if (!c) return; if (c.checked) sel.add(c.value); else sel.delete(c.value); });
+    document.addEventListener('click', () => menu.classList.remove('open'));
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') menu.classList.remove('open'); });
+  })();
+
+
+  // ---- Admin / HR: how long after allocation an Employee login may add or change an order's code — ONE of: Off, N hours, or until a selected time
+  (function () {
+    const role = String((api.currentUser() || {}).role || '');
+    if (role !== 'Admin' && role !== 'HR') return;
+    const pick = document.getElementById('lkPick'), btn = document.getElementById('lkBtn'), menu = document.getElementById('lkMenu');
+    let cfg = { mode: 'off', hours: 6, time: '18:00' }, draft = null, ready = false;
+    const tl = (hm) => { const [h, m] = String(hm || '').split(':').map(Number); return (((h + 11) % 12) + 1) + ':' + String(m || 0).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM'); };
+    const label = () => {
+      btn.textContent = 'Code lock · ' + (cfg.mode === 'hours' ? cfg.hours + ' h' : cfg.mode === 'time' ? 'till ' + tl(cfg.time) : 'off');
+      btn.title = cfg.mode === 'hours' ? 'Employees can add or change a code for ' + cfg.hours + ' hour(s) after the order is allocated'
+        : cfg.mode === 'time' ? 'Employees can add or change a code until ' + tl(cfg.time) + ' after the order is allocated' : 'No time limit on adding codes';
+    };
+    const TIMES = [['10:00', '10 AM'], ['14:00', '2 PM'], ['18:00', '6 PM'], ['20:00', '8 PM'], ['23:59', '11:59 PM']];
+    const html = () => `
+      <h4>Order code lock</h4>
+      <div class="note">Choose <b>one</b> rule. Applies to Employee logins only — after the limit the code box is locked and only Admin / HR can change it.</div>
+      <label class="lk-opt${draft.mode === 'off' ? ' on' : ''}"><input type="radio" name="lkm" value="off"${draft.mode === 'off' ? ' checked' : ''}><span><b>Off</b><small>No time limit</small></span></label>
+      <label class="lk-opt${draft.mode === 'hours' ? ' on' : ''}"><input type="radio" name="lkm" value="hours"${draft.mode === 'hours' ? ' checked' : ''}><span><b>Hours after allocation</b><small>Locks N hours after the order is allocated</small></span></label>
+      <div class="lk-row" data-for="hours"><input type="number" id="lkHrs" min="0.5" max="720" step="0.5" value="${draft.hours}" inputmode="decimal"><span>hours</span>${[1, 2, 6, 12, 24].map(h => `<button type="button" class="chip${Number(draft.hours) === h ? ' on' : ''}" data-h="${h}">${h} h</button>`).join('')}</div>
+      <label class="lk-opt${draft.mode === 'time' ? ' on' : ''}"><input type="radio" name="lkm" value="time"${draft.mode === 'time' ? ' checked' : ''}><span><b>Until a selected time</b><small>Locks at that clock time after allocation (if it is already past, the next day's)</small></span></label>
+      <div class="lk-row" data-for="time"><input type="time" id="lkTime" value="${draft.time}">${TIMES.map(([v, l]) => `<button type="button" class="chip${draft.time === v ? ' on' : ''}" data-t="${v}">${l}</button>`).join('')}</div>
+      <div class="foot"><button type="button" class="btn save" data-a="save">Save</button></div>`;
+    const draw = () => { menu.innerHTML = html(); menu.querySelectorAll('.lk-row').forEach(r => r.style.display = r.dataset.for === draft.mode ? '' : 'none'); };
+    api.get('order_codes.lock_get').then((d) => { cfg = { mode: d.mode || 'off', hours: Number(d.hours) || 6, time: d.time || '18:00' }; ready = true; label(); pick.style.display = ''; }).catch(() => {});
+    btn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!ready) return; if (menu.classList.toggle('open')) { draft = Object.assign({}, cfg); draw(); } });
+    menu.addEventListener('change', (ev) => {
+      if (ev.target.name === 'lkm') { draft.mode = ev.target.value; draw(); }
+    });
+    menu.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const c = ev.target.closest('.chip');
+      if (c) { if (c.dataset.h) { draft.hours = Number(c.dataset.h); } else { draft.time = c.dataset.t; } draw(); return; }
+      const b = ev.target.closest('button[data-a="save"]'); if (!b) return;
+      const hrs = Number((menu.querySelector('#lkHrs') || {}).value), tm = (menu.querySelector('#lkTime') || {}).value;
+      const body = { mode: draft.mode, hours: draft.mode === 'hours' ? hrs : draft.hours, time: draft.mode === 'time' ? tm : draft.time };
+      if (draft.mode === 'hours' && !(hrs > 0 && hrs <= 720)) { showAlert('Type the hours (0.5 to 720), or choose Off.', 'error'); return; }
+      if (draft.mode === 'time' && !tm) { showAlert('Pick the time.', 'error'); return; }
+      b.disabled = true;
+      try { const r = await api.post('order_codes.lock_set', body); cfg = { mode: r.mode, hours: Number(r.hours) || cfg.hours, time: r.time || cfg.time }; label(); menu.classList.remove('open'); showAlert(r.message || 'Saved.'); }
+      catch (err) { b.disabled = false; showAlert(err.message, 'error'); }
+    });
+    menu.addEventListener('input', (ev) => { if (ev.target.id === 'lkHrs') draft.hours = Number(ev.target.value) || draft.hours; if (ev.target.id === 'lkTime' && ev.target.value) draft.time = ev.target.value; });
     document.addEventListener('click', () => menu.classList.remove('open'));
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') menu.classList.remove('open'); });
   })();

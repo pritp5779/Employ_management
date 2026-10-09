@@ -148,6 +148,7 @@
   .pf-shots{display:flex; gap:6px; flex-wrap:wrap; flex:none;}
   .pf-shot{position:relative; width:46px; height:64px; border-radius:7px; overflow:hidden; background:#eceef2; border:1px solid var(--line); flex:none;}
   .pf-shot img{width:100%; height:100%; object-fit:cover; display:block;}
+  .pf-shot.gone{display:flex; align-items:center; justify-content:center; text-align:center; font-size:9px; line-height:1.15; font-weight:700; color:#8a93a3; padding:3px;}
   .pf-shot button{position:absolute; top:2px; right:2px; width:18px; height:18px; min-height:0; padding:0; border:0; border-radius:50%; background:rgba(17,24,39,.72); color:#fff; font-size:11px; line-height:1; cursor:pointer;}
   .pf-meta{flex:1; min-width:0; font-size:11.5px; color:var(--muted); line-height:1.5; overflow-wrap:anywhere;}
   .pf-meta b{display:block; color:var(--ink); font-size:12px;}
@@ -778,7 +779,7 @@
     const tile = `<span class="pf-tile ${kind}">${pfEsc(pfTileText(it))}</span>`;
     const proofs = it.proofs || [];
     const canRemove = !punched && need > 1;
-    const thumbs = proofs.map(p => `<span class="pf-shot"><img src="${ckPhotoUrl(p.file)}" alt="">${canRemove ? `<button type="button" title="Remove this screenshot" onclick="pfRemove(${Number(p.proof_id)})">×</button>` : ''}</span>`).join('');
+    const thumbs = proofs.map(p => (!p.file || Number(p.expired)) ? `<span class="pf-shot gone" title="Screenshot auto-deleted after 42 hours">Auto-<br>deleted</span>` : `<span class="pf-shot"><img src="${ckPhotoUrl(p.file)}" alt="">${canRemove ? `<button type="button" title="Remove this screenshot" onclick="pfRemove(${Number(p.proof_id)})">×</button>` : ''}</span>`).join('');
     if (done) {
       const last = proofs[proofs.length - 1];
       const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded');
