@@ -910,10 +910,9 @@
   })();
 
 
-  // ---- Admin / HR: how long after allocation an Employee login may add or change an order's code — ONE of: Off, N hours, or until a selected time
+  // ---- Admin (or any role ticked "Order Code Lock"): how long after allocation an Employee login may add or change an order's code — ONE of: Off, N hours, or until a selected time
   (function () {
-    const role = String((api.currentUser() || {}).role || '');
-    if (role !== 'Admin' && role !== 'HR') return;
+    // Shown only to Admin and to roles ticked for "Order Code Lock" on the Roles page (the server enforces it too).
     const pick = document.getElementById('lkPick'), btn = document.getElementById('lkBtn'), menu = document.getElementById('lkMenu');
     let cfg = { mode: 'off', hours: 6, time: '18:00' }, draft = null, ready = false;
     const tl = (hm) => { const [h, m] = String(hm || '').split(':').map(Number); return (((h + 11) % 12) + 1) + ':' + String(m || 0).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM'); };
@@ -933,7 +932,10 @@
       <div class="lk-row" data-for="time"><input type="time" id="lkTime" value="${draft.time}">${TIMES.map(([v, l]) => `<button type="button" class="chip${draft.time === v ? ' on' : ''}" data-t="${v}">${l}</button>`).join('')}</div>
       <div class="foot"><button type="button" class="btn save" data-a="save">Save</button></div>`;
     const draw = () => { menu.innerHTML = html(); menu.querySelectorAll('.lk-row').forEach(r => r.style.display = r.dataset.for === draft.mode ? '' : 'none'); };
-    api.get('order_codes.lock_get').then((d) => { cfg = { mode: d.mode || 'off', hours: Number(d.hours) || 6, time: d.time || '18:00' }; ready = true; label(); pick.style.display = ''; }).catch(() => {});
+    api.get('me.flags').then((f) => {
+      if (!(f.permissions || []).includes('order_code_lock')) return null;
+      return api.get('order_codes.lock_get');
+    }).then((d) => { if (!d) return; cfg = { mode: d.mode || 'off', hours: Number(d.hours) || 6, time: d.time || '18:00' }; ready = true; label(); pick.style.display = ''; }).catch(() => {});
     btn.addEventListener('click', (ev) => { ev.stopPropagation(); if (!ready) return; if (menu.classList.toggle('open')) { draft = Object.assign({}, cfg); draw(); } });
     menu.addEventListener('change', (ev) => {
       if (ev.target.name === 'lkm') { draft.mode = ev.target.value; draw(); }

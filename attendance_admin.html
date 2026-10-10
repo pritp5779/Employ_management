@@ -82,6 +82,32 @@
   .pfv-ask{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;}
   .pfv-ask input{flex:1 1 200px; min-width:0; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:13px;}
   .pfv-ask button{width:auto; min-height:0; padding:7px 12px; font-size:12.5px;}
+  /* Filter bar (search · All/Present/Absent · From → To · Today) and the tool buttons in the header */
+  .att-filters{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:4px 8px 4px; padding:10px; background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 1px 2px rgba(20,22,26,.04);}
+  .att-filters input, .att-filters select, .att-filters .btn{height:38px; box-sizing:border-box; font-size:13px; font-family:inherit; color:var(--ink); border:1px solid var(--line); border-radius:999px; background:#fff; margin:0; min-height:0; line-height:1;}
+  .att-filters input, .att-filters select{padding:0 14px;}
+  .att-filters .btn{width:auto; padding:0 18px; font-weight:700;}
+  .att-search{position:relative; flex:1 1 220px; min-width:0; display:block; margin:0;}
+  .att-search svg{position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none;}
+  .att-search input{width:100%; padding-left:36px;}
+  .att-sel{flex:0 0 auto; width:auto; min-width:116px; font-weight:600; cursor:pointer; -webkit-appearance:none; appearance:none; padding-right:34px !important;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center !important;}
+  .att-range{flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 0 0 2px;}
+  .att-range span{font-size:12.5px; color:var(--muted); font-weight:600;}
+  .att-range input{width:150px; padding:0 12px;}
+  .att-tools{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;}
+  .att-tools .btn{width:auto; height:36px;}
+  @media (max-width:860px){
+    .att-filters{margin:6px 10px 4px; gap:8px; border-radius:16px;}
+    .att-search{flex:1 1 100%;}
+    .att-sel{flex:1 1 0; min-width:0;}
+    .att-filters .btn{flex:0 0 auto;}
+    .att-range{flex:1 1 100%; order:5; padding:0;}
+    .att-range input{flex:1 1 0; min-width:0; width:auto;}
+    .topbar > div.att-tools{flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px;}
+    .topbar > div.att-tools::-webkit-scrollbar{display:none;}
+    .topbar > div.att-tools > button{flex:0 0 auto; width:auto; white-space:nowrap;}
+  }
 </style>
 </head>
 <body>
@@ -94,15 +120,29 @@
         <div id="attSummary" style="font-size:12.5px; color:var(--muted); margin-top:2px;"></div>
         <div id="liveStamp" role="button" tabindex="0" title="Updates by itself — click to refresh now" style="font-size:11.5px; color:var(--muted); margin-top:1px; cursor:pointer; user-select:none;"></div>
       </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <input type="text" id="empSearch" placeholder="Search employee..." style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:170px;">
-        <input type="date" id="datePick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
-        <button class="btn secondary" id="btnToday">Today</button>
+      <div class="att-tools">
         <button class="btn secondary" id="btnTiming" type="button" title="Set when each attendance day starts (same rule as Orders and Targets)">Day timing</button>
         <button class="btn secondary" id="btnRefused" type="button" title="Punch tries refused because the employee was outside their office area">Refused <span id="refusedCount" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
         <button class="btn secondary" id="btnReminders" type="button" title="Pop-up reminder on the employee's phone when they are at the office / past day start but not punched in">Reminders <span id="remindCount" style="display:none; background:#b45f06; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:4px;"></span></button>
         <button class="btn secondary" id="btnProofs" type="button" title="Instagram / YouTube comment proofs that must be uploaded before Punch In — and who they apply to">Punch-in proofs</button>
       </div>
+    </div>
+    <div class="att-filters">
+      <label class="att-search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="text" id="empSearch" placeholder="Search employee..." autocomplete="off"></label>
+      <select id="stFilter" class="att-sel" title="Show: all / present / absent / WFH / leave" aria-label="Filter by all, present, absent, WFH or leave">
+        <option value="all">All</option>
+        <option value="present">Present</option>
+        <option value="absent">Absent</option>
+        <option value="wfh">WFH</option>
+        <option value="leave">Leave</option>
+      </select>
+      <div class="att-range">
+        <input type="date" id="datePick" title="From date" aria-label="From date">
+        <span>to</span>
+        <input type="date" id="dateTo" title="To date (same as From = a single day)" aria-label="To date">
+      </div>
+      <button class="btn secondary" id="btnToday" type="button">Today</button>
     </div>
     <div class="content">
       <div id="alertBox"></div>
@@ -122,6 +162,22 @@
           <span id="attShownCount" style="font-size:12.5px; color:var(--muted);"></span>
           <button class="btn secondary" id="btnAttLoadMore" style="width:auto; display:none;">Load more</button>
         </div>
+      </div>
+
+      <div class="card" id="rangeCard" style="display:none;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:14px 20px 4px;">
+          <div id="rgChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+          <button type="button" class="btn secondary" id="rgDownload" disabled style="width:auto; min-height:34px; padding:0 14px; font-size:12.5px; white-space:nowrap;">&#8681; Download Excel</button>
+        </div>
+        <div style="padding:0 20px 8px; font-size:12px; color:var(--muted);">Tap an employee to see the day-by-day lines.</div>
+        <table>
+          <thead>
+            <tr><th>Employee</th><th>Present</th><th>WFH</th><th>Leave</th><th>Late</th><th>Absent</th><th>Hours</th></tr>
+          </thead>
+          <tbody id="rgBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
@@ -381,7 +437,19 @@
 
   let allRows = [];
 
+  // All / Present / Absent / WFH / Leave dropdown. Present = punched in; Absent = no punch and no day mark;
+  // WFH = day marked WFH; Leave = day marked Leave or Half leave. Works for one row (a day) in both views.
+  const stFilterEl = () => document.getElementById('stFilter').value;
+  function dayMatches(r, f) {            // r has punch_in / mark (and future, in the range view)
+    if (f === 'present') return !!r.punch_in;
+    if (f === 'absent') return !r.punch_in && !r.mark && !Number(r.future);
+    if (f === 'wfh') return !r.punch_in && r.mark === 'wfh';
+    if (f === 'leave') return !r.punch_in && (r.mark === 'leave' || r.mark === 'half_leave');
+    return true;
+  }
+  const matchesStatus = (r) => dayMatches(r, stFilterEl());
   function matchesSearch(r) {
+    if (!matchesStatus(r)) return false;
     const q = (document.getElementById('empSearch').value || '').trim().toLowerCase();
     if (!q) return true;
     return (r.full_name || '').toLowerCase().includes(q)
@@ -1394,7 +1462,106 @@
     } catch (e) { box.style.display = 'none'; }
   }
 
+  // ---- From -> To range: one summary row per employee, tap a row for its days ----
+  const dateFrom = document.getElementById('datePick'), dateTo = document.getElementById('dateTo');
+  const attCardEl = document.getElementById('attCard'), rangeCardEl = document.getElementById('rangeCard');
+  let rgData = null;
+  const rangeMode = () => !!(dateTo.value && dateFrom.value && dateTo.value > dateFrom.value);
+  const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dLabel = (d) => { const x = new Date(d + 'T00:00:00'); return String(x.getDate()).padStart(2, '0') + ' ' + x.toLocaleDateString('en-IN', { month: 'short' }) + ' · ' + WD[x.getDay()]; };
+  const dayStatusText = (r) => r.punch_in ? (r.punch_out ? 'Completed' : 'Working') + (Number(r.late_minutes) > 0 ? ' · Late ' + r.late_minutes + ' m' : '')
+    : (r.mark ? (MARKS[r.mark] ? MARKS[r.mark][0] : r.mark) : (Number(r.future) ? '' : 'Absent'));
+  const dayStatusHtml = (r) => {
+    if (r.punch_in) return (r.punch_out ? '<span class="badge">Completed</span>' : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">Working</span>')
+      + (Number(r.late_minutes) > 0 ? ` <span class="badge" style="background:#FFF4DB; color:#8a5a00;">Late ${r.late_minutes} m</span>` : '');
+    return r.mark ? markBadge(r.mark) : (Number(r.future) ? '<span style="color:var(--muted);">—</span>' : '<span class="badge inactive">Absent</span>');
+  };
+  function showMode() {
+    const rg = rangeMode();
+    attCardEl.style.display = rg ? 'none' : '';
+    rangeCardEl.style.display = rg ? '' : 'none';
+    const eb = document.getElementById('earlyBox'); if (rg && eb) eb.style.display = 'none';
+    return rg;
+  }
+  function renderRange() {
+    if (!rgData) return;
+    const q = document.getElementById('empSearch').value.trim().toLowerCase();
+    const sf = stFilterEl();
+    const list = (rgData.employees || []).filter(e => (!q || String(e.full_name).toLowerCase().includes(q) || String(e.employee_code || '').toLowerCase().includes(q))
+      && (sf === 'all' || (sf === 'leave' ? (e.summary.leave || 0) + (e.summary.half_leave || 0) : e.summary[sf]) > 0));
+    const T = rgData.totals || {};
+    const chip = (label, val, bg, fg) => `<span style="background:${bg}; color:${fg}; border-radius:8px; padding:6px 10px; font-size:12.5px;"><b>${val}</b> ${label}</span>`;
+    document.getElementById('rgChips').innerHTML = chip('days', rgData.days, '#f1f5f9', '#334155') + chip('present days', T.present || 0, '#e7f7ee', '#0f7a41')
+      + (T.wfh ? chip('WFH', T.wfh, '#e0f2fe', '#075985') : '') + ((T.leave || T.half_leave) ? chip('leave', (T.leave || 0) + (T.half_leave ? ' + ' + T.half_leave + ' half' : ''), '#f3e8ff', '#6b21a8') : '')
+      + chip('late', T.late || 0, '#FFF4DB', '#8a5a00') + chip('absent', T.absent || 0, '#fde8e8', '#c81e1e') + chip('hours', T.hours || 0, '#EEF2FF', '#3730a3');
+    document.getElementById('rgBody').innerHTML = list.length ? list.map(e => {
+      const m = e.summary;
+      return `<tr class="rg-row" data-eid="${e.employee_id}" style="cursor:pointer;">
+        <td data-label="Employee" style="font-weight:600;">${attr(e.full_name)}<div style="font-size:11.5px; color:var(--muted); font-weight:400;">${attr(e.employee_code || '')}</div></td>
+        <td data-label="Present">${m.present}</td>
+        <td data-label="WFH">${m.wfh || 0}</td>
+        <td data-label="Leave">${(m.leave || 0) + (m.half_leave ? ' + ' + m.half_leave + ' half' : '')}</td>
+        <td data-label="Late">${m.late}${m.late ? ` <span style="color:var(--muted); font-size:11.5px;">(${m.late_minutes} m)</span>` : ''}</td>
+        <td data-label="Absent">${m.absent ? `<b style="color:#c81e1e;">${m.absent}</b>` : 0}</td>
+        <td data-label="Hours">${m.hours}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="7" class="empty-state">No employee matches.</td></tr>';
+  }
+  document.getElementById('rgBody').addEventListener('click', (ev) => {
+    const tr = ev.target.closest('tr.rg-row'); if (!tr || !rgData) return;
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains('rg-detail')) { next.remove(); return; }
+    const e = (rgData.employees || []).find(x => String(x.employee_id) === tr.dataset.eid); if (!e) return;
+    const det = document.createElement('tr'); det.className = 'rg-detail';
+    const sf = stFilterEl();
+    const shownDays = e.days.filter(r => dayMatches(r, sf));
+    det.innerHTML = `<td colspan="7" style="background:#f8fafc; padding:6px 14px;">` + shownDays.map(r => `
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:6px 0; border-bottom:1px solid var(--line); font-size:12.5px;${Number(r.future) ? ' opacity:.45;' : ''}">
+        <span style="min-width:96px; font-weight:600;">${dLabel(r.date)}</span>
+        <span style="min-width:150px;">${fmtT(r.punch_in)} → ${fmtT(r.punch_out)}</span>
+        <span style="min-width:48px;">${r.hours !== null ? r.hours + ' h' : '—'}</span>
+        <span>${dayStatusHtml(r)}</span>
+      </div>`).join('') + '</td>';
+    tr.after(det);
+  });
+  async function loadRange() {
+    const from = dateFrom.value, to = dateTo.value;
+    currentAttDate = from;
+    rgData = null; document.getElementById('rgDownload').disabled = true;
+    document.getElementById('rgChips').innerHTML = '';
+    document.getElementById('rgBody').innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+    const label = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    document.getElementById('attSummary').textContent = `${label(from)} → ${label(to)} · day-wise summary`;
+    try {
+      const d = await api.get('attendance.range', { from, to });
+      if (from !== dateFrom.value || to !== dateTo.value) return;       // dates changed meanwhile
+      rgData = d; document.getElementById('rgDownload').disabled = false;
+      document.getElementById('attSummary').textContent = `${label(from)} → ${label(to)} · ${d.days} days · ${d.totals.present} present-days · ${d.totals.absent} absent-days`;
+      renderRange();
+      liveEl.style.color = 'var(--muted)';
+      liveEl.textContent = 'Date range · loaded ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' (not live — click to reload)';
+    } catch (err) {
+      document.getElementById('rgBody').innerHTML = `<tr><td colspan="7"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+  document.getElementById('rgDownload').addEventListener('click', () => {
+    if (!rgData) return;
+    if (typeof XLSX === 'undefined') { alert('Excel export could not load. Check your internet connection and try again.'); return; }
+    const rows = [], sum = [['Employee', 'Code', 'Present', 'WFH', 'Leave', 'Half leave', 'Holiday / week off', 'Late', 'Late minutes', 'Absent', 'Hours']];
+    rgData.employees.forEach(e => {
+      const m = e.summary;
+      sum.push([e.full_name, e.employee_code || '', m.present, m.wfh || 0, m.leave || 0, m.half_leave || 0, m.off || 0, m.late, m.late_minutes, m.absent, m.hours]);
+      e.days.forEach(r => rows.push({ Employee: e.full_name, Code: e.employee_code || '', Date: r.date, Day: WD[r.weekday], 'Punch In': r.punch_in ? fmtT(r.punch_in) : '', 'Punch Out': r.punch_out ? fmtT(r.punch_out) : '', Hours: r.hours !== null ? r.hours : '', Status: dayStatusText(r), 'Late (min)': Number(r.late_minutes) > 0 ? r.late_minutes : '' }));
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Day-wise');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), 'Summary');
+    XLSX.writeFile(wb, `Attendance_${rgData.from}_to_${rgData.to}.xlsx`);
+  });
+
   async function load() {
+    if (!dateTo.value || dateTo.value < dateFrom.value) dateTo.value = dateFrom.value;
+    if (showMode()) { loadRange(); return; }
     const date = document.getElementById('datePick').value || todayStr();
     currentAttDate = date;
     const tbody = document.getElementById('tableBody');
@@ -1567,10 +1734,11 @@
     liveEl.textContent = '● Live · updated ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
   async function refreshLive(force) {
+    if (rangeMode()) return;                                  // a From → To range is not live-updated
     if (liveBusy || (document.hidden && !force)) return;
     const pick = document.getElementById('datePick');
     const t = todayStr();
-    if (liveDay && liveDay !== t && pick.value === liveDay) { liveDay = t; pick.value = t; load(); return; }   // a new day started while the page was open
+    if (liveDay && liveDay !== t && pick.value === liveDay) { liveDay = t; pick.value = t; dateTo.value = t; load(); return; }   // a new day started while the page was open
     liveDay = t;
     const date = pick.value || t;
     liveBusy = true;
@@ -1599,18 +1767,20 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLive(true); });
   window.addEventListener('focus', () => refreshLive(true));
   window.addEventListener('online', () => refreshLive(true));
-  liveEl.addEventListener('click', () => refreshLive(true));
+  liveEl.addEventListener('click', () => (rangeMode() ? loadRange() : refreshLive(true)));
   liveEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); refreshLive(true); } });
 
-  document.getElementById('datePick').addEventListener('change', load);
-  document.getElementById('btnToday').addEventListener('click', () => { document.getElementById('datePick').value = todayStr(); load(); });
+  dateFrom.addEventListener('change', () => { if (!dateFrom.value) return; if (!dateTo.value || dateTo.value < dateFrom.value) dateTo.value = dateFrom.value; load(); });
+  dateTo.addEventListener('change', () => { if (!dateTo.value) { dateTo.value = dateFrom.value; return load(); } if (dateTo.value < dateFrom.value) dateFrom.value = dateTo.value; load(); });
+  document.getElementById('btnToday').addEventListener('click', () => { dateFrom.value = todayStr(); dateTo.value = dateFrom.value; load(); });
+  document.getElementById('stFilter').addEventListener('change', () => { if (rangeMode()) renderRange(); else renderTable(); });
   let searchTimer = null;
   document.getElementById('empSearch').addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(renderTable, 150);
+    clearTimeout(searchTimer);  
+    searchTimer = setTimeout(() => (rangeMode() ? renderRange() : renderTable()), 150);
   });
   // The day-start rule decides which date is "today", so wait for it first.
-  timingReady.then(() => { document.getElementById('datePick').value = todayStr(); load(); });
+  timingReady.then(() => { dateFrom.value = todayStr(); dateTo.value = dateFrom.value; load(); });
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
