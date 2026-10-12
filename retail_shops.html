@@ -30,8 +30,24 @@
   .loc-note.ok{background:#ecfdf5; border-color:#a7f3d0; color:#065f46;} .loc-note.bad{background:#fef2f2; border-color:#fecaca; color:#991b1b;}
   .dl{display:grid; grid-template-columns:2fr 60px 50px 80px 70px; gap:8px; font-size:13px; align-items:center; padding:6px 0; border-bottom:1px dashed var(--line);}
   .dl.h{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line);}
-  .ol{display:grid; grid-template-columns:1fr 58px 52px 62px 74px 76px 26px; gap:6px; align-items:center; margin-bottom:6px;}
-  .ol .l-del{border-color:#bfe6cf; background:#f4fbf7;}
+  .ol{display:grid; grid-template-columns:1fr 58px 56px 80px 80px 26px; gap:6px; align-items:center; margin-bottom:6px;}
+  .dr{display:grid; grid-template-columns:1fr 120px 26px; gap:6px; align-items:center; margin-bottom:6px;}
+  .dr input{width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:0;}
+  .dr .rm{background:none; border:none; color:#c81e1e; font-size:16px; cursor:pointer; padding:0; min-height:0; line-height:1;}
+  .dsp{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line);} .dsp:last-child{border-bottom:none;}
+  .dsp .m{font-size:14px;} .dsp .m b{font-weight:700;}
+  #pfSug{position:fixed; z-index:300; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(17,24,39,.18); max-height:260px; overflow-y:auto; display:none; padding:4px;}
+  #pfSug div{padding:9px 10px; border-radius:7px; font-size:14px; cursor:pointer; line-height:1.3;} #pfSug div.on, #pfSug div:hover{background:#eef2ff;}
+  #pfSug b{font-weight:700; color:#1d4ed8;} #pfSug .none{color:var(--muted); cursor:default; font-size:12.5px;} #pfSug .none:hover{background:none;}
+  .pchips{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;} .pchip{background:#eef2ff; color:#1d4ed8; border-radius:99px; padding:4px 6px 4px 11px; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
+  .pchip button{background:none; border:none; color:#6b7280; font-size:15px; line-height:1; cursor:pointer; padding:0 4px; min-height:0;}
+  .setrow{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 2px; border-bottom:1px solid var(--line);} .setrow:last-child{border-bottom:none;}
+  .setpick{border:1px solid var(--line); border-radius:10px; max-height:230px; overflow-y:auto;} .setpick label{display:flex; gap:9px; align-items:center; padding:8px 11px; border-bottom:1px solid #f3f4f6; font-size:13.5px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:500; color:var(--text,#111827); margin:0;}
+  .setpick label input{width:16px; height:16px; min-height:0; margin:0;} .setpick .more{padding:8px 11px; font-size:12px; color:var(--muted);}
+  .blockbox{background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; margin-bottom:12px;}
+  .blockbox .r{display:flex; justify-content:space-between; gap:10px; border-top:1px dashed #fecaca; margin-top:6px; padding-top:6px; font-size:12.5px;}
+  #pfSug .st{color:#f59e0b; margin-right:5px;}
+  .duechips{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;}
   .dbar{height:7px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:3px; width:74px;}
   .dbar i{display:block; height:100%; background:#16a34a;}
   .dbar.part i{background:#f59e0b;} .dbar.none i{background:#e5e7eb;}
@@ -78,6 +94,13 @@
   .iv-hint{position:absolute; left:0; right:0; bottom:max(14px, env(safe-area-inset-bottom)); text-align:center; color:#fff; font-size:12px; opacity:0; pointer-events:none; transition:opacity .5s;}
   .iv-hint.show{opacity:.8;}
   #phPreview{width:100%; max-height:280px; object-fit:contain; border-radius:10px; border:1px solid var(--line); background:#f3f4f6; display:none;}
+  .ph-stage{position:relative; background:#000; border-radius:12px; overflow:hidden;}
+  .ph-stage video{display:block; width:100%; max-height:58vh; min-height:240px; object-fit:cover; background:#000;}
+  .ph-ctl{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 4px 2px;}
+  .ph-ctl .link{font-size:13px; min-width:84px;}
+  #phShutter{width:68px; height:68px; border-radius:50%; border:4px solid #1e3a8a; background:#fff; box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #c7d2fe; cursor:pointer; padding:0; flex:none;}
+  #phShutter:active{transform:scale(.94);} #phShutter:disabled{opacity:.4;}
+  .ph-msg{font-size:12.5px; color:var(--muted); margin:8px 0 0;}
   .cam-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:110px; border:2px dashed #c7d2fe; border-radius:12px; background:#eef2ff; color:#1e3a8a; font-weight:600; cursor:pointer; font-size:14px;}
   #dueCard .dr{display:grid; grid-template-columns:116px 1fr auto auto; gap:6px 12px; align-items:center; padding:10px 20px; border-bottom:1px solid var(--line);}
   #dueCard .dr:last-child{border-bottom:none;}
@@ -85,6 +108,36 @@
   #dueCard .ra{display:flex; gap:6px; flex-wrap:wrap;}
   a.pill-btn{text-decoration:none; display:inline-block;}
   .leaflet-container{font:inherit;}
+  /* payment timeline / outstanding */
+  .out-card{margin-bottom:14px;}
+  .out-top{display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:16px 20px;}
+  .out-top .lbl{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .out-top .amt{font-size:30px; font-weight:800; line-height:1.15;}
+  .out-top .facts{display:flex; gap:24px; flex-wrap:wrap; font-size:12px; color:var(--muted);} .out-top .facts b{display:block; font-size:15px; color:#111827;}
+  .tl-h{padding:10px 20px 2px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); border-top:1px solid var(--line);}
+  .tl{padding:0 20px 12px;}
+  .tl-r{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line);} .tl-r:first-child{border-top:0;}
+  .tl-dot{width:28px; height:28px; border-radius:50%; background:#e5e7eb; display:grid; place-items:center; font-size:12px; font-weight:700; flex:none;}
+  .tl-r.done .tl-dot{background:#dcfce7; color:#0f7a41;} .tl-r.overdue .tl-dot{background:#fee2e2; color:#c81e1e;} .tl-r.today .tl-dot{background:#fef3c7; color:#b45309;} .tl-r.upcoming .tl-dot{background:#dbeafe; color:#1d4ed8;} .tl-r.end .tl-dot{background:#0f7a41; color:#fff;}
+  .tl-m{flex:1; min-width:0; font-size:13.5px;} .tl-a{text-align:right; font-weight:700; white-space:nowrap; font-size:14px;} .tl-a .chip{display:block; margin-top:3px; font-weight:500;}
+  .tl details summary{cursor:pointer; font-size:12.5px; color:#2563eb; padding:8px 0 2px; list-style:none;}
+  .tl-note{font-size:12px; color:var(--muted); padding:2px 20px 14px;}
+  /* party picker: search + tick list, many parties */
+  .pp{position:relative; display:inline-block;}
+  .pp-trig{display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:13px; cursor:pointer; min-height:0; width:auto; max-width:260px;}
+  .pp.on .pp-trig{border-color:#f97316; background:#fff7ed; font-weight:600;}
+  .pp-lbl{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:190px;} .pp-x{color:#6b7280; padding:0 2px;} .pp-car{color:#6b7280; font-size:11px;}
+  .pp-pop{position:absolute; left:0; top:calc(100% + 6px); z-index:60; width:min(420px, calc(100vw - 24px)); background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 12px 32px rgba(0,0,0,.18); overflow:hidden; text-align:left;}
+  .pp-pop[hidden]{display:none;}
+  .pp-s{padding:10px; border-bottom:1px solid #eee;} .pp-s input{width:100%; padding:9px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; min-height:0;}
+  .pp-act{display:flex; justify-content:space-between; padding:7px 12px; border-bottom:1px solid #eee; font-size:12.5px;} .pp-act .link{font-size:12.5px;}
+  .pp-list{max-height:min(320px, 50vh); overflow:auto; -webkit-overflow-scrolling:touch;}
+  .pp-it{display:flex; gap:10px; align-items:center; padding:9px 12px; border-bottom:1px solid #f3f4f6; cursor:pointer; user-select:none;}
+  .pp-it.on{background:#fff7ed;} .pp-cb{width:18px; height:18px; border:2px solid #c7cbd1; border-radius:5px; display:grid; place-items:center; font-size:12px; color:#fff; flex:none;}
+  .pp-it.on .pp-cb{background:#f97316; border-color:#f97316;} .pp-m{flex:1; min-width:0; font-size:13.5px; font-weight:600;} .pp-m small{display:block; font-weight:400; color:#6b7280; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pp-b{font-weight:700; font-size:13px; color:#c81e1e; white-space:nowrap;} .pp-b.z{color:#9ca3af; font-weight:500;}
+  .pp-ft{display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f9fafb; font-size:13px;} .pp-ft .btn{width:auto; padding:8px 18px; min-height:0; font-size:13px;}
+  .pp-empty{padding:18px; text-align:center; color:#6b7280; font-size:13px;}
   /* ledger */
   .ld-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
   .ld-top h2{font-size:22px; margin:0 0 3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
@@ -125,7 +178,7 @@
   @media (max-width:820px){
     .grid2{grid-template-columns:1fr;}
     .tscroll{overflow:visible;} #rsShopsCard table, #rsOrdersCard table{min-width:0;}
-    .ol{grid-template-columns:46px 42px 50px 1fr 58px 22px; row-gap:4px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line);} .ol input{font-size:16px; padding:6px 4px;}
+    .ol{grid-template-columns:54px 52px 1fr 64px 22px; row-gap:4px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line);} .ol input{font-size:16px; padding:6px 4px;}
     .ol .l-name{grid-column:1 / -1;} .ol.h{display:none;}
     #totShopsCard table, #totTodayCard table{min-width:0;}
     .mchart{gap:6px; padding:14px 10px 0;}
@@ -225,6 +278,84 @@
     .imp-map-grid{grid-template-columns:1fr;}
     .imp-foot .b{width:100%;} .imp-foot .b .btn{flex:1 1 auto;}
   }
+  /* ---- Visits (daily plan + history) ---- */
+  .vp-wrap{max-width:980px;}
+  .vp-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .vp-nav{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+  .vp-nav button.sq{width:38px; height:38px; min-height:0; border:1px solid var(--line); background:#fff; border-radius:50%; font-size:18px; line-height:1; cursor:pointer; padding:0;}
+  .vp-nav input[type=date], .vp-fil input[type=date]{padding:8px 12px; border:1px solid var(--line); border-radius:999px; font-size:13.5px; background:#fff; width:auto; min-height:0;}
+  .vp-date{font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+  .vp-hero{background:#111827; color:#fff; border-radius:20px; padding:16px 20px; display:flex; align-items:center; gap:16px; margin-bottom:12px;}
+  .vp-ring{--p:0; width:68px; height:68px; border-radius:50%; background:conic-gradient(#22c55e calc(var(--p)*1%), #ffffff26 0); display:grid; place-items:center; flex:none;}
+  .vp-ring i{width:54px; height:54px; border-radius:50%; background:#111827; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:15px;}
+  .vp-hero .big{font-size:21px; font-weight:800; line-height:1.15;} .vp-hero .sm{font-size:13px; opacity:.75; margin-top:3px;}
+  .vp-tabs{display:flex; gap:8px; margin-bottom:10px;}
+  .vp-tab{flex:1; background:#fff; border:1.5px solid transparent; border-radius:16px; padding:9px 6px; text-align:center; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; min-height:0;}
+  .vp-tab b{display:block; font-size:21px; color:var(--ink); line-height:1.1;}
+  .vp-tab.on{border-color:var(--accent); background:#fff4ec; color:#9a3412;} .vp-tab.on b{color:#c2410c;}
+  .vp-tab.t-done.on{border-color:#16945a; background:#e4f6ec; color:#16945a;} .vp-tab.t-done.on b{color:#16945a;}
+  .vp-opts{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:2px 4px 10px; font-size:13px; color:var(--muted);}
+  .vp-opts label{display:flex; gap:6px; align-items:center; cursor:pointer; margin:0; text-transform:none; letter-spacing:0; font-weight:500; font-size:13px; color:var(--muted);}
+  .vp-opts input{width:16px; height:16px; min-height:0; margin:0; accent-color:var(--accent);}
+  .vp-area{padding:10px 4px 2px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); grid-column:1/-1;}
+  .vp-list{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start;}
+  .vp-shop{background:#fff; border-radius:20px; padding:14px; box-shadow:var(--shadow); border:1.5px solid transparent;}
+  .vp-shop.done{background:#f5fbf7; border-color:#bbf7d0;} .vp-shop.done .nm{color:#4b5563;}
+  .vp-tl{display:flex; gap:12px; align-items:flex-start;}
+  .vp-chk{width:36px; height:36px; min-height:0; padding:0; border-radius:50%; border:2.5px solid #d1d5db; display:grid; place-items:center; flex:none; font-size:18px; color:#fff; background:#fff; cursor:pointer; margin-top:1px;}
+  .vp-chk:active{transform:scale(.9);}
+  .vp-shop.done .vp-chk{background:#22c55e; border-color:#22c55e;}
+  .vp-info{flex:1; min-width:0;} .vp-info .nm{font-weight:700; font-size:15.5px; line-height:1.25; cursor:pointer;} .vp-info .nm:hover{text-decoration:underline;}
+  .vp-info .meta{font-size:12.5px; color:var(--muted); margin-top:2px;}
+  .vp-due{font-weight:700; font-size:12.5px; white-space:nowrap; color:#c81e1e; background:#fee2e2; border-radius:999px; padding:3px 9px;}
+  .vp-due.z{color:var(--muted); background:#f3f4f6; font-weight:500;}
+  .vp-stamp{font-size:12.5px; color:#16945a; font-weight:600; margin-top:4px;}
+  .vp-acts{display:flex; gap:8px; margin-top:12px; align-items:center; flex-wrap:wrap;}
+  .vp-pill{border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:13px; font-weight:600; background:#fff; cursor:pointer; min-height:0; width:auto; text-decoration:none; color:var(--ink); display:inline-flex; align-items:center;}
+  .vp-pill.go{color:#1d4ed8; border-color:#bfdbfe; background:#dbeafe;}
+  .vp-pill.main{background:#16945a; color:#fff; border-color:#16945a; width:100%; justify-content:center; padding:11px;}
+  .vp-pill.undo{margin-left:auto; color:var(--muted);}
+  .vp-links{margin-left:auto; display:flex; gap:14px;}
+  .vp-links button{background:none; border:none; font-size:12.5px; color:var(--muted); text-decoration:underline; text-underline-offset:2px; cursor:pointer; padding:0; min-height:0;}
+  .vp-after{margin-top:10px; padding-top:10px; border-top:1px dashed #bbf7d0; display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted);}
+  .vp-after .vp-pill{padding:6px 11px; font-size:12.5px;}
+  .vp-empty{grid-column:1/-1; text-align:center; background:#fff; border-radius:20px; padding:32px 20px; color:var(--muted);} .vp-empty b{display:block; color:var(--ink); font-size:17px; margin-bottom:6px;}
+  .vp-move{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; background:#fff; border-radius:16px; padding:12px 16px; margin-top:12px; font-size:13px; color:var(--muted);}
+  .vp-move .btn{width:auto; min-height:0; padding:9px 16px; font-size:13px;}
+  /* shop picker */
+  #vpQ{width:100%; padding:11px 16px; border:1px solid var(--line); border-radius:999px; font-size:14px; min-height:0; background:#fff;}
+  #vhCards{grid-template-columns:repeat(5,1fr);}
+  .vp-chips{display:flex; gap:8px; overflow-x:auto; padding:10px 0 6px; scrollbar-width:none;} .vp-chips::-webkit-scrollbar{display:none;}
+  .vp-chip{border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; min-height:0; width:auto;}
+  .vp-chip.on{background:#111827; color:#fff; border-color:#111827;}
+  .vp-chip.smart{border-color:#fed7aa; background:#fff4ec; color:#9a3412;} .vp-chip.smart.on{background:#c2410c; color:#fff; border-color:#c2410c;}
+  .vp-pick{border:1px solid var(--line); border-radius:14px; max-height:46vh; overflow:auto; -webkit-overflow-scrolling:touch;}
+  .vp-pk{display:flex; gap:12px; align-items:center; padding:10px 14px; border-bottom:1px solid #f3f4f6; cursor:pointer;} .vp-pk:last-child{border-bottom:none;}
+  .vp-pk .cb{width:24px; height:24px; border:2px solid #c7cbd1; border-radius:7px; display:grid; place-items:center; color:#fff; font-size:14px; flex:none;}
+  .vp-pk.on{background:#fff4ec;} .vp-pk.on .cb{background:var(--accent); border-color:var(--accent);}
+  .vp-pk .m{flex:1; min-width:0;} .vp-pk .m b{display:block; font-size:14.5px;} .vp-pk .m small{color:var(--muted); font-size:12px;}
+  /* history */
+  .vp-fil{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .vp-fil label{display:flex; align-items:center; gap:6px; margin:0; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  .vp-fil select{padding:8px 12px; border:1px solid var(--line); border-radius:999px; font-size:13px; background:#fff; width:auto; min-height:0;}
+  .vp-day{background:#fff; border-radius:20px; margin-bottom:10px; box-shadow:var(--shadow); overflow:hidden;}
+  .vp-dh{display:flex; align-items:center; gap:14px; padding:13px 18px; cursor:pointer;}
+  .vp-dh .d{min-width:110px;} .vp-dh .d b{display:block; font-size:15px;} .vp-dh .d small{color:var(--muted); font-size:12px;}
+  .vp-prog{flex:1; height:8px; background:#e5e7eb; border-radius:6px; overflow:hidden; min-width:60px;} .vp-prog i{display:block; height:100%; background:#22c55e;}
+  .vp-dh .n{font-size:13px; font-weight:700; white-space:nowrap;} .vp-dh .n em{font-style:normal; color:var(--muted); font-weight:500;}
+  .vp-dh .car{color:var(--muted); transition:transform .15s;} .vp-day.open .car{transform:rotate(180deg);}
+  .vp-db{display:none; border-top:1px solid var(--line); padding:4px 18px 12px;} .vp-day.open .vp-db{display:block;}
+  .vp-hr{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13.5px;} .vp-hr:last-of-type{border-bottom:none;}
+  .vp-hr .st{width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; flex:none; background:#f3f4f6; color:#9ca3af;} .vp-hr .st.d{background:#22c55e; color:#fff;}
+  .vp-hr .nm{flex:1; min-width:0; font-weight:600; cursor:pointer;} .vp-hr .nm small{display:block; font-weight:400; color:var(--muted); font-size:12px;}
+  .vp-hr .tag{font-size:12px; font-weight:700; padding:3px 9px; border-radius:999px; background:#fee2e2; color:#c81e1e; white-space:nowrap;} .vp-hr .tag.d{background:#e4f6ec; color:#16945a;}
+  .vp-dfoot{display:flex; justify-content:flex-end; padding-top:8px;}
+  @media (max-width:760px){
+    #vhCards{grid-template-columns:repeat(2,1fr);}
+    .vp-list{grid-template-columns:1fr;} .vp-hero{padding:14px 16px;} .vp-hero .big{font-size:18px;}
+    .vp-dh{flex-wrap:wrap; gap:8px 12px;} .vp-dh .d{min-width:0; flex:1;} .vp-prog{order:5; flex-basis:100%;}
+    .vp-fil > *{flex:1 1 auto;}
+  }
 </style>
 </head>
 <body>
@@ -234,10 +365,12 @@
     <div class="topbar">
       <div><h1>Retail Shops</h1><div class="sub" style="margin-top:2px;">Partner shops that keep our perfumes on display — shop, contact, pinned location and their orders</div></div>
       <div class="view-toggle" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnVisits">🗓 Visits</button>
         <button class="btn secondary" id="btnRegister">📋 Orders</button>
         <button class="btn secondary" id="btnLedgerAll">📒 Ledger</button>
         <button class="btn secondary" id="btnTotals">📊 Totals</button>
         <button class="btn secondary" id="btnMapView">📍 Map view</button>
+        <button class="btn secondary" id="btnSets">🧴 Perfume sets</button>
         <button class="btn" id="btnAddShop">+ Add Shop</button>
       </div>
     </div>
@@ -261,6 +394,7 @@
         <div class="card" id="rsShopsCard">
           <div class="card-head"><h2>Shops</h2>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span id="ppShops"></span>
               <select id="areaSel" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
               <div class="search-box"><input type="text" id="q" placeholder="Search shop / owner / mobile..."></div>
               <button type="button" class="btn secondary" id="btnImport" style="padding:8px 12px; font-size:13px;">⬆ Import Excel</button>
@@ -293,6 +427,7 @@
             </div>
           </div>
           <div class="rg-filters">
+            <span id="ppReg"></span>
             <input type="text" id="rgQ" placeholder="Search party / number / order no / bill no / remarks…">
             <label>From <input type="date" id="rgFrom"></label>
             <label>To <input type="date" id="rgTo"></label>
@@ -315,6 +450,7 @@
       <!-- ===== SHOP ===== -->
       <div id="viewShop" style="display:none;">
         <div style="margin-bottom:12px;"><button class="link" id="btnBack">← All shops</button></div>
+        <div class="card out-card" id="shOut"></div>
         <div class="grid2">
           <div class="card" style="margin-bottom:0;">
             <div class="card-head"><h2 id="shName">Shop</h2><div class="row-actions"><button id="btnEditShop">Edit</button><button id="btnShopLedger" style="color:#0f7a41; font-weight:600;">📒 Ledger</button><button id="btnNewOrderTop" style="color:#2563eb; font-weight:600;">+ New order</button><button class="danger-link" id="btnDelShop">Delete</button></div></div>
@@ -326,7 +462,7 @@
             </div>
           </div>
           <div class="card" style="margin-bottom:0;">
-            <div class="card-head"><h2>Display perfumes at this shop</h2><span class="chip c-blue" id="shDisplayCount">—</span></div>
+            <div class="card-head"><h2>Display perfumes at this shop</h2><div style="display:flex; gap:8px; align-items:center;"><span class="chip c-blue" id="shDisplayCount">—</span><button class="btn" id="btnAddDisplay" style="width:auto; padding:7px 12px; font-size:12.5px; min-height:0;">+ Add display</button></div></div>
             <div style="padding:8px 20px 12px;" id="shDisplay"></div>
           </div>
         </div>
@@ -351,6 +487,7 @@
           <span class="seg"><button type="button" data-per="today">Today</button><button type="button" data-per="month" class="on">This month</button><button type="button" data-per="custom">Custom</button></span>
           <input type="month" id="tMonth" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
           <span id="tCustom" style="display:none; gap:6px; align-items:center;"><input type="date" id="tFrom" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><span class="sub">to</span><input type="date" id="tTo" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"></span>
+          <span id="ppTot"></span>
           <select id="tArea" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
           <span class="sub" id="tRange"></span>
         </div>
@@ -391,6 +528,7 @@
           <div class="card-head"><h2>Shop-wise balance</h2>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <span class="seg" id="laFilter"><button type="button" data-f="due" class="on">With balance</button><button type="button" data-f="overdue">Overdue</button><button type="button" data-f="all">All shops</button></span>
+              <span id="ppLed"></span>
               <select id="laArea" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;"><option value="">All areas</option></select>
               <div class="search-box"><input type="text" id="laQ" placeholder="Search shop / owner..."></div>
             </div>
@@ -414,6 +552,7 @@
         </div>
         <div class="ld-phone" id="ldHero"></div>
         <div class="stat-grid ld-cards" id="ldCards"></div>
+        <div class="card out-card" id="ldTimeline"></div>
         <div class="card" id="ldCard">
           <div class="card-head"><h2>Ledger</h2>
             <div class="lrange"><span class="seg" id="ldPreset"><button type="button" data-p="month">This month</button><button type="button" data-p="last">Last month</button><button type="button" data-p="fy">This FY</button><button type="button" data-p="all" class="on">All time</button><button type="button" data-p="custom">Custom</button></span>
@@ -431,6 +570,41 @@
       </div>
 
       <!-- ===== MAP ===== -->
+      <!-- ===== VISITS (daily plan + history) ===== -->
+      <div id="viewVisits" style="display:none;">
+       <div class="vp-wrap">
+        <div class="vp-bar">
+          <span class="seg" id="vpTabs"><button type="button" data-t="today" class="on">Today's visits</button><button type="button" data-t="hist">History</button></span>
+          <button class="btn" id="vpAdd" style="width:auto;">+ Add shops</button>
+        </div>
+
+        <div id="vpToday">
+          <div class="vp-bar">
+            <div class="vp-nav"><button type="button" class="sq" id="vpPrev" aria-label="Previous day">‹</button><input type="date" id="vpDate"><button type="button" class="sq" id="vpNext" aria-label="Next day">›</button><button type="button" class="link" id="vpToTday" style="margin-left:6px;">Today</button></div>
+            <span class="vp-date" id="vpDateTxt"></span>
+          </div>
+          <div class="vp-hero" id="vpHero"></div>
+          <div class="vp-tabs" id="vpSt"></div>
+          <div class="vp-opts"><span id="vpDueTxt"></span><label><input type="checkbox" id="vpGrp"> Group by area</label></div>
+          <div class="vp-list" id="vpList"><div class="vp-empty">Loading…</div></div>
+          <div id="vpMove"></div>
+        </div>
+
+        <div id="vpHist" style="display:none;">
+          <div class="vp-fil">
+            <label>From <input type="date" id="vhFrom"></label>
+            <label>To <input type="date" id="vhTo"></label>
+            <span class="seg" id="vhPre"><button type="button" data-p="7">7 days</button><button type="button" data-p="30" class="on">30 days</button><button type="button" data-p="month">This month</button><button type="button" data-p="last">Last month</button></span>
+            <select id="vhSt"><option value="">All visits</option><option value="done">Done only</option><option value="pending">Pending only</option></select>
+            <span id="ppVisit"></span>
+            <button class="btn secondary" id="vhCsv" style="width:auto; min-height:0; padding:9px 14px; font-size:13px;">⬇ Excel</button>
+          </div>
+          <div class="stat-grid" id="vhCards"></div>
+          <div id="vhDays"><div class="empty-state">Loading…</div></div>
+        </div>
+       </div>
+      </div>
+
       <div id="viewMap" style="display:none;">
         <div class="card">
           <div class="card-head"><h2>All shops on the map</h2><span class="sub" id="mapNote">tap a pin to open the shop · grey = no order for 60+ days</span></div>
@@ -439,6 +613,23 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- Visit plan: choose the shops -->
+<div class="modal-overlay" id="vpModal">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="vpMTitle">Who do you visit?</h3>
+    <input type="text" id="vpQ" placeholder="🔍 Search shop / owner / area…" autocomplete="off">
+    <div class="vp-chips" id="vpChips"></div>
+    <div class="vp-pick" id="vpPick"></div>
+    <div class="actions" style="align-items:center; flex-wrap:wrap;">
+      <span id="vpCnt" style="font-weight:700; margin-right:auto;"></span>
+      <button type="button" class="btn secondary" id="vpSelAll" style="width:auto;">Select all shown</button>
+      <button type="button" class="btn secondary" id="vpClr" style="width:auto;">Clear</button>
+      <button type="button" class="btn secondary" id="vpMClose" style="width:auto;">Cancel</button>
+      <button type="button" class="btn" id="vpSave" style="width:auto;">Save plan</button>
+    </div>
+  </div>
 </div>
 
 <!-- Add / edit shop -->
@@ -456,6 +647,14 @@
         <div class="field"><label>Note (commission, timing…)</label><input id="fNote" placeholder="e.g. 20% on sale"></div>
       </div>
       <div class="field"><label>Address</label><input id="fAddr" placeholder="Near …, road, city"></div>
+      <div class="field" id="fSetWrap" style="border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fafbfc;">
+        <label>Perfume set</label>
+        <select id="fSet"><option value="">No set — I will choose the perfumes</option></select>
+        <div class="sub" id="fSetInfo" style="margin-top:6px;"></div>
+        <div class="pchips" id="fPerfs"></div>
+        <input id="fPerfAdd" data-pfadd="1" placeholder="+ Add a perfume…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="sub" style="margin-top:6px;">These perfumes come first in this shop's order search. <button type="button" class="link" id="btnPerfClear">Clear all</button></div>
+      </div>
       <div class="field-grid">
         <div class="field"><label>Opening balance (₹ owed before this app)</label><input id="fOpen" type="number" step="any" inputmode="decimal" placeholder="0"></div>
         <div class="field"><label>Owed since (optional)</label><input id="fOpenDate" type="date"></div>
@@ -489,23 +688,30 @@
     <div id="orderAlert"></div>
     <input type="hidden" id="oId"><input type="hidden" id="oShop">
     <div class="field-grid">
-      <div class="field"><label>Order type</label><select id="oType"><option value="display">Display stock (perfumes kept at shop)</option><option value="sale">Sale order (shop buys)</option><option value="replacement">Replacement</option><option value="return">Return (taken back)</option></select></div>
-      <div class="field"><label>Payment</label><select id="oPay"><option value="pending">Pending</option><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
+      <div class="field"><label>Order type</label><select id="oType"><option value="sale">Sale order</option><option value="return">Return</option></select></div>
       <div class="field"><label>Date</label><input type="date" id="oDate"></div>
-      <div class="field" id="oPaidWrap"><label>Paid so far (₹)</label><input type="number" id="oPaid" min="0" step="1" placeholder="0"></div>
-      <div class="field" id="oDueWrap"><label>Payment due date</label><input type="date" id="oDue"></div>
+      <div class="field" id="oModeWrap"><label>Payment mode</label><select id="oMode"><option value="cod">COD</option><option value="upi">UPI</option><option value="cheque">Cheque</option></select></div>
+      <div class="field" id="oPaidWrap"><label>Paid Amount (₹)</label><input type="number" id="oPaid" min="0" step="1" placeholder="0"></div>
     </div>
-    <div class="ol h"><span>Perfume name</span><span>ML</span><span>Qty</span><span>Deliv.</span><span>Price ₹</span><span style="text-align:right;">Total</span><span></span></div>
+    <div id="oLegacyPay" class="sub" style="display:none; margin:-4px 0 10px;"></div>
+    <div class="ol h"><span>Perfume name</span><span>ML</span><span>Qty</span><span>Price ₹</span><span style="text-align:right;">Total</span><span></span></div>
+    <datalist id="mlList"></datalist>
     <div id="oLines"></div>
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:4px 0 8px; font-size:13px; flex-wrap:wrap;"><button type="button" class="link" id="btnAddLine">+ Add line</button><span><span id="oQty">0</span> pcs ordered · <b style="color:#0f7a41;" id="oDel">0</b> delivered<span id="oPendWrap"> · <b style="color:#b45f06;" id="oPend">0</b> pending</span> · <b style="font-size:15px;" id="oTotal">₹0</b></span></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:4px 0 8px; font-size:13px; flex-wrap:wrap;"><button type="button" class="link" id="btnAddLine">+ Add line</button><span><span id="oQty">0</span> pcs · <b style="font-size:15px;" id="oTotal">₹0</b></span></div>
     <div id="oDiscRow" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 10px; font-size:13px;">
       <label for="oDiscVal" style="font-weight:600;">Discount</label>
       <input type="number" id="oDiscVal" min="0" step="any" inputmode="decimal" placeholder="0" style="width:96px; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
       <span class="seg" id="oDiscType"><button type="button" data-dt="pct" class="on" style="padding:7px 13px;">%</button><button type="button" data-dt="amt" style="padding:7px 13px;">₹</button></span>
       <span class="sub" id="oDiscNote"></span>
     </div>
+    <div id="oDuesBox" style="margin:0 0 12px; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fafbfc;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:8px;"><label style="font-weight:600; font-size:13px; margin:0;">Payment due dates</label><span class="sub" id="oDuesNote"></span></div>
+      <div id="oDues"></div>
+      <button type="button" class="link" id="btnAddDue">+ Add due date</button>
+      <div class="sub" style="margin-top:6px;">You get a reminder on every date until that part is paid. Leave an amount empty and the balance is shared equally.</div>
+    </div>
     <div id="oPartBox" style="display:none; background:#fdf3e3; border:1px solid #f0c36d; color:#8a5a00; border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin-bottom:10px;">
-      <b>Partly delivered</b> — <span id="oPartTxt"></span> still to deliver. Update the Deliv. box later and the order turns green.
+      <b>Marked partly delivered earlier</b> — <span id="oPartTxt"></span> not delivered. <button type="button" class="link" id="btnAllDel">Mark all delivered</button>
       <div style="margin-top:6px;"><label style="font-weight:600; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="oBillDel" style="width:14px; height:14px; min-height:0; margin:0;"> Bill only delivered pieces (<span id="oBillAmt">₹0</span>)</label></div>
     </div>
     <div class="field"><label>Note</label><input id="oNote" placeholder="e.g. delivered by Gopal, 2 testers"></div>
@@ -584,7 +790,13 @@
     <div id="photoAlert"></div>
     <input type="hidden" id="phShop">
     <input type="file" id="phFile" accept="image/*" style="display:none;">
-    <label class="cam-btn" for="phFile" id="phPick">📷 Take / choose photo</label>
+    <input type="file" id="phCap" accept="image/*" capture="environment" style="display:none;">
+    <div id="phLive" style="display:none;">
+      <div class="ph-stage"><video id="phVideo" playsinline muted autoplay></video></div>
+      <div class="ph-ctl"><button type="button" class="link" id="phGallery">🖼 Gallery</button><button type="button" id="phShutter" aria-label="Take photo"></button><button type="button" class="link" id="phFlip">🔄 Flip</button></div>
+    </div>
+    <button type="button" class="cam-btn" id="phPick" style="display:none;">📷 Open camera</button>
+    <div class="ph-msg" id="phMsg"></div>
     <img id="phPreview" alt="">
     <div class="sub" id="phInfo" style="margin-top:6px;"></div>
     <div class="field" style="margin-top:12px;"><label>Note (optional)</label><input id="phNote" placeholder="e.g. 8 bottles on counter, 2 sold"></div>
@@ -641,15 +853,72 @@
 </div>
 
 <!-- Payment -->
+<!-- Saved perfume sets -->
+<div class="modal-overlay" id="setsModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>Perfume sets</h3>
+    <div class="sub" style="margin:-8px 0 10px;">Make a set once, then pick it when you add a shop — its perfumes get selected for you.</div>
+    <div id="setsAlert"></div>
+    <div id="setsBody"></div>
+    <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><b style="font-size:14px;">Price by size</b><span class="sub">fills the price when you type the ML</span></div>
+      <div id="mlPriceBody" style="margin-top:8px;"></div>
+      <div style="display:flex; gap:12px; align-items:center; margin-top:4px;"><button type="button" class="link" id="btnMlAdd">+ Add size</button><button type="button" class="btn secondary" id="btnMlSave" style="width:auto; padding:6px 14px; font-size:12.5px; min-height:0;">Save prices</button><span class="sub" id="mlPriceMsg"></span></div>
+    </div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnSetsClose">Close</button><button type="button" class="btn" id="btnSetNew">+ New set</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="setEditModal">
+  <div class="modal" style="max-width:520px;">
+    <h3 id="setEditTitle">New set</h3>
+    <div id="setEditAlert"></div>
+    <input type="hidden" id="setId">
+    <div class="field"><label>Set name</label><input id="setName" placeholder="e.g. 20 ml — Standard" autocomplete="off"></div>
+    <div class="field"><label>Perfumes · <span id="setCount">0</span> selected</label>
+      <input id="setSearch" placeholder="Search perfume…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div style="display:flex; gap:12px; margin:6px 0;"><button type="button" class="link" id="btnSetAllShown">Select all shown</button><button type="button" class="link" id="btnSetClear">Clear all</button></div>
+      <div class="setpick" id="setPick"></div>
+    </div>
+    <div class="pchips" id="setChips"></div>
+    <div class="sub">Changing a set later does not change shops that already used it — they keep their own list.</div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnSetCancel">Cancel</button><button type="button" class="btn" id="btnSetSave">Save set</button></div>
+  </div>
+</div>
+
+<!-- Display stock: add / edit one entry -->
+<div class="modal-overlay" id="dispModal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="dispTitle">Add display</h3>
+    <div class="sub" id="dispSub" style="margin:-8px 0 12px;"></div>
+    <div id="dispAlert"></div>
+    <input type="hidden" id="dspId">
+    <div class="field-grid">
+      <div class="field"><label>Size (ml)</label><input id="dspMl" inputmode="decimal" placeholder="20"></div>
+      <div class="field"><label>Quantity</label><input type="number" id="dspQty" min="1" step="1" inputmode="numeric" placeholder="12"></div>
+      <div class="field"><label>Price per piece (₹)</label><input type="number" id="dspPrice" min="0" step="1" inputmode="numeric" placeholder="175"></div>
+      <div class="field"><label>Since</label><input type="date" id="dspSince"></div>
+    </div>
+    <div class="field"><label>Perfume name <span class="sub">(optional)</span></label><input id="dspName" placeholder="Search perfume name…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <div class="sub" id="dspPreview" style="margin:-4px 0 10px; font-weight:600;"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnDispCancel">Cancel</button><button type="button" class="btn" id="btnDispSave">Save</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="payModal">
-  <div class="modal" style="max-width:400px;">
+  <div class="modal" style="max-width:420px;">
     <h3>Payment</h3>
     <div class="sub" id="paySub" style="margin:-8px 0 12px;"></div>
     <div id="payAlert"></div>
     <input type="hidden" id="pId">
-    <div class="field"><label>Status</label><select id="pPay"><option value="cash">Paid — cash</option><option value="upi">Paid — UPI</option><option value="pending">Pending (part paid)</option><option value="on_sale">Pay on sale (display)</option><option value="free">Free / no charge</option></select></div>
-    <div class="field" id="pAmtWrap" style="display:none;"><label>Paid so far (₹)</label><input type="number" id="pAmt" min="0" step="1"></div>
-    <div class="field" id="pDueWrap" style="display:none;"><label>Payment due date</label><input type="date" id="pDue"></div>
+    <div class="sub" id="pLegacy" style="display:none; margin:-4px 0 10px;"></div>
+    <div class="field" id="pModeWrap"><label>Payment mode</label><select id="pMode"><option value="cod">COD</option><option value="upi">UPI</option><option value="cheque">Cheque</option></select></div>
+    <div class="field" id="pAmtWrap"><label>Paid so far (₹)</label><div style="display:flex; gap:8px;"><input type="number" id="pAmt" min="0" step="1" inputmode="decimal" placeholder="0" style="flex:1;"><button type="button" class="btn secondary" id="btnPayFull" style="width:auto; padding:8px 12px; min-height:0; font-size:13px;">Full amount</button></div><div class="sub" id="pLeft" style="margin-top:4px;"></div></div>
+    <div id="pDuesBox" style="margin:0 0 12px; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fafbfc;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:8px;"><label style="font-weight:600; font-size:13px; margin:0;">Payment due dates</label><span class="sub" id="pDuesNote"></span></div>
+      <div id="pDues"></div>
+      <button type="button" class="link" id="btnPayAddDue">+ Add due date</button>
+      <div class="sub" style="margin-top:6px;">You get a reminder on every date until that part is paid. Leave an amount empty and the balance is shared equally.</div>
+    </div>
     <div class="actions"><button type="button" class="btn secondary" id="btnPayCancel">Cancel</button><button type="button" class="btn" id="btnPaySave">Save</button></div>
   </div>
 </div>
@@ -670,7 +939,7 @@
         <details class="imp-help">
           <summary>What the file can contain</summary>
           <p><b>Shops / pending list</b> — Shop name, Mobile, Pending amount (and, if you have them, Area, Owner, Address, Note, As on date). Matched shops keep their own name; blank Owner / Address / Mobile in the app are filled from your file. A minus amount means the shop paid in advance.</p>
-          <p><b>Order register</b> — DATE, ORDER NO, PARTY NAME, NUMBER, BILL NO., ORDER/SAMPLE, QUANTITY, TOTAL AMOUNT, COLLECTABLE AMOUNT, PREPAID, COD, STATUS, Cash/Prepaid, Discount, REMARKS: one row per order. A PARTY NAME that is not a shop yet is added as a new shop (with its NUMBER). Samples are free; STATUS is Delivered / Pending / Returned. Every order then shows in <b>📋 Orders</b>, where you can edit or delete it.</p>
+          <p><b>Order register</b> — DATE, ORDER NO, PARTY NAME, NUMBER, BILL NO., ORDER/SAMPLE, QUANTITY, TOTAL AMOUNT, COLLECTABLE AMOUNT, PREPAID, COD, STATUS, Cash/Prepaid, Discount, REMARKS: one row per order. A PARTY NAME that is not a shop yet is added as a new shop (with its NUMBER). Samples are free; STATUS is Delivered / Pending / Returned. QUANTITY can be written any way you like (<b>10</b>, <b>4 pcs</b>, <b>10+5</b>, <b>2 box</b>, <b>60 X 4</b>) — the number is read from it and your own words are kept in REMARKS. Every order then shows in <b>📋 Orders</b>, where you can edit or delete it.</p>
           <p><b>Orders</b> (old bills with perfume lines) — Shop name or Mobile, Date, Bill no, Product, Size, Qty, Rate (or only Amount), Discount, Payment, Paid amount, Due date. Rows with the same Bill no make one bill.</p>
           <p><b>Payments</b> — Shop name or Mobile, Date, Amount, Mode (Cash / UPI / Bank / Cheque / Credit note), Reference, Bill no. A payment clears the oldest bills first, or the bill you name.</p>
           <p><b>Ledger</b> — Shop name or Mobile, Date, Debit, Credit, Narration: debit lines become bills, credit lines become payments, a line “Opening balance” becomes the shop's pending amount.</p>
@@ -722,7 +991,9 @@
   const dirUrl = (s) => `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
   const waUrl = (m) => { const d = String(m || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length === 10 ? '91' + d : d) : '#'; };
   const PAY_LABEL = { pending: 'Pending', cash: 'Paid · cash', upi: 'Paid · UPI', on_sale: 'Pay on sale', free: 'Free' };
-  const TYPE_LABEL = { display: 'Display', sale: 'Sale', replacement: 'Replacement', return: 'Return' };
+  const MODE_NAME = { cod: 'COD', upi: 'UPI', cheque: 'Cheque' };
+  const mlTxt = (m) => { m = String(m || '').trim(); return m ? (/ml$/i.test(m) ? m : m + ' ml') : ''; };
+  const TYPE_LABEL = { display: 'Display', sale: 'Sale order', replacement: 'Replacement', return: 'Return' };
   const fileUrl = (path) => api.buildUrl('files.view', { path, token: api.token() });
   const fmtDT = (d) => d ? new Date(String(d).replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
   const HAS_L = typeof L !== 'undefined';
@@ -787,6 +1058,8 @@
     document.getElementById('viewLedger').style.display = v === 'ledger' ? '' : 'none';
     document.getElementById('viewLedgerAll').style.display = v === 'ledgerAll' ? '' : 'none';
     document.getElementById('viewRegister').style.display = v === 'register' ? '' : 'none';
+    document.getElementById('viewVisits').style.display = v === 'visits' ? '' : 'none';
+    document.getElementById('btnVisits').textContent = v === 'visits' ? '☰ List view' : '🗓 Visits';
     document.getElementById('btnRegister').textContent = v === 'register' ? '☰ List view' : '📋 Orders';
     document.getElementById('btnLedgerAll').textContent = v === 'ledgerAll' ? '☰ List view' : '📒 Ledger';
     document.getElementById('btnMapView').textContent = v === 'map' ? '☰ List view' : '📍 Map view';
@@ -802,10 +1075,265 @@
   document.getElementById('btnTotals').addEventListener('click', () => { if (view === 'totals') showView('list'); else { showView('totals'); loadTotals(); } });
   document.getElementById('btnBack').addEventListener('click', () => showView('list'));
 
+  // ---------- Visits: the day's plan (Done / Pending) and the history ----------
+  const vp = { tab: 'today', date: '', st: 'all', grp: false, data: null, hist: null, histOpen: new Set(), draft: new Set(), area: 'All', smart: '', all: [], busy: false };
+  const vpEl = (id) => document.getElementById(id);
+  const vpAddDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  const vpDayName = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const vpTime = (t) => t ? new Date(String(t).replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+  const vpIsToday = () => vp.date === todayStr();
+  const vpWhen = () => vpIsToday() ? 'today' : (vp.date === vpAddDays(todayStr(), 1) ? 'tomorrow' : 'on ' + fmtDS(vp.date));
+
+  async function vpLoad() {
+    const my = ++vpSeq;
+    try { const d = await withRetry(() => api.get('retail.visit_plan', { date: vp.date })); if (my !== vpSeq) return; vp.data = d; vpDraw(); }
+    catch (err) { if (my !== vpSeq) return; vpEl('vpList').innerHTML = `<div class="vp-empty"><b>Could not load the plan</b>${esc(err.message)}</div>`; }
+  }
+  function vpDraw() {
+    const d = vp.data; if (!d) return;
+    const c = d.counts, pct = c.total ? Math.round(c.done * 100 / c.total) : 0, when = vpWhen();
+    vpEl('vpDate').value = vp.date; vpEl('vpDateTxt').textContent = vpDayName(vp.date);
+    vpEl('vpToTday').style.display = vpIsToday() ? 'none' : '';
+    vpEl('vpHero').innerHTML = c.total
+      ? `<div class="vp-ring" style="--p:${pct}"><i>${c.done}/${c.total}</i></div><div><div class="big">${c.total} shop${c.total === 1 ? '' : 's'} to visit ${esc(when)}</div><div class="sm">${c.done} done · ${c.pending} still pending${c.pending === 0 ? ' — all visited 🎉' : ''}</div></div>`
+      : `<div class="vp-ring"><i>0</i></div><div><div class="big">No shops planned ${esc(when)}</div><div class="sm">Tap “+ Add shops” and tick the shops you will visit.</div></div>`;
+    vpEl('vpSt').innerHTML = [['all', 'All', c.total], ['pending', 'Pending', c.pending], ['done', 'Done', c.done]]
+      .map(t => `<button type="button" class="vp-tab t-${t[0]}${vp.st === t[0] ? ' on' : ''}" data-st="${t[0]}"><b>${t[2]}</b>${t[1]}</button>`).join('');
+    const due = d.rows.filter(r => r.status !== 'done').reduce((a, r) => a + (r.due || 0), 0);
+    vpEl('vpDueTxt').textContent = c.pending && due > 0.5 ? `${inr(due)} to collect from the pending shops` : '';
+    let rows = d.rows.slice();
+    if (vp.st === 'pending') rows = rows.filter(r => r.status !== 'done'); else if (vp.st === 'done') rows = rows.filter(r => r.status === 'done');
+    rows.sort((a, b) => (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0) || (vp.grp ? String(a.area).localeCompare(String(b.area)) : 0));
+    const L = vpEl('vpList');
+    if (!d.rows.length) L.innerHTML = `<div class="vp-empty"><b>Plan ${vpIsToday() ? "today's" : 'this'} route</b>Choose the shops you want to visit. You will see the count here and tick each one when it is done.<div style="margin-top:14px;"><button type="button" class="btn" data-vp="open" style="width:auto;">+ Add shops</button></div></div>`;
+    else if (!rows.length) L.innerHTML = `<div class="vp-empty"><b>${vp.st === 'pending' ? 'Nothing pending 🎉' : 'Nothing done yet'}</b>${vp.st === 'pending' ? 'Every planned shop is visited.' : 'Tap the circle on a shop when you finish the visit.'}</div>`;
+    else { let h = '', last = null; rows.forEach(r => { if (vp.grp && r.area !== last) { h += `<div class="vp-area">${esc(r.area || 'No area')}</div>`; last = r.area; } h += vpCard(r); }); L.innerHTML = h; }
+    vpEl('vpMove').innerHTML = c.pending > 0
+      ? `<div class="vp-move"><span>${c.done} done · ${c.pending} left</span><button type="button" class="btn secondary" data-vp="moveall">Move ${c.pending} pending to ${vp.date === vpAddDays(todayStr(), 0) ? 'tomorrow' : fmtDS(vpAddDays(vp.date, 1))}</button></div>`
+      : (c.total ? `<div class="vp-move"><span>All ${c.total} shop${c.total === 1 ? '' : 's'} visited — well done.</span></div>` : '');
+  }
+  function vpCard(r) {
+    const done = r.status === 'done', dueB = r.due > 0.5 ? `<span class="vp-due">${inr(r.due)} due</span>` : '<span class="vp-due z">No dues</span>';
+    const lv = r.last_visit ? (r.last_days >= 30 ? `<span style="color:#c81e1e; font-weight:600;">last visit ${r.last_days} days ago</span>` : (r.last_days === 0 ? 'last visit today' : `last visit ${r.last_days} day${r.last_days === 1 ? '' : 's'} ago`)) : 'not visited yet';
+    const pin = r.lat != null && r.lng != null;
+    return `<div class="vp-shop${done ? ' done' : ''}" data-pid="${r.plan_id}" data-sid="${r.shop_id}">
+      <div class="vp-tl"><button type="button" class="vp-chk" data-vp="toggle" aria-label="${done ? 'Mark pending' : 'Mark done'}">${done ? '✓' : ''}</button>
+        <div class="vp-info"><div class="nm" data-vp="shop">${esc(r.shop_name)}</div><div class="meta">${esc([r.area, r.owner_name].filter(Boolean).join(' · ') || '—')} · ${lv}</div>${done ? `<div class="vp-stamp">✓ Visited${r.done_at ? ' at ' + esc(vpTime(r.done_at)) : ''}${r.done_by ? ' · ' + esc(r.done_by) : ''}</div>` : ''}</div>${dueB}</div>
+      ${done ? `<div class="vp-after"><span>Add:</span><button type="button" class="vp-pill" data-vp="photo">📷 Photo</button><button type="button" class="vp-pill" data-vp="order">🧾 Order</button><button type="button" class="vp-pill" data-vp="pay">₹ Payment</button><button type="button" class="vp-pill undo" data-vp="toggle">Undo</button></div>`
+        : `<div class="vp-acts">${r.mobile ? `<a class="vp-pill" href="tel:${esc(String(r.mobile).replace(/[^\d+]/g, ''))}">📞 Call</a>` : ''}${pin ? `<a class="vp-pill go" href="${dirUrl(r)}" target="_blank" rel="noopener">📍 Directions</a>` : ''}<div class="vp-links"><button type="button" data-vp="tmr">Tomorrow</button><button type="button" data-vp="rm">Remove</button></div></div>
+        <div class="vp-acts" style="margin-top:8px;"><button type="button" class="vp-pill main" data-vp="toggle">✓ Mark visit done</button></div>`}
+    </div>`;
+  }
+  async function vpCall(action, body, okMsg) {
+    if (vp.busy) return; vp.busy = true;
+    try { const d = await api.post(action, body); if (d.date === vp.date) { vp.data = d; vpDraw(); } else await vpLoad(); vp.hist = null; if (okMsg !== false) showAlert(okMsg || d.message); return d; }
+    catch (err) { showAlert(err.message, 'error'); }
+    finally { vp.busy = false; }
+  }
+  vpEl('viewVisits').addEventListener('click', async (e) => {
+    const st = e.target.closest('[data-st]'); if (st) { vp.st = st.dataset.st; vpDraw(); return; }
+    const b = e.target.closest('[data-vp]'); if (!b) return;
+    const card = b.closest('.vp-shop'), act = b.dataset.vp, pid = card ? Number(card.dataset.pid) : 0, sid = card ? Number(card.dataset.sid) : 0;
+    const row = vp.data && vp.data.rows.find(r => r.plan_id === pid);
+    if (act === 'open') openVpModal();
+    else if (act === 'toggle' && row) { const done = row.status !== 'done'; await vpCall('retail.visit_plan_mark', { plan_id: pid, status: done ? 'done' : 'pending' }, done ? '✓ ' + row.shop_name + ' marked as visited.' : row.shop_name + ' is pending again.'); }
+    else if (act === 'tmr' && row) await vpCall('retail.visit_plan_move', { date: vp.date, plan_ids: [pid], to_date: vpAddDays(vp.date, 1) }, row.shop_name + ' moved to ' + fmtDS(vpAddDays(vp.date, 1)) + '.');
+    else if (act === 'rm' && row) { if (confirm('Remove ' + row.shop_name + ' from this day’s plan?')) await vpCall('retail.visit_plan_remove', { plan_id: pid }); }
+    else if (act === 'moveall') { const ids = vp.data.rows.filter(r => r.status !== 'done').map(r => r.plan_id); if (ids.length && confirm('Move ' + ids.length + ' pending shop' + (ids.length === 1 ? '' : 's') + ' to ' + fmtDS(vpAddDays(vp.date, 1)) + '?')) await vpCall('retail.visit_plan_move', { date: vp.date, plan_ids: ids, to_date: vpAddDays(vp.date, 1) }); }
+    else if (act === 'shop' && sid) openShop(sid);
+    else if (act === 'photo' && sid) openPhotoModal(sid);
+    else if (act === 'order' && sid) openOrderModal(sid);
+    else if (act === 'pay' && sid) openRcv(sid);
+  });
+  vpEl('vpGrp').addEventListener('change', (e) => { vp.grp = e.target.checked; vpDraw(); });
+  const vpGo = (d) => { if (!d) return; vp.date = d; vp.st = 'all'; vpLoad(); };
+  vpEl('vpPrev').addEventListener('click', () => vpGo(vpAddDays(vp.date, -1)));
+  vpEl('vpNext').addEventListener('click', () => vpGo(vpAddDays(vp.date, 1)));
+  vpEl('vpToTday').addEventListener('click', () => vpGo(todayStr()));
+  vpEl('vpDate').addEventListener('change', (e) => vpGo(e.target.value));
+  vpEl('vpAdd').addEventListener('click', openVpModal);
+
+  // ---- choose the shops ----
+  const vpSmart = { due: ['⚠ Payment due', s => s.due > 0.5], old: ['🕒 Not visited 30+ days', s => s.days == null || s.days >= 30] };
+  async function openVpModal() {
+    vpEl('vpMTitle').textContent = 'Who do you visit ' + vpWhen() + '?';
+    vp.draft = new Set((vp.data ? vp.data.rows : []).map(r => r.shop_id)); vp.area = 'All'; vp.smart = ''; vpEl('vpQ').value = '';
+    vpEl('vpPick').innerHTML = '<div class="empty-state">Loading shops…</div>'; vpEl('vpChips').innerHTML = '';
+    modalScrollY = window.scrollY; vpEl('vpModal').classList.add('open');
+    try {
+      const d = await withRetry(() => api.get('retail.shops', {}));
+      const today = todayStr();
+      vp.all = (d.shops || []).filter(x => (x.status || 'active') !== 'inactive').map(x => {
+        const lv = x.stats && x.stats.last_visit ? String(x.stats.last_visit).slice(0, 10) : null;
+        return { id: Number(x.shop_id), name: x.shop_name || '', owner: x.owner_name || '', area: x.area || '', mobile: x.mobile || '', due: Number((x.stats && x.stats.pending) || 0), days: lv ? Math.max(0, Math.round((new Date(today + 'T00:00:00') - new Date(lv + 'T00:00:00')) / 86400000)) : null };
+      });
+      vp.draft.forEach(id => { if (!vp.all.some(s => s.id === id)) vp.draft.delete(id); });
+      vpDrawPick();
+    } catch (err) { vpEl('vpPick').innerHTML = `<div class="empty-state">${esc(err.message)}</div>`; }
+  }
+  const closeVpModal = () => { vpEl('vpModal').classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); };
+  function vpVisible() {
+    const q = vpEl('vpQ').value.trim().toLowerCase();
+    return vp.all.filter(s => (vp.area === 'All' || s.area === vp.area) && (!vp.smart || vpSmart[vp.smart][1](s)) && (!q || (s.name + ' ' + s.owner + ' ' + s.area + ' ' + s.mobile).toLowerCase().includes(q)));
+  }
+  function vpDrawPick() {
+    const areas = ['All', ...new Set(vp.all.map(s => s.area).filter(Boolean))];
+    vpEl('vpChips').innerHTML = areas.map(a => `<button type="button" class="vp-chip${vp.area === a && !vp.smart ? ' on' : ''}" data-area="${esc(a)}">${esc(a)}</button>`).join('')
+      + Object.keys(vpSmart).map(k => `<button type="button" class="vp-chip smart${vp.smart === k ? ' on' : ''}" data-smart="${k}">${vpSmart[k][0]} (${vp.all.filter(vpSmart[k][1]).length})</button>`).join('');
+    const rows = vpVisible(), cap = 300;
+    vpEl('vpPick').innerHTML = rows.length ? rows.slice(0, cap).map(s => `<div class="vp-pk${vp.draft.has(s.id) ? ' on' : ''}" data-id="${s.id}"><span class="cb">${vp.draft.has(s.id) ? '✓' : ''}</span><div class="m"><b>${esc(s.name)}</b><small>${esc(s.area || '—')} · ${s.days == null ? 'not visited yet' : (s.days === 0 ? 'visited today' : 'last visit ' + s.days + ' d ago')}</small></div><span class="vp-due${s.due > 0.5 ? '' : ' z'}">${s.due > 0.5 ? inr(s.due) : '₹0'}</span></div>`).join('') + (rows.length > cap ? `<div class="empty-state" style="padding:12px;">${rows.length - cap} more — type to narrow</div>` : '')
+      : '<div class="empty-state">No shop found.</div>';
+    const n = vp.draft.size; vpEl('vpCnt').textContent = n + ' selected'; vpEl('vpSave').textContent = n ? `Save — ${n} shop${n === 1 ? '' : 's'}` : 'Save plan';
+  }
+  vpEl('vpChips').addEventListener('click', (e) => {
+    const a = e.target.closest('[data-area]'), m = e.target.closest('[data-smart]');
+    if (a) { vp.area = a.dataset.area; vp.smart = ''; vpDrawPick(); } else if (m) { vp.smart = vp.smart === m.dataset.smart ? '' : m.dataset.smart; vp.area = 'All'; vpDrawPick(); }
+  });
+  vpEl('vpPick').addEventListener('click', (e) => { const r = e.target.closest('[data-id]'); if (!r) return; const id = Number(r.dataset.id); if (vp.draft.has(id)) vp.draft.delete(id); else vp.draft.add(id); r.classList.toggle('on'); r.querySelector('.cb').textContent = vp.draft.has(id) ? '✓' : ''; const n = vp.draft.size; vpEl('vpCnt').textContent = n + ' selected'; vpEl('vpSave').textContent = n ? `Save — ${n} shop${n === 1 ? '' : 's'}` : 'Save plan'; });
+  vpEl('vpQ').addEventListener('input', vpDrawPick);
+  vpEl('vpSelAll').addEventListener('click', () => { vpVisible().forEach(s => vp.draft.add(s.id)); vpDrawPick(); });
+  vpEl('vpClr').addEventListener('click', () => { vp.draft = new Set(); vpDrawPick(); });
+  vpEl('vpMClose').addEventListener('click', closeVpModal);
+  vpEl('vpModal').addEventListener('click', (e) => { if (e.target === vpEl('vpModal')) closeVpModal(); });
+  vpEl('vpSave').addEventListener('click', async () => {
+    const had = (vp.data ? vp.data.rows : []).length;
+    if (!vp.draft.size && had && !confirm('This will clear the whole plan for ' + vpDayName(vp.date) + '. Continue?')) return;
+    const btn = vpEl('vpSave'); btn.disabled = true;
+    try { const d = await api.post('retail.visit_plan_save', { date: vp.date, shop_ids: [...vp.draft] }); vp.data = d; vp.st = 'all'; vp.hist = null; closeVpModal(); vpDraw(); showAlert(d.message); }
+    catch (err) { showAlert(err.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+
+  // ---- history (From - To, date-wise) ----
+  const vhRange = (p) => {
+    const t = todayStr(); let f = t, e = t;
+    if (p === '7') f = vpAddDays(t, -6); else if (p === '30') f = vpAddDays(t, -29);
+    else if (p === 'month') f = t.slice(0, 8) + '01';
+    else if (p === 'last') { const x = new Date(t.slice(0, 8) + '01T00:00:00'); x.setDate(0); e = new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 10); f = e.slice(0, 8) + '01'; }
+    vpEl('vhFrom').value = f; vpEl('vhTo').value = e;
+  };
+  let vhSeq = 0, vpSeq = 0;   // only the newest request may draw (a slow earlier answer must not overwrite it)
+  async function vhLoad() {
+    const f = vpEl('vhFrom').value, t = vpEl('vhTo').value, my = ++vhSeq;
+    vpEl('vhDays').innerHTML = '<div class="empty-state">Loading…</div>';
+    try {
+      const d = await withRetry(() => api.get('retail.visit_history', { from: f, to: t, status: vpEl('vhSt').value, shop_ids: ppIds('ppVisit').join(',') }));
+      if (my !== vhSeq) return;
+      vp.hist = d; vpEl('vhFrom').value = d.from; vpEl('vhTo').value = d.to;
+      if (!vp.histOpen.size && d.days.length) vp.histOpen.add(d.days[0].date);
+      vhDraw();
+    } catch (err) { vpEl('vhDays').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  }
+  function vhDraw() {
+    const d = vp.hist; if (!d) return; const t = d.totals;
+    vpEl('vhCards').innerHTML = [['Days with a plan', t.days], ['Shops planned', t.planned], ['Visited', t.done], ['Still pending', t.pending], ['Completion', t.pct + '%']]
+      .map(c => `<div class="stat-card"><div class="label">${c[0]}</div><div class="value">${c[1]}</div></div>`).join('');
+    vpEl('vhDays').innerHTML = d.days.length ? d.days.map(day => {
+      const pc = day.total ? Math.round(day.done * 100 / day.total) : 0, open = vp.histOpen.has(day.date);
+      return `<div class="vp-day${open ? ' open' : ''}" data-day="${day.date}"><div class="vp-dh" data-vh="toggle"><div class="d"><b>${esc(fmtDS(day.date))}${day.date === d.today ? ' · Today' : ''}</b><small>${esc(new Date(day.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long' }))}</small></div><div class="vp-prog"><i style="width:${pc}%"></i></div><div class="n">${day.done}/${day.total} <em>visited${day.pending ? ' · ' + day.pending + ' pending' : ''}</em></div><span class="car">▾</span></div>
+        <div class="vp-db">${day.rows.map(r => `<div class="vp-hr"><span class="st${r.status === 'done' ? ' d' : ''}">${r.status === 'done' ? '✓' : ''}</span><div class="nm" data-vh="shop" data-sid="${r.shop_id}">${esc(r.shop_name)}<small>${esc([r.area, r.owner_name].filter(Boolean).join(' · ') || '—')}${r.status === 'done' && r.done_at ? ' · visited ' + esc(vpTime(r.done_at)) : ''}${r.by ? ' · planned by ' + esc(r.by) : ''}</small></div><span class="tag${r.status === 'done' ? ' d' : ''}">${r.status === 'done' ? 'Done' : 'Pending'}</span></div>`).join('')}
+        <div class="vp-dfoot"><button type="button" class="link" data-vh="day">Open this day →</button></div></div></div>`;
+    }).join('') : '<div class="card"><div class="empty-state">No visits planned between these dates.</div></div>';
+  }
+  vpEl('vpHist').addEventListener('click', (e) => {
+    const p = e.target.closest('#vhPre button');
+    if (p) { vpEl('vhPre').querySelectorAll('button').forEach(b => b.classList.toggle('on', b === p)); vhRange(p.dataset.p); vp.histOpen = new Set(); vhLoad(); return; }
+    const b = e.target.closest('[data-vh]'); if (!b) return; const day = b.closest('.vp-day'), date = day ? day.dataset.day : '';
+    if (b.dataset.vh === 'toggle') { if (vp.histOpen.has(date)) vp.histOpen.delete(date); else vp.histOpen.add(date); day.classList.toggle('open'); }
+    else if (b.dataset.vh === 'day') { vp.st = 'all'; vpTab('today'); vpGo(date); }
+    else if (b.dataset.vh === 'shop') openShop(Number(b.dataset.sid));
+  });
+  ['vhFrom', 'vhTo'].forEach(id => vpEl(id).addEventListener('change', () => { vpEl('vhPre').querySelectorAll('button').forEach(b => b.classList.remove('on')); vp.histOpen = new Set(); vhLoad(); }));
+  vpEl('vhSt').addEventListener('change', () => vhLoad());
+  vpEl('vhCsv').addEventListener('click', () => {
+    if (!vp.hist || !vp.hist.days.length) { showAlert('Nothing to download for these dates.', 'error'); return; }
+    const rows = [['Date', 'Day', 'Shop', 'Area', 'Owner', 'Mobile', 'Status', 'Visited at', 'Visited by', 'Planned by', 'Note']];
+    vp.hist.days.forEach(day => day.rows.forEach(r => rows.push([day.date, new Date(day.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long' }), r.shop_name, r.area, r.owner_name, r.mobile, r.status === 'done' ? 'Done' : 'Pending', r.done_at || '', r.done_by || '', r.by || '', r.note || ''])));
+    const t = vp.hist.totals; rows.push([], ['TOTAL', '', t.planned + ' planned', '', '', '', t.done + ' done / ' + t.pending + ' pending', '', '', '', t.pct + '%']);
+    saveCsv(`retail-visits-${vp.hist.from}-to-${vp.hist.to}.csv`, rows);
+  });
+
+  function vpTab(t) {
+    vp.tab = t;
+    vpEl('vpTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    vpEl('vpToday').style.display = t === 'today' ? '' : 'none'; vpEl('vpHist').style.display = t === 'hist' ? '' : 'none';
+    vpEl('vpAdd').style.display = t === 'today' ? '' : 'none';
+    if (t === 'hist') { if (!vpEl('vhFrom').value) vhRange('30'); vhLoad(); }
+  }
+  vpEl('vpTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) vpTab(b.dataset.t); });
+  document.getElementById('btnVisits').addEventListener('click', () => {
+    if (view === 'visits') { showView('list'); return; }
+    showView('visits'); if (!vp.date) vp.date = todayStr(); vpTab('today'); vpLoad();
+  });
+
+  // ---------- party picker: a dropdown with search + tick list, so several parties can be chosen at once ----------
+  const PP = {};
+  let ppCache = { at: 0, rows: [] };
+  async function ppRows() {
+    if (ppCache.rows.length && Date.now() - ppCache.at < 60000) return ppCache.rows;
+    const d = await api.get('retail.shops', {});
+    ppCache = { at: Date.now(), rows: (d.shops || []).map(x => ({ id: Number(x.shop_id), name: x.shop_name || '', owner: x.owner_name || '', area: x.area || '', mobile: x.mobile || '', bal: Number((x.stats && x.stats.pending) || 0) })) };
+    return ppCache.rows;
+  }
+  const ppIds = (id) => PP[id] ? [...PP[id].ids] : [];
+  const ppClear = (id) => { if (PP[id]) PP[id].set(new Set(), true); };
+  function ppInit(hostId, onChange) {
+    const host = document.getElementById(hostId); if (!host) return;
+    host.classList.add('pp');
+    host.innerHTML = `<button type="button" class="pp-trig" aria-haspopup="listbox"><span class="pp-lbl">All parties</span><span class="pp-x" title="Clear" hidden>✕</span><span class="pp-car">▾</span></button>
+      <div class="pp-pop" hidden><div class="pp-s"><input type="text" placeholder="🔍 Search party / owner / area…" autocomplete="off"></div>
+      <div class="pp-act"><button type="button" class="link pp-all">Select all</button><button type="button" class="link pp-clr">Clear</button></div>
+      <div class="pp-list"></div><div class="pp-ft"><span class="pp-n"></span><button type="button" class="btn pp-ok">Apply</button></div></div>`;
+    const $ = (c) => host.querySelector(c), pop = $('.pp-pop'), list = $('.pp-list'), inp = $('.pp-s input');
+    const st = PP[hostId] = { ids: new Set(), draft: new Set(), rows: [], shown: [], set: null };
+    const names = (ids) => { const m = new Map((ppCache.rows || []).map(r => [r.id, r.name])); return ids.map(i => m.get(i) || ('#' + i)); };
+    function label() {
+      const ids = [...st.ids], n = ids.length;
+      host.classList.toggle('on', n > 0); $('.pp-x').hidden = n === 0;
+      if (!n) { $('.pp-lbl').textContent = 'All parties'; return; }
+      const nm = names(ids); $('.pp-lbl').textContent = n === 1 ? nm[0] : nm[0] + (n === 2 ? ', ' + nm[1] : ' +' + (n - 1));
+      $('.pp-lbl').title = nm.join(', ');
+    }
+    st.set = (ids, fire) => { st.ids = new Set(ids); label(); if (fire && onChange) onChange([...st.ids]); };
+    function draw() {
+      const q = inp.value.trim().toLowerCase();
+      st.shown = st.rows.filter(r => !q || (r.name + ' ' + r.owner + ' ' + r.area + ' ' + r.mobile).toLowerCase().includes(q));
+      const cap = 400, vis = st.shown.slice(0, cap);
+      list.innerHTML = vis.length ? vis.map(r => `<div class="pp-it${st.draft.has(r.id) ? ' on' : ''}" data-id="${r.id}" role="option"><span class="pp-cb">${st.draft.has(r.id) ? '✓' : ''}</span><div class="pp-m">${esc(r.name)}<small>${esc([r.area, r.owner].filter(Boolean).join(' · ') || '—')}</small></div><span class="pp-b${r.bal > 0.5 ? '' : ' z'}">${r.bal > 0.5 ? inr(r.bal) : '₹0'}</span></div>`).join('') + (st.shown.length > cap ? `<div class="pp-empty">${st.shown.length - cap} more — type to narrow</div>` : '')
+        : '<div class="pp-empty">No party found.</div>';
+      $('.pp-all').textContent = q ? `Select these (${st.shown.length})` : `Select all (${st.rows.length})`;
+      $('.pp-n').textContent = st.draft.size + ' selected';
+    }
+    async function open() {
+      document.querySelectorAll('.pp-pop').forEach(p => { if (p !== pop) p.hidden = true; });
+      st.draft = new Set(st.ids); inp.value = ''; pop.hidden = false; pop.style.left = '0px';
+      list.innerHTML = '<div class="pp-empty">Loading…</div>';
+      const r = pop.getBoundingClientRect(); if (r.right > window.innerWidth - 8) pop.style.left = Math.min(0, window.innerWidth - 8 - r.right) + 'px';
+      try { st.rows = await ppRows(); } catch (err) { list.innerHTML = `<div class="pp-empty">${esc(err.message)}</div>`; return; }
+      draw(); label(); if (!matchMedia('(pointer:coarse)').matches) inp.focus();
+    }
+    const close = () => { pop.hidden = true; };
+    $('.pp-trig').addEventListener('click', (e) => { if (e.target.closest('.pp-x')) { st.set(new Set(), true); close(); return; } pop.hidden ? open() : close(); });
+    inp.addEventListener('input', draw);
+    list.addEventListener('click', (e) => { const it = e.target.closest('.pp-it'); if (!it) return; const id = Number(it.dataset.id); if (st.draft.has(id)) st.draft.delete(id); else st.draft.add(id); it.classList.toggle('on'); it.querySelector('.pp-cb').textContent = st.draft.has(id) ? '✓' : ''; $('.pp-n').textContent = st.draft.size + ' selected'; });
+    $('.pp-all').addEventListener('click', () => { st.shown.forEach(r => st.draft.add(r.id)); draw(); });
+    $('.pp-clr').addEventListener('click', () => { st.draft = new Set(); draw(); });
+    $('.pp-ok').addEventListener('click', () => { close(); const same = st.draft.size === st.ids.size && [...st.draft].every(i => st.ids.has(i)); st.set(st.draft, !same); });
+    pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); $('.pp-trig').focus(); } });
+    document.addEventListener('click', (e) => { if (!pop.hidden && !host.contains(e.target)) close(); });
+    label();
+  }
+  ppInit('ppShops', () => loadShops(true));
+  ppInit('ppReg', () => { rg.page = 1; loadRegister(); });
+  ppInit('ppTot', () => loadTotals());
+  ppInit('ppLed', () => loadLedgerAll());
+  ppInit('ppVisit', () => vhLoad());
+
   // ---------- list ----------
   async function loadShops(listOnly) {
+    ppCache.at = 0;
     try {
-      const d = await withRetry(() => api.get('retail.shops', { area: document.getElementById('areaSel').value, q: document.getElementById('q').value.trim() }));
+      const d = await withRetry(() => api.get('retail.shops', { area: document.getElementById('areaSel').value, q: document.getElementById('q').value.trim(), shop_ids: ppIds('ppShops').join(',') }));
       shops = d.shops || []; areas = d.areas || [];
       const t = d.totals || {};
       document.getElementById('stShops').textContent = t.shops ?? shops.length;
@@ -919,9 +1447,9 @@
         `<span>Added <b>${fmtD(s.created_at)}</b></span>`,
         s.note ? `<span>📝 ${esc(s.note)}</span>` : '',
         s.status === 'inactive' ? '<span class="chip c-grey">inactive</span>' : '',
-        Math.abs(Number(st.balance || 0)) > 0.5 ? `<span>Balance <b style="color:${st.balance > 0 ? '#c81e1e' : '#0f7a41'};">${st.balance > 0 ? inr(st.balance) + ' due' : inr(-st.balance) + ' advance'}</b> · <button class="link" id="btnShMetaLedger">View ledger</button></span>` : '',
       ].filter(Boolean).join('');
       document.getElementById('shAddr').textContent = s.address || '';
+      document.getElementById('shOut').innerHTML = outHtml(d.schedule, st, true);
       const pinned = s.lat !== null;
       document.getElementById('shLocBtns').innerHTML = pinned
         ? `<a class="btn secondary" href="${mapsUrl(s)}" target="_blank" rel="noopener">Open in Google Maps</a><a class="btn secondary" href="${dirUrl(s)}" target="_blank" rel="noopener">Directions</a><button class="btn secondary" id="btnRepin">📍 Re-pin here</button>`
@@ -930,11 +1458,11 @@
       const lk = document.getElementById('btnLinkPin'); if (lk) lk.addEventListener('click', () => linkPinShop());
       drawShopMap(s);
       // display list
-      const disp = d.display || [];
-      document.getElementById('shDisplayCount').textContent = disp.reduce((a, x) => a + x.qty, 0) + ' bottles';
-      document.getElementById('shDisplay').innerHTML = disp.length
-        ? '<div class="dl h"><span>Perfume</span><span>ML</span><span>Qty</span><span>Price</span><span>Since</span></div>' + disp.map(x => `<div class="dl"><span>${esc(x.product_name)}</span><span>${esc(x.ml || '—')}</span><span>${x.qty}</span><span>${inr(x.price)}</span><span class="sub">${fmtDS(x.since)}</span></div>`).join('')
-        : '<div class="empty-state" style="padding:20px;">Nothing on display yet — add a “Display stock” order.</div>';
+      curDisplay = d.display || [];
+      document.getElementById('shDisplayCount').textContent = curDisplay.reduce((a, x) => a + x.qty, 0) + ' bottles';
+      document.getElementById('shDisplay').innerHTML = curDisplay.length
+        ? curDisplay.map((x, i) => `<div class="dsp"><div class="m"><b>${esc(mlTxt(x.ml) || '—')} × ${x.qty}</b> <span class="sub">— ${inr(x.price)} per piece · ${inr(x.qty * x.price)}</span>${x.product_name ? `<div class="sub">${esc(x.product_name)}</div>` : ''}<div class="sub">since ${fmtDS(x.since)}${x.kind === 'order' ? ' · from an older Display order' : ''}</div></div>${x.kind === 'manual' ? `<div class="row-actions"><button data-dedit="${i}">Edit</button><button class="danger-link" data-ddel="${i}">Delete</button></div>` : ''}</div>`).join('')
+        : '<div class="empty-state" style="padding:20px;">Nothing on display yet — tap “+ Add display”.</div>';
       renderOrders(d.orders || []);
       renderVisits(d.visits || []);
     } catch (err) { document.getElementById('shName').textContent = 'Shop'; showAlert(err.message, 'error'); }
@@ -966,6 +1494,7 @@
     try { const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, link }); showAlert(d.message); openShop(currentShop.shop_id); }
     catch (err) { showAlert(err.message, 'error'); }
   }
+  let curDisplay = [];
   function renderOrders(orders) {
     const tb = document.getElementById('ordersBody');
     if (!orders.length) { tb.innerHTML = '<tr><td colspan="10"><div class="empty-state">No orders yet.</div></td></tr>'; return; }
@@ -975,11 +1504,18 @@
       const del = o.delivered_qty || 0, pend = Math.max(0, o.qty - del);
       const dk = o.delivery || (del >= o.qty ? 'delivered' : (del ? 'partial' : 'not_delivered'));
       const dCol = dk === 'delivered' ? '#0f7a41' : (dk === 'partial' ? '#b45f06' : '#c81e1e');
-      const dCell = `<b style="color:${dCol};">${del} / ${o.qty}</b><div class="dbar ${dk === 'delivered' ? '' : (dk === 'partial' ? 'part' : 'none')}"><i style="width:${o.qty ? Math.round(del / o.qty * 100) : 0}%"></i></div><div class="sub">${dk === 'delivered' ? 'all delivered' : (pend + ' pending')}</div><div style="margin-top:4px;"><button class="pill-btn" data-deliver="${o.order_id}">${dk === 'delivered' ? 'Change' : 'Update delivery'}</button></div>`;
-      const payChip = o.payment === 'pending' ? `<span class="chip c-red">Due ${inr(due)}</span>${o.paid_amount > 0 ? `<div class="sub">paid ${inr(o.paid_amount)}</div>` : ''}` : `<span class="chip ${o.payment === 'on_sale' ? 'c-amber' : 'c-green'}">${PAY_LABEL[o.payment] || o.payment}</span>`;
+      const dCellFull = '<span class="sub">✓ all delivered</span>';
+      const dCell0 = `<b style="color:${dCol};">${del} / ${o.qty}</b><div class="dbar ${dk === 'delivered' ? '' : (dk === 'partial' ? 'part' : 'none')}"><i style="width:${o.qty ? Math.round(del / o.qty * 100) : 0}%"></i></div><div class="sub">${dk === 'delivered' ? 'all delivered' : (pend + ' pending')}</div><div style="margin-top:4px;"><button class="pill-btn" data-deliver="${o.order_id}">${dk === 'delivered' ? 'Change' : 'Update delivery'}</button></div>`;
+      const dCell = dk === 'delivered' ? dCellFull : dCell0;
+      const modeTxt = o.pay_mode ? MODE_NAME[o.pay_mode] || '' : '';
+      const payChip = o.order_type === 'return' ? '<span class="chip c-amber">Credit</span>'
+        : (o.payment === 'pending' ? `<span class="chip c-red">Due ${inr(due)}</span>${o.paid_amount > 0 ? `<div class="sub">paid ${inr(o.paid_amount)}</div>` : ''}${modeTxt ? `<div class="sub">${modeTxt}</div>` : ''}`
+        : `<span class="chip ${o.payment === 'on_sale' ? 'c-amber' : 'c-green'}">${o.pay_mode && (o.payment === 'cash' || o.payment === 'upi') ? 'Paid · ' + modeTxt : (PAY_LABEL[o.payment] || o.payment)}</span>`);
       const dn = o.due_date ? daysTo(o.due_date) : null;
       const discBit = Number(o.discount_amount) > 0 ? `<div class="sub" style="color:#0f7a41;">${o.discount_type === 'pct' ? Number(o.discount_value) + '% off · −' + inr(o.discount_amount) : '−' + inr(o.discount_amount) + ' discount'}</div>` : '';
-      const dueBit = o.payment === 'pending' && due > 0
+      const dueBit = o.payment === 'pending' && due > 0 && o.dues && o.dues.length
+        ? `<div class="duechips">${o.dues.map(d => `<span class="chip ${d.paid ? 'c-green' : dueCls(daysTo(d.due_date))}" title="${d.paid ? 'paid' : dueLabel(daysTo(d.due_date))}">${fmtDS(d.due_date)} · ${inr(d.paid ? d.amount : d.left)}${d.paid ? ' ✓' : ''}</span>`).join('')}</div><div style="margin-top:4px;"><button class="pill-btn" data-oedit="${o.order_id}" title="Change the due dates">📅 Edit dates</button></div>`
+        : o.payment === 'pending' && due > 0
         ? (o.due_date
           ? `<div style="margin-top:4px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><span class="chip ${dueCls(dn)}">${dueLabel(dn)}</span><button class="pill-btn" data-due="${o.order_id}" title="Change the due date">📅 ${fmtDS(o.due_date)}</button></div>`
           : `<div style="margin-top:4px;"><button class="pill-btn" data-due="${o.order_id}">📅 Add due date</button></div>`)
@@ -1004,7 +1540,7 @@
     const orders = JSON.parse(document.getElementById('ordersBody').dataset.orders || '[]');
     if (b.dataset.deliver) openDeliverModal(orders.find(o => o.order_id == b.dataset.deliver));
     else if (b.dataset.pay) openPayModal(orders.find(o => o.order_id == b.dataset.pay));
-    else if (b.dataset.due) openPayModal(orders.find(o => o.order_id == b.dataset.due), true);
+    else if (b.dataset.due) openPayModal(orders.find(o => o.order_id == b.dataset.due));
     else if (b.dataset.oedit) openOrderModal(currentShop.shop_id, orders.find(o => o.order_id == b.dataset.oedit));
     else if (b.dataset.odel) {
       const o = orders.find(x => x.order_id == b.dataset.odel);
@@ -1080,6 +1616,45 @@
     } else pinMap.setView([21.1702, 72.8311], 12);
     setTimeout(() => pinMap.invalidateSize(), 60);
   }
+  // ---------- perfume sets (shop form + manager) ----------
+  let setsList = [], shopPerfs = [], shopSetId = null, shopPerfsReady = true, shopBlock = null;
+  const shopPerfCache = {};   // shop_id -> its perfume names (for the order form search)
+  async function loadSets(force) {
+    if (setsList.length && !force) return setsList;
+    try { setsList = (await api.get('retail.sets')).sets || []; } catch (err) { setsList = []; }
+    return setsList;
+  }
+  function fillSetSelect() {
+    const sel = document.getElementById('fSet');
+    sel.innerHTML = '<option value="">No set — I will choose the perfumes</option>' + setsList.map(x => `<option value="${x.set_id}">${esc(x.name)} (${x.perfumes.length} perfumes)</option>`).join('');
+    sel.value = shopSetId && setsList.some(x => x.set_id === shopSetId) ? String(shopSetId) : '';
+  }
+  function renderShopPerfs(auto) {
+    document.getElementById('fPerfs').innerHTML = shopPerfs.length ? shopPerfs.map((n, i) => `<span class="pchip">${esc(n)}<button type="button" data-prm="${i}" title="Remove">×</button></span>`).join('') : '<span class="sub">No perfumes selected yet.</span>';
+    const set = setsList.find(x => x.set_id === shopSetId);
+    document.getElementById('fSetInfo').textContent = shopPerfs.length ? (auto && set ? `${shopPerfs.length} perfumes selected automatically from “${set.name}”.` : `${shopPerfs.length} perfume${shopPerfs.length === 1 ? '' : 's'} for this shop.`) : '';
+  }
+  document.getElementById('fSet').addEventListener('change', (e) => {
+    const x = setsList.find(v => String(v.set_id) === e.target.value);
+    shopSetId = x ? x.set_id : null;
+    if (x) shopPerfs = x.perfumes.slice();
+    shopPerfsReady = true; renderShopPerfs(true);
+  });
+  document.getElementById('fPerfs').addEventListener('click', (e) => { const b = e.target.closest('button[data-prm]'); if (!b) return; shopPerfs.splice(Number(b.dataset.prm), 1); renderShopPerfs(false); });
+  document.getElementById('btnPerfClear').addEventListener('click', () => { shopPerfs = []; renderShopPerfs(false); });
+  function addShopPerf(n) { n = String(n || '').trim(); if (!n || shopPerfs.some(x => x.toLowerCase() === n.toLowerCase())) return; shopPerfs.push(n); shopPerfsReady = true; renderShopPerfs(false); }
+  document.getElementById('fPerfAdd').addEventListener('pfadd', (e) => addShopPerf(e.detail));
+  document.getElementById('fPerfAdd').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (pfIdx < 0) { addShopPerf(e.target.value); e.target.value = ''; pfHide(); } } });
+  function renderBlock(d) {
+    shopBlock = d && d.blocked ? d : null;
+    const box = document.getElementById('shopAlert');
+    if (!shopBlock) { if (box.querySelector('.blockbox')) box.innerHTML = ''; return; }
+    box.innerHTML = `<div class="blockbox"><b>⛔ You can't add a new shop yet</b><br>Payments overdue on your shops must be cleared first:${shopBlock.items.map(i => `<div class="r"><span>${esc(i.shop_name)} · ${esc(i.order_no)}</span><b>${inr(i.amount)} · overdue ${i.days} d</b></div>`).join('')}
+      ${shopBlock.can_override ? '<div style="margin-top:9px; color:#7f1d1d;">As Admin you can still add it — type the reason:</div><input id="fOverride" placeholder="Reason (saved on the shop)" style="width:100%; margin-top:5px; padding:8px 10px; border:1px solid #fecaca; border-radius:8px; font-size:14px;">' : '<div style="margin-top:9px;"><button type="button" class="link" id="btnBlockView">View pending payments</button></div>'}</div>`;
+    const v = document.getElementById('btnBlockView');
+    if (v) v.addEventListener('click', () => { closeShopModal(); showView('list'); setTimeout(() => { const c = document.getElementById('dueCard'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 150); });
+    document.getElementById('btnShopSave').disabled = !shopBlock.can_override;
+  }
   function openShopModal(s) {
     document.getElementById('shopAlert').innerHTML = '';
     document.getElementById('shopModalTitle').textContent = s ? 'Edit shop' : 'Add Retail Shop';
@@ -1098,6 +1673,15 @@
     modalScrollY = window.scrollY; shopModal.classList.add('open');
     setPin(s && s.lat !== null ? s.lat : '', s && s.lat !== null ? s.lng : '', s ? s.accuracy_m : '');
     setTimeout(() => document.getElementById('fName').focus(), 100);
+    // perfume set + the shop's perfumes, and (for a new shop) the overdue-payment check
+    shopPerfs = []; shopSetId = null; shopBlock = null; shopPerfsReady = !s; document.getElementById('btnShopSave').disabled = false; renderShopPerfs(false); fillSetSelect();
+    loadSets().then(() => { fillSetSelect(); });
+    loadPerfumes();
+    if (s) {
+      api.get('retail.shop_perfumes', { id: s.shop_id }).then(d => { shopPerfs = d.perfumes || []; shopSetId = d.perfume_set_id || null; shopPerfsReady = true; fillSetSelect(); renderShopPerfs(false); }).catch(() => {});
+    } else {
+      api.get('retail.shop_block').then(renderBlock).catch(() => {});
+    }
   }
   function closeShopModal() { shopModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnAddShop').addEventListener('click', () => openShopModal(null));
@@ -1133,6 +1717,7 @@
     e.preventDefault();
     const btn = document.getElementById('btnShopSave'); btn.disabled = true;
     try {
+      if (shopBlock && shopBlock.can_override && !((document.getElementById('fOverride') || {}).value || '').trim()) throw new Error('Type the reason for adding a shop while payments are overdue.');
       const d = await api.post('retail.shop_save', {
         shop_id: document.getElementById('fShopId').value || 0,
         shop_name: document.getElementById('fName').value.trim(), owner_name: document.getElementById('fOwner').value.trim(), mobile: document.getElementById('fMobile').value.trim(),
@@ -1140,66 +1725,281 @@
         lat: document.getElementById('fLat').value, lng: document.getElementById('fLng').value, accuracy_m: document.getElementById('fAcc').value,
         status: document.getElementById('fStatus').value,
         opening_balance: Number(document.getElementById('fOpen').value) || 0, opening_date: document.getElementById('fOpenDate').value,
+        ...(shopPerfsReady ? { perfumes: shopPerfs, perfume_set_id: shopSetId || 0 } : {}),
+        ...(shopBlock && shopBlock.can_override ? { override_reason: (document.getElementById('fOverride') || {}).value || '' } : {}),
       });
+      delete shopPerfCache[d.shop_id];
       closeShopModal(); showAlert(d.message);
       await loadShops();
       if (view === 'shop' && currentShop && currentShop.shop_id == d.shop_id) openShop(d.shop_id);
-    } catch (err) { document.getElementById('shopAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    } catch (err) {
+      if (err.data && err.data.blocked) { renderBlock(err.data); return; }
+      const box = document.getElementById('shopAlert'), keep = box.querySelector('.blockbox');
+      box.innerHTML = (keep ? keep.outerHTML : '') + `<div class="alert error">${esc(err.message)}</div>`;
+      if (keep) { const o = document.getElementById('fOverride'); if (o) o.focus(); }
+    }
+    finally { if (!(shopBlock && !shopBlock.can_override)) btn.disabled = false; }
+  });
+
+  // ---------- perfume name search ----------
+  // All perfume names come from the shop's own store through api.php (retail.perfumes); typing searches them, any other name can still be typed.
+  let perfumes = null, perfumesLoading = null, pfInput = null, pfIdx = -1, pfItems = [], orderShopPerfs = new Set();
+  const pfBox = document.createElement('div'); pfBox.id = 'pfSug'; document.body.appendChild(pfBox);
+  function loadPerfumes() {
+    if (perfumes || perfumesLoading) return perfumesLoading;
+    perfumesLoading = api.get('retail.perfumes').then(d => { perfumes = (d.perfumes || []).map(n => ({ n, l: n.toLowerCase() })); }).catch(() => { perfumes = null; }).finally(() => { perfumesLoading = null; if (pfInput) pfShow(); });
+    return perfumesLoading;
+  }
+  function pfHide() { pfBox.style.display = 'none'; pfIdx = -1; }
+  function pfPlace() {
+    if (!pfInput) return; const r = pfInput.getBoundingClientRect(), w = Math.max(r.width, 240);
+    const below = window.innerHeight - r.bottom, up = below < 200 && r.top > below;
+    pfBox.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px'; pfBox.style.width = w + 'px';
+    pfBox.style.maxHeight = Math.max(120, Math.min(260, (up ? r.top : below) - 12)) + 'px';
+    if (up) { pfBox.style.top = 'auto'; pfBox.style.bottom = (window.innerHeight - r.top + 4) + 'px'; } else { pfBox.style.bottom = 'auto'; pfBox.style.top = (r.bottom + 4) + 'px'; }
+  }
+  function pfShow() {
+    if (!pfInput) return;
+    const q = pfInput.value.trim().toLowerCase();
+    if (!perfumes) { pfBox.innerHTML = perfumesLoading ? '<div class="none">Loading perfume names…</div>' : ''; pfItems = []; pfBox.style.display = pfBox.innerHTML ? 'block' : 'none'; pfPlace(); return; }
+    const toks = q.split(/\s+/).filter(Boolean);
+    let hit = perfumes.filter(p => toks.every(t => p.l.includes(t)));
+    if (q) hit.sort((a, b) => (b.l.startsWith(q) - a.l.startsWith(q)) || (a.l.indexOf(toks[0]) - b.l.indexOf(toks[0])) || a.n.localeCompare(b.n));
+    // inside the order form, this shop's own perfumes (from its set) come first
+    const mine = pfInput.closest('#orderModal') ? orderShopPerfs : null;
+    if (mine && mine.size) hit.sort((a, b) => (mine.has(b.l) - mine.has(a.l)));
+    pfItems = hit.slice(0, 40).map(p => p.n); pfIdx = -1;
+    const hl = (n) => {   // bold the typed words (marked on the plain text first, so no tag is ever matched)
+      const low = n.toLowerCase(), mark = new Array(n.length).fill(false);
+      toks.forEach(t => { let i = low.indexOf(t); while (i >= 0) { for (let k = i; k < i + t.length; k++) mark[k] = true; i = low.indexOf(t, i + t.length); } });
+      let o = '', open = false;
+      for (let k = 0; k < n.length; k++) { if (mark[k] !== open) { o += open ? '</b>' : '<b>'; open = mark[k]; } o += esc(n[k]); }
+      return o + (open ? '</b>' : '');
+    };
+    pfBox.innerHTML = pfItems.length ? pfItems.map((n, i) => `<div data-i="${i}">${mine && mine.has(n.toLowerCase()) ? '<span class="st">★</span>' : ''}${hl(n)}</div>`).join('') : (q ? '<div class="none">No match — keep typing to use this name as it is.</div>' : '');
+    pfBox.style.display = pfBox.innerHTML ? 'block' : 'none'; pfPlace();
+  }
+  function pfPick(i) {
+    const n = pfItems[i]; if (n === undefined || !pfInput) return;
+    if (pfInput.dataset.pfadd) { const el = pfInput; el.value = ''; pfHide(); el.dispatchEvent(new CustomEvent('pfadd', { detail: n })); el.focus(); return; }
+    pfInput.value = n; pfInput.dispatchEvent(new Event('input', { bubbles: true })); pfHide();
+    const row = pfInput.closest('.ol'); if (row) { const q = row.querySelector('.l-qty'); if (q && !q.value) q.focus(); }
+  }
+  const pfIsName = (el) => el && el.tagName === 'INPUT' && (el.classList.contains('l-name') || el.id === 'dspName' || el.dataset.pfadd);
+  // the list opens when the name box is CLICKED (or typed in), never just because the form opened or the box got focus by itself
+  document.addEventListener('focusin', (e) => { if (pfIsName(e.target)) { if (pfInput !== e.target) pfHide(); pfInput = e.target; } });
+  document.addEventListener('click', (e) => { if (pfIsName(e.target)) { pfInput = e.target; loadPerfumes(); pfShow(); } });
+  document.addEventListener('input', (e) => { if (pfIsName(e.target)) { pfInput = e.target; pfShow(); } });
+  document.addEventListener('focusout', (e) => { if (pfIsName(e.target)) setTimeout(() => { if (document.activeElement !== pfInput) { pfHide(); pfInput = null; } }, 180); });
+  pfBox.addEventListener('pointerdown', (e) => { const d = e.target.closest('[data-i]'); if (!d) return; e.preventDefault(); pfPick(Number(d.dataset.i)); });
+  document.addEventListener('keydown', (e) => {
+    if (pfIsName(e.target) && e.key === 'ArrowDown' && (!pfInput || pfBox.style.display === 'none')) { pfInput = e.target; loadPerfumes(); pfShow(); e.preventDefault(); return; }
+    if (!pfInput || pfBox.style.display === 'none' || !pfIsName(e.target)) return;
+    const rows = pfBox.querySelectorAll('[data-i]');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { if (!rows.length) return; e.preventDefault(); pfIdx = (pfIdx + (e.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length; rows.forEach((r, i) => r.classList.toggle('on', i === pfIdx)); rows[pfIdx].scrollIntoView({ block: 'nearest' }); }
+    else if (e.key === 'Enter' && pfIdx >= 0) { e.preventDefault(); pfPick(pfIdx); }
+    else if (e.key === 'Escape') { pfHide(); }
+  }, true);
+  window.addEventListener('resize', pfPlace); document.addEventListener('scroll', pfPlace, true);
+
+  // ---------- perfume sets manager ----------
+  const setsModal = document.getElementById('setsModal'), setEditModal = document.getElementById('setEditModal');
+  let setSel = [];
+  function renderSets() {
+    document.getElementById('setsBody').innerHTML = setsList.length ? setsList.map(x => `<div class="setrow"><div><b>${esc(x.name)}</b><div class="sub">${x.perfumes.length} perfumes · used by ${x.shops} shop${x.shops === 1 ? '' : 's'}</div></div><div class="row-actions"><button data-sedit="${x.set_id}">Edit</button><button class="danger-link" data-sdel="${x.set_id}">Delete</button></div></div>`).join('') : '<div class="empty-state" style="padding:20px;">No sets yet — tap “+ New set”.</div>';
+  }
+  const mlRowHtml = (x) => `<div class="dr" style="grid-template-columns:1fr 1fr 26px;"><input class="m-ml" inputmode="decimal" placeholder="Size (ml)" value="${esc(x ? x.ml : '')}"><input class="m-pr" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹ per piece" value="${x ? x.price : ''}"><button type="button" class="rm" title="Remove">×</button></div>`;
+  function renderMlPrices() { document.getElementById('mlPriceBody').innerHTML = mlPricesList.map(mlRowHtml).join('') || '<div class="sub">No sizes yet — tap “+ Add size”.</div>'; document.getElementById('mlPriceMsg').textContent = ''; }
+  document.getElementById('btnMlAdd').addEventListener('click', () => { const b = document.getElementById('mlPriceBody'); if (!b.querySelector('.dr')) b.innerHTML = ''; b.insertAdjacentHTML('beforeend', mlRowHtml(null)); b.querySelector('.dr:last-child .m-ml').focus(); });
+  document.getElementById('mlPriceBody').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) e.target.closest('.dr').remove(); });
+  document.getElementById('btnMlSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnMlSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.ml_prices_save', { prices: [...document.querySelectorAll('#mlPriceBody .dr')].map(r => ({ ml: r.querySelector('.m-ml').value.trim(), price: Number(r.querySelector('.m-pr').value) || 0 })) });
+      setMlPrices(d.prices || []); renderMlPrices(); document.getElementById('mlPriceMsg').textContent = '✓ Saved'; document.getElementById('setsAlert').innerHTML = '';
+    } catch (err) { document.getElementById('setsAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+  async function openSets() {
+    document.getElementById('setsAlert').innerHTML = ''; await loadSets(true); renderSets(); loadMlPrices(true).then(renderMlPrices); renderMlPrices();
+    modalScrollY = window.scrollY; setsModal.classList.add('open'); loadPerfumes();
+  }
+  function closeSets() { setsModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  function renderSetEdit() {
+    document.getElementById('setCount').textContent = setSel.length;
+    document.getElementById('setChips').innerHTML = setSel.map((n, i) => `<span class="pchip">${esc(n)}<button type="button" data-srm="${i}" title="Remove">×</button></span>`).join('');
+    const q = document.getElementById('setSearch').value.trim().toLowerCase(), toks = q.split(/\s+/).filter(Boolean);
+    const all = (perfumes || []).map(p => p.n);
+    setSel.forEach(n => { if (!all.some(a => a.toLowerCase() === n.toLowerCase())) all.push(n); });   // names that are not in the store list stay visible
+    const hit = all.filter(n => toks.every(t => n.toLowerCase().includes(t)));
+    const on = new Set(setSel.map(n => n.toLowerCase())), shown = hit.slice(0, 80);
+    let h = shown.map(n => `<label><input type="checkbox" data-sn="${esc(n)}" ${on.has(n.toLowerCase()) ? 'checked' : ''}>${esc(n)}</label>`).join('');
+    if (q && !all.some(n => n.toLowerCase() === q)) h += `<label><input type="checkbox" data-sn="${esc(document.getElementById('setSearch').value.trim())}">Add “${esc(document.getElementById('setSearch').value.trim())}” as typed</label>`;
+    if (hit.length > shown.length) h += `<div class="more">${hit.length - shown.length} more — type to narrow the list.</div>`;
+    document.getElementById('setPick').innerHTML = h || (perfumes ? '<div class="more">No perfumes found.</div>' : '<div class="more">Loading perfume names…</div>');
+    document.getElementById('setPick').dataset.shown = JSON.stringify(shown);
+  }
+  async function openSetEdit(x) {
+    document.getElementById('setEditAlert').innerHTML = '';
+    document.getElementById('setEditTitle').textContent = x ? 'Edit set — ' + x.name : 'New set';
+    document.getElementById('setId').value = x ? x.set_id : ''; document.getElementById('setName').value = x ? x.name : ''; document.getElementById('setSearch').value = '';
+    setSel = x ? x.perfumes.slice() : [];
+    renderSetEdit(); setEditModal.classList.add('open');
+    await loadPerfumes(); renderSetEdit();
+    setTimeout(() => document.getElementById(x ? 'setSearch' : 'setName').focus(), 100);
+  }
+  function closeSetEdit() { setEditModal.classList.remove('open'); }
+  document.getElementById('btnSets').addEventListener('click', openSets);
+  document.getElementById('btnSetsClose').addEventListener('click', closeSets);
+  setsModal.addEventListener('click', (e) => { if (e.target === setsModal) closeSets(); });
+  document.getElementById('btnSetNew').addEventListener('click', () => openSetEdit(null));
+  document.getElementById('setsBody').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.sedit) openSetEdit(setsList.find(x => x.set_id == b.dataset.sedit));
+    else if (b.dataset.sdel) {
+      const x = setsList.find(v => v.set_id == b.dataset.sdel); if (!x) return;
+      if (!confirm(`Delete the set “${x.name}”?\n\nShops that used it keep their own perfume list.`)) return;
+      try { const d = await api.post('retail.set_delete', { set_id: x.set_id }); setsList = d.sets || []; renderSets(); }
+      catch (err) { document.getElementById('setsAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    }
+  });
+  document.getElementById('setSearch').addEventListener('input', renderSetEdit);
+  document.getElementById('setPick').addEventListener('change', (e) => {
+    const c = e.target.closest('input[data-sn]'); if (!c) return; const n = c.dataset.sn, k = n.toLowerCase();
+    if (c.checked) { if (!setSel.some(v => v.toLowerCase() === k)) setSel.push(n); } else setSel = setSel.filter(v => v.toLowerCase() !== k);
+    document.getElementById('setCount').textContent = setSel.length;
+    document.getElementById('setChips').innerHTML = setSel.map((v, i) => `<span class="pchip">${esc(v)}<button type="button" data-srm="${i}" title="Remove">×</button></span>`).join('');
+  });
+  document.getElementById('setChips').addEventListener('click', (e) => { const b = e.target.closest('button[data-srm]'); if (!b) return; setSel.splice(Number(b.dataset.srm), 1); renderSetEdit(); });
+  document.getElementById('btnSetAllShown').addEventListener('click', () => { JSON.parse(document.getElementById('setPick').dataset.shown || '[]').forEach(n => { if (!setSel.some(v => v.toLowerCase() === n.toLowerCase())) setSel.push(n); }); renderSetEdit(); });
+  document.getElementById('btnSetClear').addEventListener('click', () => { setSel = []; renderSetEdit(); });
+  document.getElementById('btnSetCancel').addEventListener('click', closeSetEdit);
+  setEditModal.addEventListener('click', (e) => { if (e.target === setEditModal) closeSetEdit(); });
+  document.getElementById('btnSetSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnSetSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.set_save', { set_id: Number(document.getElementById('setId').value) || 0, name: document.getElementById('setName').value.trim(), perfumes: setSel });
+      setsList = d.sets || []; closeSetEdit(); renderSets(); fillSetSelect();
+    } catch (err) { document.getElementById('setEditAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   });
 
   // ---------- order modal ----------
   const orderModal = document.getElementById('orderModal');
   function lineHtml(it) {
-    return `<div class="ol"><input class="l-name" placeholder="Perfume name…" value="${esc(it ? it.product_name : '')}" autocomplete="off"><input class="l-ml" placeholder="ML" inputmode="decimal" value="${esc(it ? String(it.ml || '').replace(/\s*ml$/i, '') : '')}" autocomplete="off"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-del" type="number" min="0" step="1" inputmode="numeric" placeholder="Deliv." title="How many actually reached the shop — leave empty if all did" value="${it && it.delivered !== undefined && it.delivered !== null ? it.delivered : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button></div>`;
+    const dl = it && it.delivered !== undefined && it.delivered !== null && it.delivered < it.qty ? ` data-del="${it.delivered}"` : '';
+    return `<div class="ol"${dl}><input class="l-name" placeholder="Search perfume name…" value="${esc(it ? it.product_name : '')}" autocomplete="off" autocapitalize="off" spellcheck="false"><input class="l-ml" list="mlList" placeholder="ML" inputmode="decimal" value="${esc(it ? String(it.ml || '').replace(/\s*ml$/i, '') : '')}" autocomplete="off"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button></div>`;
   }
   function addLine(it) { document.getElementById('oLines').insertAdjacentHTML('beforeend', lineHtml(it)); recalc(); }
-  let oDiscT = 'pct';
+  let oDiscT = 'pct', oKeepPay = '';   // oKeepPay: "Pay on sale" / "Free" kept from an older order
   function setDiscType(t) { oDiscT = t === 'amt' ? 'amt' : 'pct'; document.querySelectorAll('#oDiscType button').forEach(b => b.classList.toggle('on', b.dataset.dt === oDiscT)); }
+  function dueRowHtml(d) {
+    return `<div class="dr"><input type="date" class="d-date" value="${esc(d && d.date || '')}"><input type="number" class="d-amt" min="0" step="1" inputmode="numeric" placeholder="₹ amount" value="${d && d.amount ? d.amount : ''}"><button type="button" class="rm" title="Remove">×</button></div>`;
+  }
+  function addDueRow(d) { document.getElementById('oDues').insertAdjacentHTML('beforeend', dueRowHtml(d)); recalc(); }
   function recalc() {
     let qty = 0, total = 0, del = 0, delTotal = 0;
     document.querySelectorAll('#oLines .ol').forEach(r => {
       const q = Number(r.querySelector('.l-qty').value) || 0, p = Number(r.querySelector('.l-price').value) || 0;
-      const dRaw = r.querySelector('.l-del').value;
-      const d = Math.max(0, Math.min(dRaw === '' ? q : (Number(dRaw) || 0), q));
+      const d = r.dataset.del !== undefined ? Math.max(0, Math.min(Number(r.dataset.del) || 0, q)) : q;
       r.querySelector('.tot').textContent = q && p ? inr(q * p) : '';
       qty += q; total += q * p; del += d; delTotal += d * p;
     });
+    const isRet = document.getElementById('oType').value === 'return';
     const pend = Math.max(0, qty - del);
     document.getElementById('oQty').textContent = qty;
-    document.getElementById('oDel').textContent = del;
-    document.getElementById('oPend').textContent = pend;
-    document.getElementById('oPendWrap').style.display = pend ? '' : 'none';
     const billDel = document.getElementById('oBillDel').checked && pend > 0;
     const base = billDel ? delTotal : total;
-    const dv = Math.max(0, Number(document.getElementById('oDiscVal').value) || 0);
+    const dv = isRet ? 0 : Math.max(0, Number(document.getElementById('oDiscVal').value) || 0);
     const disc = base > 0 && dv > 0 ? Math.round((oDiscT === 'pct' ? base * Math.min(dv, 100) / 100 : Math.min(dv, base)) * 100) / 100 : 0;
-    document.getElementById('oTotal').textContent = inr(base - disc);
+    const billed = Math.round((base - disc) * 100) / 100;
+    document.getElementById('oTotal').textContent = inr(billed);
     document.getElementById('oDiscNote').textContent = disc > 0 ? `− ${inr(disc)} off ${inr(base)}` : '';
     document.getElementById('oBillAmt').textContent = inr(delTotal);
     document.getElementById('oPartBox').style.display = pend ? '' : 'none';
     document.getElementById('oPartTxt').textContent = pend + ' pc' + (pend === 1 ? '' : 's');
-    document.getElementById('oPaidWrap').style.display = document.getElementById('oPay').value === 'pending' ? '' : 'none';
-    document.getElementById('oDueWrap').style.display = document.getElementById('oPay').value === 'pending' ? '' : 'none';
+    // payment part: not for a return (it is a credit) nor for an older "pay on sale" / "free" order
+    const money = !isRet && !oKeepPay;
+    document.getElementById('oDiscRow').style.display = isRet ? 'none' : '';
+    document.getElementById('oModeWrap').style.display = money ? '' : 'none';
+    document.getElementById('oPaidWrap').style.display = money ? '' : 'none';
+    const lg = document.getElementById('oLegacyPay');
+    lg.style.display = !isRet && oKeepPay ? '' : 'none';
+    lg.textContent = oKeepPay ? 'Payment: ' + (PAY_LABEL[oKeepPay] || oKeepPay) + ' (set earlier, kept as it is).' : '';
+    const paid = Math.max(0, Number(document.getElementById('oPaid').value) || 0);
+    const left = Math.round((billed - paid) * 100) / 100;
+    const showDues = money && left > 0.004 && billed > 0;
+    document.getElementById('oDuesBox').style.display = showDues ? '' : 'none';
+    if (showDues) {
+      let fixed = 0; document.querySelectorAll('#oDues .d-amt').forEach(i => { fixed += Number(i.value) || 0; });
+      const n = document.querySelectorAll('#oDues .dr').length;
+      const note = document.getElementById('oDuesNote');
+      note.textContent = `${inr(left)} to collect` + (n && fixed > 0 ? ` · ${inr(Math.min(fixed, left))} scheduled` : '');
+      note.style.color = fixed > left + 0.01 ? '#c81e1e' : '';
+      if (fixed > left + 0.01) note.textContent = `Dates add up to ${inr(fixed)} but only ${inr(left)} is left`;
+    }
   }
   document.getElementById('oBillDel').addEventListener('change', recalc);
-  document.getElementById('oLines').addEventListener('input', recalc);
+  // price by bottle size: typing the ML fills the price (until the price is typed by hand)
+  let mlPrices = {}, mlPricesList = [];
+  const mlKey = (v) => { const m = String(v || '').trim().match(/^(\d+(?:\.\d+)?)\s*(?:ml)?$/i); return m ? String(parseFloat(m[1])) : ''; };
+  async function loadMlPrices(force) {
+    if (mlPricesList.length && !force) return;
+    try { setMlPrices((await api.get('retail.ml_prices')).prices || []); } catch (err) {}
+  }
+  function setMlPrices(list) {
+    mlPricesList = list; mlPrices = {}; list.forEach(x => { mlPrices[mlKey(x.ml)] = x.price; });
+    document.getElementById('mlList').innerHTML = list.map(x => `<option value="${esc(x.ml)}" label="₹${x.price}"></option>`).join('');
+  }
+  function autoPrice(mlEl, priceEl) {
+    const k = mlKey(mlEl.value), pr = mlPrices[k];
+    if (pr === undefined || (priceEl.value !== '' && priceEl.dataset.auto !== '1')) return false;
+    priceEl.value = pr; priceEl.dataset.auto = '1'; return true;
+  }
+  document.getElementById('oLines').addEventListener('input', (e) => {
+    const row = e.target.closest('.ol');
+    if (row && e.target.classList.contains('l-ml')) autoPrice(e.target, row.querySelector('.l-price'));
+    else if (row && e.target.classList.contains('l-price')) delete e.target.dataset.auto;
+    recalc();
+  });
   document.getElementById('oLines').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.ol').remove(); if (!document.querySelector('#oLines .ol')) addLine(); recalc(); } });
   document.getElementById('btnAddLine').addEventListener('click', () => { addLine(); const rows = document.querySelectorAll('#oLines .l-name'); rows[rows.length - 1].focus(); });
-  document.getElementById('oPay').addEventListener('change', recalc);
+  document.getElementById('btnAllDel').addEventListener('click', () => { document.querySelectorAll('#oLines .ol').forEach(r => r.removeAttribute('data-del')); document.getElementById('oBillDel').checked = false; recalc(); });
+  document.getElementById('oType').addEventListener('change', recalc);
+  document.getElementById('oPaid').addEventListener('input', recalc);
+  document.getElementById('oDues').addEventListener('input', recalc);
+  document.getElementById('oDues').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.dr').remove(); recalc(); } });
+  document.getElementById('btnAddDue').addEventListener('click', () => { addDueRow(); const r = document.querySelectorAll('#oDues .d-date'); r[r.length - 1].focus(); });
   document.getElementById('oDiscVal').addEventListener('input', recalc);
   document.getElementById('oDiscType').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; setDiscType(b.dataset.dt); recalc(); });
   async function openOrderModal(shopId, o) {
     const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
     document.getElementById('orderAlert').innerHTML = '';
+    orderShopPerfs = new Set(); loadPerfumes(); loadMlPrices();
+    (async () => {
+      try {
+        if (!shopPerfCache[shopId]) shopPerfCache[shopId] = (await api.get('retail.shop_perfumes', { id: shopId })).perfumes || [];
+        orderShopPerfs = new Set(shopPerfCache[shopId].map(n => n.toLowerCase()));
+        if (pfInput && pfInput.closest('#orderModal')) pfShow();
+      } catch (err) {}
+    })();
     document.getElementById('orderTitle').textContent = (o ? 'Edit order ' + o.order_no : 'New order') + (s ? ' — ' + s.shop_name : '');
-    document.getElementById('orderSub').textContent = o ? `${fmtD(o.order_date)} · by ${o.created_by_name || '—'}` : 'Perfumes given to the shop today';
+    document.getElementById('orderSub').textContent = o ? `${fmtD(o.order_date)} · by ${o.created_by_name || '—'}` : 'Perfumes sold to the shop, or taken back';
     document.getElementById('oId').value = o ? o.order_id : ''; document.getElementById('oShop').value = shopId;
-    document.getElementById('oType').value = o ? o.order_type : 'display';
-    document.getElementById('oPay').value = o ? o.payment : 'pending';
+    // older orders may be "Display" or "Replacement": keep that type in the list while editing them
+    const tSel = document.getElementById('oType');
+    [...tSel.options].forEach(op => { if (op.dataset.legacy) op.remove(); });
+    if (o && o.order_type !== 'sale' && o.order_type !== 'return') tSel.insertAdjacentHTML('beforeend', `<option value="${esc(o.order_type)}" data-legacy="1">${esc(TYPE_LABEL[o.order_type] || o.order_type)} (older)</option>`);
+    tSel.value = o ? o.order_type : 'sale';
+    oKeepPay = o && (o.payment === 'on_sale' || o.payment === 'free') && o.order_type !== 'return' ? o.payment : '';
+    document.getElementById('oMode').value = o ? (o.pay_mode || (o.payment === 'upi' ? 'upi' : 'cod')) : 'cod';
     document.getElementById('oDate').value = o ? String(o.order_date).slice(0, 10) : new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     document.getElementById('oPaid').value = o && o.paid_amount ? o.paid_amount : '';
-    document.getElementById('oDue').value = o && o.due_date ? String(o.due_date).slice(0, 10) : '';
+    document.getElementById('oDues').innerHTML = '';
+    if (o && o.payment === 'pending') {
+      if (o.dues && o.dues.length) o.dues.filter(d => !d.paid).forEach(d => addDueRow({ date: String(d.due_date).slice(0, 10), amount: d.left }));
+      else if (o.due_date) addDueRow({ date: String(o.due_date).slice(0, 10), amount: '' });
+    }
     document.getElementById('oNote').value = o ? o.note || '' : '';
     document.getElementById('oBillDel').checked = o ? !!o.bill_delivered : false;
     setDiscType(o && o.discount_type ? o.discount_type : 'pct');
@@ -1215,13 +2015,15 @@
   orderModal.addEventListener('click', (e) => { if (e.target === orderModal) closeOrderModal(); });
   document.getElementById('btnOrderSave').addEventListener('click', async () => {
     const btn = document.getElementById('btnOrderSave'); btn.disabled = true;
-    const items = [...document.querySelectorAll('#oLines .ol')].map(r => ({ product_name: r.querySelector('.l-name').value.trim(), ml: r.querySelector('.l-ml').value.trim(), qty: Number(r.querySelector('.l-qty').value) || 0, delivered: r.querySelector('.l-del').value === '' ? null : Number(r.querySelector('.l-del').value) || 0, price: Number(r.querySelector('.l-price').value) || 0 })).filter(i => i.product_name && i.qty > 0);
+    const items = [...document.querySelectorAll('#oLines .ol')].map(r => ({ product_name: r.querySelector('.l-name').value.trim(), ml: r.querySelector('.l-ml').value.trim(), qty: Number(r.querySelector('.l-qty').value) || 0, delivered: r.dataset.del !== undefined ? Number(r.dataset.del) || 0 : null, price: Number(r.querySelector('.l-price').value) || 0 })).filter(i => i.product_name && i.qty > 0);
+    const isRet = document.getElementById('oType').value === 'return', money = !isRet && !oKeepPay;
+    const dues = money ? [...document.querySelectorAll('#oDues .dr')].map(r => ({ date: r.querySelector('.d-date').value, amount: Number(r.querySelector('.d-amt').value) || 0 })).filter(d => d.date) : [];
     try {
       if (!items.length) throw new Error('Add at least one perfume line (name and quantity).');
       const d = await api.post('retail.order_save', {
         order_id: document.getElementById('oId').value || 0, shop_id: Number(document.getElementById('oShop').value),
-        order_type: document.getElementById('oType').value, payment: document.getElementById('oPay').value, order_date: document.getElementById('oDate').value,
-        paid_amount: Number(document.getElementById('oPaid').value) || 0, due_date: document.getElementById('oDue').value, discount_type: oDiscT, discount_value: Number(document.getElementById('oDiscVal').value) || 0, note: document.getElementById('oNote').value.trim(),
+        order_type: document.getElementById('oType').value, payment: isRet ? 'free' : (oKeepPay || 'pending'), pay_mode: money ? document.getElementById('oMode').value : '', order_date: document.getElementById('oDate').value,
+        paid_amount: money ? (Number(document.getElementById('oPaid').value) || 0) : 0, dues, discount_type: isRet ? '' : oDiscT, discount_value: isRet ? 0 : (Number(document.getElementById('oDiscVal').value) || 0), note: document.getElementById('oNote').value.trim(),
         bill_delivered: document.getElementById('oBillDel').checked ? 1 : 0, items,
       });
       closeOrderModal(); showAlert(d.message);
@@ -1381,15 +2183,16 @@
     const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
     document.getElementById('photoAlert').innerHTML = ''; document.getElementById('phShop').value = shopId;
     document.getElementById('photoTitle').textContent = 'Display photo' + (s ? ' — ' + s.shop_name : '');
-    document.getElementById('phFile').value = ''; document.getElementById('phNote').value = ''; document.getElementById('phInfo').textContent = '';
+    document.getElementById('phFile').value = ''; document.getElementById('phCap').value = ''; document.getElementById('phNote').value = ''; document.getElementById('phInfo').textContent = '';
     const pv = document.getElementById('phPreview'); pv.style.display = 'none'; pv.src = '';
-    document.getElementById('phPick').style.display = ''; document.getElementById('btnPhotoSave').disabled = true;
+    document.getElementById('phPick').style.display = 'none'; document.getElementById('btnPhotoSave').disabled = true;
     phBlob = null; phPos = null;
     modalScrollY = window.scrollY; photoModal.classList.add('open');
+    phStartCam();   // the live camera opens first
     // Where the phone is right now (silent; the pin distance is shown with the photo).
     if (navigator.geolocation) bestFix({ maxMs: 10000, goodM: 25 }).then((p) => { phPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy) }; }, () => {});
   }
-  function closePhotoModal() { photoModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  function closePhotoModal() { phStopCam(); photoModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnPhotoCancel').addEventListener('click', closePhotoModal);
   photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhotoModal(); });
   // Shrink on the phone before upload (max 1600px, JPEG) — fast even on slow data.
@@ -1408,16 +2211,57 @@
       img.src = url;
     });
   }
-  document.getElementById('phFile').addEventListener('change', async (e) => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    document.getElementById('phInfo').textContent = 'Preparing photo…';
-    phBlob = await shrinkImage(f);
-    const pv = document.getElementById('phPreview'); pv.src = URL.createObjectURL(phBlob); pv.style.display = 'block';
-    document.getElementById('phPick').style.display = 'none';
-    document.getElementById('phInfo').innerHTML = `${Math.round(phBlob.size / 1024)} KB · <button type="button" class="link" id="phRetake">Retake / choose another</button>`;
-    document.getElementById('phRetake').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
+  // Live camera first (back camera). If the browser blocks it, the phone's own camera app opens instead; Gallery is the last resort.
+  let phStream = null, phFacing = 'environment';
+  function phStopCam() { if (phStream) { phStream.getTracks().forEach(t => t.stop()); phStream = null; } const v = document.getElementById('phVideo'); v.srcObject = null; document.getElementById('phLive').style.display = 'none'; }
+  async function phStartCam() {
+    phStopCam();
+    const msg = document.getElementById('phMsg'); msg.textContent = '';
+    document.getElementById('phPreview').style.display = 'none'; document.getElementById('phInfo').textContent = '';
+    document.getElementById('btnPhotoSave').disabled = true; phBlob = null;
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { phNoCam('This browser cannot open the live camera here — tap below to use the phone camera.'); return; }
+    try {
+      let st;
+      try { st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: phFacing }, width: { ideal: 1600 }, height: { ideal: 1200 } }, audio: false }); }
+      catch (e) { if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e; st = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+      if (!photoModal.classList.contains('open')) { st.getTracks().forEach(t => t.stop()); return; }   // closed while the permission box was open
+      phStream = st;
+      const v = document.getElementById('phVideo'); v.srcObject = st; v.play().catch(() => {});
+      document.getElementById('phLive').style.display = ''; document.getElementById('phPick').style.display = 'none';
+      const multi = (await navigator.mediaDevices.enumerateDevices().catch(() => [])).filter(d => d.kind === 'videoinput').length > 1;
+      document.getElementById('phFlip').style.visibility = multi ? 'visible' : 'hidden';
+    } catch (err) {
+      phNoCam(err && err.name === 'NotAllowedError' ? 'Camera permission is off for this site — allow Camera in the browser settings, or tap below to use the phone camera.' : 'Live camera did not start — tap below to use the phone camera.');
+    }
+  }
+  function phNoCam(text) { document.getElementById('phLive').style.display = 'none'; document.getElementById('phPick').style.display = ''; document.getElementById('phMsg').textContent = text; }
+  function phSetBlob(b) {
+    phBlob = b; phStopCam();
+    const pv = document.getElementById('phPreview'); pv.src = URL.createObjectURL(b); pv.style.display = 'block';
+    document.getElementById('phPick').style.display = 'none'; document.getElementById('phMsg').textContent = '';
+    document.getElementById('phInfo').innerHTML = `${Math.round(b.size / 1024)} KB · <button type="button" class="link" id="phRetake">📷 Retake</button> · <button type="button" class="link" id="phRetakeG">🖼 Choose from gallery</button>`;
+    document.getElementById('phRetake').addEventListener('click', () => phStartCam());
+    document.getElementById('phRetakeG').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
     document.getElementById('btnPhotoSave').disabled = false;
+  }
+  document.getElementById('phShutter').addEventListener('click', () => {
+    const v = document.getElementById('phVideo'); if (!phStream || !v.videoWidth) return;
+    const max = 1600; let w = v.videoWidth, h = v.videoHeight; if (w > max || h > max) { const sc = max / Math.max(w, h); w = Math.round(w * sc); h = Math.round(h * sc); }
+    const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(v, 0, 0, w, h);
+    document.getElementById('phShutter').disabled = true;
+    c.toBlob((b) => { document.getElementById('phShutter').disabled = false; if (b) phSetBlob(b); else phNoCam('Could not take the photo — tap below to use the phone camera.'); }, 'image/jpeg', 0.85);
   });
+  document.getElementById('phFlip').addEventListener('click', () => { phFacing = phFacing === 'environment' ? 'user' : 'environment'; phStartCam(); });
+  document.getElementById('phGallery').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
+  document.getElementById('phPick').addEventListener('click', () => { document.getElementById('phCap').value = ''; document.getElementById('phCap').click(); });
+  async function phFromFile(e) {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    phStopCam(); document.getElementById('phInfo').textContent = 'Preparing photo…';
+    phSetBlob(await shrinkImage(f));
+  }
+  document.getElementById('phFile').addEventListener('change', phFromFile);
+  document.getElementById('phCap').addEventListener('change', phFromFile);
+  window.addEventListener('pagehide', phStopCam);
   document.getElementById('btnPhotoSave').addEventListener('click', async () => {
     if (!phBlob) return;
     const btn = document.getElementById('btnPhotoSave'); btn.disabled = true; btn.textContent = 'Uploading…';
@@ -1494,7 +2338,7 @@
   async function loadTotals() {
     document.getElementById('tShopsBody').innerHTML = '<tr><td colspan="8"><div class="loading">Loading...</div></td></tr>';
     try {
-      const d = await withRetry(() => api.get('retail.totals', { period: tPeriod, month: document.getElementById('tMonth').value, from: document.getElementById('tFrom').value, to: document.getElementById('tTo').value, area: document.getElementById('tArea').value }));
+      const d = await withRetry(() => api.get('retail.totals', { period: tPeriod, month: document.getElementById('tMonth').value, from: document.getElementById('tFrom').value, to: document.getElementById('tTo').value, area: document.getElementById('tArea').value, shop_ids: ppIds('ppTot').join(',') }));
       tData = d;
       const sel = document.getElementById('tArea'); const cur = sel.value;
       sel.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
@@ -1579,28 +2423,109 @@
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   });
 
+  // ---------- display stock (added by hand) ----------
+  const dispModal = document.getElementById('dispModal');
+  function dispPreview() {
+    const ml = mlTxt(document.getElementById('dspMl').value), q = Number(document.getElementById('dspQty').value) || 0, p = Number(document.getElementById('dspPrice').value) || 0;
+    document.getElementById('dspPreview').textContent = q ? `${ml || '—'} × ${q} — ${inr(p)} per piece${p ? ' · ' + inr(q * p) : ''}` : '';
+  }
+  ['dspMl', 'dspQty', 'dspPrice'].forEach(id => document.getElementById(id).addEventListener('input', dispPreview));
+  document.getElementById('dspMl').addEventListener('input', (e) => { if (autoPrice(e.target, document.getElementById('dspPrice'))) dispPreview(); });
+  document.getElementById('dspPrice').addEventListener('input', (e) => { delete e.target.dataset.auto; });
+  function openDispModal(x) {
+    if (!currentShop) return;
+    document.getElementById('dispAlert').innerHTML = '';
+    document.getElementById('dispTitle').textContent = x ? 'Edit display' : 'Add display';
+    document.getElementById('dispSub').textContent = currentShop.shop_name;
+    document.getElementById('dspId').value = x ? x.display_id : '';
+    document.getElementById('dspMl').value = x ? String(x.ml || '').replace(/\s*ml$/i, '') : '';
+    document.getElementById('dspQty').value = x ? x.base_qty : '';
+    document.getElementById('dspPrice').value = x ? x.price : '';
+    document.getElementById('dspSince').value = x && x.since ? String(x.since).slice(0, 10) : todayStr();
+    document.getElementById('dspName').value = x ? x.product_name || '' : '';
+    dispPreview();
+    delete document.getElementById('dspPrice').dataset.auto; loadMlPrices();
+    modalScrollY = window.scrollY; dispModal.classList.add('open');
+    setTimeout(() => document.getElementById(x ? 'dspQty' : 'dspMl').focus(), 100);
+  }
+  function closeDispModal() { dispModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  document.getElementById('btnAddDisplay').addEventListener('click', () => openDispModal(null));
+  document.getElementById('btnDispCancel').addEventListener('click', closeDispModal);
+  dispModal.addEventListener('click', (e) => { if (e.target === dispModal) closeDispModal(); });
+  document.getElementById('btnDispSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnDispSave'); btn.disabled = true;
+    try {
+      const d = await api.post('retail.display_save', { display_id: Number(document.getElementById('dspId').value) || 0, shop_id: currentShop.shop_id, product_name: document.getElementById('dspName').value.trim(), ml: document.getElementById('dspMl').value.trim(), qty: Number(document.getElementById('dspQty').value) || 0, price: Number(document.getElementById('dspPrice').value) || 0, since: document.getElementById('dspSince').value });
+      closeDispModal(); showAlert(d.message); await loadShops(); if (currentShop) openShop(currentShop.shop_id);
+    } catch (err) { document.getElementById('dispAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+  document.getElementById('shDisplay').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.dedit !== undefined) openDispModal(curDisplay[Number(b.dataset.dedit)]);
+    else if (b.dataset.ddel !== undefined) {
+      const x = curDisplay[Number(b.dataset.ddel)]; if (!x) return;
+      if (!confirm(`Remove ${mlTxt(x.ml) || 'this display'} × ${x.base_qty} from this shop's display?`)) return;
+      try { const d = await api.post('retail.display_delete', { display_id: x.display_id }); showAlert(d.message); await loadShops(); if (currentShop) openShop(currentShop.shop_id); }
+      catch (err) { showAlert(err.message, 'error'); }
+    }
+  });
+
   // ---------- payment modal ----------
+  // Same words as the order form: Payment mode (COD / UPI / Cheque), Paid so far, and the due dates for what is left.
   const payModal = document.getElementById('payModal');
-  function payWraps() { const p = document.getElementById('pPay').value === 'pending'; document.getElementById('pAmtWrap').style.display = p ? '' : 'none'; document.getElementById('pDueWrap').style.display = p ? '' : 'none'; }
-  function openPayModal(o, wantPending) {
+  let payOrder = null, payBilled = 0;
+  const payPaid = () => Math.max(0, Number(document.getElementById('pAmt').value) || 0);
+  function payAddDue(d) { document.getElementById('pDues').insertAdjacentHTML('beforeend', dueRowHtml(d)); payRecalc(); }
+  function payRecalc() {
+    const free = payBilled <= 0.004, paid = payPaid(), left = Math.round((payBilled - paid) * 100) / 100;
+    document.getElementById('pModeWrap').style.display = free ? 'none' : '';
+    document.getElementById('pAmtWrap').style.display = free ? 'none' : '';
+    document.getElementById('pLeft').textContent = free ? '' : (left > 0.004 ? `${inr(left)} still to collect` : (left < -0.004 ? `${inr(-left)} more than the bill — the extra stays on the shop's account` : '✓ Paid in full'));
+    document.getElementById('pLeft').style.color = left > 0.004 ? '#8a5a00' : '#0f7a41';
+    const show = !free && left > 0.004;
+    document.getElementById('pDuesBox').style.display = show ? '' : 'none';
+    if (show) {
+      let fixed = 0; document.querySelectorAll('#pDues .d-amt').forEach(i => { fixed += Number(i.value) || 0; });
+      const n = document.querySelectorAll('#pDues .dr').length, note = document.getElementById('pDuesNote');
+      note.textContent = `${inr(left)} to collect` + (n && fixed > 0 ? ` · ${inr(Math.min(fixed, left))} scheduled` : '');
+      note.style.color = fixed > left + 0.01 ? '#c81e1e' : '';
+      if (fixed > left + 0.01) note.textContent = `Dates add up to ${inr(fixed)} but only ${inr(left)} is left`;
+    }
+  }
+  function openPayModal(o) {
+    payOrder = o; payBilled = Number(o.billed_total !== undefined ? o.billed_total : o.total) || 0;
     document.getElementById('payAlert').innerHTML = '';
     document.getElementById('pId').value = o.order_id;
-    document.getElementById('paySub').textContent = `${o.order_no} · ${inr(o.billed_total !== undefined ? o.billed_total : o.total)}${o.paid_amount ? ' · paid ' + inr(o.paid_amount) : ''}`;
-    document.getElementById('pPay').value = wantPending ? 'pending' : (o.payment === 'pending' ? 'cash' : o.payment);
+    document.getElementById('paySub').textContent = `${o.order_no} · ${inr(payBilled)}${o.paid_amount ? ' · paid ' + inr(o.paid_amount) : ''}`;
+    const lg = document.getElementById('pLegacy');
+    lg.style.display = o.payment === 'on_sale' || o.payment === 'free' ? '' : 'none';
+    lg.textContent = o.payment === 'on_sale' ? 'This order was set to “pay on sale” earlier — choose how it is paid below.' : (payBilled > 0.004 ? 'This order was set to “free” earlier — choose how it is paid below.' : 'This order has no charge.');
+    document.getElementById('pMode').value = o.pay_mode || (o.payment === 'upi' ? 'upi' : 'cod');
     document.getElementById('pAmt').value = o.paid_amount || '';
-    document.getElementById('pDue').value = o.due_date ? String(o.due_date).slice(0, 10) : '';
-    payWraps();
+    document.getElementById('pDues').innerHTML = '';
+    if (o.dues && o.dues.length) o.dues.filter(d => !d.paid).forEach(d => payAddDue({ date: String(d.due_date).slice(0, 10), amount: d.left }));
+    else if (o.due_date) payAddDue({ date: String(o.due_date).slice(0, 10), amount: '' });
+    payRecalc();
     modalScrollY = window.scrollY; payModal.classList.add('open');
   }
-  document.getElementById('pPay').addEventListener('change', payWraps);
+  document.getElementById('pAmt').addEventListener('input', payRecalc);
+  document.getElementById('pDues').addEventListener('input', payRecalc);
+  document.getElementById('pDues').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.dr').remove(); payRecalc(); } });
+  document.getElementById('btnPayAddDue').addEventListener('click', () => { payAddDue(); const r = document.querySelectorAll('#pDues .d-date'); r[r.length - 1].focus(); });
+  document.getElementById('btnPayFull').addEventListener('click', () => { document.getElementById('pAmt').value = payBilled; document.getElementById('pDues').innerHTML = ''; payRecalc(); });
   function closePayModal() { payModal.classList.remove('open'); const y = modalScrollY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
   document.getElementById('btnPayCancel').addEventListener('click', closePayModal);
   payModal.addEventListener('click', (e) => { if (e.target === payModal) closePayModal(); });
   document.getElementById('btnPaySave').addEventListener('click', async () => {
     const btn = document.getElementById('btnPaySave'); btn.disabled = true;
     try {
-      const pay = document.getElementById('pPay').value;
-      const d = await api.post('retail.order_pay', { order_id: Number(document.getElementById('pId').value), payment: pay, paid_amount: pay === 'pending' ? (Number(document.getElementById('pAmt').value) || 0) : '', due_date: pay === 'pending' ? document.getElementById('pDue').value : undefined });
+      const free = payBilled <= 0.004, mode = document.getElementById('pMode').value, paid = payPaid();
+      const full = !free && paid >= payBilled - 0.004;
+      const pay = free ? 'free' : (full ? (mode === 'upi' ? 'upi' : 'cash') : 'pending');
+      const body = { order_id: Number(document.getElementById('pId').value), payment: pay, pay_mode: free ? '' : mode, paid_amount: free ? '' : paid };
+      if (pay === 'pending') body.dues = [...document.querySelectorAll('#pDues .dr')].map(r => ({ date: r.querySelector('.d-date').value, amount: Number(r.querySelector('.d-amt').value) || 0 })).filter(d => d.date);
+      const d = await api.post('retail.order_pay', body);
       closePayModal(); showAlert(d.message); await loadShops(); if (currentShop) openShop(currentShop.shop_id);
     } catch (err) { document.getElementById('payAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
@@ -1685,6 +2610,46 @@
   function ldPeriodText() {
     const r = (ld.data && ld.data.range) || { from: '', to: '' };
     return r.from || r.to ? `${r.from ? fmtD(r.from) : 'start'} – ${r.to ? fmtD(r.to) : 'today'}` : 'All time';
+  }
+  // ---------- outstanding + payment timeline (shop page and ledger) ----------
+  const ordN = (n) => { const v = n % 100, t = ['th', 'st', 'nd', 'rd']; return n + (t[(v - 20) % 10] || t[v] || t[0]); };
+  function tlRow(cls, dot, main, sub, amt, chip) {
+    return `<div class="tl-r ${cls}"><div class="tl-dot">${dot}</div><div class="tl-m">${main}${sub ? `<div class="sub">${sub}</div>` : ''}</div><div class="tl-a">${amt}${chip || ''}</div></div>`;
+  }
+  function tlHtml(sc) {
+    if (!sc) return '';
+    const rec = sc.received || [], up = sc.upcoming || [];
+    const recRow = (r, i) => tlRow('done', '✓', `<b>${ordN(i + 1)} payment</b> · ${fmtD(r.date)}`, [MODE_LABEL[r.mode] || r.mode, r.ref].filter(Boolean).map(esc).join(' · '), fm(r.amount), '<span class="chip c-green">Received</span>');
+    const keep = 3, early = rec.slice(0, Math.max(0, rec.length - keep)), recent = rec.slice(Math.max(0, rec.length - keep));
+    let h = '';
+    if (rec.length) {
+      h += early.length ? `<details><summary>▸ ${early.length} earlier payment${early.length === 1 ? '' : 's'} received</summary>${early.map((r, i) => recRow(r, i)).join('')}</details>` : '';
+      h += recent.map((r, i) => recRow(r, early.length + i)).join('');
+    }
+    up.forEach((u, j) => {
+      const n = rec.length + j + 1;
+      const chip = u.state === 'overdue' ? `<span class="chip c-red">Overdue ${-u.days} d</span>` : u.state === 'today' ? '<span class="chip c-amber">Due today</span>' : u.state === 'upcoming' ? `<span class="chip c-blue">Due in ${u.days} d</span>` : '<span class="chip c-grey">No date set</span>';
+      const sub = [u.refs.length ? 'bill ' + u.refs.map(esc).join(', ') : '', u.left_after > 0.004 ? fm(u.left_after) + ' left after this' : 'this clears it'].filter(Boolean).join(' · ');
+      h += tlRow(u.state, n, `<b>${ordN(n)} payment</b> · ${u.date ? fmtD(u.date) : 'date not set'}`, sub, fm(u.amount), chip);
+    });
+    if (up.length) h += tlRow('end', '₹0', `<b>All clear</b>${sc.last_date ? ' · by ' + fmtD(sc.last_date) : ''}`, '', '', '');
+    else if (!rec.length) return '';
+    return `<div class="tl">${h}</div>`;
+  }
+  function outHtml(sc, st, withBtn) {
+    const bal = sc ? Number(sc.balance) || 0 : Number((st && st.balance) || 0);
+    const ovRows = sc && sc.upcoming ? sc.upcoming.filter(u => u.state === 'overdue') : [];
+    const od = ovRows.length ? ovRows.reduce((a, u) => a + u.amount, 0) : (sc ? Number(sc.overdue) || 0 : 0);
+    const odDays = ovRows.length ? Math.max(...ovRows.map(u => -u.days)) : (sc ? sc.overdue_days : 0);
+    const nx = sc && sc.upcoming ? sc.upcoming.find(u => u.date) : null;
+    const col = bal > 0.004 ? '#c81e1e' : '#0f7a41';
+    const head = `<div class="out-top"><div><div class="lbl">Total outstanding</div><div class="amt" style="color:${col};">${bal < -0.004 ? fm(-bal) + ' <small style="font-size:14px;">advance</small>' : fm(Math.max(0, bal))}</div></div>
+      <div class="facts">${od > 0.004 ? `<div>Overdue<b style="color:#c81e1e;">${fm(od)}${odDays ? ' · ' + odDays + ' d' : ''}</b></div>` : ''}${nx ? `<div>Next payment<b>${fmtD(nx.date)} · ${fm(nx.amount)}</b></div>` : ''}${sc && sc.received && sc.received.length ? `<div>Received so far<b>${fm(sc.received.reduce((a, r) => a + r.amount, 0))}</b></div>` : ''}</div>
+      ${withBtn ? '<button class="btn secondary" id="btnShOutLedger" style="width:auto; padding:9px 14px; font-size:13px; min-height:0;">📒 Full ledger</button>' : ''}</div>`;
+    const body = tlHtml(sc);
+    const upN = sc && sc.upcoming ? sc.upcoming.length : 0;
+    return head + (body ? `<div class="tl-h">${upN ? 'Payment timeline — until it reaches ₹0' : 'Payments received'}</div>` + body : '') + (!upN && bal <= 0.004 ? '<div class="tl-note" style="color:#0f7a41;">✓ Nothing pending — this shop is clear.</div>' : '') +
+      (od > 0.004 ? '<div class="tl-note">A new shop cannot be added by the person handling this shop until the overdue amount above is paid.</div>' : '');
   }
   async function openLedger(id) {
     if (view !== 'ledger') ld.prev = view;
@@ -1774,6 +2739,7 @@
       ['Balance due', balPlain(n.balance), n.overdue > 0.004 ? fm(n.overdue) + ' overdue' : (n.on_account > 0.004 ? fm(n.on_account) + ' on account' : ''), n.balance > 0.004 ? 'color:#c81e1e;' : 'color:#0f7a41;'],
     ];
     document.getElementById('ldCards').innerHTML = cards.map(c => `<div class="stat-card"><div class="label">${c[0]}</div><div class="value" style="${c[3]}">${c[1]}</div>${c[2] ? `<div class="sub"${/overdue/.test(c[2]) ? ' style="color:#c81e1e;"' : ''}>${c[2]}</div>` : ''}</div>`).join('');
+    document.getElementById('ldTimeline').innerHTML = outHtml(Object.assign({}, d.schedule, { balance: n.balance, overdue: n.overdue, overdue_days: n.overdue_days }), null, false);
     document.getElementById('ldHero').innerHTML = `<div class="ld-hero"><div class="sm">Balance due</div><div class="big">${balPlain(n.balance)}</div>${n.overdue > 0.004 ? `<div class="sm" style="color:#fca5a5; opacity:1;">${fm(n.overdue)} overdue${n.overdue_days ? ' · ' + n.overdue_days + ' d' : ''}</div>` : (n.on_account > 0.004 ? `<div class="sm">${fm(n.on_account)} on account</div>` : '')}<div class="row"><div>${openLbl}<b>${fm(sm.opening)}</b></div><div>Billed<b>${fm(sm.billed)}</b></div><div>Received<b>${fm(sm.received)}</b></div>${sm.returns > 0 ? `<div>Credit notes<b>${fm(sm.returns)}</b></div>` : ''}</div></div>`;
 
     // --- desktop table
@@ -1887,7 +2853,7 @@
     showView(p === 'totals' || p === 'map' ? p : 'list'); if (p === 'list') loadShops(true);
   });
   document.getElementById('btnShopLedger').addEventListener('click', () => openLedger(currentShop.shop_id));
-  document.getElementById('shMeta').addEventListener('click', (e) => { if (e.target.closest('#btnShMetaLedger') && currentShop) openLedger(currentShop.shop_id); });
+  document.getElementById('shOut').addEventListener('click', (e) => { if (e.target.closest('#btnShOutLedger') && currentShop) openLedger(currentShop.shop_id); });
   document.getElementById('btnLdReceive').addEventListener('click', () => openRcv(ld.shopId));
 
   // ----- Excel (CSV), PDF (print) and WhatsApp for one shop
@@ -1945,7 +2911,7 @@
     document.getElementById('laBody').innerHTML = '<tr><td colspan="11"><div class="loading">Loading...</div></td></tr>';
     try {
       const area = document.getElementById('laArea').value;
-      la.data = await withRetry(() => api.get('retail.outstanding', area ? { area } : {}));
+      la.data = await withRetry(() => api.get('retail.outstanding', Object.assign(area ? { area } : {}, ppIds('ppLed').length ? { shop_ids: ppIds('ppLed').join(',') } : {})));
       const sel = document.getElementById('laArea'), cur = sel.value;
       sel.innerHTML = '<option value="">All areas</option>' + (la.data.areas || []).map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
       sel.value = cur;
@@ -2640,7 +3606,7 @@
   const rgStatCls = (r) => r.status_key === 'returned' ? 'c-red' : (r.status_key === 'delivered' ? 'c-green' : 'c-amber');
   const rgPayLabel = (t) => t === 'prepaid' ? 'Prepaid' : (t === 'cash' ? 'Cash' : '');
   function rgParams() {
-    return { q: rgEl('rgQ').value.trim(), from: rgEl('rgFrom').value, to: rgEl('rgTo').value, kind: rgEl('rgKind').value, status: rgEl('rgStatus').value, pay: rgEl('rgPay').value };
+    return { q: rgEl('rgQ').value.trim(), from: rgEl('rgFrom').value, to: rgEl('rgTo').value, kind: rgEl('rgKind').value, status: rgEl('rgStatus').value, pay: rgEl('rgPay').value, shop_ids: ppIds('ppReg').join(',') };
   }
   async function loadRegister(page) {
     if (page) rg.page = page;
@@ -2664,7 +3630,7 @@
     rgEl('rgStT').textContent = fm(t.total || 0); rgEl('rgStP').textContent = fm(t.prepaid || 0); rgEl('rgStC').textContent = fm(t.cod || 0);
     const tb = rgEl('rgBody');
     if (!rg.rows.length) {
-      tb.innerHTML = `<tr><td colspan="17"><div class="empty-state">${rgEl('rgQ').value || rgEl('rgFrom').value || rgEl('rgTo').value || rgEl('rgKind').value || rgEl('rgStatus').value || rgEl('rgPay').value ? 'No order matches these filters.' : 'No orders yet — use “+ Add order” or “⬆ Import Excel”.'}</div></td></tr>`;
+      tb.innerHTML = `<tr><td colspan="17"><div class="empty-state">${rgEl('rgQ').value || rgEl('rgFrom').value || rgEl('rgTo').value || rgEl('rgKind').value || rgEl('rgStatus').value || rgEl('rgPay').value || ppIds('ppReg').length ? 'No order matches these filters.' : 'No orders yet — use “+ Add order” or “⬆ Import Excel”.'}</div></td></tr>`;
     } else {
       tb.innerHTML = rg.rows.map(r => `<tr data-id="${r.order_id}" class="${rg.sel.has(r.order_id) ? 'sel' : ''}">
         <td class="ck"><input type="checkbox" data-ck="${r.order_id}"${rg.sel.has(r.order_id) ? ' checked' : ''}></td>
@@ -2699,7 +3665,7 @@
   let rgT; const rgReload = () => { clearTimeout(rgT); rgT = setTimeout(() => { rg.page = 1; loadRegister(); }, 300); };
   ['rgQ'].forEach(id => rgEl(id).addEventListener('input', rgReload));
   ['rgFrom', 'rgTo', 'rgKind', 'rgStatus', 'rgPay'].forEach(id => rgEl(id).addEventListener('change', rgReload));
-  rgEl('rgClear').addEventListener('click', () => { ['rgQ', 'rgFrom', 'rgTo', 'rgKind', 'rgStatus', 'rgPay'].forEach(id => { rgEl(id).value = ''; }); rg.page = 1; loadRegister(); });
+  rgEl('rgClear').addEventListener('click', () => { ['rgQ', 'rgFrom', 'rgTo', 'rgKind', 'rgStatus', 'rgPay'].forEach(id => { rgEl(id).value = ''; }); ppClear('ppReg'); rg.page = 1; loadRegister(); });
   rgEl('rgBody').addEventListener('change', (e) => {
     const c = e.target.closest('[data-ck]'); if (!c) return;
     const id = Number(c.dataset.ck); if (c.checked) rg.sel.add(id); else rg.sel.delete(id);
@@ -2859,4 +3825,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html> 
+</html>
