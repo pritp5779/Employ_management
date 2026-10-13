@@ -196,7 +196,7 @@ function renderSidebarCore(active) {
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
     order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
-    retail: [['retail_shops.html', 'Retail Shops', 'retail_shops']],
+    retail: [['retail_shops.html', 'Retail Shops', 'retail_shops'], ['retail_inventory.html', 'Retail Inventory <span id="stockBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'retail_inventory']],
     attendance: [['attendance_admin.html', 'Attendance', 'attendance_admin']],
     leave_requests: [['leave_requests.html', 'Leave Requests', 'leave_requests']],
     offices: [['offices.html', 'Office Locations', 'offices']],
@@ -376,6 +376,7 @@ function renderSidebarCore(active) {
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
       ['order_codes.html', 'Order Codes', 'order_codes'],
       ['retail_shops.html', 'Retail Shops', 'retail_shops'],
+      ['retail_inventory.html', 'Retail Inventory <span id="stockBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'retail_inventory'],
       ['attendance_admin.html', 'Attendance', 'attendance_admin'],
       ['leave_requests.html', 'Leave Requests <span id="leaveBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'leave_requests'],
       ['offices.html', 'Office Locations', 'offices'],
@@ -452,6 +453,10 @@ function renderSidebarCore(active) {
       const badge = document.getElementById('leaveBadge');
       if (badge && d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline-block'; }
     }).catch(() => {});
+    if (document.getElementById('stockBadge')) api.get('retail.stock_alerts', { badge: 1 }).then((d) => {
+      const badge = document.getElementById('stockBadge');
+      if (badge && d.unread > 0) { badge.textContent = d.unread; badge.style.display = 'inline-block'; }
+    }).catch(() => {});
     api.get('approvals.count').then((d) => {
       const badge = document.getElementById('approvalBadge');
       if (badge && d.count > 0) {
@@ -503,7 +508,7 @@ const RAIL_ICONS = {
   chev: '<path d="M9 6l6 6-6 6"/>',
 };
 const RAIL_ICON_FOR = {
-  dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop',
+  dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
   attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
   performance: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
   commission_rules: 'sliders', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
@@ -586,7 +591,7 @@ function setupRail() {
       ico.innerHTML = railSvg(RAIL_ICON_FOR[key] || 'dot');
       a.appendChild(ico);
       a.appendChild(lbl);
-      const bd = lbl.querySelector('#approvalBadge, #leaveBadge');
+      const bd = lbl.querySelector('#approvalBadge, #leaveBadge, #stockBadge');
       if (bd) a.appendChild(bd);   // keep the count visible on the narrow rail
       a.setAttribute('data-tip', label);
       a.setAttribute('aria-label', label);
@@ -663,7 +668,7 @@ function renderSidebar(active) {
     document.body.appendChild(sc);
     // The manual rules (order-rating rules, order-code rules, fixed commission) — they used to be on the Commission page.
     const sm = document.createElement('script');
-    sm.id = 'manualRulesJs'; sm.src = 'assets/js/manual_rules.js?v=261009a'; sm.async = false;
+    sm.id = 'manualRulesJs'; sm.src = 'assets/js/manual_rules.js?v=261013a'; sm.async = false;
     document.body.appendChild(sm);
   }
 }

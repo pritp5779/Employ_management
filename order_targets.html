@@ -278,7 +278,7 @@
     m = ((m % 1440) + 1440) % 1440;
     return pad(Math.floor(m / 60)) + ':' + pad(m % 60);
   };
-  const PAL = ['#6366f1', '#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316'];
+  const PAL = ['#6366f1', '#0ea5e9', '#f59e0b', '#10b981', '#c026d3', '#8b5cf6', '#14b8a6', '#f97316'];
   const initials = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
   const avatar = (id, name) => `<span class="av" style="background:${PAL[Math.abs(Number(id) || 0) % PAL.length]}">${esc(initials(name))}</span>`;
   const isMob = () => window.matchMedia('(max-width:820px)').matches;

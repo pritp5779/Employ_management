@@ -52,6 +52,11 @@
 #cm .pct{font-size:11px; color:var(--muted); margin-left:4px; font-weight:600;}
 #cm .pend{color:var(--bad-fg); font-weight:600;} #cm .pend.zero{color:var(--green);}
 #cm .com{font-weight:800; font-size:14.5px; color:var(--green);} #cm .com.none{color:#9ca3af; font-weight:600;}
+#cm .com.man{color:#c2410c;} #cm .pill.man{background:#ffedd5; color:#c2410c; font-size:10px; padding:1px 7px; margin-left:6px; vertical-align:1px;} #cm .kpi.o{background:#fff4e8;} #cm .kpi.o .v{color:#c2410c;} #cm .held.mann{color:#c2410c;}
+#cm .d-h .btn.chgman{background:#fff; color:var(--ink); border:1.5px solid var(--ink); white-space:nowrap;} #cm .d-h .btn.chgman[disabled]{opacity:.45; cursor:not-allowed;}
+#mcModal .auto{background:#f6f7f9; border-radius:12px; padding:10px 14px; font-size:12.5px; line-height:1.7; margin:-4px 0 14px;} #mcModal .auto .row{display:flex; justify-content:space-between; gap:12px;} #mcModal .auto b{color:var(--ink); text-align:right;}
+#mcModal .mcseg{display:flex; background:#f0f1f4; border-radius:12px; padding:3px; margin-bottom:12px;} #mcModal .mcseg button{flex:1; border:0; background:transparent; font:inherit; font-size:12.5px; font-weight:700; padding:8px; border-radius:10px; color:var(--muted); cursor:pointer;} #mcModal .mcseg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.1);}
+#mcModal .mcprev{background:#fff4e8; border-radius:12px; padding:10px 14px; font-size:13px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:10px;} #mcModal .mcprev b{font-size:18px; color:#c2410c;}
 #cm .rate{display:inline-block; font-size:11px; font-weight:700; color:var(--gold); background:var(--gold-bg); border:1px solid #f6dfa8; border-radius:10px; padding:1px 7px; margin-left:6px; cursor:pointer;}
 #cm .pill{display:inline-block; padding:2px 10px; border-radius:12px; font-size:11.5px; font-weight:700;}
 #cm .p-leave{background:#fde8e8; color:#b91c1c;} #cm .p-ok{background:#e7f7ee; color:#0f7a41;} #cm .p-mut{background:#eef0f4; color:#6b7280;} #cm .p-wait{background:#fff4db; color:#8a5a00;} #cm .p-blue{background:var(--blue-bg); color:var(--blue);}
@@ -192,6 +197,7 @@
               <div class="who"><div class="av" id="dAv"></div><div><h3 id="dName"></h3><div class="small muted" id="dSub"></div></div></div>
               <div class="kpis" id="dKpis"></div>
               <div class="seg" id="dView"><button type="button" data-v="ord" class="on">All orders</button><button type="button" data-v="day">Date-wise</button></div>
+              <button type="button" class="btn chgman" id="dMan" title="Change this employee's commission by hand">✎ Change commission</button>
               <button type="button" class="dlbtn" id="dDl" title="Download this table as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg><span>Excel</span></button><button class="closebtn" id="dClose" type="button">✕ Close</button>
             </div>
             <div class="scroll" id="dBody"></div>
@@ -212,6 +218,20 @@
     <div class="field"><label for="shWhy">Reason <span style="text-transform:none; font-weight:400;">(optional)</span></label><input id="shWhy" maxlength="255" placeholder="e.g. Customer code added late"></div>
     <div id="shPrev" style="font-size:12.5px; background:#f6f7f9; border-radius:12px; padding:8px 12px;"></div>
     <div class="actions"><button type="button" class="btn secondary" id="shRemove" style="margin-right:auto;">Remove manual</button><button type="button" class="btn secondary" id="shCancel">Cancel</button><button type="button" class="btn" id="shSave">Save</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="mcModal">
+  <div class="modal" style="max-width:470px;">
+    <h3>Change commission</h3>
+    <div id="mcSub" style="font-size:12.5px; color:var(--muted); margin:-8px 0 12px; line-height:1.5;"></div>
+    <div id="mcAlert"></div>
+    <div class="auto" id="mcAuto"></div>
+    <div class="mcseg" id="mcSeg"><button type="button" data-m="rate" class="on">Change the rate %</button><button type="button" data-m="amt">Set the amount ₹</button></div>
+    <div class="field" id="mcFRate"><label for="mcRate">Rate (% of sales)</label><input id="mcRate" type="number" min="0" max="999.99" step="0.01" inputmode="decimal"></div>
+    <div class="field" id="mcFAmt" style="display:none;"><label for="mcAmt">Commission amount (₹)</label><input id="mcAmt" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <div class="field"><label for="mcWhy">Reason <span style="text-transform:none; font-weight:400;">(optional)</span></label><input id="mcWhy" maxlength="255" placeholder="e.g. Approved by Jaimin"></div>
+    <div class="mcprev" id="mcPrev"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="mcClear" style="margin-right:auto; color:#c81e1e;">Back to automatic</button><button type="button" class="btn secondary" id="mcCancel">Cancel</button><button type="button" class="btn" id="mcSave">Save</button></div>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -270,6 +290,10 @@
   let ORDBY = {};         // order key -> order record
   let ROWS = [];          // one per employee and row: '' = TM Perfume House + TM Fragrance together; 'tm4u', 'tmsg', 'tmh4' = TM4U, TM Shower Gel, TM House 4th — each counted on its own
   let READY = false, openKey = null, dScope = 'm';   // dScope: which table the open employee detail belongs to ('t' = Today, 'm' = Monthly)
+  // Commission set by hand ("employee|row" -> { rate, amount, reason }): belongs to one month, so it applies only while the Monthly range is that whole month.
+  let MAN = {};
+  const monthEndOf = (d) => d.slice(0, 7) + '-' + String(new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)), 0).getDate()).padStart(2, '0');
+  const manOk = () => !!RFROM && !!RTO && RFROM.slice(8) === '01' && RTO === (monthEndOf(RFROM) < TODAY ? monthEndOf(RFROM) : TODAY);
   const dDays = () => dScope === 't' ? [TODAY] : DAYS, dFrom = () => dScope === 't' ? TODAY : RFROM, dTo = () => dScope === 't' ? TODAY : RTO;
   let SPAN = [];          // every day that was loaded
   const dayOpen = new Set();
@@ -430,6 +454,8 @@
 
   // NEW — fixed-by-count plans: the minimum is measured on the current calendar month (1st → today)
   const monthStat = (empId) => { let n = 0, ach = 0; ORD.forEach((o) => { if (o.emp === empId && o.rk === '' && o.day >= MSTART && o.day <= TODAY) { n++; ach += o.amt; } }); return { n, ach }; };
+  // A rule's dates: no From / To = all days. day is a business day 'YYYY-MM-DD'.
+  const inWin = (r, day) => (!r.from || day >= r.from) && (!r.to || day <= r.to);
   const planReached = (p) => { if (!(Number(p.min) > 0)) return true; const s = monthStat(p.emp); return p.minType === 'amount' ? s.ach >= Number(p.min) : s.n >= Number(p.min); };   // no minimum (blank / 0) = never locked
   const fmtN = (v) => String(Math.round(Number(v) * 100) / 100);
   // how a rule / plan pays, in words: full | rate (fixed % of sales) | pct (% of the normal commission) | flat (₹ per order)
@@ -456,27 +482,59 @@
     // NEW — manual code rules: when the share of this employee's orders with a code is at least / at most a number you set,
     // pay full commission (no order-code cut), a fixed % of sales, a % of the normal commission, or ₹ per order.
     const codePct = n ? orders.filter((o) => o.code).length / n * 100 : 0;
-    const mixRule = (c && n > 0) ? NEW.mix.find((r) => r.on && (!r.who.length || r.who.indexOf(row.emp.employee_id) !== -1) && (r.op === 'lte' ? codePct <= Number(r.thr) : codePct >= Number(r.thr))) : null;
+    // A rule with dates looks only at the orders of those days (the share of orders with a code is counted on them) and changes only those orders.
+    const mixRule = (c && n > 0) ? NEW.mix.find((r) => {
+      if (!r.on || (r.who.length && r.who.indexOf(row.emp.employee_id) === -1)) return false;
+      const wo = (r.from || r.to) ? orders.filter((o) => inWin(r, o.day)) : orders;
+      if (!wo.length) return false;
+      const pc = wo.filter((o) => o.code).length / wo.length * 100;
+      return r.op === 'lte' ? pc <= Number(r.thr) : pc >= Number(r.thr);
+    }) : null;
+    // Rules saved together as one bundle: the Order-code rule of the bundle is the CONDITION for the Fixed commission / Panel rule of the same bundle.
+    // Fixed / Panel pay only while that condition is met (e.g. "orders with a code are at least 80%"); otherwise the normal commission is paid.
+    const gates = {}, gateInfo = {};
+    NEW.mix.forEach((r) => {
+      if (!r.on || !r.grp || (r.who.length && r.who.indexOf(row.emp.employee_id) === -1)) return;
+      const wo = (r.from || r.to) ? orders.filter((o) => inWin(r, o.day)) : orders;
+      const pc = wo.length ? wo.filter((o) => o.code).length / wo.length * 100 : 0;
+      const ok = wo.length > 0 && (r.op === 'lte' ? pc <= Number(r.thr) : pc >= Number(r.thr));
+      if (!gates[r.grp]) { gates[r.grp] = ok; gateInfo[r.grp] = { pct: Math.round(pc), thr: Number(r.thr), op: r.op }; }
+    });
+    const gateOk = (g) => !g || gates[g] !== false;
+    const gateTxt = (g) => { const i = gateInfo[g]; return i ? `only ${i.pct}% of orders have a code — its rule needs ${i.op === 'lte' ? 'at most' : 'at least'} ${fmtN(i.thr)}%` : ''; };
+    const mixWo = mixRule ? orders.filter((o) => inWin(mixRule, o.day)) : [];
+    const mixDated = !!(mixRule && (mixRule.from || mixRule.to));
+    const mixPct = mixRule ? mixWo.filter((o) => o.code).length / mixWo.length * 100 : codePct;
     let cutAmt = null;
     if (c && (hasCond() || mixRule)) {   // rules that depend on this employee's target / ticket size: price each order in this context
       const ctx = { hit: c.hit, ticket: c.ticket, full: !!mixRule };
       if (mixRule) { const ctx0 = { hit: c.hit, ticket: c.ticket }; let e0 = 0, f0 = 0; orders.forEach((o) => { const p = calcPrice(o, ctx0); e0 += p.eff; f0 += p.flat; }); cutAmt = c.rate * e0 / 100 + f0; }
+      const ctx0b = { hit: c.hit, ticket: c.ticket };
       pm = {}; eff = 0; flat = 0;
-      orders.forEach((o) => { const p = calcPrice(o, ctx); pm[o.key] = p; eff += p.eff; flat += p.flat; });
+      orders.forEach((o) => { const p = calcPrice(o, (mixRule && inWin(mixRule, o.day)) ? ctx : ctx0b); pm[o.key] = p; eff += p.eff; flat += p.flat; });
     }
     if (c) applyCodeRules(c, orders, eff, flat, pm);
     if (c && mixRule) {
       const mode = mixRule.mode, v = Number(mixRule.v);
-      if (mode === 'pct') c.amount = c.amount * v / 100;
+      if (mixDated) {   // dates: only the orders of those days are paid this way
+        let dl = 0;
+        mixWo.forEach((o) => { const b = orderCom((pm && pm[o.key]) || o, c.rate); dl += mode === 'pct' ? b * (v / 100 - 1) : mode === 'rate' ? o.amt * v / 100 - b : mode === 'flat' ? v - b : 0; });
+        c.amount += dl;
+      }
+      else if (mode === 'pct') c.amount = c.amount * v / 100;
       else if (mode === 'rate') c.amount = ach * v / 100;
       else if (mode === 'flat') c.amount = n * v;
       if (mode !== 'full') { c.held = 0; c.adj = false; c.full = c.amount; }
       const saved = c.amount - cutAmt;
-      c.mix = { pct: Math.round(codePct), thr: Number(mixRule.thr), op: mixRule.op, mode, v, label: mixRule.label || '', saved, badge: payBadge(mode, v) };
-      c.steps.push({ label: mixRule.label || 'Code rule', detail: `${Math.round(codePct)}% of orders have a code (rule: ${mixRule.op === 'lte' ? 'at most' : 'at least'} ${fmtN(mixRule.thr)}%) → ${payTxt(mode, v)}`, value: saved > 0.5 || saved < -0.5 ? (saved > 0 ? '+' : '−') + inr(Math.abs(saved)) : 'full' });
+      c.mix = { win: mixRule, pct: Math.round(mixPct), thr: Number(mixRule.thr), op: mixRule.op, mode, v, label: mixRule.label || '', saved, badge: payBadge(mode, v) };
+      c.steps.push({ label: mixRule.label || 'Code rule', detail: `${Math.round(mixPct)}% of ${mixDated ? 'the orders in its dates' : 'orders'} have a code (rule: ${mixRule.op === 'lte' ? 'at most' : 'at least'} ${fmtN(mixRule.thr)}%) → ${payTxt(mode, v)}`, value: saved > 0.5 || saved < -0.5 ? (saved > 0 ? '+' : '−') + inr(Math.abs(saved)) : 'full' });
     }
     // NEW — fixed commission for selected people, once the minimum is reached: a % of sales, or ₹ per order
-    const plan = (c && row.rk === '') ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && planReached(p)) : null;
+    const plan = (c && row.rk === '') ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p) && gateOk(p.grp)) : null;
+    if (c && c.steps && row.rk === '' && n > 0 && !plan) {
+      const blk = NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p) && !gateOk(p.grp));
+      if (blk) c.steps.push({ label: 'Fixed commission not paid', detail: gateTxt(blk.grp) + ' → normal commission is paid', value: 'normal' });
+    }
     if (plan && n > 0) {
       const v = Number(plan.per);
       c.fixedPlan = { mode: plan.mode, v, n, ach, badge: payBadge(plan.mode, v) };
@@ -494,20 +552,37 @@
         c.steps.push({ label: 'Order rating', detail: `${cnt} order${cnt === 1 ? '' : 's'} with a low star rating pay less (rating rules)`, value: (cut < 0 ? '−' : '+') + inr(Math.abs(cut)) });
       }
     }
-    // NEW — panel + date rules: the order pays a fixed % of its amount, whatever it would have earned above (see panelRuleFor())
-    if (n > 0 && NEW.panel.some((r) => r.on)) {
-      const hits = orders.filter((o) => panelRuleFor(o));
+    // NEW — panel + date rules, and a fixed commission that has dates: the order pays a fixed amount whatever it would have earned above
+    // (see panelRuleFor() / fixedFor())
+    if (n > 0 && (NEW.panel.some((r) => r.on) || NEW.fixed.some((p) => p.on && (p.from || p.to)))) {
+      const hits = orders.filter((o) => panelRuleFor(o, gateOk) || fixedFor(o, gateOk));
       if (hits.length) {
         if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
         const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm };
-        let delta = 0; const names = {}, rl = {};
-        hits.forEach((o) => { const r = panelRuleFor(o); delta += o.amt * r.pct / 100 - comStar(o, tmp).v; names[r.label || 'Panel rule'] = 1; rl[r.id] = r; });
-        c.amount += delta; c.panelCnt = hits.length;
-        const ids = Object.keys(rl); if (ids.length === 1 && hits.length === n) c.panelBadge = fmtN(rl[ids[0]].pct) + '% fixed';
-        c.steps.push({ label: 'Panel rule', detail: `${hits.length} order${hits.length === 1 ? '' : 's'} pay a fixed % of sales · ${Object.keys(names).join(', ')}`, value: (delta < 0 ? '−' : '+') + inr(Math.abs(delta)) });
+        let dP = 0, dF = 0, nP = 0, nF = 0; const names = {}, rl = {};
+        hits.forEach((o) => {
+          const r = panelRuleFor(o, gateOk), cur = comStar(o, tmp).v;
+          if (r) { dP += o.amt * r.pct / 100 - cur; nP++; names[r.label || 'Panel rule'] = 1; rl[r.id] = r; }
+          else { dF += comOf(o, tmp, gateOk).v - cur; nF++; }
+        });
+        c.amount += dP + dF; c.panelCnt = nP;
+        const ids = Object.keys(rl); if (ids.length === 1 && nP === n) c.panelBadge = fmtN(rl[ids[0]].pct) + '% fixed';
+        if (nP) c.steps.push({ label: 'Panel rule', detail: `${nP} order${nP === 1 ? '' : 's'} pay a fixed % of sales · ${Object.keys(names).join(', ')}`, value: (dP < 0 ? '−' : '+') + inr(Math.abs(dP)) });
+        if (nF) c.steps.push({ label: 'Fixed commission', detail: `${nF} order${nF === 1 ? '' : 's'} on the fixed commission (its dates)`, value: (dF < 0 ? '−' : '+') + inr(Math.abs(dF)) });
       }
     }
-    return { pm, row, ach, n, pre, target, ticket, prePct, pending: Math.max(0, target - ach), leave, absent, worked, orders, c: c || { rate: 0, amount: 0, steps: null, held: 0 } };
+    return { gates, pm, row, ach, n, pre, target, ticket, prePct, pending: Math.max(0, target - ach), leave, absent, worked, orders, c: withManual(row, days, c || { rate: 0, amount: 0, steps: null, held: 0 }) };
+  }
+  // A commission set by hand replaces the worked-out one for the whole-month range (not for Today, nor for a single day of the detail).
+  function withManual(row, days, c) {
+    const man = days === DAYS && manOk() ? MAN[row.emp.employee_id + '|' + row.rk] : null;
+    if (!man) return c;
+    const autoTxt = inr(c.amount) + (c.steps ? ' (' + fmtN(c.rate) + '%)' : '');
+    return Object.assign({}, c, {
+      auto: { amount: c.amount, rate: c.rate, ok: !!c.steps, why: c.fixedPlan ? 'Fixed commission' : (c.mix && c.mix.badge) ? 'Code rule' : c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' },
+      manual: man, amount: man.amount, rate: man.rate, held: 0, fixedPlan: null, mix: null, panelBadge: null, adj: null,
+      steps: [{ label: 'Manual commission', detail: 'Set by hand' + (man.reason ? ': ' + man.reason : '') + ' · automatic would be ' + autoTxt, value: fmtN(man.rate) + '%' }].concat((c.steps || []).map((x) => Object.assign({}, x, { label: 'Automatic · ' + x.label, muted: true }))),
+    });
   }
   // Average = achieved per working day, from the 1st up to the given day.
   const avgTo = (row, day, from) => { const a = agg(row, SPAN.filter((d) => d >= (from || MSTART) && d <= day)); return a.worked > 0 ? a.ach / a.worked : 0; };
@@ -520,7 +595,7 @@
   const pctTxt = (a) => a.target > 0 ? `<span class="pct">${Math.round(a.ach / a.target * 100)}%</span>` : '';
   const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || a.c.panelBadge || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.panelBadge ? a.c.panelBadge : a.c.fixedPlan ? a.c.fixedPlan.badge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
   const pendCell = (a) => a.target <= 0 ? '<span class="muted">—</span>' : a.pending > 0 ? `<span class="pend">${inr(a.pending)}</span>` : '<span class="pend zero">✓ Done</span>';
-  const nameHtml = (row, chev) => `<b>${esc(row.emp.full_name)}${row.rk ? ' <span class="pill p-blue">' + esc(PLAB[row.rk]) + '</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
+  const nameHtml = (row, chev, man) => `<b>${esc(row.emp.full_name)}${row.rk ? ' <span class="pill p-blue">' + esc(PLAB[row.rk]) + '</span>' : ''}${man ? ' <span class="pill man">MANUAL</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
 
   function statusPill(st) { const t = LEAVE_TXT[st]; return t ? `<span class="pill ${t[1]}"${st === 'absent' ? ` title="${AB_TITLE}"` : ''}>${t[0]}</span>` : '<span class="muted">—</span>'; }
 
@@ -534,13 +609,13 @@
     if (mode === 'today') leave = statusPill(statusOf(e, TODAY));
     else leave = (a.leave ? `<span class="pill p-leave">${a.leave} leave</span>` : '<span class="pill p-mut">0 leave</span>') + (a.absent ? ` <span class="pill p-wait" title="${AB_TITLE}">${a.absent} absent</span>` : '');
     return `<tr class="click ${openKey === a.row.key && dScope === (mode === 'today' ? 't' : 'm') ? 'sel' : ''}" data-k="${esc(a.row.key)}">
-      <td><div class="emp"><div class="av">${esc(ini(e.full_name))}</div><div>${nameHtml(a.row, true)}<span>${esc(e.role)}${e.employee_code ? ' · ' + esc(e.employee_code) : ''}</span></div></div></td>
+      <td><div class="emp"><div class="av">${esc(ini(e.full_name))}</div><div>${nameHtml(a.row, true, !!a.c.manual)}<span>${esc(e.role)}${e.employee_code ? ' · ' + esc(e.employee_code) : ''}</span></div></div></td>
       <td class="r" data-label="Target">${tgtBtn(a, 'e' + key, mode === 'today' ? [TODAY] : DAYS)}</td>
       <td class="r" data-label="Ticket Size">${a.n ? inr(a.ticket) + `<div class="small muted">${a.n} order${a.n === 1 ? '' : 's'}</div>` : '<span class="muted">—</span>'}</td>
       <td class="r" data-label="Achieved"><b>${inr(a.ach)}</b>${pctTxt(a)}${a.target > 0 ? progress(a) : ''}</td>
       <td class="r" data-label="Pending">${pendCell(a)}</td>
       <td class="r" data-label="Average">${inr(mode === 'today' ? avgTo(a.row, TODAY) : (a.worked > 0 ? a.ach / a.worked : 0))}<div class="small muted">per day${mode === 'today' ? ' (this month)' : ''}</div></td>
-      <td class="r" data-label="Commission">${a.c.steps ? `<span class="com">${inr(a.c.amount)}</span>${rateBtn(a, key)}${a.c.fixedPlan ? `<div class="held fxn">fixed · ${a.c.fixedPlan.mode === 'rate' ? fmtN(a.c.fixedPlan.v) + '% of ' + inr(a.c.fixedPlan.ach) : inr(a.c.fixedPlan.v) + ' × ' + a.c.fixedPlan.n + ' orders'}</div>` : a.c.mix ? `<div class="held mixn">✓ ${esc(a.c.mix.label || 'code rule')} · ${a.c.mix.pct}% with code → ${esc(payTxt(a.c.mix.mode, a.c.mix.v))}${a.c.mix.mode === 'full' && a.c.mix.saved > 0.5 ? ' (+' + inr(a.c.mix.saved) + ')' : ''}</div>` : Math.abs(a.c.held) >= 0.5 ? `<div class="held">order-code rules ${a.c.held > 0 ? '−' : '+'}${inr(Math.abs(a.c.held))}</div>` : ''}` : '<span class="com none">₹0</span>'}</td>
+      <td class="r" data-label="Commission">${a.c.steps ? `<span class="com${a.c.manual ? ' man' : ''}">${inr(a.c.amount)}</span>${rateBtn(a, key)}${a.c.manual ? `<div class="held mann">manual · automatic would be ${inr(a.c.auto.amount)}</div>` : ''}${a.c.fixedPlan ? `<div class="held fxn">fixed · ${a.c.fixedPlan.mode === 'rate' ? fmtN(a.c.fixedPlan.v) + '% of ' + inr(a.c.fixedPlan.ach) : inr(a.c.fixedPlan.v) + ' × ' + a.c.fixedPlan.n + ' orders'}</div>` : a.c.mix ? `<div class="held mixn">✓ ${esc(a.c.mix.label || 'code rule')} · ${a.c.mix.pct}% with code → ${esc(payTxt(a.c.mix.mode, a.c.mix.v))}${a.c.mix.mode === 'full' && a.c.mix.saved > 0.5 ? ' (+' + inr(a.c.mix.saved) + ')' : ''}</div>` : Math.abs(a.c.held) >= 0.5 ? `<div class="held">order-code rules ${a.c.held > 0 ? '−' : '+'}${inr(Math.abs(a.c.held))}</div>` : ''}` : '<span class="com none">₹0</span>'}</td>
       <td data-label="Leave">${leave}</td></tr>`;
   }
   const THEAD = '<thead><tr><th>Employee</th><th class="r">Target</th><th class="r">Ticket Size</th><th class="r">Achieved</th><th class="r">Pending</th><th class="r">Average</th><th class="r">Commission</th><th>Leave</th></tr></thead>';
@@ -584,7 +659,7 @@
     if (c && c.fixedPlan) return { v: c.fixedPlan.mode === 'rate' ? o.amt * c.fixedPlan.v / 100 : c.fixedPlan.v, note: 'fixed · ' + payTxt(c.fixedPlan.mode, c.fixedPlan.v), cls: 'fx' };
     const p = (A && A.pm && A.pm[o.key]) || o, rate = c ? (c.rate || 0) : 0;
     if (!c || !c.steps) return { v: 0, note: 'no commission earned this period', cls: 'z' };
-    if (c.mix && c.mix.mode !== 'full') {
+    if (c.mix && c.mix.mode !== 'full' && inWin(c.mix.win, o.day)) {
       const m = c.mix, v = m.mode === 'rate' ? o.amt * m.v / 100 : m.mode === 'flat' ? m.v : orderCom(p, rate) * m.v / 100;
       return { v, note: (m.label || 'code rule') + ' · ' + payTxt(m.mode, m.v), cls: 'mx' };
     }
@@ -603,7 +678,7 @@
   function starMul(o) {
     if (o.stars == null) return null;
     let best = null;
-    NEW.star.forEach((r) => { if (r.on && (!r.who.length || r.who.indexOf(o.emp) !== -1) && o.stars <= r.star && (!best || r.star < best.star)) best = r; });
+    NEW.star.forEach((r) => { if (r.on && inWin(r, o.day) && (!r.who.length || r.who.indexOf(o.emp) !== -1) && o.stars <= r.star && (!best || r.star < best.star)) best = r; });
     return best ? { r: best, m: best.pay / 100 * (o.code ? 1 : best.nc / 100) } : null;
   }
   // A rated order that fits a rating rule starts from its FULL commission (rate × amount) — the rating rule decides the cut,
@@ -625,18 +700,32 @@
   // NEW — panel + date rules (set on the Commission Rules page): orders of the chosen panels on the chosen business days pay a fixed % of
   // their amount. This wins over the slab, the order-code rules, the person's fixed commission and the rating rules (an order whose share
   // was changed by hand keeps that share). The earliest rule that fits is used.
-  function panelRuleFor(o) {
+  function panelRuleFor(o, ok) {
     if (CODE.shares && CODE.shares[o.key]) return null;
     let best = null;
-    NEW.panel.forEach((r) => { if (r.on && o.day >= r.from && o.day <= r.to && r.panels.indexOf(o.house) !== -1 && (!r.who.length || r.who.indexOf(o.emp) !== -1) && (!best || r.id < best.id)) best = r; });
+    NEW.panel.forEach((r) => { if (r.on && inWin(r, o.day) && (!ok || ok(r.grp)) && r.panels.indexOf(o.house) !== -1 && (!r.who.length || r.who.indexOf(o.emp) !== -1) && (!best || r.id < best.id)) best = r; });
     return best;
   }
-  function comOf(o, aggs) {
-    const r = panelRuleFor(o);
-    if (!r) return comStar(o, aggs);
-    return { v: o.amt * r.pct / 100, note: (r.label || 'Panel rule') + ' · fixed ' + fmtN(r.pct) + '%', cls: 'fx' };
+  // A person's fixed commission that has dates: the orders of those days pay it (a % of the order, or ₹ per order) — once the minimum is reached.
+  // (A fixed commission for all days is worked out on the whole period instead, see agg().) The rating cut still applies to it.
+  function fixedFor(o, ok) {
+    if (o.rk !== '' || (CODE.shares && CODE.shares[o.key])) return null;
+    return NEW.fixed.find((p) => p.on && (p.from || p.to) && p.emp === o.emp && inWin(p, o.day) && planReached(p) && (!ok || ok(p.grp))) || null;
   }
-  const shNote = (o, aggs) => panelRuleFor(o) ? 'panel rule' : byRating(o, aggs) ? 'by rating' : '';
+  // the bundle condition of the employee this order belongs to (worked out in agg())
+  const gateFn = (o, aggs) => { const A = aggs && aggs[o.emp + '|' + o.rk]; return (g) => !g || !A || !A.gates || A.gates[g] !== false; };
+  function comOf(o, aggs, ok) {
+    ok = ok || gateFn(o, aggs);
+    const r = panelRuleFor(o, ok);
+    if (r) return { v: o.amt * r.pct / 100, note: (r.label || 'Panel rule') + ' · fixed ' + fmtN(r.pct) + '%', cls: 'fx' };
+    const fp = fixedFor(o, ok);
+    if (fp) {
+      const sm = starMul(o), v = (fp.mode === 'rate' ? o.amt * fp.per / 100 : fp.per) * (sm ? sm.m : 1);
+      return { v, note: 'fixed · ' + payTxt(fp.mode, fp.per) + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: 'fx' };
+    }
+    return comStar(o, aggs);
+  }
+  const shNote = (o, aggs) => panelRuleFor(o, gateFn(o, aggs)) ? 'panel rule' : fixedFor(o, gateFn(o, aggs)) ? 'fixed rule' : byRating(o, aggs) ? 'by rating' : '';
   const byRating = (o, aggs) => !!starMul(o) && starBase(o, aggs).replaces && starBase(o, aggs).v > 0;
   const comCell = (r) => `<b class="${r.cls === 'z' ? 'zero' : ''}">${inr(r.v)}</b>${r.note ? `<div class="cn ${r.cls}">${esc(r.note)}</div>` : ''}`;
   const priceIn = (aggs, o) => { const A = aggs[o.emp + '|' + o.rk]; return { p: (A && A.pm && A.pm[o.key]) || o, rate: A && A.c ? (A.c.rate || 0) : 0 }; };
@@ -688,8 +777,13 @@
     const e = row.emp, m = agg(row, dDays());
     $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '');
     $('dSub').textContent = e.role + (e.employee_code ? ' · ' + e.employee_code : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)));
+    if (m.c.manual) $('dSub').textContent += ' · automatic would be ' + inr(m.c.auto.amount) + (m.c.auto.ok ? ' (' + fmtN(m.c.auto.rate) + '%)' : '');
+    const mb = $('dMan'), canMan = dScope === 'm' && manOk();
+    mb.style.display = dScope === 't' ? 'none' : ''; mb.disabled = !canMan;
+    mb.textContent = m.c.manual ? '✎ Change manual commission' : '✎ Change commission';
+    mb.title = canMan ? 'Change this employee\'s commission by hand (saved for this month)' : 'A manual commission belongs to a month — choose This month or Last month in the date range first.';
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
-    $('dKpis').innerHTML = `<div class="kpi g"><div class="l">Commission</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi"><div class="l">${m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
+    $('dKpis').innerHTML = `<div class="kpi ${m.c.manual ? 'o' : 'g'}"><div class="l">Commission${m.c.manual ? ' · manual' : ''}</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi${m.c.manual ? ' o' : ''}"><div class="l">${m.c.manual ? 'Manual rate' : m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
     $('dView').style.display = dScope === 't' ? 'none' : '';
     if (dScope === 't') ST.d.tab = 'ord';
     [...$('dView').children].forEach((b) => b.classList.toggle('on', b.dataset.v === ST.d.tab));
@@ -736,7 +830,7 @@
       </tbody></table>
       <div class="ordsum">${list.length} order${list.length === 1 ? '' : 's'} · <b>${inr(sumAmt)}</b> sales · commission <b style="color:var(--ok-fg)">${inr(sumCom)}</b>${zeros ? ` · <b>${zeros}</b> order${zeros === 1 ? '' : 's'} earned ₹0` : ''}${Math.abs(sumCom - m.c.amount) < 1 ? ' · <span class="chk">✓ adds up to the ' + (dScope === 't' ? 'Today' : 'Monthly') + ' row</span>' : ''}</div>
       ${pagerHtml(st, rows.length, pg, 'orders')}`;
-    $('dNote').textContent = (dScope === 't' ? 'Every order the employee made today' : 'Every order the employee made in this date range') + ' is listed — including the ones that earn ₹0. Cancelled orders are not counted. The commission column adds up to the employee\'s commission in the ' + (dScope === 't' ? 'Today' : 'Monthly') + ' table.';
+    $('dNote').textContent = (m.c.manual ? 'This employee\'s commission was set by hand, so the commission in the box above is the manual figure; the amounts per order below are only an estimate at that rate. ' : '') + (dScope === 't' ? 'Every order the employee made today' : 'Every order the employee made in this date range') + ' is listed — including the ones that earn ₹0. Cancelled orders are not counted. The commission column adds up to the employee\'s commission in the ' + (dScope === 't' ? 'Today' : 'Monthly') + ' table.';
   }
 
   // ---------- "How was this rate reached" popover ----------
@@ -750,7 +844,7 @@
       <div class="ln"><span>Prepaid share</span><b>${Math.round(c.prepaidPct)}%</b></div>
       ${c.fixedPlan ? `<div class="ln"><span>Normal slab would be</span><b>${inr(c.slabAmount)}</b></div>` : ''}
       ${c.steps.map((s) => `<div class="ln"><span>${esc(s.label)} · ${esc(s.detail)}</span><b>${esc(s.value)}</b></div>`).join('')}
-      <div class="ln tot"><span>${c.fixedPlan ? (c.fixedPlan.mode === 'rate' ? fmtN(c.fixedPlan.v) + '% × ' + inr(c.fixedPlan.ach) : c.fixedPlan.n + ' orders × ' + inr(c.fixedPlan.v)) : c.mix ? esc(c.mix.label || 'Code rule') + ' · ' + esc(payTxt(c.mix.mode, c.mix.v)) : c.adj ? 'After order-code rules' : inr(a.ach) + ' × ' + c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</span><span>${inr(c.amount)}</span></div>`;
+      <div class="ln tot"><span>${c.manual ? 'Manual commission' : c.fixedPlan ? (c.fixedPlan.mode === 'rate' ? fmtN(c.fixedPlan.v) + '% × ' + inr(c.fixedPlan.ach) : c.fixedPlan.n + ' orders × ' + inr(c.fixedPlan.v)) : c.mix ? esc(c.mix.label || 'Code rule') + ' · ' + esc(payTxt(c.mix.mode, c.mix.v)) : c.adj ? 'After order-code rules' : inr(a.ach) + ' × ' + c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</span><span>${inr(c.amount)}</span></div>`;
     pop.hidden = false;
     pop.style.left = '0px'; pop.style.top = '0px';
     const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
@@ -948,6 +1042,68 @@
     } catch (err) { $('shAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   };
+  // ---------- Change one employee's commission by hand (the whole-month Monthly range) ----------
+  const mcModal = $('mcModal');
+  let mcRow = null, mcMode = 'rate', mcAch = 0, mcAuto = null;
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const mcVals = () => {                                   // { rate, amount } from whichever box is open; null while it is empty / wrong
+    if (mcMode === 'rate') { const t = $('mcRate').value.trim(), r = Number(t); return t === '' || !isFinite(r) || r < 0 || r > 999.99 ? null : { rate: r2(r), amount: r2(mcAch * r / 100) }; }
+    const t = $('mcAmt').value.trim(), a = Number(t);
+    return t === '' || !isFinite(a) || a < 0 ? null : { amount: r2(a), rate: mcAch > 0 ? Math.min(999.99, r2(a / mcAch * 100)) : 0 };
+  };
+  function mcPreview() {
+    const v = mcVals();
+    $('mcPrev').innerHTML = v ? `<span>New commission${mcMode === 'amt' ? ' · rate ' + fmtN(v.rate) + '%' : ''}</span><b>${inr(v.amount)}</b>` : '<span>Enter a valid number</span><b>—</b>';
+  }
+  function mcSetMode(m) {
+    mcMode = m;
+    [...$('mcSeg').children].forEach((b) => b.classList.toggle('on', b.dataset.m === m));
+    $('mcFRate').style.display = m === 'rate' ? '' : 'none'; $('mcFAmt').style.display = m === 'amt' ? '' : 'none';
+    mcPreview();
+  }
+  function openManual() {
+    const row = openKey && ROWS.find((r) => r.key === openKey);
+    if (!row || dScope !== 'm' || !manOk() || !READY) return;
+    const a = agg(row, DAYS), man = a.c.manual;
+    mcRow = row; mcAch = a.ach;
+    mcAuto = man ? a.c.auto : { amount: a.c.amount, rate: a.c.rate, ok: !!a.c.steps, why: a.c.fixedPlan ? 'Fixed commission' : (a.c.mix && a.c.mix.badge) ? 'Code rule' : a.c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' };
+    $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and this month.';
+    $('mcAuto').innerHTML = `<div class="row"><span>Automatic now</span><b>${inr(mcAuto.amount)}${mcAuto.ok ? ' · ' + fmtN(mcAuto.rate) + '%' : ''}</b></div>
+      <div class="row"><span>Rule used</span><b>${esc(mcAuto.ok ? mcAuto.why : 'No commission earned')}</b></div>
+      <div class="row"><span>Rate is worked on</span><b>${inr(mcAch)} sales</b></div>`;
+    $('mcRate').value = man ? man.rate : (mcAuto.ok ? mcAuto.rate : 0); $('mcAmt').value = man ? man.amount : mcAuto.amount;
+    $('mcWhy').value = man ? (man.reason || '') : '';
+    $('mcClear').style.display = man ? '' : 'none';
+    $('mcAlert').innerHTML = '';
+    mcSetMode('rate'); mcModal.classList.add('open'); $('mcRate').focus(); $('mcRate').select();
+  }
+  const closeManual = () => mcModal.classList.remove('open');
+  async function reloadManual() {
+    const d = await api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) });
+    MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {};
+  }
+  $('dMan').onclick = openManual;
+  $('mcCancel').onclick = closeManual;
+  mcModal.addEventListener('click', (e) => { if (e.target === mcModal) closeManual(); });
+  $('mcSeg').onclick = (e) => { const b = e.target.closest('button'); if (b) { mcSetMode(b.dataset.m); (mcMode === 'rate' ? $('mcRate') : $('mcAmt')).focus(); } };
+  $('mcRate').addEventListener('input', mcPreview); $('mcAmt').addEventListener('input', mcPreview);
+  async function mcSend(path, body, btn) {
+    btn.disabled = true; $('mcAlert').innerHTML = '';
+    try {
+      await api.post(path, Object.assign({ month: RFROM.slice(0, 7), employee_id: mcRow.emp.employee_id, row_key: mcRow.rk }, body));
+      await reloadManual();
+      closeManual(); renderAll();
+    } catch (err) { $('mcAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  }
+  $('mcSave').onclick = () => {
+    const v = mcVals();
+    if (!v) { $('mcAlert').innerHTML = '<div class="alert error">Enter a valid ' + (mcMode === 'rate' ? 'rate (0–999.99 %)' : 'amount (₹0 or more)') + '.</div>'; return; }
+    mcSend('commission_page.manual_set', { rate: v.rate, amount: v.amount, reason: $('mcWhy').value.trim() }, $('mcSave'));
+  };
+  $('mcClear').onclick = () => mcSend('commission_page.manual_clear', {}, $('mcClear'));
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mcModal.classList.contains('open')) closeManual(); });
+
   ['t', 'm'].forEach((k) => $(k + 'Body').addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-chg]');
     if (b && READY) { e.stopPropagation(); openShare(b.dataset.chg, k); }
@@ -983,10 +1139,12 @@
     const pCode = S
       ? Promise.all([S.codeList, pShares]).then(([r, sh]) => { CODE = { on: !!r.on, rules: r.rules || [], shares: shOf(sh), ok: true }; }, () => { CODE = { on: false, rules: [], shares: {}, ok: false }; })
       : pShares.then((sh) => { CODE.shares = shOf(sh); }, () => { /* keep the shares we have */ });
+    MAN = {};
+    const pMan = manOk() ? api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) }).then((d) => { MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { MAN = {}; }) : Promise.resolve();
     const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; NEW.star = []; NEW.panel = []; }) : Promise.resolve();
     try {
       const [dd, od] = await Promise.all([pDays, pOrders]);
-      await pRules; await pCode; await pManual;
+      await pRules; await pCode; await pManual; await pMan;
       if (id !== loadId) return;
       EMPS = dd.employees || [];
       if (dd.today && dd.today !== TODAY) { /* server and browser disagree on the day: keep the browser's */ }
@@ -1026,10 +1184,10 @@
   NEW.ok = true;
   function setManual(d) {
     NEW.ok = true;
-    NEW.mix = ((d && d.mix) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', op: r.op === 'lte' ? 'lte' : 'gte', thr: Number(r.thr), mode: ['full', 'rate', 'pct', 'flat'].indexOf(r.pay_mode) > -1 ? r.pay_mode : 'full', v: Number(r.pay_value || 0), who: (r.who || []).map(Number) }));
-    NEW.fixed = ((d && d.fixed) || []).map((p) => ({ id: Number(p.plan_id), emp: Number(p.employee_id), per: Number(p.per), mode: p.pay_mode === 'rate' ? 'rate' : 'flat', minType: p.min_type === 'amount' ? 'amount' : 'count', min: Number(p.min), on: !!Number(p.enabled) }));
-    NEW.panel = ((d && d.panel) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', panels: r.panels || [], from: String(r.date_from), to: String(r.date_to), pct: Number(r.pct), who: (r.who || []).map(Number) }));
-    NEW.star = ((d && d.star) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', star: Number(r.max_star), pay: Number(r.pay_pct), nc: Number(r.nocode_pct), who: (r.who || []).map(Number) }));
+    NEW.mix = ((d && d.mix) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', op: r.op === 'lte' ? 'lte' : 'gte', thr: Number(r.thr), mode: ['full', 'rate', 'pct', 'flat'].indexOf(r.pay_mode) > -1 ? r.pay_mode : 'full', v: Number(r.pay_value || 0), who: (r.who || []).map(Number), grp: String(r.grp || ''), from: String(r.date_from || ''), to: String(r.date_to || '') }));
+    NEW.fixed = ((d && d.fixed) || []).map((p) => ({ id: Number(p.plan_id), emp: Number(p.employee_id), per: Number(p.per), mode: p.pay_mode === 'rate' ? 'rate' : 'flat', minType: p.min_type === 'amount' ? 'amount' : 'count', min: Number(p.min), on: !!Number(p.enabled), grp: String(p.grp || ''), from: String(p.date_from || ''), to: String(p.date_to || '') }));
+    NEW.panel = ((d && d.panel) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', panels: r.panels || [], from: String(r.date_from || ''), to: String(r.date_to || ''), pct: Number(r.pct), grp: String(r.grp || ''), who: (r.who || []).map(Number) }));
+    NEW.star = ((d && d.star) || []).map((r) => ({ id: Number(r.rule_id), on: !!Number(r.enabled), label: r.label || '', star: Number(r.max_star), pay: Number(r.pay_pct), nc: Number(r.nocode_pct), who: (r.who || []).map(Number), from: String(r.date_from || ''), to: String(r.date_to || '') }));
   }
 
   // ---------- date range (Monthly Data) ----------
@@ -1061,14 +1219,20 @@
     const emps = {}, ord = {}, TAGN = { panel: 'Panel rule', fixed: 'Fixed commission', mix: 'Order-code mix rule', star: '★ rating rule', code: 'Order-code rule' };
     rows.forEach((a) => {
       const c = a.c, id = a.row.emp.employee_id;
+      // Commission set by hand: the employee's orders share that amount (in proportion to what each would earn, or to its value), so the Orders page adds up to it.
+      const mf = c && c.manual ? { sum: a.orders.reduce((t, o) => t + comOf(o, aggs).v, 0), amt: c.manual.amount, ach: a.ach } : null;
       a.orders.forEach((o) => {
-        const r = comOf(o, aggs), hs = o.house || '', full = (c && c.steps && c.rate ? c.rate : 0) * o.amt / 100;
+        let r = comOf(o, aggs);
+        if (mf) r = { v: mf.sum > 0.005 ? r.v * mf.amt / mf.sum : (mf.ach > 0 ? mf.amt * o.amt / mf.ach : 0), note: 'manual commission' };
+        const hs = o.house || '', full = (c && c.steps && c.rate ? c.rate : 0) * o.amt / 100;
         const byH = emps[id] = emps[id] || {}, E = byH[hs] = byH[hs] || { amt: 0, n: 0, coll: 0, rate: c && c.steps ? c.rate : 0, tags: {} };
         E.amt += r.v; E.n++; E.coll += o.amt;
         let k = '', label = '';
-        const pr = panelRuleFor(o);
-        if (pr) { k = 'panel'; label = (pr.label || 'Panel rule') + ' ' + fmtN(pr.pct) + '%'; }
+        const gf = gateFn(o, aggs), pr = panelRuleFor(o, gf);
+        if (mf) { k = 'code'; label = 'Manual commission'; }
+        else if (pr) { k = 'panel'; label = (pr.label || 'Panel rule') + ' ' + fmtN(pr.pct) + '%'; }
         else if (c && c.fixedPlan) { k = 'fixed'; label = 'Fixed ' + c.fixedPlan.badge; }
+        else if (fixedFor(o, gf)) { const fp = fixedFor(o, gf); k = 'fixed'; label = 'Fixed ' + payBadge(fp.mode, fp.per); }
         else if (c && c.mix && c.mix.mode !== 'full') { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · ' + c.mix.badge; }
         else if (starMul(o)) { k = 'star'; const sm = starMul(o); label = starTxt(o.stars) + ' · ' + (sm.r.label || 'rating rule'); }
         else if (c && c.mix) { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · full commission'; }
@@ -1098,4 +1262,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html> 
+</html>

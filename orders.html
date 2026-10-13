@@ -256,11 +256,6 @@
   .qh input{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;padding:3px 4px;font-size:12.5px;font-weight:800;text-align:center;background:#fff;outline:none;}
   .qh input.q{color:#0ea5e9;} .qh input.c{color:#d97706;} .qh input:focus{border-color:#2563eb;box-shadow:0 0 0 2px #bfdbfe;} .qh input:disabled{opacity:.5;}
   .qh .ro{font-size:10.5px;color:var(--muted);margin-top:5px;}
-  /* group boxes under All Orders & Revenue: TM Perfume House + TM Fragrance, and TM4U */
-  .stat-card.gx .pc-tot{margin-top:4px;} .stat-card.gx .pc-tot .r{font-size:22px; color:var(--ink);} .stat-card.gx .pc-tot .r small{color:var(--muted); font-weight:600;}
-  .stat-card.gx .tkr{margin-top:3px; padding-top:0; border-top:0;} .stat-card.gx .tkr:first-of-type{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);}
-  .stat-card.gx .tkr.sp{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);}
-  @media (max-width:820px){ .stat-card.gx{grid-column:span 3;} .stat-card.gx .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   .tkr + .tkr{margin-top:3px; padding-top:0; border-top:0;} .tkr b.n{color:var(--ink);} .tkr b.g{color:#0f7a41;} .tkr b.a{color:#b45f06;} .tkr b.r{color:#c81e1e;}
   @media (max-width:820px){ .tkr{flex-direction:column; align-items:flex-start; gap:1px; font-size:10.5px;} .stat-card.ar .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   /* store picker: tick one or several stores */
@@ -629,6 +624,7 @@
 
   // Store picker: tick one or several stores (nothing ticked = all stores). The page sends them as "key1,key2".
   const HIDDEN_STORE = 'mysales4p';
+  const NO_FRAG = (o) => o.store_key === 'tmfragrance' || o.house === 'tmf';      // TM Fragrance is not shown or counted on this page
   const storeSel = new Set();
   const storeVal = () => [...storeSel].join(',');
   let STORE_OPTS = [];
@@ -655,7 +651,7 @@
   async function loadStores() {
     try {
       const data = await api.get('shopify.stores');
-      STORE_OPTS = (data.stores || []).filter(s => s.key !== HIDDEN_STORE).map(s => [s.key, s.label]).concat([
+      STORE_OPTS = (data.stores || []).filter(s => s.key !== HIDDEN_STORE && s.key !== 'tmfragrance').map(s => [s.key, s.label]).concat([
         ['tm4u', 'TM4U (orders tagged tm4u)'], ['tmsg', 'TM Shower Gel'], ['tmh4', 'TM House 4th'], ['manual', 'Manual']]);
       renderStorePanel();
     } catch (err) {
@@ -683,7 +679,7 @@
       loadTeamSheet(from, to);
       const data = await api.get('shopify.orders', { date_from: from, date_to: to, store });
       if (reqId !== ordersReqId) return;
-      const orders = (data.orders || []).filter(o => o.store_key !== HIDDEN_STORE);   // MySales 4P is not shown or counted on this page
+      const orders = (data.orders || []).filter(o => o.store_key !== HIDDEN_STORE && !NO_FRAG(o));   // MySales 4P is not shown or counted on this page
       (data.errors || []).forEach(e => showAlert(e, 'error'));
       render(orders);
       renderEmpZero(data.scope, orders);
@@ -870,12 +866,12 @@
   // ---------- Panels ----------
   // The five panels (businesses), each with its own block, its own button and its own daily target.
   // "No panel" holds MySales / manual orders that were not moved to a panel on the Order Allocation page.
-  const PANELS = [['tmph', 'TM Perfume House', '#1d4ed8'], ['tmf', 'TM Fragrance', '#b45f06'], ['tm4u', 'TM4U', '#7e22ce'], ['tmsg', 'TM Shower Gel', '#15803d'], ['tmh4', 'TM House 4th', '#be123c'], ['none', 'No panel', '#475569']];
+  const PANELS = [['tmph', 'TM Perfume House', '#1d4ed8'], ['tm4u', 'TM4U', '#7e22ce'], ['tmsg', 'TM Shower Gel', '#15803d'], ['tmh4', 'TM House 4th', '#be123c'], ['none', 'No panel', '#475569']];
   const PANEL_NAME = {}; PANELS.forEach(p => { PANEL_NAME[p[0]] = p[1]; });
-  const PANEL_GK = { tmph: 'tmph', tmf: 'tmf', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };       // every panel has a target → the key its daily target is saved under
+  const PANEL_GK = { tmph: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };       // every panel has a target → the key its daily target is saved under
   const panelOfHouse = (h) => PANEL_GK[h] !== undefined ? h : 'none';
   const panelOf = (o) => panelOfHouse(o.house || STORE_HOUSE_MAP[o.store_key] || '');
-  const STORE_PANEL = { tmperfumehouse: 'tmph', tmfragrance: 'tmf', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };   // any other store (MySales, Manual) = no panel
+  const STORE_PANEL = { tmperfumehouse: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };   // any other store (MySales, Manual) = no panel
   let panelPick = '';       // the panel button picked above the sheet ('' = all panels)
   const panelAllowed = (k) => !storeSel.size || [...storeSel].some(s => (STORE_PANEL[s] || 'none') === k);   // the Store picker can hide panels
 
@@ -925,7 +921,7 @@
     renderPanelChips();
   }
 
-  // Panel buttons (Admin / HR): All panels, TM Perfume House, TM Fragrance, TM4U … each with its collection. One pick narrows the cards, the sheet and the lists.
+  // Panel buttons (Admin / HR): All panels, TM Perfume House, TM4U … each with its collection. One pick narrows the cards, the sheet and the lists.
   function renderPanelChips() {
     const el = document.getElementById('pChips');
     if (!ES_ALLOWED) { el.hidden = true; return; }
@@ -975,9 +971,9 @@
   // One column per platform (house). A platform is the house tag first,
   // then the store — the same rule the server uses (o.house). Query counts
   // come from Assign Queries for the same dates.
-  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tmf', 'TM Fragrance', 'fr'], ['tm4u', 'TM4U', 'fu'], ['tmsg', 'TM Shower Gel', 'sg'], ['tmh4', 'TM House 4th', 'h4']];
+  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tm4u', 'TM4U', 'fu'], ['tmsg', 'TM Shower Gel', 'sg'], ['tmh4', 'TM House 4th', 'h4']];
   const QUERY_TAGS = ['query', 's'], CAMPAIGN_TAGS = ['campaign', 'c'];
-  const STORE_HOUSE_MAP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  const STORE_HOUSE_MAP = { tmperfumehouse: 'tmph' };
   function orderTagType(tags) {
     const t = String(tags || '').split(',').map(x => x.trim().toLowerCase());
     if (t.some(x => QUERY_TAGS.includes(x))) return 'query';
@@ -1013,7 +1009,7 @@
   }
   // ---- "Queries by hour" (o_details): the day's Query / Campaign counts per hour for each panel, from Assign Queries ----
   let hourData = {}, hourFor = '', hourReq = 0;      // panel key -> queries.hourly reply, for the single day picked
-  const HOUR_KEYS = ['tmph', 'tmf', 'tm4u', 'tmsg', 'tmh4'];
+  const HOUR_KEYS = ['tmph', 'tm4u', 'tmsg', 'tmh4'];
   const qhOpen = new Set();                          // boxes whose hour list is open (kept across redraws)
   async function loadHourly(from, to, force) {
     if (EMP_VIEW) return;
@@ -1058,6 +1054,14 @@
       esReload();
     } catch (er) { alert(er.message); loadHourly(document.getElementById('dateFrom').value, document.getElementById('dateTo').value, true); }
   });
+  // Bottle colours with their share of the bottles (whole percents that add up to 100).
+  const clrPct = (c) => {
+    const tot = c.reduce((a, b) => a + b, 0); if (!tot) return c.map(() => 0);
+    const raw = c.map(v => v / tot * 100), out = raw.map(Math.floor);
+    let left = 100 - out.reduce((a, b) => a + b, 0);
+    raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (left > 0 && c[i] > 0) { out[i]++; left--; } });
+    return out;
+  };
   function renderPlatformSummary() {
     const card = document.getElementById('platformCard');
     if (EMP_VIEW) { card.style.display = 'none'; return; }          // Employee view: no Platform summary
@@ -1081,14 +1085,6 @@
     const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
     const ratio = (p) => qRatio(p.qo, p.q);
     const sh = (v, tot) => { const x = tot > 0 ? Math.round(v / tot * 100) : 0; return `<small>${x}%</small>`; };
-    // Bottle colours with their share of that platform's bottles (whole percents that add up to 100).
-    const clrPct = (c) => {
-      const tot = c.reduce((a, b) => a + b, 0); if (!tot) return c.map(() => 0);
-      const raw = c.map(v => v / tot * 100), out = raw.map(Math.floor);
-      let left = 100 - out.reduce((a, b) => a + b, 0);
-      raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (left > 0 && c[i] > 0) { out[i]++; left--; } });
-      return out;
-    };
     const clrTile = (p, i, cls, name) => { const pc = clrPct(p.col)[i]; return ['', `<i class="cd ${cls}"></i>${name}`, `<b>${p.col[i]}${p.col.some(v => v > 0) ? `<small>${pc}%</small>` : ''}</b>`]; };
     const lines = (p, k) => [
       ['q', 'Query', `<b>${p.q}</b>`],
@@ -1104,11 +1100,11 @@
       ['bfm', '<i class="cd c-mb"></i>Before 12 AM order', `<b>${p.bn}</b>`, '', 'b'],
       ['afm w2', '<i class="cd c-ma"></i>After 12 AM', `<b>${inr(p.at)}${p.tc > 0 ? `<small>${100 - Math.round(p.bt / p.tc * 100)}%</small>` : ''}</b>`, '', 'a'],
       ['afm', '<i class="cd c-ma"></i>After 12 AM order', `<b>${p.an}</b>`, '', 'a'],
-      clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER'),
+      ...(k === 'tmsg' ? [] : [clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER')]),      // Shower Gel has no bottle colours
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`, 'orders'],
       ['t', 'Total order', `<b>${p.to}</b>`, 'orders'],
     ].map(([c, l, v, go, mb]) => go ? `<div class="li ${c}" data-go="${go}" data-h="${k}" title="Click to see these orders"><span>${l}</span>${v}</div>` : (mb ? `<div class="li ${c}" data-mb="${k}|${mb}" title="Click for prepaid / COD and the order IDs"><span>${l}</span>${v}</div>` : `<div class="li ${c}"><span>${l}</span>${v}</div>`)).join('');
-    const colors = { tmph: '#1d4ed8', tmf: '#b45f06', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
+    const colors = { tmph: '#1d4ed8', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
     document.getElementById('platCards').innerHTML = shown.map(([k, label]) =>
       `<div class="plat-card" style="--c:${colors[k]};"><h3>${label}<small>${stats[k].to} order${stats[k].to === 1 ? '' : 's'}</small></h3><div class="plat-lines">${lines(stats[k], k)}</div></div>`).join('');
     const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
@@ -1171,7 +1167,7 @@
     if (ev.key === 'Escape') { ptEdit = ''; renderSummary(); }
   });
 
-  const TOP_ORDER = ['tmph', 'tmf', 'tm4u', 'tmh4', 'tmsg'];     // order of the panel boxes in the top boxes
+  const TOP_ORDER = ['tmph', 'tm4u', 'tmh4', 'tmsg'];     // order of the panel boxes in the top boxes
   function renderSummary() {
     const base = scopedOrders();
     const byStore = {};
@@ -1189,7 +1185,7 @@
     base.forEach(o => {
       const amt = Number(o.total) || 0, isCod = orderOutstanding(o, amt) > 0;     // same rule as the platform cards and the Employee sheet
       if (isCod) cod += amt; else prepaid += amt;
-      const c = o.colors || {};
+      const c = panelOf(o) === 'tmsg' ? {} : (o.colors || {});      // Shower Gel has no bottle colours
       clr.dg += Number(c.dg) || 0; clr.lg += Number(c.lg) || 0; clr.wh += Number(c.wh) || 0; clr.other += Number(c.other) || 0;
       const pk = panelOf(o), bk = pk !== 'none' ? PANEL_NAME[pk] : o.store;      // a panel's orders always land in that panel's box
       byStore[bk] = byStore[bk] || { count: 0, total: 0, currency: o.currency, pre: 0, cod: 0 };
@@ -1199,35 +1195,8 @@
       grandTotal += Number(o.total || 0);
     });
 
-    // Group boxes (after All Orders & Revenue): "TM Perfume House + TM Fragrance" and "TM4U" — orders, ratios and prepaid / COD, by platform (house).
-    const grp = (label, houses, cls) => {
-      const hs = houses.filter(h => shownKeys.includes(h));
-      if (EMP_VIEW || !hs.length) return '';
-      const g = { n: 0, t: 0, qo: 0, co: 0, pre: 0, cod: 0, q: 0, c: 0 };
-      hs.forEach(h => { const pq = platformQueries[h] || {}; g.q += pq.query || 0; g.c += pq.campaign || 0; });
-      base.forEach(o => {
-        if (!hs.includes(o.house || STORE_HOUSE_MAP[o.store_key])) return;
-        const amt = Number(o.total) || 0, ty = orderTagType(o.tags);
-        g.n++; g.t += amt;
-        if (orderOutstanding(o, amt) > 0) g.cod += amt; else g.pre += amt;
-        if (ty === 'query') g.qo++; else if (ty === 'campaign') g.co++;
-      });
-      const pp = share(g.pre, g.t);
-      return `<div class="stat-card gx ${cls}">
-        <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label}</span></div>
-        <div class="pc-tot"><span class="r">${g.n} <small>${g.n === 1 ? 'order' : 'orders'}</small></span><span class="r">${fmtMoney(g.t, 'INR')} <small>revenue</small></span></div>
-        <div class="tkr"><span>All orders ratio</span> ${qRatio(g.n, g.q + g.c)}</div>
-        <div class="tkr"><span>Query order</span> <b class="n">${g.qo}</b></div>
-        <div class="tkr"><span>Query ratio</span> ${qRatio(g.qo, g.q)}</div>
-        <div class="tkr"><span>Campaign order</span> <b class="n">${g.co}</b></div>
-        <div class="tkr"><span>Campaign ratio</span> ${qRatio(g.co, g.c)}</div>
-        <div class="pcm ar-pc"><span class="p"><b>${fmtMoney(g.pre, 'INR')}</b><small>${pp[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(g.cod, 'INR')}</b><small>${pp[1]}% COD</small></span></div>
-        ${qhHtml(hs, false, 'g-' + cls)}
-      </div>`;
-    };
-
     // One box per panel — also a panel with no orders (shown with zeros) so none goes missing.
-    // Top-box order: TM Perfume House, TM Fragrance, TM4U, TM House 4th, TM Shower Gel. Anything else (MySales, Manual) follows when it has orders.
+    // Top-box order: TM Perfume House, TM4U, TM House 4th, TM Shower Gel Anything else (MySales, Manual) follows when it has orders.
     const boxes = [];
     TOP_ORDER.map(k => PANELS.find(p => p[0] === k)).forEach(([k, label]) => {
       if (byStore[label] || (ES_ALLOWED && panelAllowed(k) && (!panelPick || panelPick === k))) boxes.push([label, byStore[label] || { count: 0, total: 0, currency: 'INR', pre: 0, cod: 0 }]);
@@ -1248,8 +1217,6 @@
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
         ${qhHtml(shownKeys, false, 'all')}
       </div>
-      ${grp('TM Perfume House + TM Fragrance', ['tmph', 'tmf'], 'g-ph')}
-      ${grp('TM4U', ['tm4u'], 'g-4u')}
       ${boxes.map(([label, s]) => `
         <div class="stat-card">
           <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
@@ -1264,7 +1231,7 @@
         </div>`).join('')}
       <div class="stat-card">
         <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
-        <div class="value cl-tot"><span><i class="c-dg"></i>Dark green<b>${clr.dg}</b></span><span><i class="c-lg"></i>Light green<b>${clr.lg}</b></span><span><i class="c-wh"></i>White<b>${clr.wh}</b></span><span><i class="c-ot"></i>Other<b>${clr.other}</b></span><span class="sum">Total<b>${clr.dg + clr.lg + clr.wh + clr.other}</b></span></div>
+        <div class="value cl-tot">${(() => { const cp = clrPct([clr.dg, clr.lg, clr.wh, clr.other]), cn = [clr.dg, clr.lg, clr.wh, clr.other]; const one = (i, cls, name) => `<span><i class="${cls}"></i>${name}<b>${cn[i]}<small style="font-weight:600; color:var(--muted); margin-left:3px;">(${cp[i]}%)</small></b></span>`; return one(0, 'c-dg', 'Dark green') + one(1, 'c-lg', 'Light green') + one(2, 'c-wh', 'White') + one(3, 'c-ot', 'Other'); })()}<span class="sum">Total<b>${clr.dg + clr.lg + clr.wh + clr.other}</b></span></div>
       </div>
     `;
     grid.style.display = 'grid';
@@ -1287,10 +1254,10 @@
   });
 
   // Which house the order counts under, and why — same rule as the server:
-  // a house tag (tmph / tmf / tm4u) beats the store; two house tags = store.
-  const HOUSE_TAG = { tm4u: 'tm4u', tmforu: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf', tmsg: 'tmsg', 'tm shower gel': 'tmsg', tmh4: 'tmh4', 'tm house 4th': 'tmh4' };
-  const HOUSE_LABEL = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
-  const STORE_HOUSE = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  // a house tag (tmph / tm4u) beats the store; two house tags = store.
+  const HOUSE_TAG = { tm4u: 'tm4u', tmforu: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmsg: 'tmsg', 'tm shower gel': 'tmsg', tmh4: 'tmh4', 'tm house 4th': 'tmh4' };
+  const HOUSE_LABEL = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const STORE_HOUSE = { tmperfumehouse: 'tmph' };
   function houseReason(o, tags) {
     if (!STORE_HOUSE[o.store_key]) return '—';
     const found = String(tags || '').split(',').map(t => t.trim()).filter(t => HOUSE_TAG[t.toLowerCase()]);
@@ -1685,7 +1652,7 @@
   };
 
   // ================= Employee sheet (Admin / HR) =================
-  // One block per panel (TM Perfume House, TM Fragrance, TM4U …), one row per employee in that panel, for the dates above.
+  // One block per panel (TM Perfume House, TM4U …), one row per employee in that panel, for the dates above.
   // An employee who works in two panels has a row in each. Attendance is the person's; target,
   // queries / campaigns and ratings come from team.sheet for that panel; collection, orders,
   // COD / prepaid and bottle colours are worked out here from the orders the page already
@@ -1775,7 +1742,7 @@
   };
   // Bottle colours written after the order count: "DG-5, LG-2" (only the colours that have bottles).
   const esColTxt = (c) => ['DG', 'LG', 'WH', 'Other'].map((n, i) => c[i] > 0 ? n + '-' + c[i] : '').filter(Boolean).join(', ');
-  const esColSpan = (c) => { const t = esColTxt(c); return t ? ` <span class="es-cl">${t}</span>` : ''; };
+  const esColSpan = (c, b) => { const t = b === 'tmsg' ? '' : esColTxt(c); return t ? ` <span class="es-cl">${t}</span>` : ''; };
   const esAch = (e) => e.tg ? Math.round(e.coll / e.tg * 100) : 0;
   // Ticket size = collection ÷ orders; the Query and Campaign ticket sizes sit under it when that person has such orders.
   function esTk(e) {
@@ -1936,6 +1903,7 @@
       if (e.cm) { t.cmAmt += e.cm.amt; t.cmColl += e.cm.coll; }
     });
     t.orAvg = t.orN ? t.orS / t.orN : 0;
+    t.b = (rows[0] || {}).b;      // the panel these rows belong to
     return t;
   }
   const ES_MARKS = { wfh: 'WFH', leave: 'Leave', half_leave: 'Half leave', holiday: 'Holiday', week_off: 'Week off' };
@@ -2021,7 +1989,7 @@
       case 'coll':  return `<td>${esCollCell(e)}</td>`;
       case 'tq':    return `<td class="gl">${e.real ? '<b>' + e.tot + '</b>' : dash}</td>`;
       case 'tkt':   return `<td class="gl">${esTk(e)}</td>`;
-      case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col) : dash}</td>`;
+      case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col, e.b) : dash}</td>`;
       case 'ratio': return `<td>${e.real && e.tot ? esRt(esPct(e.ord, e.tot)) : dash}</td>`;
       case 'q':     return `<td class="gl">${e.real ? e.q : dash}</td>`;
       case 'qo':    return `<td>${e.real || e.qo ? esLk(e, 'query', e.qo) : dash}</td>`;
@@ -2040,7 +2008,7 @@
   }
   function esFoot(k, t) {
     if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
-    const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
+    const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col, t.b), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
       or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t) };
     return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : '') + '"' : ''}>${m[k]}</td>`;
@@ -2257,7 +2225,7 @@
     const cur = esRows().find(x => x.id === id && x.b === b);
     if (amount !== null && cur && cur.fl && amount < cur.fl) { alert('New Sales Executive: the target for this day is at least ' + esInr(cur.fl) + '. You can raise it, not lower it.'); return; }
     try {
-      // The typed amount belongs to that panel only (TM Perfume House, TM Fragrance, TM4U …); the person's other panels keep their own targets.
+      // The typed amount belongs to that panel only (TM Perfume House, TM4U …); the person's other panels keep their own targets.
       await api.post('targets.save_daily', { date: teamData.from, employee_id: id, group_key: PANEL_GK[b], amount });
       esEditTg = '';
       if (amount !== null) rw.panels[b] = Object.assign({}, rw.panels[b] || {}, { target: amount, src: 'manual', how: 'Set by hand for this day', shared: false });

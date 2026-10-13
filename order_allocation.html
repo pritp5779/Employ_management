@@ -345,6 +345,8 @@
   const isDirect = (o, p) => (p.emp !== undefined ? p.emp === DIRECT : !!o.allocated_direct);
   const noEmpMsg = (o, p) => (isDirect(o, p) ? 'Direct order has no employee' : 'Choose the employee first');
   const effHouse = (o, p) => (p.house !== undefined ? p.house : (o.house || ''));
+  // TM Fragrance is no longer offered in the Panel dropdown; an order that is already on it still shows it (so its box is not left blank).
+  const panelChoices = (sel) => Object.fromEntries(Object.entries(HOUSES).filter(([k]) => k !== 'tmf' || sel === 'tmf'));
   const effType = (o, p) => (p.type !== undefined ? p.type : (o.order_type || ''));
 
   function matches(o) {
@@ -555,7 +557,7 @@
     const panelCell = lock
       ? (o.allocated ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
          <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>` : (houseSel ? `<span class="house ${houseSel}">${esc(HOUSES[houseSel] || houseSel)}</span>` : '<span class="sub">—</span>'))
-      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
+      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(panelChoices(houseSel), houseSel, '— Panel —')}</select>`;
     const ready = !o.allocated && houseSel && (empSel > 0 || direct);
     const action = o.cancelled ? '' : o.allocated
       ? (IS_EMP ? '' : `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`)

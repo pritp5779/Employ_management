@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Retail Inventory — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .sub{font-size:11.5px; color:var(--muted);}
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  #stkTable{min-width:560px;}
+  #stkTable th{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700; text-align:center; white-space:nowrap;}
+  #stkTable th:first-child, #stkTable td:first-child{text-align:left;}
+  #stkTable td{text-align:center; vertical-align:middle;}
+  #stkTable td:first-child{font-weight:600;}
+  .q{display:inline-block; min-width:54px; border-radius:20px; padding:4px 11px; font-weight:700; font-size:13px; border:none; cursor:pointer; font-family:inherit; line-height:1.3; min-height:0;}
+  .q.ok{background:#e4f6ec; color:#16945a;} .q.low{background:#fff3df; color:#b45f06;} .q.out{background:#fdecea; color:#d9423b;}
+  .q.none{background:#f3f4f6; color:#9ca3af; font-weight:600;}
+  .q:hover{filter:brightness(.96);}
+  .lim{display:block; font-size:10px; color:#9aa0ab; margin-top:2px; font-weight:600; white-space:nowrap;}
+  .lim.r{color:#d9423b;} .lim.a{color:#b45f06;}
+  .tools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:0 22px 12px;}
+  .tools input[type=text]{border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:13px; min-width:220px; min-height:0;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden;}
+  .seg button{padding:7px 14px; font-size:13px; font-weight:600; color:var(--muted); background:#fff; border:none; min-height:0; cursor:pointer;}
+  .seg button.on{background:#111827; color:#fff;}
+  .grow{margin-left:auto; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .link{background:none; border:none; color:#1d4ed8; font-weight:700; cursor:pointer; padding:0; font-size:inherit; min-height:0; width:auto;}
+  .link.red{color:#c81e1e;}
+  /* bell */
+  .bellbtn{flex:0 0 40px; width:40px !important; max-width:40px; position:relative; background:#fff; border:1px solid var(--line); border-radius:50%; height:40px; min-height:0; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:17px;}
+  .bellbtn em{position:absolute; top:-5px; right:-5px; background:#e02424; color:#fff; font-style:normal; font-size:10.5px; font-weight:800; border-radius:20px; padding:1px 6px; display:none;}
+  #bellPanel{position:fixed; z-index:150; width:min(400px, calc(100vw - 20px)); max-height:70vh; overflow-y:auto; background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 14px 34px rgba(20,22,26,.2); display:none; padding:4px 0;}
+  #bellPanel.open{display:block;}
+  #bellPanel h4{font-size:13px; padding:12px 16px 8px; display:flex; justify-content:space-between; align-items:center; margin:0;}
+  .al{display:flex; gap:10px; padding:11px 16px; border-top:1px solid var(--line); font-size:12.5px; line-height:1.45;}
+  .al.unread{background:#fffaf2;}
+  .al .ic{width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; font-size:14px;}
+  .al.out .ic{background:#fdecea;} .al.low .ic{background:#fff3df;} .al.use .ic, .al.in .ic{background:#eaf0ff;}
+  .al b{display:block; font-size:13px;} .al span{color:var(--muted); font-size:11.5px;}
+  .al-empty{padding:22px 16px; text-align:center; color:var(--muted); font-size:13px;}
+  /* modal bits */
+  .nowbox{display:flex; gap:12px; flex-wrap:wrap; align-items:center; background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-bottom:14px; font-size:13px;}
+  .nowbox b{font-size:20px;}
+  .hint{font-size:12px; color:var(--muted); margin-top:5px; line-height:1.5;}
+  .lg-row{display:grid; grid-template-columns:92px 1fr auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13px;}
+  .lg-row .d{font-size:11.5px; color:var(--muted); line-height:1.35;}
+  .lg-row small{display:block; color:var(--muted); font-size:11.5px;}
+  .lg-row .n{font-weight:800; text-align:right; white-space:nowrap;} .lg-row .n.p{color:#16945a;} .lg-row .n.m{color:#d9423b;}
+  .kchip{display:inline-block; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:700; margin-right:5px; background:#eaf0ff; color:#1d4ed8;}
+  .kchip.order{background:#fdf3e3; color:#b45f06;} .kchip.return{background:#e7f7ee; color:#0f7a41;} .kchip.adjust{background:#f3f4f6; color:#374151;}
+  @media (max-width:640px){ .tools input[type=text]{min-width:0; flex:1 1 100%;} .grow{margin-left:0;} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <div><h1>Retail Inventory</h1><div class="sub" style="margin-top:2px;">Finished perfumes in stock by size — every retail order takes its pieces out automatically</div></div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnLog" style="width:auto;">Stock log</button>
+        <button class="btn" id="btnAdd" style="width:auto;">+ Add stock</button>
+        <button class="bellbtn" id="btnBell" title="Stock alerts" aria-label="Stock alerts">🔔<em id="bellN"></em></button>
+      </div>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Pieces in stock</div><div class="value" id="stPcs">—</div></div>
+        <div class="stat-card"><div class="label">Perfumes tracked</div><div class="value" id="stPerf">—</div></div>
+        <div class="stat-card"><div class="label">Running low</div><div class="value" id="stLow" style="color:#b45f06;">—</div></div>
+        <div class="stat-card"><div class="label">Out of stock</div><div class="value" id="stOut" style="color:#d9423b;">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Stock by perfume and size</h2></div>
+        <div class="tools">
+          <input type="text" id="fSearch" placeholder="Search perfume…" autocomplete="off">
+          <span class="seg" id="fSeg"><button type="button" data-f="all" class="on">All</button><button type="button" data-f="low">Low</button><button type="button" data-f="out">Out</button></span>
+          <span class="grow">Low limit for everything: <b id="defLim">10</b> pcs <button type="button" class="link" id="btnDefLim">change</button></span>
+        </div>
+        <div class="tscroll"><table id="stkTable"><thead id="stkHead"></thead><tbody id="stkBody"><tr><td colspan="6" class="sub" style="padding:22px;">Loading…</td></tr></tbody></table></div>
+        <div class="sub" style="padding:12px 22px 16px; line-height:1.6;"><b style="color:#16945a;">Green</b> = fine · <b style="color:#b45f06;">amber</b> = at or below the limit · <b style="color:#d9423b;">red</b> = out. Tap any number to add stock, fix the count after a physical check, or set its own limit. Orders saved before <span id="sinceTxt">—</span> never take stock out.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="bellPanel"></div>
+
+<!-- add / adjust one perfume + size -->
+<div class="modal-overlay" id="stkModal">
+  <div class="modal" style="max-width:480px;">
+    <h3 id="mTitle">Add stock</h3>
+    <div id="mAlert"></div>
+    <div id="mNow" class="nowbox" style="display:none;"></div>
+    <div class="field" id="fName"><label>Perfume</label><input id="mName" list="mNames" placeholder="Search or type the perfume name" autocomplete="off"><datalist id="mNames"></datalist></div>
+    <div class="field" id="fMl"><label>Size</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <select id="mMl" style="width:auto; min-width:110px;"><option value="20">20 ml</option><option value="50" selected>50 ml</option><option value="100">100 ml</option><option value="">Other…</option></select>
+        <input id="mMlOther" type="number" min="1" step="any" inputmode="decimal" placeholder="ml" style="width:90px; display:none;">
+      </div>
+    </div>
+    <div class="field"><span class="seg" id="mSeg"><button type="button" data-m="in" class="on">Stock in</button><button type="button" data-m="set">Count</button><button type="button" data-m="lim">Limit</button></span></div>
+    <div class="field" id="fQty"><label id="lQty">Pieces that came in</label><input id="mQty" type="number" min="0" step="1" inputmode="numeric" placeholder="0"><div class="hint" id="hQty"></div></div>
+    <div class="field" id="fLim" style="display:none;"><label>Low-stock limit for this item</label><input id="mLim" type="number" min="0" step="1" inputmode="numeric" placeholder="empty = same as everything"><div class="hint">You get an alert when this size drops to this many pieces or fewer.</div></div>
+    <div class="field" id="fNote"><label>Note (optional)</label><input id="mNote" placeholder="e.g. new batch from production"></div>
+    <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:13px;" id="mLinks"><button type="button" class="link" id="btnHist">History of this item</button><button type="button" class="link red" id="btnStop">Stop tracking</button></div>
+    <div class="actions"><button type="button" class="btn secondary" id="mCancel">Cancel</button><button type="button" class="btn" id="mSave">Save</button></div>
+  </div>
+</div>
+
+<!-- default limit -->
+<div class="modal-overlay" id="limModal">
+  <div class="modal" style="max-width:380px;">
+    <h3>Low-stock limit</h3>
+    <div id="lAlert"></div>
+    <div class="field"><label>Alert when a size is at or below</label><input id="lVal" type="number" min="0" step="1" inputmode="numeric"><div class="hint">Applies to every perfume and size that has no limit of its own.</div></div>
+    <div class="actions"><button type="button" class="btn secondary" id="lCancel">Cancel</button><button type="button" class="btn" id="lSave">Save</button></div>
+  </div>
+</div>
+
+<!-- stock log -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal wide">
+    <h3 id="gTitle">Stock log</h3>
+    <div class="sub" style="margin:-10px 0 10px;">Stock in, counts, and every order that took pieces out or brought them back</div>
+    <div id="gBody"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="gClose">Close</button></div>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+  guardPage();
+  renderSidebar('retail_inventory');
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = (n) => Number(n || 0).toLocaleString('en-IN');
+  const fmtDT = (d) => d ? new Date(String(d).replace(' ', 'T')).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+  const alertBox = $('alertBox');
+  function showAlert(msg, type = 'success') { alertBox.innerHTML = `<div class="alert ${type}">${esc(msg)}</div>`; setTimeout(() => { if (alertBox.firstChild) alertBox.innerHTML = ''; }, 4000); }
+  const open = (id) => $(id).classList.add('open');
+  const shut = (id) => $(id).classList.remove('open');
+
+  let items = [], defLimit = 10, canOverride = false, filter = 'all', cur = null /* item being edited */, mode = 'in';
+  const SIZES = [20, 50, 100];
+
+  async function load() {
+    try {
+      const d = await api.get('retail.stock');
+      items = d.items || []; defLimit = d.default_limit; canOverride = !!d.can_override;
+      const s = d.summary || {};
+      $('stPcs').textContent = num(s.pieces); $('stPerf').textContent = num(s.perfumes); $('stLow').textContent = num(s.low); $('stOut').textContent = num(s.out);
+      $('defLim').textContent = defLimit; $('sinceTxt').textContent = d.since ? new Date(String(d.since).replace(' ', 'T')).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+      render();
+    } catch (err) {
+      $('stkBody').innerHTML = `<tr><td colspan="6" style="padding:22px; color:#c81e1e;">${esc(err.message)}</td></tr>`;
+    }
+  }
+
+  function render() {
+    const sizes = [...new Set(SIZES.concat(items.map(i => Number(i.ml)).filter(Boolean)))].sort((a, b) => a - b);
+    $('stkHead').innerHTML = `<tr><th>Perfume</th>${sizes.map(m => `<th>${m} ml</th>`).join('')}<th>Total</th></tr>`;
+    const q = $('fSearch').value.trim().toLowerCase();
+    const by = new Map();
+    items.forEach(i => { const k = i.product_name.toLowerCase(); if (!by.has(k)) by.set(k, { name: i.product_name, cells: {} }); by.get(k).cells[Number(i.ml)] = i; });
+    let rows = [...by.values()].filter(r => !q || r.name.toLowerCase().includes(q));
+    if (filter !== 'all') rows = rows.filter(r => Object.values(r.cells).some(c => c.state === filter));
+    rows.sort((a, b) => a.name.localeCompare(b.name));
+    if (!rows.length) {
+      $('stkBody').innerHTML = `<tr><td colspan="${sizes.length + 2}" class="sub" style="padding:26px; text-align:center;">${items.length ? 'Nothing matches.' : 'No stock yet. Tap “+ Add stock” and enter what you have on the shelf for each perfume and size.'}</td></tr>`;
+      return;
+    }
+    $('stkBody').innerHTML = rows.map(r => {
+      let tot = 0;
+      const tds = sizes.map(m => {
+        const c = r.cells[m];
+        if (!c) return `<td><button class="q none" data-add="${esc(r.name)}" data-ml="${m}" title="Start tracking ${m} ml">+</button></td>`;
+        tot += Math.max(0, c.on_hand);
+        const note = c.state === 'out' ? (c.on_hand < 0 ? `short by ${-c.on_hand}` : 'out of stock') : (c.state === 'low' ? `limit ${c.limit}` : '');
+        return `<td><button class="q ${c.state}" data-key="${esc(c.key)}">${c.on_hand}</button>${note ? `<span class="lim ${c.state === 'out' ? 'r' : 'a'}">${note}</span>` : ''}</td>`;
+      }).join('');
+      return `<tr><td>${esc(r.name)}</td>${tds}<td><b>${num(tot)}</b></td></tr>`;
+    }).join('');
+  }
+  $('stkBody').addEventListener('click', (e) => {
+    const b = e.target.closest('button.q'); if (!b) return;
+    if (b.dataset.key) openItem(items.find(i => i.key === b.dataset.key));
+    else openNew(b.dataset.add, b.dataset.ml);
+  });
+  $('fSearch').addEventListener('input', render);
+  $('fSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; filter = b.dataset.f; document.querySelectorAll('#fSeg button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+
+  // ----- add / adjust modal -----
+  let perfNames = null;
+  function loadNames() {
+    if (perfNames) return;
+    perfNames = [];
+    api.get('retail.perfumes').then(d => {
+      const seen = new Set();
+      (d.perfumes || []).forEach(n => { const b = String(n).replace(/\s*\d+(?:\.\d+)?\s*ml\s*$/i, '').trim(); if (b && !seen.has(b.toLowerCase())) { seen.add(b.toLowerCase()); perfNames.push(b); } });
+      perfNames.sort((a, b) => a.localeCompare(b));
+      $('mNames').innerHTML = perfNames.map(n => `<option value="${esc(n)}">`).join('');
+    }).catch(() => { perfNames = null; });
+  }
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('#mSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    $('fQty').style.display = m === 'lim' ? 'none' : ''; $('fLim').style.display = m === 'lim' ? '' : 'none'; $('fNote').style.display = m === 'lim' ? 'none' : '';
+    if (m === 'in') { $('lQty').textContent = 'Pieces that came in'; $('mQty').value = ''; $('hQty').textContent = cur ? 'Added on top of what is in stock now.' : 'First entry for this perfume and size = your opening stock.'; }
+    if (m === 'set') { $('lQty').textContent = 'Pieces counted on the shelf'; $('mQty').value = cur ? cur.on_hand : ''; $('hQty').textContent = 'Use this after a physical check. The stock becomes exactly this number; the difference is saved in the log.'; }
+    if (m === 'lim') $('mLim').value = cur && cur.custom_limit !== null ? cur.custom_limit : '';
+  }
+  function modalCommon() {
+    $('mAlert').innerHTML = ''; $('mNote').value = ''; loadNames();
+    $('mSeg').style.display = ''; $('mSeg').querySelector('[data-m="lim"]').style.display = cur ? '' : 'none';
+    $('mLinks').style.display = cur ? 'flex' : 'none';
+  }
+  function openNew(name, ml) {
+    cur = null; modalCommon();
+    $('mTitle').textContent = 'Add stock'; $('mNow').style.display = 'none';
+    $('mName').value = name || ''; $('mName').readOnly = false;
+    const known = SIZES.includes(Number(ml));
+    $('mMl').value = ml ? (known ? String(Number(ml)) : '') : '50'; $('mMlOther').value = ml && !known ? ml : ''; $('mMlOther').style.display = $('mMl').value === '' ? '' : 'none';
+    $('fName').style.display = ''; $('fMl').style.display = '';
+    $('mSeg').style.display = 'none'; setMode('in');
+    open('stkModal'); setTimeout(() => { if (!name) $('mName').focus(); else $('mQty').focus(); }, 80);
+  }
+  function openItem(it) {
+    if (!it) return;
+    cur = it; modalCommon();
+    $('mTitle').textContent = it.product_name + ' · ' + it.ml_text;
+    $('mNow').style.display = 'flex';
+    $('mNow').innerHTML = `<div>In stock<br><b style="color:${it.state === 'out' ? '#d9423b' : it.state === 'low' ? '#b45f06' : '#16945a'};">${it.on_hand}</b></div><div class="sub" style="line-height:1.6;">Added ${num(it.added + it.adjusted)} · sent out ${num(it.used)} · returned ${num(it.returned)}<br>Alert limit ${it.limit}${it.custom_limit === null ? ' (same as everything)' : ''}</div>`;
+    $('fName').style.display = 'none'; $('fMl').style.display = 'none';
+    $('mName').value = it.product_name; $('mMl').value = SIZES.includes(Number(it.ml)) ? String(Number(it.ml)) : ''; $('mMlOther').value = it.ml;
+    setMode('in'); open('stkModal'); setTimeout(() => $('mQty').focus(), 80);
+  }
+  $('btnAdd').addEventListener('click', () => openNew('', ''));
+  $('mMl').addEventListener('change', () => { $('mMlOther').style.display = $('mMl').value === '' ? '' : 'none'; });
+  $('mSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
+  $('mCancel').addEventListener('click', () => shut('stkModal'));
+  $('stkModal').addEventListener('click', (e) => { if (e.target === $('stkModal')) shut('stkModal'); });
+  $('mSave').addEventListener('click', async () => {
+    const btn = $('mSave'); btn.disabled = true;
+    try {
+      const name = $('mName').value.trim(), ml = $('mMl').value === '' ? $('mMlOther').value.trim() : $('mMl').value;
+      if (mode === 'lim') {
+        const d = await api.post('retail.stock_limit_save', { product_name: cur.product_name, ml: cur.ml, low_limit: $('mLim').value.trim() });
+        shut('stkModal'); showAlert(d.message || 'Saved.');
+      } else {
+        const body = { product_name: cur ? cur.product_name : name, ml: cur ? cur.ml : ml, note: $('mNote').value.trim() };
+        if (!body.product_name) throw new Error('Enter the perfume name.');
+        if (mode === 'set') { if ($('mQty').value === '') throw new Error('Enter the counted pieces.'); body.set_to = Number($('mQty').value); }
+        else { body.qty = Number($('mQty').value) || 0; }
+        const d = await api.post('retail.stock_add', body);
+        shut('stkModal'); showAlert(d.message || 'Saved.');
+      }
+      await load(); loadBell();
+    } catch (err) { $('mAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    finally { btn.disabled = false; }
+  });
+  $('btnStop').addEventListener('click', async () => {
+    if (!cur || !confirm(`Stop tracking ${cur.product_name} ${cur.ml_text}? Its stock entries and alerts are deleted. Orders are not touched.`)) return;
+    try { const d = await api.post('retail.stock_remove', { key: cur.key }); shut('stkModal'); showAlert(d.message); await load(); loadBell(); }
+    catch (err) { $('mAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  });
+  $('btnHist').addEventListener('click', () => { if (cur) { const k = cur.key, t = cur.product_name + ' ' + cur.ml_text; shut('stkModal'); openLog(k, t); } });
+
+  // ----- default limit -----
+  $('btnDefLim').addEventListener('click', () => { $('lVal').value = defLimit; $('lAlert').innerHTML = ''; open('limModal'); setTimeout(() => $('lVal').select(), 80); });
+  $('lCancel').addEventListener('click', () => shut('limModal'));
+  $('limModal').addEventListener('click', (e) => { if (e.target === $('limModal')) shut('limModal'); });
+  $('lSave').addEventListener('click', async () => {
+    try { const d = await api.post('retail.stock_limit_save', { default_limit: Number($('lVal').value) || 0 }); shut('limModal'); showAlert(d.message); await load(); loadBell(); }
+    catch (err) { $('lAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  });
+
+  // ----- log -----
+  const KIND = { in: 'Stock in', opening: 'Opening stock', adjust: 'Count fix', order: 'Order', return: 'Return' };
+  async function openLog(key, title) {
+    $('gTitle').textContent = title ? 'Log · ' + title : 'Stock log'; $('gBody').innerHTML = '<div class="sub" style="padding:14px 0;">Loading…</div>'; open('logModal');
+    try {
+      const d = await api.get('retail.stock_log', key ? { key } : {});
+      const rows = d.log || [];
+      $('gBody').innerHTML = rows.length ? rows.map(r => {
+        const who = r.kind === 'order' || r.kind === 'return' ? `${esc(r.order_no)}${r.shop ? ' · ' + esc(r.shop) : ''}` : esc(r.by || '');
+        return `<div class="lg-row"><div class="d">${fmtDT(r.at)}</div><div><span class="kchip ${esc(r.kind)}">${esc(KIND[r.kind] || r.kind)}</span><b>${esc(r.product_name)} ${esc(r.ml_text)}</b><small>${who}${r.note ? (who ? ' · ' : '') + esc(r.note) : ''}</small></div><div class="n ${r.qty >= 0 ? 'p' : 'm'}">${r.qty > 0 ? '+' : ''}${r.qty}</div></div>`;
+      }).join('') : '<div class="sub" style="padding:14px 0;">Nothing yet.</div>';
+    } catch (err) { $('gBody').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  }
+  $('btnLog').addEventListener('click', () => openLog('', ''));
+  $('gClose').addEventListener('click', () => shut('logModal'));
+  $('logModal').addEventListener('click', (e) => { if (e.target === $('logModal')) shut('logModal'); });
+
+  // ----- bell -----
+  function setBadge(n) {
+    const b = $('bellN'); b.textContent = n; b.style.display = n > 0 ? 'inline-block' : 'none';
+    const sb = document.getElementById('stockBadge'); if (sb) { sb.textContent = n; sb.style.display = n > 0 ? 'inline-block' : 'none'; }
+  }
+  async function loadBell() { try { const d = await api.get('retail.stock_alerts', { badge: 1 }); setBadge(d.unread || 0); } catch (e) {} }
+  function placeBell() { const r = $('btnBell').getBoundingClientRect(), p = $('bellPanel'); p.style.top = (r.bottom + 8) + 'px'; p.style.left = Math.max(10, Math.min(r.right - p.offsetWidth, window.innerWidth - p.offsetWidth - 10)) + 'px'; }
+  $('btnBell').addEventListener('click', async (e) => {
+    e.stopPropagation(); const p = $('bellPanel');
+    if (p.classList.contains('open')) { p.classList.remove('open'); return; }
+    p.innerHTML = '<div class="al-empty">Loading…</div>'; p.classList.add('open'); placeBell();
+    try {
+      const d = await api.get('retail.stock_alerts');
+      const list = d.alerts || [];
+      p.innerHTML = `<h4><span>Stock alerts</span><button type="button" class="link" id="btnSeen" style="font-size:12px;">Mark all read</button></h4>` + (list.length ? list.map(a => `<div class="al ${esc(a.kind)}${a.unread ? ' unread' : ''}"><div class="ic">${a.kind === 'out' ? '⛔' : a.kind === 'low' ? '⚠️' : '📦'}</div><div><b>${esc(a.title)}</b>${esc(a.body)}${a.order_no && !String(a.body).includes(a.order_no) ? ' · ' + esc(a.order_no) : ''}<br><span>${fmtDT(a.at)}</span></div></div>`).join('') : '<div class="al-empty">No alerts. You will see them here when a size runs low or out.</div>');
+      placeBell();
+      const sb = $('btnSeen'); if (sb) sb.addEventListener('click', markSeen);
+      if ((d.unread || 0) > 0) markSeen();
+    } catch (err) { p.innerHTML = `<div class="al-empty" style="color:#c81e1e;">${esc(err.message)}</div>`; }
+  });
+  async function markSeen(e) { try { await api.post('retail.stock_alerts_seen', {}); setBadge(0); if (e && e.type === 'click') document.querySelectorAll('#bellPanel .al.unread').forEach(x => x.classList.remove('unread')); } catch (err) {} }
+  document.addEventListener('click', (e) => { if (!e.target.closest('#bellPanel')) $('bellPanel').classList.remove('open'); });
+  window.addEventListener('resize', () => { if ($('bellPanel').classList.contains('open')) placeBell(); });
+
+  load(); loadBell();
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

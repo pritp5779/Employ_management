@@ -13,6 +13,9 @@
 <title>Attendance — HRMS</title>
 <script src="assets/js/splash.js?v=4"></script>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap">
 <style>
   /* Camera stays off until a punch button is tapped. */
   .cam-panel{position:relative; width:100%; max-width:400px; margin:0 auto; border-radius:14px; overflow:hidden; background:#0b0b0f;
@@ -171,6 +174,14 @@
   .pf-steps{display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;}
   .pf-steps span{font-size:10.8px; font-weight:700; background:#f1ede6; color:#6b5a48; border-radius:99px; padding:3px 8px;}
   .pf-steps span.on{background:#e7f7ee; color:#0f7a41;}
+  /* Handwritten lines the admin writes for each proof: one above the link (with a small arrow at Open), one under it */
+  .pf-hw{position:relative;}
+  .pf-ht,.pf-hb{font-family:Caveat,"Segoe Print","Bradley Hand","Comic Sans MS",cursive; font-weight:700; color:#c2410c; overflow-wrap:anywhere;}
+  .pf-ht{font-size:21px; line-height:1.05; transform:rotate(-1.5deg); transform-origin:left center; margin:7px 0 0 2px; padding-right:58px; min-height:28px;}
+  .pf-hw .pf-arw{position:absolute; right:58px; top:2px; width:44px; height:28px; color:#c2410c; transform:rotate(10deg); pointer-events:none;}
+  .pf-hw .pf-arw svg{width:100%; height:100%; display:block;}
+  .pf-hw .pf-lk{margin-top:4px;}
+  .pf-hb{font-size:23px; line-height:1.1; transform:rotate(-1deg); transform-origin:left center; margin:8px 0 0 2px;}
   .pf-meta a{color:inherit; text-decoration:underline;}
   @media (max-width:820px){ .punch-btns .btn{flex:1 1 140px; min-height:48px; font-size:15px;} .steps li{font-size:11.5px; padding:6px 6px;} }
   @media (prefers-reduced-motion: reduce){ .pulse::before, .pulse::after, .pulse .rip, .pulse.on .hr-prog{animation:none;} .pulse .rip{display:none;} .hr-ring .hr-prog{transition:none;} .cam-panel{animation:none;} .cam-live b{animation:none;} .cam-sw button.on b{animation:none;} .cam-oval{transition:none;} .loc-pin.busy::after{animation-duration:2s;} }
@@ -333,7 +344,7 @@
         <!-- Punch-in proofs (Instagram / YouTube comment screenshots, plus any the admin adds). Shown only when the admin
              has a proof for this employee; Punch In stays locked until every one is uploaded. -->
         <div class="hm-card pf-card" id="pfCard" hidden>
-          <div class="pf-head"><h3>Punch In proofs</h3><span class="ck-pill" id="pfPill"></span></div>
+          <div class="pf-head"><h3 id="pfTitle">Punch In proofs</h3><span class="ck-pill" id="pfPill"></span></div>
           <div id="pfAlert"></div>
           <div id="pfBox"></div>
         </div>
@@ -355,7 +366,7 @@
         </div>
       </div>
       <input type="file" accept="image/*" capture="environment" id="ckFile" style="display:none;">
-      <input type="file" accept="image/*" id="pfFile" style="display:none;">
+      <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif,.avif,.tif,.tiff" id="pfFile" style="display:none;">
 
       <div class="card" style="max-width:560px;" id="remCard">
         <div class="card-head"><h2>Punch-in reminder <span class="rem-req">Required</span></h2></div>
@@ -742,9 +753,10 @@
   // The screenshot comes from the gallery (that is where screenshots are saved), so the picker has no camera-only flag.
   const pfCard = document.getElementById('pfCard');
   const pfFile = document.getElementById('pfFile');
-  const PF_LOCK_MSG = 'Upload your punch-in proofs first';
+  const PF_LOCK_MSG = 'Upload your proofs first';
   let pfState = null;
   let pfLoaded = false;          // proofs.my answered (Punch In waits for it)
+  let pfStage = 'punch';         // 'enroll' while this person still has to enroll their face (the proofs asked once), else 'punch'
   let pfBusy = false;
   let pfRuleId = 0;
   let pfReplace = false;
@@ -757,7 +769,7 @@
   function pfApplyLock() {
     const d = pfState;
     const waiting = !pfLoaded;
-    const lock = !enrollMode && (waiting || !!(d && Number(d.total) && !Number(d.complete) && !Number(d.punched_in)));
+    const lock = (waiting || !!(d && Number(d.total) && !Number(d.complete) && !Number(d.punched_in)));
     const note = document.getElementById('pfLock');
     if (lock) {
       btnIn.disabled = true; btnIn.title = PF_LOCK_MSG;
@@ -825,11 +837,18 @@
     const redo = Number(it.redo) ? `<div class="pf-redo">Sent back: ${pfEsc(it.redo_note)}</div>` : '';
     const lk = pfLinkInfo(it);
     const seen = !!pfOpened[id];
-    const lkHtml = lk ? `<a class="pf-lk${seen ? ' seen' : ''}" href="${pfEsc(lk.url)}" target="_blank" rel="noopener noreferrer" onclick="pfLinkOpened(${id})">
+    // The two handwritten lines are written by the admin per proof. Neither written: the old 1-2-3-4 chips stay.
+    const hTop = String(it.hint_top || '').trim(), hBot = String(it.hint_bottom || '').trim();
+    const hand = !!(hTop || hBot);
+    const arrow = '<span class="pf-arw" aria-hidden="true"><svg viewBox="0 0 80 50" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8 C 30 -2, 62 8, 66 38"/><path d="M54 30 L66 40 L72 25"/></svg></span>';
+    const lkHtml = lk ? `<div class="pf-hw">
+      ${hTop ? `<div class="pf-ht">${pfEsc(hTop)}</div>${arrow}` : ''}
+      <a class="pf-lk${seen ? ' seen' : ''}" href="${pfEsc(lk.url)}" target="_blank" rel="noopener noreferrer" onclick="pfLinkOpened(${id})">
         <span class="pf-tile ${lk.cls}">${pfEsc(lk.tile)}</span>
         <span class="pf-lm"><small>${pfEsc(lk.label)}</small><b>${pfEsc(lk.short)}</b></span>
-        <span class="pf-go">${seen ? 'Opened ✓' : 'Open ↗'}</span></a>
-      <div class="pf-steps"><span class="${seen ? 'on' : ''}">1 Open</span><span>2 Like</span><span>3 Comment</span><span>4 Screenshot</span></div>` : '';
+        <span class="pf-go">${seen ? 'Opened ✓' : 'Open ↗'}</span></a></div>
+      ${hand ? (hBot ? `<div class="pf-hb">${pfEsc(hBot)}</div>` : '') : `<div class="pf-steps"><span class="${seen ? 'on' : ''}">1 Open</span><span>2 Like</span><span>3 Comment</span><span>4 Screenshot</span></div>`}`
+      : (hand ? `${hTop ? `<div class="pf-ht" style="padding-right:0; min-height:0">${pfEsc(hTop)}</div>` : ''}${hBot ? `<div class="pf-hb">${pfEsc(hBot)}</div>` : ''}` : '');
     const ph = it.kind === 'youtube' ? 'Paste the YouTube video link' : (it.kind === 'instagram' ? 'Paste the Instagram post link' : 'Paste the link');
     const linkIn = Number(it.link_required)
       ? `<input class="pf-in" id="pfLink${id}" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ph}" value="${pfEsc(pfLinks[id] != null ? pfLinks[id] : (it.link || ''))}" oninput="pfLinks[${id}] = this.value" aria-label="Link for ${pfEsc(it.title)}">`
@@ -859,22 +878,29 @@
     pfCard.classList.toggle('compact', compact);
     const pill = document.getElementById('pfPill');
     pill.textContent = `${d.done_count} of ${d.total}`;
+    const enr = pfStage === 'enroll', unlockTxt = enr ? 'Enroll' : 'Punch In';
+    document.getElementById('pfTitle').textContent = enr ? 'Proofs before you enroll' : 'Punch In proofs';
     pill.className = 'ck-pill' + (complete ? ' ok' : '');
     let note;
     if (compact) note = `<div class="pf-note ok">✓ Punch-in proofs submitted</div>`;
     else if (punched) note = `<div class="pf-note bad">Your admin sent ${redo} proof${redo === 1 ? '' : 's'} back — upload ${redo === 1 ? 'it' : 'them'} again.</div>`;
-    else if (complete) note = `<div class="pf-note ok">All proofs saved — you can punch in now.</div>`;
-    else if (Number(d.done_count) === 0) note = `<div class="pf-note wait">Upload ${Number(d.total) === 1 ? 'this proof' : 'these ' + d.total + ' proofs'} to unlock Punch In.</div>`;
-    else { const left = Number(d.total) - Number(d.done_count); note = `<div class="pf-note wait">${left} proof${left === 1 ? '' : 's'} left — then Punch In unlocks.</div>`; }
+    else if (complete) note = `<div class="pf-note ok">All proofs saved — you can ${enr ? 'enroll your face' : 'punch in'} now.</div>`;
+    else if (Number(d.done_count) === 0) note = `<div class="pf-note wait">Upload ${Number(d.total) === 1 ? 'this proof' : 'these ' + d.total + ' proofs'} to unlock ${unlockTxt}.</div>`;
+    else { const left = Number(d.total) - Number(d.done_count); note = `<div class="pf-note wait">${left} proof${left === 1 ? '' : 's'} left — then ${unlockTxt} unlocks.</div>`; }
     document.getElementById('pfBox').innerHTML = note + (compact ? '' : d.items.map(it => pfItemHtml(it, punched)).join(''));
   }
 
   async function loadProofs() {
+    // Still to enroll the face? Then the proofs asked at the Enroll step (once); otherwise the day's Punch In proofs.
+    // (enrollMode is only known once face.get has answered — loadFace() calls this again if the answer changes the stage.)
+    const stage = faceLoaded && enrollMode ? 'enroll' : 'punch';
+    pfStage = stage;
     try {
-      pfState = await api.get('proofs.my');
+      pfState = await api.get('proofs.my', stage === 'enroll' ? { stage: 'enroll' } : undefined);
     } catch (err) {
       pfState = null;          // a server without the proofs: nothing to ask for
     }
+    if (pfStage !== stage) return;     // another load took over while this one was waiting
     pfLoaded = true;
     renderProofs();
     pfApplyLock();
@@ -902,18 +928,62 @@
     pfFile.click();
   };
 
+  // ---------- Photo-only upload helpers ----------
+  const PHOTO_EXT = /\.(jpe?g|jfif|png|webp|gif|bmp|heic|heif|avif|tiff?|dng)$/i;
+  const isPhotoFile = (f) => !!f && ((f.type && f.type.indexOf('image/') === 0) || (!(f.type && f.type.indexOf('/') > 0 && f.type.indexOf('image/') !== 0) && PHOTO_EXT.test(f.name || '')));
+  const isHeic = (f) => /heic|heif/i.test(f.type || '') || /\.(heic|heif)$/i.test(f.name || '');
+  function loadHeicLib() {
+    if (window.heic2any) return Promise.resolve();
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      s.onload = () => res(); s.onerror = () => rej(new Error('lib'));
+      document.head.appendChild(s);
+    });
+  }
+  // JPG / PNG / WEBP go as they are. Any other picture (HEIC, HEIF, GIF, BMP, AVIF, TIFF …) is turned into a JPG here, in the phone,
+  // so the server always receives a normal photo.
+  async function photoForUpload(file) {
+    const t = (file.type || '').toLowerCase();
+    if (/^image\/(jpeg|png|webp)$/.test(t)) return file;
+    const jpgName = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+    const draw = async (src) => {
+      const bmp = await createImageBitmap(src);
+      const sc = Math.min(1, 2400 / Math.max(bmp.width, bmp.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+      const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+      if (bmp.close) bmp.close();
+      const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+      if (!blob) throw new Error('blob');
+      return new File([blob], jpgName, { type: 'image/jpeg' });
+    };
+    try { return await draw(file); } catch (e) { /* this browser cannot read it directly */ }
+    if (isHeic(file)) {
+      try {
+        await loadHeicLib();
+        let out = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+        if (Array.isArray(out)) out = out[0];
+        return new File([out], jpgName, { type: 'image/jpeg' });
+      } catch (e) { /* fall through */ }
+    }
+    return file;   // let the server try (it converts HEIC too when it can) and report if it cannot
+  }
+
   pfFile.addEventListener('change', async () => {
-    const file = pfFile.files && pfFile.files[0];
+    let file = pfFile.files && pfFile.files[0];
     if (!file || !pfRuleId) return;
-    if (file.type && file.type.indexOf('image/') !== 0) { pfAlert('Pick a screenshot or photo (JPG, PNG or WEBP).'); pfFile.value = ''; return; }
+    // Photos only — any picture format (.jpg .png .heic .webp …); PDF, Excel and every other file type is refused.
+    if (!isPhotoFile(file)) { pfAlert('Only a photo can be uploaded (JPG, PNG, HEIC, WEBP … any photo). PDF, Excel and other files are not accepted.'); pfFile.value = ''; return; }
     pfBusy = true;
     pfAlert('');
     const box = document.getElementById('pfBox');
     box.style.opacity = '.6';
     try {
+      file = await photoForUpload(file);
       const it = pfItem(pfRuleId) || {};
       const fd = new FormData();
       fd.append('rule_id', pfRuleId);
+      if (pfStage === 'enroll') fd.append('stage', 'enroll');
       fd.append('replace', pfReplace ? 1 : 0);
       fd.append('link', String(pfLinks[pfRuleId] != null ? pfLinks[pfRuleId] : (it.link || '')).trim());
       fd.append('photo', file, file.name || 'proof.jpg');
@@ -989,6 +1059,7 @@
       faceLoaded = true;
       btnIn.disabled = false;
       btnOut.disabled = false;
+      if (enrollMode && pfStage !== 'enroll') { pfLoaded = false; loadProofs(); }   // still to enroll: ask for the Enroll proofs instead of the day's
       ckApplyLock();          // store staff: keep Punch Out locked if the checklist is open
       pfApplyLock();          // punch-in proofs: keep Punch In locked until they are uploaded
       applyRemLock();         // reminder is required: punching stays locked until it is on
@@ -1394,7 +1465,7 @@
   async function handle(type) {
     if (busy || !faceLoaded) return;
     if (reminderNeeded && !reminderOn) { applyRemLock(); return; }
-    if (type === 'in' && !enrollMode && pfLoaded && pfState && Number(pfState.total) && !Number(pfState.complete) && !Number(pfState.punched_in)) {
+    if (type === 'in' && pfLoaded && pfState && Number(pfState.total) && !Number(pfState.complete) && !Number(pfState.punched_in)) {
       pfApplyLock();
       pfCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -1831,4 +1902,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html>
+</html>s

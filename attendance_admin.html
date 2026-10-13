@@ -12,6 +12,9 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Attendance — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=260928b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap">
 <style>
   .dayedit{border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; padding:0 3px; min-height:0; width:auto; vertical-align:middle; line-height:1;}
   .daypop{position:fixed; z-index:200; width:310px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 36px rgba(15,23,42,.22); padding:14px 14px 12px; font-size:13px; text-align:left;}
@@ -65,6 +68,20 @@
   .pfa-res:hover{background:#f3f7ff;}
   .pfa-resbox{border:1px solid var(--line); border-radius:8px; margin-top:6px; max-height:190px; overflow:auto;}
   .pfa-none{padding:8px 10px; font-size:12.5px; color:var(--muted);}
+  .pfa-hw{border:1.5px dashed #f3c9ad; background:#fffaf5; border-radius:12px; padding:10px 12px 12px; margin-bottom:12px;}
+  .pfa-hw .field{margin-bottom:8px;}
+  .pfa-hw .pfa-hwcap{font-size:11.5px; color:var(--muted); margin:-2px 0 8px;}
+  .pfa-prev{position:relative; background:#fff; border:1px solid var(--line); border-radius:10px; padding:2px 10px 10px;}
+  .pfa-prev .pv-t,.pfa-prev .pv-b{font-family:Caveat,"Segoe Print","Comic Sans MS",cursive; font-weight:700; color:#c2410c; overflow-wrap:anywhere;}
+  .pfa-prev .pv-t{font-size:21px; line-height:1.05; transform:rotate(-1.5deg); transform-origin:left center; margin:8px 0 0 2px; padding-right:58px; min-height:26px;}
+  .pfa-prev .pv-arw{position:absolute; right:56px; top:8px; width:44px; height:28px; color:#c2410c; transform:rotate(10deg);}
+  .pfa-prev .pv-lk{display:flex; align-items:center; gap:8px; border:1.5px solid #f3c9ad; background:linear-gradient(135deg,#fff7f1,#fff); border-radius:12px; padding:8px; margin-top:4px; font-size:11.5px;}
+  .pfa-prev .pv-lk i{width:30px; height:30px; border-radius:9px; background:#fce7f3; color:#be185d; font-style:normal; font-weight:800; font-size:11px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .pfa-prev .pv-lk span{flex:1; min-width:0; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pfa-prev .pv-lk em{background:#e8590c; color:#fff; border-radius:8px; padding:6px 9px; font-style:normal; font-weight:800; font-size:11.5px;}
+  .pfa-prev .pv-b{font-size:23px; line-height:1.1; transform:rotate(-1deg); transform-origin:left center; margin:8px 0 0 2px;}
+  .pfa-prev .pv-up{display:inline-block; margin-top:8px; background:#e8590c; color:#fff; border-radius:9px; font-size:12px; font-weight:700; padding:7px 12px;}
+  .pfa-prev .pv-empty{font-size:12px; color:var(--muted); padding-top:8px;}
   .pfa-urlrow{display:flex; gap:8px; align-items:center;}
   .pfa-urlrow input{flex:1; min-width:0;}
   .pfa-test{border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px 11px; font-size:12.5px; font-weight:700; color:#2563eb; text-decoration:none; white-space:nowrap;}
@@ -119,6 +136,8 @@
     .topbar > div.att-tools::-webkit-scrollbar{display:none;}
     .topbar > div.att-tools > button{flex:0 0 auto; width:auto; white-space:nowrap;}
   }
+  #alertBox{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:9999; width:max-content; max-width:min(92vw,560px); pointer-events:none;}
+  #alertBox .alert{margin:0; box-shadow:0 8px 28px rgba(15,23,42,.2);}
 </style>
 </head>
 <body>
@@ -328,12 +347,22 @@
     <div class="field"><label>Type</label>
       <div class="pfa-seg" id="pfeKind"><button type="button" data-k="instagram">Instagram</button><button type="button" data-k="youtube">YouTube</button><button type="button" data-k="custom">Custom</button></div>
     </div>
+    <div class="field"><label>When is it asked</label>
+      <div class="pfa-seg" id="pfeStage"><button type="button" data-s="punch">Every day, before Punch In</button><button type="button" data-s="enroll">Once, at Enroll</button></div>
+      <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45;" id="pfeStageNote"></div>
+    </div>
     <div class="field"><label>Name</label><input type="text" id="pfeTitle" maxlength="120" placeholder="e.g. Google review screenshot"></div>
     <div class="field"><label>What the employee sees</label><textarea id="pfeText" rows="3" maxlength="500" placeholder="Tell them exactly what to do and what the screenshot must show"></textarea></div>
     <div class="field"><label>Link employees must open <span style="font-weight:500; color:var(--muted);">(optional)</span></label>
       <div class="pfa-urlrow"><input type="text" id="pfeUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="500" placeholder="Paste the exact Instagram Reel, YouTube video or other link"><a class="pfa-test" id="pfeUrlTest" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Test ↗</a></div>
       <div id="pfeUrlDet"></div>
       <div class="pfa-clean" id="pfeUrlClean"></div>
+    </div>
+    <div class="pfa-hw">
+      <div class="field"><label>Handwritten line above the link <span style="font-weight:500; color:var(--muted);">(optional)</span></label><input type="text" id="pfeHintTop" maxlength="80" autocomplete="off" placeholder="e.g. Open, comment, like, screenshot"></div>
+      <div class="field"><label>Handwritten line under the link <span style="font-weight:500; color:var(--muted);">(optional)</span></label><input type="text" id="pfeHintBot" maxlength="80" autocomplete="off" placeholder="e.g. dil thi like comment kar jo ❤️"></div>
+      <div class="pfa-hwcap">Write these yourself, in your own words, for every proof. Employees see them in handwriting on the Punch In screen. Leave both empty to show the standard 1-2-3-4 steps.</div>
+      <div class="pfa-prev" id="pfePrev"></div>
     </div>
     <div class="field-grid">
       <div class="field"><label>Screenshots needed</label><input type="number" id="pfeShots" min="1" max="10" value="1"></div>
@@ -416,9 +445,11 @@
   renderSidebar('attendance_admin');
 
   const alertBox = document.getElementById('alertBox');
+  // The message floats over the page (see #alertBox in the style block) so showing / hiding it never pushes the table down or up.
   function showAlert(msg, type = 'success') {
     alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
-    setTimeout(() => (alertBox.innerHTML = ''), 4000);
+    clearTimeout(showAlert.t);
+    showAlert.t = setTimeout(() => (alertBox.innerHTML = ''), 4000);
   }
 
   // Start time per weekday [Sun..Sat], default 10:00. An attendance day runs
@@ -536,8 +567,9 @@
     if (Array.isArray(r.proofs) && r.proofs.length) {
       const chips = r.proofs.map((p) => {
         const done = Number(p.done) === 1, redo = Number(p.redo) === 1;
-        const txt = done ? 'Done' : (redo ? 'Sent back' : (r.punch_in ? 'Missing' : (Number(p.have) > 0 ? `${p.have} of ${p.need}` : 'Waiting')));
-        return `<span class="pfc${done ? '' : (redo ? ' bad' : ' wait')}" title="${attr(p.title)}"><i>${attr(pfTileText(p))}</i>${txt}</span>`;
+        const once = p.stage === 'enroll';
+        const txt = done ? 'Done' : (redo ? 'Sent back' : ((r.punch_in && !once) ? 'Missing' : (Number(p.have) > 0 ? `${p.have} of ${p.need}` : 'Waiting')));
+        return `<span class="pfc${done ? '' : (redo ? ' bad' : ' wait')}" title="${attr(p.title + (once ? ' (asked once, at Enroll)' : ''))}"><i>${attr(pfTileText(p))}</i>${txt}${once ? ' · once' : ''}</span>`;
       }).join('');
       proofs = `<a href="#" onclick="viewProofs(${r.employee_id}, '${nm}'); return false;" style="text-decoration:none;" title="Open the screenshots">${chips}</a>`;
     }
@@ -817,14 +849,18 @@
     XLSX.writeFile(wb, `Attendance_${safe}_${month}.xlsx`);
   });
 
-  async function loadMonth() {
+  async function loadMonth(keep) {
     const month = monthPick.value;
     if (!month) return;
     monthData = null; monthDl.disabled = true;
     const body = document.getElementById('monthBody');
+    // keep = refresh after changing a day: leave the list on screen and scroll where it was (no "Loading…" flash, no jump to the top)
+    const scr = [body, body.closest('.modal')].filter(Boolean).map(el => [el, el.scrollTop]);
     document.getElementById('monthTitle').textContent = monthName;
-    document.getElementById('monthSummary').innerHTML = '';
-    body.innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    if (!keep) {
+      document.getElementById('monthSummary').innerHTML = '';
+      body.innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
+    }
     try {
       const d = await api.get('attendance.month', { employee_id: monthEmp, month });
       if (month !== monthPick.value) return;
@@ -848,6 +884,7 @@
           status += ` <button type="button" class="dayedit" data-mdate="${r.date}" title="Change to Present / WFH / Leave">✎</button>`;
           return `<tr${Number(r.future) ? ' style="opacity:.45;"' : ''}><td style="white-space:nowrap;">${label}</td><td>${fmtT(r.punch_in)}</td><td>${fmtT(r.punch_out)}</td><td>${r.hours !== null ? r.hours + ' h' : '—'}</td><td>${status}</td></tr>`;
         }).join('') + '</tbody></table>';
+      if (keep) scr.forEach(([el, y]) => { el.scrollTop = y; });
     } catch (err) {
       body.innerHTML = `<div class="alert error">${err.message}</div>`;
     }
@@ -974,7 +1011,7 @@
       const needs = `${r.shots_required} screenshot${r.shots_required === 1 ? '' : 's'}${Number(r.link_required) ? ' + link' : ''}`;
       return `<div class="pfa-rule${Number(r.active) ? '' : ' pfa-off'}">
         ${pfTile(r)}
-        <div class="nm"><b>${attr(r.title)}</b><span>${attr(r.instruction || 'No wording set.')}</span>${r.target_url ? `<a class="pfa-rlink" href="${attr(r.target_url)}" target="_blank" rel="noopener noreferrer">🔗 ${attr(String(r.target_url).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))}</a>` : ''}</div>
+        <div class="nm"><b>${attr(r.title)}</b>${r.stage === 'enroll' ? ' <span class="pfa-chip dep" style="margin-left:6px;">Once · at Enroll</span>' : ''}<span>${attr(r.instruction || 'No wording set.')}</span>${r.target_url ? `<a class="pfa-rlink" href="${attr(r.target_url)}" target="_blank" rel="noopener noreferrer">🔗 ${attr(String(r.target_url).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))}</a>` : ''}</div>
         <div class="sc"><div class="pfa-chips">${chips}</div><div class="pfa-cnt">${kind} · ${r.applies_count} employee${r.applies_count === 1 ? '' : 's'}</div></div>
         <div class="nd">${needs}</div>
         <div class="ac">
@@ -986,8 +1023,8 @@
   }
 
   function pfRulePayload(r, over) {
-    return Object.assign({ rule_id: r.rule_id, kind: r.kind, title: r.title, instruction: r.instruction, shots_required: r.shots_required, link_required: r.link_required, target_url: r.target_url || '',
-      scope_all: r.scope_all, department_ids: r.department_ids, employee_ids: r.employee_ids, active: r.active }, over || {});
+    return Object.assign({ rule_id: r.rule_id, kind: r.kind, title: r.title, instruction: r.instruction, hint_top: r.hint_top || '', hint_bottom: r.hint_bottom || '', shots_required: r.shots_required, link_required: r.link_required, target_url: r.target_url || '',
+      scope_all: r.scope_all, department_ids: r.department_ids, employee_ids: r.employee_ids, active: r.active, stage: r.stage === 'enroll' ? 'enroll' : 'punch' }, over || {});
   }
   window.pfaToggle = async function (id, on, box) {
     const r = PF.rules.find(x => Number(x.rule_id) === Number(id));
@@ -1020,7 +1057,7 @@
   // ---- one requirement: add / edit ----
   let pfEd = null;
   function pfeAlert(msg) { document.getElementById('pfeAlert').innerHTML = msg ? `<div class="alert error" style="margin-bottom:10px;">${attr(msg)}</div>` : ''; }
-  function pfeSeg(id, val) { document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('on', String(b.dataset.k !== undefined ? b.dataset.k : b.dataset.v) === String(val))); }
+  function pfeSeg(id, val) { document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('on', String(b.dataset.k !== undefined ? b.dataset.k : (b.dataset.s !== undefined ? b.dataset.s : b.dataset.v)) === String(val))); }
   function pfeSummary() {
     const box = document.getElementById('pfeSum');
     const total = PF.employees.length;
@@ -1057,6 +1094,10 @@
   function pfeRender() {
     pfeSeg('pfeKind', pfEd.kind);
     pfeSeg('pfeLink', pfEd.link);
+    pfeSeg('pfeStage', pfEd.stage);
+    document.getElementById('pfeStageNote').textContent = pfEd.stage === 'enroll'
+      ? 'The employee uploads it one time, when they enroll their face (first login, or after you reset their face). It is not asked again every day, and Enroll stays locked until it is uploaded.'
+      : 'The employee uploads it again every day, and Punch In stays locked until it is uploaded.';
     pfeSeg('pfeScope', pfEd.all ? 1 : 0);
     document.getElementById('pfeSel').style.display = pfEd.all ? 'none' : '';
     pfeDepsRender();
@@ -1066,14 +1107,17 @@
   window.pfaEditRule = function (id) {
     const r = id ? PF.rules.find(x => Number(x.rule_id) === Number(id)) : null;
     pfEd = r
-      ? { rule_id: Number(r.rule_id), kind: pfKindOf(r.kind), link: Number(r.link_required) ? 1 : 0, all: Number(r.scope_all) === 1, deps: new Set(r.department_ids.map(Number)), emps: new Set(r.employee_ids.map(Number)) }
-      : { rule_id: 0, kind: 'custom', link: 0, all: true, deps: new Set(), emps: new Set() };
+      ? { rule_id: Number(r.rule_id), kind: pfKindOf(r.kind), link: Number(r.link_required) ? 1 : 0, stage: r.stage === 'enroll' ? 'enroll' : 'punch', all: Number(r.scope_all) === 1, deps: new Set(r.department_ids.map(Number)), emps: new Set(r.employee_ids.map(Number)) }
+      : { rule_id: 0, kind: 'custom', link: 0, stage: 'punch', all: true, deps: new Set(), emps: new Set() };
     document.getElementById('pfeHead').textContent = r ? 'Edit requirement' : 'Add requirement';
     document.getElementById('pfeTitle').value = r ? r.title : '';
     document.getElementById('pfeText').value = r ? r.instruction : '';
     document.getElementById('pfeShots').value = r ? r.shots_required : 1;
+    document.getElementById('pfeHintTop').value = r ? (r.hint_top || '') : '';
+    document.getElementById('pfeHintBot').value = r ? (r.hint_bottom || '') : '';
     document.getElementById('pfeUrl').value = r ? (r.target_url || '') : '';
     pfeUrlCheck(false);
+    pfePreview();
     document.getElementById('pfeActive').checked = r ? Number(r.active) === 1 : true;
     pfeActiveTxt();
     document.getElementById('pfeEmpSearch').value = '';
@@ -1088,6 +1132,19 @@
   function closePfEdit() { pfEditModal.classList.remove('open'); }
   document.getElementById('pfeCancel').addEventListener('click', closePfEdit);
   pfEditModal.addEventListener('click', (e) => { if (e.target === pfEditModal) closePfEdit(); });
+
+  // Live preview of the two handwritten lines, the way the employee will see them.
+  function pfePreview() {
+    const t = document.getElementById('pfeHintTop').value.trim(), b = document.getElementById('pfeHintBot').value.trim();
+    const box = document.getElementById('pfePrev');
+    if (!t && !b) { box.innerHTML = '<div class="pv-empty">Nothing written yet — employees will see the standard 1 Open · 2 Like · 3 Comment · 4 Screenshot steps.</div>'; return; }
+    box.innerHTML = (t ? `<div class="pv-t">${attr(t)}</div><svg class="pv-arw" viewBox="0 0 80 50" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8 C 30 -2, 62 8, 66 38"/><path d="M54 30 L66 40 L72 25"/></svg>` : '<div style="height:8px"></div>')
+      + '<div class="pv-lk"><i>IG</i><span>instagram.com/reel/…</span><em>Open ↗</em></div>'
+      + (b ? `<div class="pv-b">${attr(b)}</div>` : '')
+      + '<div class="pv-up">Upload screenshot</div>';
+  }
+  document.getElementById('pfeHintTop').addEventListener('input', pfePreview);
+  document.getElementById('pfeHintBot').addEventListener('input', pfePreview);
 
   function pfeSetKind(k) {
     const prev = PF_DEFAULTS[pfEd.kind], next = PF_DEFAULTS[k];
@@ -1116,6 +1173,7 @@
     return r;
   }
   document.getElementById('pfeUrl').addEventListener('input', () => pfeUrlCheck(true));
+  document.getElementById('pfeStage').addEventListener('click', (e) => { const b = e.target.closest('button[data-s]'); if (!b) return; pfEd.stage = b.dataset.s === 'enroll' ? 'enroll' : 'punch'; pfeRender(); });
   document.getElementById('pfeLink').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.link = Number(b.dataset.v); pfeRender(); });
   document.getElementById('pfeScope').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.all = b.dataset.v === '1'; pfeRender(); });
   document.getElementById('pfeDeps').addEventListener('change', (e) => {
@@ -1149,8 +1207,9 @@
     try {
       const d = await api.post('proofs.rule_save', {
         rule_id: pfEd.rule_id, kind: pfEd.kind, title, target_url: ur.empty ? '' : document.getElementById('pfeUrl').value.trim(), instruction: document.getElementById('pfeText').value.trim(),
+        hint_top: document.getElementById('pfeHintTop').value.trim(), hint_bottom: document.getElementById('pfeHintBot').value.trim(),
         shots_required: Math.max(1, Math.min(10, Number(document.getElementById('pfeShots').value) || 1)), link_required: pfEd.link,
-        scope_all: pfEd.all ? 1 : 0, department_ids: pfEd.all ? [] : [...pfEd.deps], employee_ids: pfEd.all ? [] : [...pfEd.emps],
+        stage: pfEd.stage, scope_all: pfEd.all ? 1 : 0, department_ids: pfEd.all ? [] : [...pfEd.deps], employee_ids: pfEd.all ? [] : [...pfEd.emps],
         active: document.getElementById('pfeActive').checked ? 1 : 0,
       });
       closePfEdit();
@@ -1179,7 +1238,7 @@
   document.getElementById('pfvClose').addEventListener('click', closePfView);
   pfViewModal.addEventListener('click', (e) => { if (e.target === pfViewModal) closePfView(); });
 
-  function pfvItemHtml(it) {
+  function pfvItemHtml(it, date, noAsk) {
     const proofs = it.proofs || [];
     const ok = proofs.filter(p => p.status === 'ok');
     const sent = proofs.filter(p => p.status !== 'ok');
@@ -1194,10 +1253,10 @@
     const meta = (last ? `Uploaded <b>${fmtT(last.uploaded_at)}</b>${ok.length > 1 ? ` · ${ok.length} screenshots` : ''}` : '')
       + (link ? `<br>Link: ${link}` : '') + givenHtml
       + (sent.length ? `<br><span style="color:#c81e1e;">Sent back: ${attr(sent[sent.length - 1].note || 'upload again')}</span>` : '');
-    const ask = ok.length ? `
+    const ask = (ok.length && !noAsk) ? `
       <div class="pfv-ask" id="pfvAsk${it.rule_id}" style="display:none;">
         <input type="text" maxlength="250" placeholder="Reason (optional) — the employee will see this">
-        <button type="button" class="btn" data-send="${it.rule_id}">Send back</button>
+        <button type="button" class="btn" data-send="${it.rule_id}" data-date="${attr(date || currentAttDate)}">Send back</button>
         <button type="button" class="btn secondary" data-cancel="${it.rule_id}">Cancel</button>
       </div>
       <div class="pfv-ask" id="pfvAskBtn${it.rule_id}"><button type="button" class="btn secondary" data-ask="${it.rule_id}" style="color:var(--bad-fg); border-color:#f3c9c9;">Ask to re-upload</button></div>` : '';
@@ -1213,7 +1272,9 @@
       const d = await api.get('proofs.day', { employee_id: pfvEmp, date: currentAttDate });
       const dayLabel = new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
       document.getElementById('pfvSub').textContent = `${dayLabel} · ${d.punch_in ? 'punched in ' + fmtT(d.punch_in) : 'not punched in yet'} · ${d.done_count} of ${d.total} proofs`;
-      document.getElementById('pfvBody').innerHTML = (d.items || []).map(pfvItemHtml).join('') || '<div class="empty-state">No proof requirements apply to this employee.</div>';
+      const enr = (d.enroll && d.enroll.items) || [];
+      document.getElementById('pfvBody').innerHTML = ((d.items || []).map(it => pfvItemHtml(it, currentAttDate)).join('') || (enr.length ? '' : '<div class="empty-state">No proof requirements apply to this employee.</div>'))
+        + (enr.length ? '<div style="font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px;">Asked once, at Enroll</div>' + enr.map(it => pfvItemHtml(it, d.enroll_day, !!Number(d.face_enrolled))).join('') + (Number(d.face_enrolled) ? '<div class="pfv-meta">The face is already enrolled, so these once-only proofs can no longer be sent back.</div>' : '') : '');
     } catch (err) {
       document.getElementById('pfvBody').innerHTML = `<div class="alert error">${attr(err.message)}</div>`;
     }
@@ -1240,7 +1301,7 @@
       const note = document.querySelector('#pfvAsk' + id + ' input').value.trim();
       send.disabled = true;
       try {
-        const d = await api.post('proofs.redo', { employee_id: pfvEmp, rule_id: Number(id), date: currentAttDate, note });
+        const d = await api.post('proofs.redo', { employee_id: pfvEmp, rule_id: Number(id), date: send.dataset.date || currentAttDate, note });
         document.getElementById('pfvAlert').innerHTML = `<div class="alert success" style="margin-bottom:10px;">${attr(d.message)}</div>`;
         await pfvLoad();
         load();
@@ -1629,14 +1690,22 @@
     if (!dateTo.value || dateTo.value < dateFrom.value) dateTo.value = dateFrom.value;
     if (showMode()) { loadRange(); return; }
     const date = document.getElementById('datePick').value || todayStr();
+    const sameDay = date === currentAttDate && allRows.length > 0;   // a refresh of the day on screen (e.g. after changing a status), not a new date
     currentAttDate = date;
     const tbody = document.getElementById('tableBody');
     try {
       const data = await api.get('attendance.list', { date });
+      // Refreshing the same day: keep as many rows open as were showing and stay exactly where the page was scrolled,
+      // so the list does not collapse to the first rows and jump.
+      const keep = sameDay ? attShown : 0, keepY = window.scrollY;
       allRows = data.rows || [];
       lastSig = rowsSig(allRows);
       updateSummary(date);
       renderTable();
+      if (sameDay) {
+        while (attShown < keep && attShown < attFiltered.length) renderAttNextPage();
+        window.scrollTo(0, keepY);
+      }
       liveOk();
       loadRefused(date);
       loadReminders(date);
@@ -1690,7 +1759,7 @@
         await api.post('attendance.set_day', body);
         closeDayPop(); showAlert('Saved.');
         load();
-        if (monthModal.classList.contains('open')) loadMonth();
+        if (monthModal.classList.contains('open')) loadMonth(true);
       } catch (er) { err.textContent = er.message; a.disabled = false; }
     });
   }
@@ -1819,8 +1888,10 @@
         const keep = attShown;
         allRows = rows; lastSig = sig;
         updateSummary(date);
+        const keepY = window.scrollY;
         renderTable();
         while (attShown < keep && attShown < attFiltered.length) renderAttNextPage();
+        window.scrollTo(0, keepY);
         if (fresh.length) showAlert('Punched in: ' + fresh.slice(0, 3).map(r => `${r.full_name} (${fmtT(r.punch_in)})`).join(', ') + (fresh.length > 3 ? ` +${fresh.length - 3} more` : ''));
       }
       liveOk();

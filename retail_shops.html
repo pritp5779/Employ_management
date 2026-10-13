@@ -30,7 +30,35 @@
   .loc-note.ok{background:#ecfdf5; border-color:#a7f3d0; color:#065f46;} .loc-note.bad{background:#fef2f2; border-color:#fecaca; color:#991b1b;}
   .dl{display:grid; grid-template-columns:2fr 60px 50px 80px 70px; gap:8px; font-size:13px; align-items:center; padding:6px 0; border-bottom:1px dashed var(--line);}
   .dl.h{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line);}
-  .ol{display:grid; grid-template-columns:1fr 58px 56px 80px 80px 26px; gap:6px; align-items:center; margin-bottom:6px;}
+  .ol{display:grid; grid-template-columns:1fr 56px 80px 80px 26px; gap:6px; align-items:center; margin-bottom:6px;}
+  .hstat .value{font-size:26px;} .hstat .sub{margin-top:3px; font-weight:600;}
+  .hstat.g .value{color:#16945a;} .hstat.r .value{color:#d9423b;} .hstat.a .value{color:#b45f06;}
+  .hgrid{display:grid; grid-template-columns:1.15fr 1fr; gap:16px; align-items:start; margin-bottom:16px;}
+  .hgrid .card{margin-bottom:0;}
+  .hgrid table{width:100%;} .hgrid th{text-align:right; font-size:10.5px;} .hgrid th:first-child, .hgrid td:first-child{text-align:left;} .hgrid td{text-align:right; white-space:nowrap; vertical-align:middle;}
+  .hgrid td:first-child{white-space:normal; font-weight:600;} .hgrid td .sub{display:block; font-weight:600; margin-top:1px;}
+  .hgrid tfoot td{font-weight:800; background:#f8fafc;}
+  .hgrid .pos{color:#16945a; font-weight:700;} .hgrid .neg{color:#d9423b; font-weight:700;}
+  .hgrid .shopLink{cursor:pointer;} .hgrid .shopLink:hover{color:#1d4ed8;}
+  .hgrid .lk{color:#1d4ed8; font-weight:700; font-size:12px; cursor:pointer; background:none; border:none; padding:0; min-height:0; width:auto; white-space:nowrap;}
+  .obar{height:5px; border-radius:5px; background:#eceef2; margin-top:5px; overflow:hidden; max-width:150px;} .obar i{display:block; height:100%; background:#d9423b;}
+  .dnav{display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .dnav button{width:auto; min-height:0; padding:6px 11px; font-size:13px;}
+  .dnav input[type=date]{padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-size:13px; min-height:0; width:auto;}
+  .hgrid .card table.no-stack#dbTable{min-width:470px;} .hgrid .card table.no-stack#osTable{min-width:420px;}
+  .hgrid tfoot td{padding:12px 10px; font-size:13.5px;} .hgrid tfoot td:first-child{padding-left:20px;} .hgrid tfoot td:last-child{padding-right:20px;}
+  @media (max-width:900px){.hgrid{grid-template-columns:1fr;}}
+  @media (max-width:640px){
+    .hgrid .card-head{flex-direction:column; align-items:stretch;}
+    .hgrid .dnav{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:6px; width:100%;} .hgrid .dnav button{width:auto !important; min-width:0; min-height:0; padding:7px 14px; flex:none;} .hgrid .dnav input[type=date]{min-width:0; width:100%;}
+    #dbTable th:nth-child(2), #dbTable td:nth-child(2){display:none;}
+    .hgrid .card table.no-stack#dbTable{min-width:340px;} .hgrid .card table.no-stack#osTable{min-width:340px;}
+    .hgrid th, .hgrid td{padding-left:7px; padding-right:7px;}
+  }
+  .ol .stkn{grid-column:1/-1; font-size:11.5px; font-weight:700; margin:-2px 0 2px; display:none;}
+  .ol .stkn.ok{color:#16945a; display:block;} .ol .stkn.low{color:#b45f06; display:block;} .ol .stkn.out{color:#d9423b; display:block;}
+  #oStkWarn{display:none; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:600; line-height:1.5; margin:0 0 12px;}
+  #oStkWarn.bad{display:block; background:#fdecea; color:#c81e1e;} #oStkWarn.info{display:block; background:#eaf0ff; color:#1d4ed8;}
   .dr{display:grid; grid-template-columns:1fr 120px 26px; gap:6px; align-items:center; margin-bottom:6px;}
   .dr input{width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-size:13px; min-width:0;}
   .dr .rm{background:none; border:none; color:#c81e1e; font-size:16px; cursor:pointer; padding:0; min-height:0; line-height:1;}
@@ -178,7 +206,7 @@
   @media (max-width:820px){
     .grid2{grid-template-columns:1fr;}
     .tscroll{overflow:visible;} #rsShopsCard table, #rsOrdersCard table{min-width:0;}
-    .ol{grid-template-columns:54px 52px 1fr 64px 22px; row-gap:4px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line);} .ol input{font-size:16px; padding:6px 4px;}
+    .ol{grid-template-columns:60px 1fr 64px 22px; row-gap:4px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed var(--line);} .ol input{font-size:16px; padding:6px 4px;}
     .ol .l-name{grid-column:1 / -1;} .ol.h{display:none;}
     #totShopsCard table, #totTodayCard table{min-width:0;}
     .mchart{gap:6px; padding:14px 10px 0;}
@@ -380,10 +408,34 @@
       <!-- ===== LIST ===== -->
       <div id="viewList">
         <div class="stat-grid">
-          <div class="stat-card"><div class="label">Shops</div><div class="value" id="stShops">—</div></div>
-          <div class="stat-card"><div class="label">Orders this month</div><div class="value" id="stMonth">—</div></div>
-          <div class="stat-card"><div class="label">Display bottles out</div><div class="value" id="stDisplay">—</div></div>
-          <div class="stat-card"><div class="label">Payment pending</div><div class="value" id="stPending" style="color:#c81e1e;">—</div></div>
+          <div class="stat-card hstat"><div class="label" id="hsTotL">Today's total</div><div class="value" id="hsTot">—</div><div class="sub" id="hsTotS">&nbsp;</div></div>
+          <div class="stat-card hstat g"><div class="label" id="hsColL">Collected today</div><div class="value" id="hsCol">—</div><div class="sub" id="hsColS">&nbsp;</div></div>
+          <div class="stat-card hstat r"><div class="label">Total outstanding</div><div class="value" id="hsOut">—</div><div class="sub" id="hsOutS">&nbsp;</div></div>
+          <div class="stat-card hstat a"><div class="label">Overdue</div><div class="value" id="hsOvd">—</div><div class="sub" id="hsOvdS">&nbsp;</div></div>
+        </div>
+        <div class="sub" style="margin:-4px 2px 14px;"><b id="stShops">—</b> shops · <b id="stMonth">—</b> orders this month · <b id="stDisplay">—</b> display bottles out</div>
+        <div class="hgrid">
+          <div class="card" id="dbCard">
+            <div class="card-head"><h2>Day book</h2>
+              <div class="dnav"><button type="button" class="btn secondary" id="dbPrev" title="Previous day">‹</button><input type="date" id="dbDate"><button type="button" class="btn secondary" id="dbNext" title="Next day">›</button><button type="button" class="btn secondary" id="dbToday">Today</button></div>
+            </div>
+            <div class="tscroll"><table id="dbTable" class="no-stack">
+              <thead><tr><th>Shop</th><th>Orders</th><th>Billed</th><th>Collected</th><th>Left</th></tr></thead>
+              <tbody id="dbBody"><tr><td colspan="5"><div class="loading sm">Loading...</div></td></tr></tbody>
+              <tfoot id="dbFoot"></tfoot>
+            </table></div>
+            <div class="sub" style="padding:8px 20px 14px;">Bills made that day, and all money received that day. “Collected” can include payments for older bills.</div>
+          </div>
+          <div class="card" id="osCard">
+            <div class="card-head"><h2>Outstanding by shop</h2>
+              <span class="seg" id="osSeg"><button type="button" data-f="all" class="on">All</button><button type="button" data-f="overdue">Overdue</button></span>
+            </div>
+            <div class="tscroll"><table id="osTable" class="no-stack">
+              <thead><tr><th>Shop</th><th>Outstanding</th><th>Overdue</th><th></th></tr></thead>
+              <tbody id="osBody"><tr><td colspan="4"><div class="loading sm">Loading...</div></td></tr></tbody>
+            </table></div>
+            <div class="sub" style="padding:8px 20px 14px;" id="osFoot">Biggest first. Tap a shop to open its ledger.</div>
+          </div>
         </div>
         <div class="card" id="dueCard" style="display:none;">
           <div class="card-head"><h2>Payment reminders</h2><div id="dueTools" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"></div></div>
@@ -688,14 +740,11 @@
     <div id="orderAlert"></div>
     <input type="hidden" id="oId"><input type="hidden" id="oShop">
     <div class="field-grid">
-      <div class="field"><label>Order type</label><select id="oType"><option value="sale">Sale order</option><option value="return">Return</option></select></div>
+      <div class="field"><label>Order type</label><select id="oType"><option value="sale" selected>Sale order</option></select></div>
       <div class="field"><label>Date</label><input type="date" id="oDate"></div>
-      <div class="field" id="oModeWrap"><label>Payment mode</label><select id="oMode"><option value="cod">COD</option><option value="upi">UPI</option><option value="cheque">Cheque</option></select></div>
-      <div class="field" id="oPaidWrap"><label>Paid Amount (₹)</label><input type="number" id="oPaid" min="0" step="1" placeholder="0"></div>
     </div>
     <div id="oLegacyPay" class="sub" style="display:none; margin:-4px 0 10px;"></div>
-    <div class="ol h"><span>Perfume name</span><span>ML</span><span>Qty</span><span>Price ₹</span><span style="text-align:right;">Total</span><span></span></div>
-    <datalist id="mlList"></datalist>
+    <div class="ol h"><span>Perfume name</span><span>Qty</span><span>Price/pc ₹</span><span style="text-align:right;">Total</span><span></span></div>
     <div id="oLines"></div>
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin:4px 0 8px; font-size:13px; flex-wrap:wrap;"><button type="button" class="link" id="btnAddLine">+ Add line</button><span><span id="oQty">0</span> pcs · <b style="font-size:15px;" id="oTotal">₹0</b></span></div>
     <div id="oDiscRow" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 10px; font-size:13px;">
@@ -714,6 +763,7 @@
       <b>Marked partly delivered earlier</b> — <span id="oPartTxt"></span> not delivered. <button type="button" class="link" id="btnAllDel">Mark all delivered</button>
       <div style="margin-top:6px;"><label style="font-weight:600; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="oBillDel" style="width:14px; height:14px; min-height:0; margin:0;"> Bill only delivered pieces (<span id="oBillAmt">₹0</span>)</label></div>
     </div>
+    <div id="oStkWarn"></div>
     <div class="field"><label>Note</label><input id="oNote" placeholder="e.g. delivered by Gopal, 2 testers"></div>
     <div class="actions"><button type="button" class="btn secondary" id="btnOrderCancel">Cancel</button><button type="button" class="btn" id="btnOrderSave">Save order</button></div>
   </div>
@@ -759,8 +809,7 @@
     <div class="field-grid">
       <div class="field"><label>Amount (₹)</label><input type="number" id="pedAmt" min="0" step="any" inputmode="decimal" style="font-size:18px; font-weight:700;"></div>
       <div class="field"><label>Date</label><input type="date" id="pedDate"></div>
-      <div class="field"><label>Mode</label><select id="pedMode"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank</option><option value="cheque">Cheque</option><option value="credit">Credit note</option></select></div>
-      <div class="field"><label>Reference</label><input id="pedRef" maxlength="120"></div>
+      <div class="field"><label>Mode</label><select id="pedMode"><option value="upi">UPI</option><option value="cash">Cash</option><option value="cheque">Cheque</option></select></div>
     </div>
     <div class="field"><label>Note</label><input id="pedNote" maxlength="255"></div>
     <div class="rg-lines" id="pedWarn" style="display:none;">The amount changed, so this payment is spread again over the oldest pending bills.</div>
@@ -861,7 +910,7 @@
     <div id="setsAlert"></div>
     <div id="setsBody"></div>
     <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><b style="font-size:14px;">Price by size</b><span class="sub">fills the price when you type the ML</span></div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><b style="font-size:14px;">Price by size</b><span class="sub">price of ONE piece — filled for you when a name has its ml, and the line total is counted automatically</span></div>
       <div id="mlPriceBody" style="margin-top:8px;"></div>
       <div style="display:flex; gap:12px; align-items:center; margin-top:4px;"><button type="button" class="link" id="btnMlAdd">+ Add size</button><button type="button" class="btn secondary" id="btnMlSave" style="width:auto; padding:6px 14px; font-size:12.5px; min-height:0;">Save prices</button><span class="sub" id="mlPriceMsg"></span></div>
     </div>
@@ -911,7 +960,6 @@
     <div id="payAlert"></div>
     <input type="hidden" id="pId">
     <div class="sub" id="pLegacy" style="display:none; margin:-4px 0 10px;"></div>
-    <div class="field" id="pModeWrap"><label>Payment mode</label><select id="pMode"><option value="cod">COD</option><option value="upi">UPI</option><option value="cheque">Cheque</option></select></div>
     <div class="field" id="pAmtWrap"><label>Paid so far (₹)</label><div style="display:flex; gap:8px;"><input type="number" id="pAmt" min="0" step="1" inputmode="decimal" placeholder="0" style="flex:1;"><button type="button" class="btn secondary" id="btnPayFull" style="width:auto; padding:8px 12px; min-height:0; font-size:13px;">Full amount</button></div><div class="sub" id="pLeft" style="margin-top:4px;"></div></div>
     <div id="pDuesBox" style="margin:0 0 12px; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#fafbfc;">
       <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:8px;"><label style="font-weight:600; font-size:13px; margin:0;">Payment due dates</label><span class="sub" id="pDuesNote"></span></div>
@@ -1069,7 +1117,7 @@
       const y = listY, go = () => window.scrollTo(0, y);
       go(); requestAnimationFrame(go); listTimers = [120, 350, 800, 1500].map(t => setTimeout(go, t));
     } else window.scrollTo(0, 0);
-    if (v === 'list' && typeof loadDue === 'function') loadDue();
+    if (v === 'list' && typeof loadDue === 'function') { loadDue(); if (typeof loadHome === 'function') loadHome(); }
   }
   document.getElementById('btnMapView').addEventListener('click', () => { if (view === 'map') showView('list'); else { showView('map'); renderAllMap(); } });
   document.getElementById('btnTotals').addEventListener('click', () => { if (view === 'totals') showView('list'); else { showView('totals'); loadTotals(); } });
@@ -1329,6 +1377,68 @@
   ppInit('ppLed', () => loadLedgerAll());
   ppInit('ppVisit', () => vhLoad());
 
+  // ---------- home: day book + outstanding ----------
+  const hm = { date: '', today: '', os: null, osF: 'all', busy: null };
+  const shiftDay = (d, n) => { const t = new Date(d + 'T00:00:00'); t.setDate(t.getDate() + n); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  function loadHome() {
+    if (hm.busy) return hm.busy;
+    hm.busy = Promise.all([loadDayBook(), loadOutstanding()]).finally(() => { hm.busy = null; });
+    return hm.busy;
+  }
+  async function loadDayBook() {
+    try {
+      const d = await withRetry(() => api.get('retail.daybook', hm.date ? { date: hm.date } : {}));
+      hm.today = d.today; hm.date = d.date;
+      document.getElementById('dbDate').value = d.date; document.getElementById('dbDate').max = d.today;
+      document.getElementById('dbNext').disabled = d.date >= d.today;
+      const isT = d.date === d.today, T = d.totals, lbl = isT ? 'today' : fmtDS(d.date);
+      document.getElementById('hsTotL').textContent = isT ? "Today's total" : 'Total · ' + lbl;
+      document.getElementById('hsColL').textContent = isT ? 'Collected today' : 'Collected · ' + lbl;
+      document.getElementById('hsTot').textContent = inr(T.billed);
+      document.getElementById('hsTotS').textContent = `${T.orders} order${T.orders === 1 ? '' : 's'} · ${T.shops} shop${T.shops === 1 ? '' : 's'}`;
+      document.getElementById('hsCol').textContent = inr(T.collected);
+      document.getElementById('hsColS').textContent = [T.cash ? 'Cash ' + inr(T.cash) : '', T.upi ? 'UPI ' + inr(T.upi) : '', T.other ? 'Other ' + inr(T.other) : ''].filter(Boolean).join(' · ') || 'Nothing received';
+      const rows = d.rows || [];
+      document.getElementById('dbBody').innerHTML = rows.length ? rows.map(r => `<tr>
+        <td><span class="shopLink" data-led="${r.shop_id}">${esc(r.shop_name)}</span><span class="sub">${r.orders ? esc(r.refs.join(' · ')) : 'Payment only'}</span></td>
+        <td>${r.orders || '—'}</td><td>${r.billed ? inr(r.billed) : '—'}</td>
+        <td>${r.collected ? `<span class="pos">${inr(r.collected)}</span>${r.older ? `<span class="sub">${inr(r.older)} on older bills</span>` : ''}` : '—'}</td>
+        <td>${r.left ? `<span class="neg">${inr(r.left)}</span>` : '—'}</td></tr>`).join('') : `<tr><td colspan="5" class="sub" style="text-align:center; padding:22px;">No bills or payments on this day.</td></tr>`;
+      document.getElementById('dbFoot').innerHTML = rows.length ? `<tr><td>Day total</td><td>${T.orders}</td><td>${inr(T.billed)}</td><td class="pos">${inr(T.collected)}</td><td class="neg">${T.left ? inr(T.left) : '—'}</td></tr>` : '';
+    } catch (err) { document.getElementById('dbBody').innerHTML = `<tr><td colspan="5" style="color:#c81e1e; padding:16px;">${esc(err.message)}</td></tr>`; }
+  }
+  async function loadOutstanding() {
+    try { hm.os = await withRetry(() => api.get('retail.outstanding')); renderOutstanding(); }
+    catch (err) { document.getElementById('osBody').innerHTML = `<tr><td colspan="4" style="color:#c81e1e; padding:16px;">${esc(err.message)}</td></tr>`; }
+  }
+  function renderOutstanding() {
+    const d = hm.os; if (!d) return; const T = d.totals || {};
+    document.getElementById('hsOut').textContent = inr(T.outstanding);
+    document.getElementById('hsOutS').textContent = `${T.outstanding_shops || 0} shop${T.outstanding_shops === 1 ? '' : 's'} owe you`;
+    document.getElementById('hsOvd').textContent = inr(T.overdue);
+    document.getElementById('hsOvdS').textContent = `${T.overdue_shops || 0} shop${T.overdue_shops === 1 ? '' : 's'} past due date`;
+    let list = (d.shops || []).filter(x => x.balance > 0.004);
+    if (hm.osF === 'overdue') list = list.filter(x => x.overdue > 0.004);
+    const max = Math.max(1, ...list.map(x => x.balance)), show = list.slice(0, 8);
+    document.getElementById('osBody').innerHTML = show.length ? show.map(x => {
+      const chip = x.overdue > 0.004 ? `<span class="chip c-red">${x.overdue_days} d</span>` : (x.next_due !== null && x.next_due !== undefined ? `<span class="chip ${x.next_due <= 3 ? 'c-amber' : 'c-blue'}">${x.next_due === 0 ? 'due today' : 'due in ' + x.next_due + ' d'}</span>` : '<span class="sub">—</span>');
+      return `<tr><td><span class="shopLink" data-led="${x.shop_id}">${esc(x.shop_name)}</span><span class="sub">${x.last_payment ? 'Last paid ' + fmtDS(x.last_payment) : 'Never paid'}</span><div class="obar"><i style="width:${Math.round(x.balance / max * 100)}%"></i></div></td><td class="neg">${inr(x.balance)}</td><td>${chip}</td><td><button type="button" class="lk" data-led="${x.shop_id}">Ledger ›</button></td></tr>`;
+    }).join('') : `<tr><td colspan="4" class="sub" style="text-align:center; padding:22px;">${hm.osF === 'overdue' ? 'Nothing is overdue.' : 'No shop owes you anything.'}</td></tr>`;
+    document.getElementById('osFoot').innerHTML = list.length > show.length ? `Showing the biggest ${show.length} of ${list.length}. <button type="button" class="link" id="osAll">See all in Ledger ›</button>` : 'Biggest first. Tap a shop to open its ledger.';
+  }
+  document.getElementById('osCard').addEventListener('click', (e) => {
+    if (e.target.id === 'osAll') { openLedgerAll(); return; }
+    const b = e.target.closest('#osSeg button'); if (b) { hm.osF = b.dataset.f; document.querySelectorAll('#osSeg button').forEach(x => x.classList.toggle('on', x === b)); renderOutstanding(); }
+  });
+  document.getElementById('viewList').addEventListener('click', (e) => {
+    const l = e.target.closest('#dbCard [data-led], #osCard [data-led]'); if (l) openLedger(Number(l.dataset.led));
+  });
+  const setDay = (d) => { hm.date = d; loadDayBook(); };
+  document.getElementById('dbPrev').addEventListener('click', () => setDay(shiftDay(hm.date || todayStr(), -1)));
+  document.getElementById('dbNext').addEventListener('click', () => { const n = shiftDay(hm.date || todayStr(), 1); if (n <= (hm.today || todayStr())) setDay(n); });
+  document.getElementById('dbToday').addEventListener('click', () => setDay(''));
+  document.getElementById('dbDate').addEventListener('change', (e) => { if (e.target.value) setDay(e.target.value); });
+
   // ---------- list ----------
   async function loadShops(listOnly) {
     ppCache.at = 0;
@@ -1339,13 +1449,12 @@
       document.getElementById('stShops').textContent = t.shops ?? shops.length;
       document.getElementById('stMonth').textContent = t.month_orders ?? 0;
       document.getElementById('stDisplay').textContent = t.display_qty ?? 0;
-      document.getElementById('stPending').textContent = inr(t.pending || 0);
       const sel = document.getElementById('areaSel'); const cur = sel.value;
       sel.innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
       sel.value = cur;
       document.getElementById('areaList').innerHTML = areas.map(a => `<option value="${esc(a)}">`).join('');
       renderShops();
-      if (!listOnly && view === 'list') loadDue();
+      if (!listOnly && view === 'list') { loadDue(); loadHome(); }
     } catch (err) {
       document.getElementById('shopsBody').innerHTML = `<tr><td colspan="8"><div class="alert error">${esc(err.message)}</div></td></tr>`;
     }
@@ -1497,7 +1606,13 @@
   let curDisplay = [];
   function renderOrders(orders) {
     const tb = document.getElementById('ordersBody');
-    if (!orders.length) { tb.innerHTML = '<tr><td colspan="10"><div class="empty-state">No orders yet.</div></td></tr>'; return; }
+    if (!orders.length) {
+      const np = currentShop && currentShop.perfumes ? currentShop.perfumes.length : 0;
+      tb.innerHTML = `<tr><td colspan="10"><div class="empty-state">No orders yet.${np ? `<div style="margin-top:8px;"><button type="button" class="btn" id="btnFirstOrder" style="width:auto;">Create the first order from this shop's pack (${np} perfume${np === 1 ? '' : 's'})</button></div>` : ''}</div></td></tr>`;
+      tb.dataset.orders = '[]';
+      const fb = document.getElementById('btnFirstOrder'); if (fb) fb.addEventListener('click', () => openOrderModal(currentShop.shop_id));
+      return;
+    }
     tb.innerHTML = orders.map(o => {
       const billed = o.billed_total !== undefined ? o.billed_total : o.total;
       const due = o.payment === 'pending' ? Math.max(0, billed - o.paid_amount) : 0;
@@ -1618,10 +1733,10 @@
   }
   // ---------- perfume sets (shop form + manager) ----------
   let setsList = [], shopPerfs = [], shopSetId = null, shopPerfsReady = true, shopBlock = null;
-  const shopPerfCache = {};   // shop_id -> its perfume names (for the order form search)
+  const shopPerfCache = {}, shopSetCache = {};   // shop_id -> its perfume names (for the order form search) / the set (pack) it was added with
   async function loadSets(force) {
     if (setsList.length && !force) return setsList;
-    try { setsList = (await api.get('retail.sets')).sets || []; } catch (err) { setsList = []; }
+    try { setsList = fixSets((await api.get('retail.sets')).sets); } catch (err) { setsList = []; }
     return setsList;
   }
   function fillSetSelect() {
@@ -1642,7 +1757,7 @@
   });
   document.getElementById('fPerfs').addEventListener('click', (e) => { const b = e.target.closest('button[data-prm]'); if (!b) return; shopPerfs.splice(Number(b.dataset.prm), 1); renderShopPerfs(false); });
   document.getElementById('btnPerfClear').addEventListener('click', () => { shopPerfs = []; renderShopPerfs(false); });
-  function addShopPerf(n) { n = String(n || '').trim(); if (!n || shopPerfs.some(x => x.toLowerCase() === n.toLowerCase())) return; shopPerfs.push(n); shopPerfsReady = true; renderShopPerfs(false); }
+  function addShopPerf(n) { const add = flatPerf([n]).filter(x => !shopPerfs.some(y => y.toLowerCase() === x.toLowerCase())); if (!add.length) return; shopPerfs.push(...add); shopPerfsReady = true; renderShopPerfs(false); }
   document.getElementById('fPerfAdd').addEventListener('pfadd', (e) => addShopPerf(e.detail));
   document.getElementById('fPerfAdd').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (pfIdx < 0) { addShopPerf(e.target.value); e.target.value = ''; pfHide(); } } });
   function renderBlock(d) {
@@ -1678,7 +1793,7 @@
     loadSets().then(() => { fillSetSelect(); });
     loadPerfumes();
     if (s) {
-      api.get('retail.shop_perfumes', { id: s.shop_id }).then(d => { shopPerfs = d.perfumes || []; shopSetId = d.perfume_set_id || null; shopPerfsReady = true; fillSetSelect(); renderShopPerfs(false); }).catch(() => {});
+      api.get('retail.shop_perfumes', { id: s.shop_id }).then(d => { shopPerfs = flatPerf(d.perfumes); shopSetId = d.perfume_set_id || null; shopPerfsReady = true; fillSetSelect(); renderShopPerfs(false); }).catch(() => {});
     } else {
       api.get('retail.shop_block').then(renderBlock).catch(() => {});
     }
@@ -1718,6 +1833,7 @@
     const btn = document.getElementById('btnShopSave'); btn.disabled = true;
     try {
       if (shopBlock && shopBlock.can_override && !((document.getElementById('fOverride') || {}).value || '').trim()) throw new Error('Type the reason for adding a shop while payments are overdue.');
+      const wasNew = !document.getElementById('fShopId').value, hadPack = shopPerfsReady && shopPerfs.length > 0;
       const d = await api.post('retail.shop_save', {
         shop_id: document.getElementById('fShopId').value || 0,
         shop_name: document.getElementById('fName').value.trim(), owner_name: document.getElementById('fOwner').value.trim(), mobile: document.getElementById('fMobile').value.trim(),
@@ -1728,10 +1844,11 @@
         ...(shopPerfsReady ? { perfumes: shopPerfs, perfume_set_id: shopSetId || 0 } : {}),
         ...(shopBlock && shopBlock.can_override ? { override_reason: (document.getElementById('fOverride') || {}).value || '' } : {}),
       });
-      delete shopPerfCache[d.shop_id];
+      delete shopPerfCache[d.shop_id]; delete shopSetCache[d.shop_id];
       closeShopModal(); showAlert(d.message);
       await loadShops();
-      if (view === 'shop' && currentShop && currentShop.shop_id == d.shop_id) openShop(d.shop_id);
+      if (wasNew && hadPack) { await openShop(d.shop_id); openOrderModal(d.shop_id); }   // a new shop with a pack: straight to its first order
+      else if (view === 'shop' && currentShop && currentShop.shop_id == d.shop_id) openShop(d.shop_id);
     } catch (err) {
       if (err.data && err.data.blocked) { renderBlock(err.data); return; }
       const box = document.getElementById('shopAlert'), keep = box.querySelector('.blockbox');
@@ -1743,11 +1860,18 @@
 
   // ---------- perfume name search ----------
   // All perfume names come from the shop's own store through api.php (retail.perfumes); typing searches them, any other name can still be typed.
-  let perfumes = null, perfumesLoading = null, pfInput = null, pfIdx = -1, pfItems = [], orderShopPerfs = new Set();
+  let perfumes = null, perfumesLoading = null, pfInput = null, pfIdx = -1, pfItems = [], orderShopPerfs = new Set(), orderShopList = [];
   const pfBox = document.createElement('div'); pfBox.id = 'pfSug'; document.body.appendChild(pfBox);
+  // a perfume is written with its bottle size in one box: "Creed Aventus 100ml" <-> name "Creed Aventus" + size "100"
+  const splitMl = (v) => { const t = String(v || '').trim(), m = t.match(/^(.*?)[\s(\-–]*(\d+(?:\.\d+)?)\s*ml\s*\)?\s*$/i); return m && m[1].trim() ? { name: m[1].trim(), ml: String(parseFloat(m[2])) } : { name: t, ml: '' }; };
+  const joinMl = (name, ml) => { const m = String(ml || '').trim().match(/^(\d+(?:\.\d+)?)\s*(?:ml)?$/i); return String(name || '').trim() + (m ? ' ' + parseFloat(m[1]) + 'ml' : ''); };
+  // a set / shop list that holds several perfumes in one entry ("Most wanted, Flora, Sauvage") is read as one perfume per name
+  const flatPerf = (list) => { const out = [], seen = new Set(); (list || []).forEach(n => String(n || '').split(/[,;\n\r]+/).map(x => x.trim()).filter(Boolean).forEach(x => { const k = x.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(x); } })); return out; };
+  const fixSets = (sets) => (sets || []).map(x => Object.assign({}, x, { perfumes: flatPerf(x.perfumes) }));
+  let perfumesBase = null;   // the same names without a size, for the places that have no size (shop sets, display)
   function loadPerfumes() {
     if (perfumes || perfumesLoading) return perfumesLoading;
-    perfumesLoading = api.get('retail.perfumes').then(d => { perfumes = (d.perfumes || []).map(n => ({ n, l: n.toLowerCase() })); }).catch(() => { perfumes = null; }).finally(() => { perfumesLoading = null; if (pfInput) pfShow(); });
+    perfumesLoading = api.get('retail.perfumes').then(d => { perfumes = (d.perfumes || []).map(n => { const b = splitMl(n).name; return { n, l: n.toLowerCase(), bl: b.toLowerCase() }; }); const seen = new Set(); perfumesBase = []; perfumes.forEach(p => { if (!seen.has(p.bl)) { seen.add(p.bl); perfumesBase.push({ n: splitMl(p.n).name, l: p.bl, bl: p.bl }); } }); }).catch(() => { perfumes = null; }).finally(() => { perfumesLoading = null; if (pfInput) pfShow(); });
     return perfumesLoading;
   }
   function pfHide() { pfBox.style.display = 'none'; pfIdx = -1; }
@@ -1763,12 +1887,21 @@
     const q = pfInput.value.trim().toLowerCase();
     if (!perfumes) { pfBox.innerHTML = perfumesLoading ? '<div class="none">Loading perfume names…</div>' : ''; pfItems = []; pfBox.style.display = pfBox.innerHTML ? 'block' : 'none'; pfPlace(); return; }
     const toks = q.split(/\s+/).filter(Boolean);
-    let hit = perfumes.filter(p => toks.every(t => p.l.includes(t)));
-    if (q) hit.sort((a, b) => (b.l.startsWith(q) - a.l.startsWith(q)) || (a.l.indexOf(toks[0]) - b.l.indexOf(toks[0])) || a.n.localeCompare(b.n));
-    // inside the order form, this shop's own perfumes (from its set) come first
-    const mine = pfInput.closest('#orderModal') ? orderShopPerfs : null;
-    if (mine && mine.size) hit.sort((a, b) => (mine.has(b.l) - mine.has(a.l)));
-    pfItems = hit.slice(0, 40).map(p => p.n); pfIdx = -1;
+    const sized = !!pfInput.closest('#orderModal');   // the order form searches names with their ml; sets and display search the plain names
+    const src = sized ? perfumes : perfumesBase;
+    let hit = src.filter(p => toks.every(t => p.l.includes(t)));
+    hit.sort((a, b) => (q ? (b.l.startsWith(q) - a.l.startsWith(q)) || (a.l.indexOf(toks[0]) - b.l.indexOf(toks[0])) : 0) || a.n.localeCompare(b.n, undefined, { numeric: true }));
+    // inside the order form, this shop's own pack (its perfume set) comes first, in the pack's order — even a pack perfume the store list does not have
+    const mine = sized ? orderShopPerfs : null;
+    let nPack = 0;
+    if (mine && mine.size) {
+      const have = new Set(src.map(p => p.bl)), order = orderShopList.map(n => splitMl(n).name.toLowerCase());
+      orderShopList.forEach(n => { const l = n.toLowerCase(), bl = splitMl(n).name.toLowerCase(); if (!have.has(bl) && toks.every(t => l.includes(t))) { have.add(bl); hit.push({ n, l, bl }); } });
+      const rank = (p) => mine.has(p.bl) ? order.indexOf(p.bl) : 1e9;
+      hit.sort((a, b) => rank(a) - rank(b));
+      nPack = hit.filter(p => mine.has(p.bl)).length;
+    }
+    pfItems = hit.slice(0, Math.max(40, nPack + 20)).map(p => p.n); pfIdx = -1;
     const hl = (n) => {   // bold the typed words (marked on the plain text first, so no tag is ever matched)
       const low = n.toLowerCase(), mark = new Array(n.length).fill(false);
       toks.forEach(t => { let i = low.indexOf(t); while (i >= 0) { for (let k = i; k < i + t.length; k++) mark[k] = true; i = low.indexOf(t, i + t.length); } });
@@ -1776,7 +1909,8 @@
       for (let k = 0; k < n.length; k++) { if (mark[k] !== open) { o += open ? '</b>' : '<b>'; open = mark[k]; } o += esc(n[k]); }
       return o + (open ? '</b>' : '');
     };
-    pfBox.innerHTML = pfItems.length ? pfItems.map((n, i) => `<div data-i="${i}">${mine && mine.has(n.toLowerCase()) ? '<span class="st">★</span>' : ''}${hl(n)}</div>`).join('') : (q ? '<div class="none">No match — keep typing to use this name as it is.</div>' : '');
+    const head = (t) => `<div class="none" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;">${t}</div>`;
+    pfBox.innerHTML = pfItems.length ? pfItems.map((n, i) => (nPack && i === 0 ? head("★ This shop's pack") : '') + (nPack && i === nPack && i < pfItems.length ? head('All perfumes') : '') + `<div data-i="${i}">${mine && mine.has(splitMl(n).name.toLowerCase()) ? '<span class="st">★</span>' : ''}${hl(n)}</div>`).join('') : (q ? '<div class="none">No match — keep typing to use this name as it is.</div>' : '');
     pfBox.style.display = pfBox.innerHTML ? 'block' : 'none'; pfPlace();
   }
   function pfPick(i) {
@@ -1859,7 +1993,7 @@
     else if (b.dataset.sdel) {
       const x = setsList.find(v => v.set_id == b.dataset.sdel); if (!x) return;
       if (!confirm(`Delete the set “${x.name}”?\n\nShops that used it keep their own perfume list.`)) return;
-      try { const d = await api.post('retail.set_delete', { set_id: x.set_id }); setsList = d.sets || []; renderSets(); }
+      try { const d = await api.post('retail.set_delete', { set_id: x.set_id }); setsList = fixSets(d.sets); renderSets(); }
       catch (err) { document.getElementById('setsAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     }
   });
@@ -1879,7 +2013,7 @@
     const btn = document.getElementById('btnSetSave'); btn.disabled = true;
     try {
       const d = await api.post('retail.set_save', { set_id: Number(document.getElementById('setId').value) || 0, name: document.getElementById('setName').value.trim(), perfumes: setSel });
-      setsList = d.sets || []; closeSetEdit(); renderSets(); fillSetSelect();
+      setsList = fixSets(d.sets); closeSetEdit(); renderSets(); fillSetSelect();
     } catch (err) { document.getElementById('setEditAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
   });
@@ -1888,15 +2022,60 @@
   const orderModal = document.getElementById('orderModal');
   function lineHtml(it) {
     const dl = it && it.delivered !== undefined && it.delivered !== null && it.delivered < it.qty ? ` data-del="${it.delivered}"` : '';
-    return `<div class="ol"${dl}><input class="l-name" placeholder="Search perfume name…" value="${esc(it ? it.product_name : '')}" autocomplete="off" autocapitalize="off" spellcheck="false"><input class="l-ml" list="mlList" placeholder="ML" inputmode="decimal" value="${esc(it ? String(it.ml || '').replace(/\s*ml$/i, '') : '')}" autocomplete="off"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price ₹" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button></div>`;
+    return `<div class="ol"${dl}><input class="l-name" placeholder="Search perfume name…" value="${esc(it ? joinMl(it.product_name, it.ml) : '')}" autocomplete="off" autocapitalize="off" spellcheck="false"><input class="l-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Qty" value="${it ? it.qty : ''}"><input class="l-price" type="number" min="0" step="1" inputmode="numeric" placeholder="Price/pc" value="${it ? it.price : ''}"><span class="tot">${it ? inr(it.qty * it.price) : ''}</span><button type="button" class="rm" title="Remove line">×</button><div class="stkn"></div></div>`;
   }
   function addLine(it) { document.getElementById('oLines').insertAdjacentHTML('beforeend', lineHtml(it)); recalc(); }
-  let oDiscT = 'pct', oKeepPay = '';   // oKeepPay: "Pay on sale" / "Free" kept from an older order
+  let oDiscT = 'pct', oKeepPay = '', oKeepMode = '', oKeepPaid = 0;   // oKeepPay: "Pay on sale" / "Free" kept from an older order
   function setDiscType(t) { oDiscT = t === 'amt' ? 'amt' : 'pct'; document.querySelectorAll('#oDiscType button').forEach(b => b.classList.toggle('on', b.dataset.dt === oDiscT)); }
   function dueRowHtml(d) {
     return `<div class="dr"><input type="date" class="d-date" value="${esc(d && d.date || '')}"><input type="number" class="d-amt" min="0" step="1" inputmode="numeric" placeholder="₹ amount" value="${d && d.amount ? d.amount : ''}"><button type="button" class="rm" title="Remove">×</button></div>`;
   }
   function addDueRow(d) { document.getElementById('oDues').insertAdjacentHTML('beforeend', dueRowHtml(d)); recalc(); }
+  // ---- Retail Inventory: live stock beside each line ----
+  let STK = null, STK_SINCE = '', STK_OWN = {}, STK_OWN_ON = false, STK_ADMIN = false;   // STK: stock rows by key; STK_OWN: pieces this order already took when it was saved
+  const stkKey = (name, ml) => String(name || '').trim().replace(/\s+/g, ' ').toLowerCase() + '|' + mlKey(ml);
+  async function loadStock(o) {
+    STK = null; STK_OWN = {}; STK_OWN_ON = false;
+    try {
+      const d = await api.get('retail.stock');
+      STK_SINCE = String(d.since || ''); STK_ADMIN = !!d.can_override;
+      const m = {}; (d.items || []).forEach(i => { m[i.key] = i; });
+      if (o && ['sale', 'display', 'replacement'].includes(o.order_type) && !(o.created_at && STK_SINCE && String(o.created_at).replace('T', ' ') < STK_SINCE)) {
+        STK_OWN_ON = true; (o.items || []).forEach(i => { const k = stkKey(i.product_name, i.ml); STK_OWN[k] = (STK_OWN[k] || 0) + (Number(i.qty) || 0); });
+      }
+      STK = m;
+    } catch (err) { STK = null; }
+    recalc();
+  }
+  function stockHints() {
+    const warn = document.getElementById('oStkWarn');
+    const rows = [...document.querySelectorAll('#oLines .ol')];
+    if (!STK) { rows.forEach(r => { const n = r.querySelector('.stkn'); if (n) { n.className = 'stkn'; n.textContent = ''; } }); warn.className = ''; warn.textContent = ''; return; }
+    const type = document.getElementById('oType').value, isRet = type === 'return';
+    const editing = !!document.getElementById('oId').value;
+    const need = {};
+    rows.forEach(r => { const sp = splitMl(r.querySelector('.l-name').value), q = Number(r.querySelector('.l-qty').value) || 0; if (sp.name && q > 0) { const k = stkKey(sp.name, sp.ml); need[k] = (need[k] || 0) + q; } });
+    const short = [], seen = {}; let taken = 0;
+    rows.forEach(r => {
+      const el = r.querySelector('.stkn'), sp = splitMl(r.querySelector('.l-name').value), q = Number(r.querySelector('.l-qty').value) || 0;
+      const it = sp.name ? STK[stkKey(sp.name, sp.ml)] : null;
+      if (!it) { el.className = 'stkn'; el.textContent = ''; return; }
+      const k = it.key, have = it.on_hand + (editing && STK_OWN_ON && !isRet ? (STK_OWN[k] || 0) : 0);
+      const tot = need[k] || 0;
+      if (isRet) { el.className = 'stkn ok'; el.textContent = `Stock ${it.on_hand} → ${it.on_hand + (q > 0 ? q : 0)} when this return is saved`; return; }
+      const left = have - tot;
+      if (left < 0) { el.className = 'stkn out'; el.textContent = have <= 0 ? `Out of stock · short by ${-left}` : `Only ${have} in stock · short by ${-left}`; if (!seen[k]) { seen[k] = 1; short.push(`${it.product_name} ${it.ml_text}: need ${tot}, have ${Math.max(0, have)}`); } }
+      else if (left === 0) { el.className = 'stkn out'; el.textContent = `Stock ${have} → 0 · will be out of stock`; }
+      else if (left <= it.limit) { el.className = 'stkn low'; el.textContent = `Stock ${have} → ${left} · low after this order`; }
+      else { el.className = 'stkn ok'; el.textContent = `Stock ${have} → ${left} after this order`; }
+    });
+    Object.keys(need).forEach(k => { if (STK[k] && !isRet) taken += need[k]; });
+    if (short.length) {
+      const adm = STK_ADMIN;
+      warn.className = 'bad'; warn.innerHTML = '⚠ Not enough stock — ' + short.map(esc).join(' · ') + '. ' + (adm ? 'Reduce the qty, or save anyway (stock will show minus until you add stock).' : 'Reduce the qty, or ask Admin.');
+    } else if (taken > 0) { warn.className = 'info'; warn.textContent = `ℹ This order takes ${taken} pcs out of Retail Inventory when saved. Editing it adjusts stock; cancelling or deleting puts it back.`; }
+    else { warn.className = ''; warn.textContent = ''; }
+  }
   function recalc() {
     let qty = 0, total = 0, del = 0, delTotal = 0;
     document.querySelectorAll('#oLines .ol').forEach(r => {
@@ -1915,18 +2094,17 @@
     const billed = Math.round((base - disc) * 100) / 100;
     document.getElementById('oTotal').textContent = inr(billed);
     document.getElementById('oDiscNote').textContent = disc > 0 ? `− ${inr(disc)} off ${inr(base)}` : '';
+    stockHints();
     document.getElementById('oBillAmt').textContent = inr(delTotal);
     document.getElementById('oPartBox').style.display = pend ? '' : 'none';
     document.getElementById('oPartTxt').textContent = pend + ' pc' + (pend === 1 ? '' : 's');
     // payment part: not for a return (it is a credit) nor for an older "pay on sale" / "free" order
     const money = !isRet && !oKeepPay;
     document.getElementById('oDiscRow').style.display = isRet ? 'none' : '';
-    document.getElementById('oModeWrap').style.display = money ? '' : 'none';
-    document.getElementById('oPaidWrap').style.display = money ? '' : 'none';
     const lg = document.getElementById('oLegacyPay');
     lg.style.display = !isRet && oKeepPay ? '' : 'none';
     lg.textContent = oKeepPay ? 'Payment: ' + (PAY_LABEL[oKeepPay] || oKeepPay) + ' (set earlier, kept as it is).' : '';
-    const paid = Math.max(0, Number(document.getElementById('oPaid').value) || 0);
+    const paid = money ? oKeepPaid : 0;   // payments are recorded with the Payment button, not in this form
     const left = Math.round((billed - paid) * 100) / 100;
     const showDues = money && left > 0.004 && billed > 0;
     document.getElementById('oDuesBox').style.display = showDues ? '' : 'none';
@@ -1949,16 +2127,49 @@
   }
   function setMlPrices(list) {
     mlPricesList = list; mlPrices = {}; list.forEach(x => { mlPrices[mlKey(x.ml)] = x.price; });
-    document.getElementById('mlList').innerHTML = list.map(x => `<option value="${esc(x.ml)}" label="₹${x.price}"></option>`).join('');
   }
-  function autoPrice(mlEl, priceEl) {
-    const k = mlKey(mlEl.value), pr = mlPrices[k];
+  function autoPrice(ml, priceEl) {
+    const k = mlKey(ml), pr = mlPrices[k];
     if (pr === undefined || (priceEl.value !== '' && priceEl.dataset.auto !== '1')) return false;
     priceEl.value = pr; priceEl.dataset.auto = '1'; return true;
   }
+  // Several perfumes typed or pasted in ONE line ("Most wanted, Flora, Sauvage 20ml") are counted one piece each: one line per perfume,
+  // the size written at the end applies to all of them, and the price per piece comes from the size list.
+  const MULTI_SEP = /[,;\n\r]+/;
+  function multiParts(name, ml) {
+    const parts = String(name || '').split(MULTI_SEP).map(x => x.trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+    let tail = splitMl(parts[parts.length - 1]).ml || ml || '';
+    return parts.map(p => { const sp = splitMl(p); return { product_name: sp.ml ? sp.name : p, ml: sp.ml || tail }; });
+  }
+  function expandItems(items) {
+    const out = [];
+    (items || []).forEach(it => {
+      const parts = multiParts(it.product_name, it.ml);
+      if (!parts) { out.push(it); return; }
+      const q = Number(it.qty) || 1;
+      parts.forEach(pt => { const pr = mlPrices[mlKey(pt.ml)]; out.push({ product_name: pt.product_name, ml: pt.ml, qty: q, delivered: it.delivered === undefined || it.delivered === null ? undefined : Math.min(Number(it.delivered) || 0, q), price: pr === undefined ? (Number(it.price) || '') : pr }); });
+    });
+    return out;
+  }
+  function splitRow(row) {
+    const nameEl = row.querySelector('.l-name'), parts = multiParts(nameEl.value, '');
+    if (!parts) return false;
+    const qEl = row.querySelector('.l-qty'), pEl = row.querySelector('.l-price');
+    const q = Number(qEl.value) || 1, manual = pEl.value !== '' && pEl.dataset.auto !== '1' ? Number(pEl.value) : null;
+    const rows = parts.map(pt => { const pr = manual !== null ? manual : mlPrices[mlKey(pt.ml)]; return { product_name: pt.product_name, ml: pt.ml, qty: q, price: pr === undefined ? '' : pr }; });
+    const tmp = document.createElement('div'); tmp.innerHTML = rows.map(lineHtml).join('');
+    const kids = [...tmp.children];
+    kids.forEach(k => { const pe = k.querySelector('.l-price'); if (pe && manual === null && pe.value !== '') pe.dataset.auto = '1'; });
+    row.replaceWith(...kids);
+    document.getElementById('orderAlert').innerHTML = `<div class="alert success">${parts.length} perfumes found in one line — made ${parts.length} separate lines, ${q} pc each. Check the quantity and save.</div>`;
+    recalc(); return true;
+  }
+  document.getElementById('oLines').addEventListener('paste', (e) => { const el = e.target; if (el && el.classList && el.classList.contains('l-name')) setTimeout(() => { const r = el.closest('.ol'); if (r && r.isConnected) splitRow(r); }, 0); });
+  document.getElementById('oLines').addEventListener('change', (e) => { const el = e.target; if (el && el.classList && el.classList.contains('l-name')) { const r = el.closest('.ol'); if (r) splitRow(r); } });
   document.getElementById('oLines').addEventListener('input', (e) => {
     const row = e.target.closest('.ol');
-    if (row && e.target.classList.contains('l-ml')) autoPrice(e.target, row.querySelector('.l-price'));
+    if (row && e.target.classList.contains('l-name')) autoPrice(splitMl(e.target.value).ml, row.querySelector('.l-price'));
     else if (row && e.target.classList.contains('l-price')) delete e.target.dataset.auto;
     recalc();
   });
@@ -1966,35 +2177,53 @@
   document.getElementById('btnAddLine').addEventListener('click', () => { addLine(); const rows = document.querySelectorAll('#oLines .l-name'); rows[rows.length - 1].focus(); });
   document.getElementById('btnAllDel').addEventListener('click', () => { document.querySelectorAll('#oLines .ol').forEach(r => r.removeAttribute('data-del')); document.getElementById('oBillDel').checked = false; recalc(); });
   document.getElementById('oType').addEventListener('change', recalc);
-  document.getElementById('oPaid').addEventListener('input', recalc);
   document.getElementById('oDues').addEventListener('input', recalc);
   document.getElementById('oDues').addEventListener('click', (e) => { if (e.target.classList.contains('rm')) { e.target.closest('.dr').remove(); recalc(); } });
   document.getElementById('btnAddDue').addEventListener('click', () => { addDueRow(); const r = document.querySelectorAll('#oDues .d-date'); r[r.length - 1].focus(); });
   document.getElementById('oDiscVal').addEventListener('input', recalc);
   document.getElementById('oDiscType').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; setDiscType(b.dataset.dt); recalc(); });
+  // how many orders a shop has (the open shop page knows exactly; the shops list carries the count too)
+  function shopOrderCount(shopId) {
+    if (currentShop && currentShop.shop_id == shopId && document.getElementById('ordersBody').dataset.orders !== undefined) { try { return JSON.parse(document.getElementById('ordersBody').dataset.orders || '[]').length; } catch (err) {} }
+    const sh = shops.find(x => x.shop_id == shopId);
+    return sh && sh.stats ? Number(sh.stats.orders_count) || 0 : -1;
+  }
+  // a shop's first order: the lines come from the pack (perfume set) it was added with — one piece each, size from the pack name ("50 ml set"), price from the size list
+  async function fillFromPack(shopId) {
+    const names = shopPerfCache[shopId] || []; if (!names.length) return;
+    await Promise.all([loadMlPrices(), loadSets()]);
+    if (!document.getElementById('orderModal').classList.contains('open') || document.getElementById('oShop').value != shopId || document.getElementById('oId').value) return;
+    if ([...document.querySelectorAll('#oLines .ol')].some(r => r.querySelector('.l-name').value.trim() || r.querySelector('.l-qty').value)) return;   // already being filled by hand
+    const set = setsList.find(x => x.set_id == shopSetCache[shopId]), sm = set ? String(set.name).match(/(\d+(?:\.\d+)?)\s*ml/i) : null;
+    document.getElementById('oLines').innerHTML = '';
+    names.forEach(n => { const sp = splitMl(n), ml = sp.ml || (sm ? String(parseFloat(sm[1])) : ''), pr = mlPrices[mlKey(ml)]; addLine({ product_name: sp.name, ml, qty: 1, price: pr === undefined ? '' : pr }); });
+    document.getElementById('orderSub').textContent = `First order — filled from this shop's pack${set ? ' “' + set.name + '”' : ''} (${names.length} perfume${names.length === 1 ? '' : 's'}). Set each quantity, remove what you do not send, then save.`;
+    recalc();
+  }
   async function openOrderModal(shopId, o) {
     const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
     document.getElementById('orderAlert').innerHTML = '';
-    orderShopPerfs = new Set(); loadPerfumes(); loadMlPrices();
+    orderShopPerfs = new Set(); orderShopList = []; loadPerfumes(); loadMlPrices();
     (async () => {
       try {
-        if (!shopPerfCache[shopId]) shopPerfCache[shopId] = (await api.get('retail.shop_perfumes', { id: shopId })).perfumes || [];
-        orderShopPerfs = new Set(shopPerfCache[shopId].map(n => n.toLowerCase()));
+        if (!shopPerfCache[shopId]) { const r = await api.get('retail.shop_perfumes', { id: shopId }); shopPerfCache[shopId] = flatPerf(r.perfumes); shopSetCache[shopId] = r.perfume_set_id || null; }
+        orderShopList = shopPerfCache[shopId].slice(); orderShopPerfs = new Set(orderShopList.map(n => splitMl(n).name.toLowerCase()));
+        if (!o && shopOrderCount(shopId) === 0) await fillFromPack(shopId);
         if (pfInput && pfInput.closest('#orderModal')) pfShow();
       } catch (err) {}
     })();
     document.getElementById('orderTitle').textContent = (o ? 'Edit order ' + o.order_no : 'New order') + (s ? ' — ' + s.shop_name : '');
-    document.getElementById('orderSub').textContent = o ? `${fmtD(o.order_date)} · by ${o.created_by_name || '—'}` : 'Perfumes sold to the shop, or taken back';
+    document.getElementById('orderSub').textContent = o ? `${fmtD(o.order_date)} · by ${o.created_by_name || '—'}` : 'Perfumes sold to the shop';
     document.getElementById('oId').value = o ? o.order_id : ''; document.getElementById('oShop').value = shopId;
     // older orders may be "Display" or "Replacement": keep that type in the list while editing them
     const tSel = document.getElementById('oType');
     [...tSel.options].forEach(op => { if (op.dataset.legacy) op.remove(); });
-    if (o && o.order_type !== 'sale' && o.order_type !== 'return') tSel.insertAdjacentHTML('beforeend', `<option value="${esc(o.order_type)}" data-legacy="1">${esc(TYPE_LABEL[o.order_type] || o.order_type)} (older)</option>`);
+    if (o && o.order_type !== 'sale') tSel.insertAdjacentHTML('beforeend', `<option value="${esc(o.order_type)}" data-legacy="1">${esc(TYPE_LABEL[o.order_type] || o.order_type)} (older)</option>`);
     tSel.value = o ? o.order_type : 'sale';
     oKeepPay = o && (o.payment === 'on_sale' || o.payment === 'free') && o.order_type !== 'return' ? o.payment : '';
-    document.getElementById('oMode').value = o ? (o.pay_mode || (o.payment === 'upi' ? 'upi' : 'cod')) : 'cod';
+    oKeepMode = o ? (o.pay_mode || '') : '';
     document.getElementById('oDate').value = o ? String(o.order_date).slice(0, 10) : new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    document.getElementById('oPaid').value = o && o.paid_amount ? o.paid_amount : '';
+    oKeepPaid = o && o.paid_amount ? Number(o.paid_amount) || 0 : 0;
     document.getElementById('oDues').innerHTML = '';
     if (o && o.payment === 'pending') {
       if (o.dues && o.dues.length) o.dues.filter(d => !d.paid).forEach(d => addDueRow({ date: String(d.due_date).slice(0, 10), amount: d.left }));
@@ -2005,8 +2234,12 @@
     setDiscType(o && o.discount_type ? o.discount_type : 'pct');
     document.getElementById('oDiscVal').value = o && Number(o.discount_value) > 0 ? o.discount_value : '';
     document.getElementById('oLines').innerHTML = '';
-    if (o && o.items.length) o.items.forEach(addLine); else { addLine(); addLine(); }
-    recalc();
+    if (o && o.items.length) {
+      const ex = expandItems(o.items);
+      ex.forEach(i => addLine(i));
+      if (ex.length > o.items.length) document.getElementById('orderAlert').innerHTML = `<div class="alert success">This order had several perfumes in one line. They are now ${ex.length} separate lines, 1 piece each at the price for their size. Check the total and tap Save to fix the order.</div>`;
+    } else { addLine(); addLine(); }
+    STK = null; recalc(); loadStock(o);
     modalScrollY = window.scrollY; orderModal.classList.add('open');
     setTimeout(() => { const f = document.querySelector('#oLines .l-name'); if (f && !o) f.focus(); }, 100);
   }
@@ -2015,17 +2248,26 @@
   orderModal.addEventListener('click', (e) => { if (e.target === orderModal) closeOrderModal(); });
   document.getElementById('btnOrderSave').addEventListener('click', async () => {
     const btn = document.getElementById('btnOrderSave'); btn.disabled = true;
-    const items = [...document.querySelectorAll('#oLines .ol')].map(r => ({ product_name: r.querySelector('.l-name').value.trim(), ml: r.querySelector('.l-ml').value.trim(), qty: Number(r.querySelector('.l-qty').value) || 0, delivered: r.dataset.del !== undefined ? Number(r.dataset.del) || 0 : null, price: Number(r.querySelector('.l-price').value) || 0 })).filter(i => i.product_name && i.qty > 0);
+    const items = [...document.querySelectorAll('#oLines .ol')].map(r => ({ product_name: splitMl(r.querySelector('.l-name').value).name, ml: splitMl(r.querySelector('.l-name').value).ml, qty: Number(r.querySelector('.l-qty').value) || 0, delivered: r.dataset.del !== undefined ? Number(r.dataset.del) || 0 : null, price: Number(r.querySelector('.l-price').value) || 0 })).filter(i => i.product_name && i.qty > 0);
     const isRet = document.getElementById('oType').value === 'return', money = !isRet && !oKeepPay;
     const dues = money ? [...document.querySelectorAll('#oDues .dr')].map(r => ({ date: r.querySelector('.d-date').value, amount: Number(r.querySelector('.d-amt').value) || 0 })).filter(d => d.date) : [];
     try {
       if (!items.length) throw new Error('Add at least one perfume line (name and quantity).');
-      const d = await api.post('retail.order_save', {
+      const payload = {
         order_id: document.getElementById('oId').value || 0, shop_id: Number(document.getElementById('oShop').value),
-        order_type: document.getElementById('oType').value, payment: isRet ? 'free' : (oKeepPay || 'pending'), pay_mode: money ? document.getElementById('oMode').value : '', order_date: document.getElementById('oDate').value,
-        paid_amount: money ? (Number(document.getElementById('oPaid').value) || 0) : 0, dues, discount_type: isRet ? '' : oDiscT, discount_value: isRet ? 0 : (Number(document.getElementById('oDiscVal').value) || 0), note: document.getElementById('oNote').value.trim(),
+        order_type: document.getElementById('oType').value, payment: isRet ? 'free' : (oKeepPay || 'pending'), pay_mode: money ? oKeepMode : '', order_date: document.getElementById('oDate').value,
+        paid_amount: money ? oKeepPaid : 0, dues, discount_type: isRet ? '' : oDiscT, discount_value: isRet ? 0 : (Number(document.getElementById('oDiscVal').value) || 0), note: document.getElementById('oNote').value.trim(),
         bill_delivered: document.getElementById('oBillDel').checked ? 1 : 0, items,
-      });
+      };
+      let d;
+      try { d = await api.post('retail.order_save', payload); }
+      catch (e) {
+        const sh = e.data && e.data.short;
+        if (sh && sh.length && e.data.can_override) {
+          if (!confirm('Not enough stock:\n' + sh.map(x => `• ${x.product_name} ${x.ml_text}: need ${x.need}, have ${x.have}`).join('\n') + '\n\nSave this order anyway? Stock will show minus until you add stock.')) { btn.disabled = false; return; }
+          payload.allow_short = 1; d = await api.post('retail.order_save', payload);
+        } else throw e;
+      }
       closeOrderModal(); showAlert(d.message);
       const sid = Number(document.getElementById('oShop').value);
       await loadShops();
@@ -2474,12 +2716,11 @@
   // ---------- payment modal ----------
   // Same words as the order form: Payment mode (COD / UPI / Cheque), Paid so far, and the due dates for what is left.
   const payModal = document.getElementById('payModal');
-  let payOrder = null, payBilled = 0;
+  let payOrder = null, payBilled = 0, payMode = '';
   const payPaid = () => Math.max(0, Number(document.getElementById('pAmt').value) || 0);
   function payAddDue(d) { document.getElementById('pDues').insertAdjacentHTML('beforeend', dueRowHtml(d)); payRecalc(); }
   function payRecalc() {
     const free = payBilled <= 0.004, paid = payPaid(), left = Math.round((payBilled - paid) * 100) / 100;
-    document.getElementById('pModeWrap').style.display = free ? 'none' : '';
     document.getElementById('pAmtWrap').style.display = free ? 'none' : '';
     document.getElementById('pLeft').textContent = free ? '' : (left > 0.004 ? `${inr(left)} still to collect` : (left < -0.004 ? `${inr(-left)} more than the bill — the extra stays on the shop's account` : '✓ Paid in full'));
     document.getElementById('pLeft').style.color = left > 0.004 ? '#8a5a00' : '#0f7a41';
@@ -2501,7 +2742,7 @@
     const lg = document.getElementById('pLegacy');
     lg.style.display = o.payment === 'on_sale' || o.payment === 'free' ? '' : 'none';
     lg.textContent = o.payment === 'on_sale' ? 'This order was set to “pay on sale” earlier — choose how it is paid below.' : (payBilled > 0.004 ? 'This order was set to “free” earlier — choose how it is paid below.' : 'This order has no charge.');
-    document.getElementById('pMode').value = o.pay_mode || (o.payment === 'upi' ? 'upi' : 'cod');
+    payMode = o.pay_mode || (o.payment === 'upi' ? 'upi' : '');
     document.getElementById('pAmt').value = o.paid_amount || '';
     document.getElementById('pDues').innerHTML = '';
     if (o.dues && o.dues.length) o.dues.filter(d => !d.paid).forEach(d => payAddDue({ date: String(d.due_date).slice(0, 10), amount: d.left }));
@@ -2520,7 +2761,7 @@
   document.getElementById('btnPaySave').addEventListener('click', async () => {
     const btn = document.getElementById('btnPaySave'); btn.disabled = true;
     try {
-      const free = payBilled <= 0.004, mode = document.getElementById('pMode').value, paid = payPaid();
+      const free = payBilled <= 0.004, mode = payMode, paid = payPaid();
       const full = !free && paid >= payBilled - 0.004;
       const pay = free ? 'free' : (full ? (mode === 'upi' ? 'upi' : 'cash') : 'pending');
       const body = { order_id: Number(document.getElementById('pId').value), payment: pay, pay_mode: free ? '' : mode, paid_amount: free ? '' : paid };
@@ -2804,8 +3045,14 @@
     document.getElementById('pedId').value = r.id;
     document.getElementById('pedAmt').value = r.credit; document.getElementById('pedAmt').dataset.old = r.credit;
     document.getElementById('pedDate').value = r.date ? String(r.date).slice(0, 10) : todayStr();
-    document.getElementById('pedMode').value = r.mode || 'cash';
-    document.getElementById('pedRef').value = r.reference || ''; document.getElementById('pedNote').value = r.note || '';
+    const pm = document.getElementById('pedMode');
+    [...pm.options].forEach(op => { if (op.dataset.legacy) op.remove(); });
+    const m0 = r.mode || 'cash';
+    // an older receipt saved as Bank / Credit note keeps its own mode (shown only on that receipt) so saving it does not change it by accident
+    if (!['upi', 'cash', 'cheque'].includes(m0)) pm.insertAdjacentHTML('beforeend', `<option value="${esc(m0)}" data-legacy="1">${esc(MODE_LABEL[m0] || m0)}</option>`);
+    pm.value = m0;
+    document.getElementById('pedId').dataset.ref = r.reference || '';   // no Reference box any more: the saved one is kept as it is
+    document.getElementById('pedNote').value = r.note || '';
     pedAmtNote();
     modalScrollY = window.scrollY; pedModal.classList.add('open');
   }
@@ -2820,7 +3067,7 @@
   document.getElementById('btnPedSave').addEventListener('click', async () => {
     const btn = document.getElementById('btnPedSave'); btn.disabled = true;
     try {
-      const d = await api.post('retail.payment_update', { payment_id: Number(document.getElementById('pedId').value), amount: Number(document.getElementById('pedAmt').value) || 0, pay_date: document.getElementById('pedDate').value, mode: document.getElementById('pedMode').value, reference: document.getElementById('pedRef').value.trim(), note: document.getElementById('pedNote').value.trim() });
+      const d = await api.post('retail.payment_update', { payment_id: Number(document.getElementById('pedId').value), amount: Number(document.getElementById('pedAmt').value) || 0, pay_date: document.getElementById('pedDate').value, mode: document.getElementById('pedMode').value, reference: document.getElementById('pedId').dataset.ref || '', note: document.getElementById('pedNote').value.trim() });
       closePed(); showAlert(d.message); await ldReload();
     } catch (err) { document.getElementById('pedAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }

@@ -24,6 +24,38 @@
   .qc .qn{font-size:28px; font-weight:700; line-height:1.15; margin-top:4px;} .qc .qn small{font-size:12px; font-weight:500; color:var(--muted); margin-left:4px;}
   .qc .ln{display:flex; justify-content:space-between; gap:8px; font-size:13px; padding-top:6px; margin-top:6px; border-top:1px dashed var(--line); color:var(--muted);}
   .qc .ln b{color:var(--ink); white-space:nowrap;} .qc .ln.pn{border-top:0; margin-top:2px; padding-top:0; font-size:12px;}
+  /* My Target: today's order target, pace line and the hours (only for people tracked on Order Targets) */
+  .ot-card{max-width:640px; margin-bottom:20px;}
+  .ot-chip{font-size:11.5px; font-weight:700; border-radius:20px; padding:3px 10px; white-space:nowrap; align-self:flex-start; width:fit-content; flex:0 0 auto;}
+  .ot-chip.ok{background:var(--ok-bg); color:var(--ok-fg);} .ot-chip.warn{background:#fff3df; color:#b45f06;} .ot-chip.bad{background:var(--bad-bg); color:var(--bad-fg);} .ot-chip.mute{background:#f0f1f4; color:var(--muted);}
+  .ot-big{font-size:36px; font-weight:800; letter-spacing:-.02em; line-height:1;} .ot-big small{font-size:15px; font-weight:600; color:var(--muted); letter-spacing:0;}
+  .ot-bar{height:16px; border-radius:10px; background:#f0f1f4; position:relative; margin:22px 0 6px;}
+  .ot-bar i{position:absolute; left:0; top:0; bottom:0; border-radius:10px; background:linear-gradient(90deg,#ff9a5c,var(--accent)); max-width:100%;}
+  .ot-bar u{position:absolute; top:-6px; bottom:-6px; width:3px; background:var(--ink); border-radius:2px; text-decoration:none;}
+  .ot-bar u::after{content:"pace"; position:absolute; top:-15px; left:-10px; font-size:9.5px; font-weight:700; color:var(--ink);}
+  .ot-leg{display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted);} .ot-leg b{color:var(--ink);}
+  .ot-note{font-size:12.5px; color:var(--muted); margin-top:10px; line-height:1.5;} .ot-note b{color:var(--ink);}
+  .ot-sub{margin-top:12px; padding-top:10px; border-top:1px dashed var(--line); font-size:13px; color:var(--muted); line-height:1.6;} .ot-sub b{color:var(--ink);} .ot-sub:empty{display:none;}
+  .ot-hr{display:grid; grid-template-columns:70px 1fr 38px 38px; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px;}
+  .ot-hr.head{border-top:0; padding-top:0; font-size:10.5px; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  .ot-hr.now{font-weight:700; background:#fff7f1; border-radius:10px; padding-left:8px; padding-right:8px; margin:0 -8px;}
+  .ot-hr .mini{height:7px; border-radius:5px; background:#f0f1f4; overflow:hidden;} .ot-hr .mini i{display:block; height:100%; background:var(--accent); border-radius:5px;}
+  .ot-hr b.q{color:#0ea5e9; text-align:center;} .ot-hr b.c{color:#d97706; text-align:center;}
+  /* Panel tabs: a person on 2+ panels sees each panel's own target */
+  .ot-tabs{display:none; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .ot-tabs button{font:inherit; font-size:12.5px; font-weight:700; padding:7px 13px; border-radius:20px; border:0; background:#f0f1f4; color:var(--muted); display:inline-flex; gap:6px; align-items:center; cursor:pointer;}
+  .ot-tabs button i{width:8px; height:8px; border-radius:50%; background:var(--pc,#14161a); flex:none;}
+  .ot-tabs button.on{background:var(--pc,#14161a); color:#fff;} .ot-tabs button.on i{background:#fff;}
+  .ot-tabs button b{color:#16945a;} .ot-tabs button.on b{color:#fff;}
+  /* Archive: day by day for a month */
+  .ar-r{display:grid; grid-template-columns:1.5fr .6fr 1fr 1fr 54px; gap:6px; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:13px; text-align:right; white-space:nowrap;}
+  .ar-r > :first-child{text-align:left; white-space:normal;}
+  .ar-r.head{border-top:0; padding-top:0; font-size:10.5px; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  .ar-r.tot{font-weight:800; border-top:2px solid var(--line);}
+  .ar-r .off{display:block; color:var(--muted); font-style:italic; font-size:11px; font-weight:500;}
+  .ar-p{display:inline-block; min-width:44px; text-align:center; border-radius:20px; padding:2px 8px; font-size:11.5px; font-weight:700;}
+  #arMonth{border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:13px; background:#fff; width:auto !important; min-height:0; height:auto; margin:0; flex:0 0 auto !important; align-self:flex-start;}
+  @media (max-width:520px){ .ar-r{grid-template-columns:1.5fr 1fr 1fr 50px; font-size:12px; gap:4px;} .ar-r .hm{display:none;} }
   #statGrid{grid-template-columns:repeat(3,1fr);}   /* 6 tiles = two tidy rows of three */
   /* commission tiles */
   .stat-card.com .value{color:#0f7a41;}
@@ -42,6 +74,23 @@
     <div class="content">
       <div id="alertBox"></div>
 
+      <div id="otWrap">
+        <div class="card ot-card">
+          <div class="card-head"><h2>Today's target</h2><span class="ot-chip mute" id="otChip">…</span></div>
+          <div style="padding:16px 20px;">
+            <div class="ot-tabs" id="otTabs"></div>
+            <div class="ot-big" id="otBig">…</div>
+            <div id="otBarBox"></div>
+            <div class="ot-note" id="otNote"></div>
+            <div class="ot-sub" id="otSub"></div>
+          </div>
+        </div>
+        <div class="card ot-card" id="otHoursCard" style="display:none;">
+          <div class="card-head"><h2>Hour by hour</h2><span style="font-size:12px; color:var(--muted);">Query · Camp.</span></div>
+          <div style="padding:12px 20px 14px;" id="otHours"></div>
+        </div>
+      </div>
+
       <div class="stat-grid" id="statGrid" style="display:none;"></div>
 
       <div class="card" id="qcCard" style="max-width:640px; margin-bottom:20px; display:none;">
@@ -49,11 +98,13 @@
         <div style="padding:16px 20px;"><div class="qc" id="qcBox"></div></div>
       </div>
 
-      <div class="card" style="max-width:640px;">
-        <div class="card-head"><h2 id="detailTitle">Details</h2></div>
-        <div style="padding:16px 20px;">
-          <div id="detailBox" class="loading" style="padding:0;">Loading...</div>
-        </div>
+      <div class="card" id="detailCard" style="max-width:640px; display:none;">
+        <div style="padding:16px 20px;" id="detailBox"></div>
+      </div>
+
+      <div class="card" id="arCard" style="max-width:640px; margin-top:20px; display:none;">
+        <div class="card-head"><h2 id="arTitle">Archive</h2><select id="arMonth" aria-label="Month"></select></div>
+        <div style="padding:8px 20px 16px;" id="arBody"></div>
       </div>
     </div>
   </main>
@@ -72,17 +123,6 @@
   const money = (v) => `<span class="amt-full">${inr(v)}</span><span class="amt-short">${inrShort(v)}</span>`;
   const pctOf = (v, t) => (t > 0 ? Math.round((v / t) * 100) : null);
   const pctColor = (p) => p >= 100 ? '#7C3AED' : (p >= 60 ? '#0f7a41' : (p >= 30 ? '#b45f06' : '#c81e1e'));
-
-  function bar(value, target) {
-    const p = pctOf(value, target);
-    if (p === null) return '<span style="font-size:12px; color:var(--muted);">No target set</span>';
-    const width = Math.min(100, p);
-    return `
-      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-        <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;"><div style="width:${width}%; height:8px; background:${pctColor(p)};"></div></div>
-        <span style="white-space:nowrap; font-size:12.5px; font-weight:700; color:${pctColor(p)};">${p}%${p >= 100 ? ' 🎯' : ''}</span>
-      </div>`;
-  }
 
   // The Query and Campaign counts set for him (Assign Queries), the orders chosen as Query / Campaign today, and the panel split of today's counts.
   function renderQC(d) {
@@ -104,8 +144,41 @@
   // ---------- Month figures and commission ----------
   // Worked out here from this employee's own orders and the commission rules — the same calculation as the Commission page
   // (slab rate by target / ticket size / prepaid share, then the order-code rules), so the numbers match what Admin sees.
-  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [] };
+  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {} };
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  // ---------- Panels: a person on 2+ panels has a separate target (and sales) in each ----------
+  const PN = { list: [], sel: '', tgt: {}, labels: {}, sales: {}, today: '', repaint: null };
+  const PORDER = ['tmph', 'tmf', 'tm4u', 'tmsg', 'tmh4'];
+  const PCOL = { tmph: '#1d4ed8', tmf: '#b45309', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
+  const panelOfOrder = (o) => o.house || STORE_TO_GROUP[o.store_key] || '';
+  const pLabel = (k) => PN.labels[k] || k;
+  const pSales = (k, day) => ((PN.sales[k] || {})[day] || { ach: 0 }).ach;
+  const pTarget = (k, day) => Number((PN.tgt[k] || {})[day] || 0);
+  const pMonth = (k) => {
+    let ach = 0, tgt = 0;
+    Object.keys(PN.sales[k] || {}).forEach((d) => { ach += PN.sales[k][d].ach; });
+    Object.keys(PN.tgt[k] || {}).forEach((d) => { tgt += Number(PN.tgt[k][d] || 0); });
+    return { ach, tgt };
+  };
+  const panelMode = () => PN.list.length > 0 && PN.sel !== 'all';
+  function setupPanels(cm, today) {
+    PN.today = today; PN.tgt = cm.target_panels || {}; PN.labels = cm.panel_labels || {};
+    const keys = new Set([...Object.keys(PN.tgt), ...Object.keys(PN.sales)]);
+    PN.list = [...keys].filter((k) => k && (pMonth(k).tgt > 0 || pMonth(k).ach > 0)).sort((a, b) => PORDER.indexOf(a) - PORDER.indexOf(b));
+    if (PN.list.length < 2) PN.list = [];            // one panel: the page stays as it was
+    if (PN.sel !== 'all' && PN.list.indexOf(PN.sel) === -1) PN.sel = PN.list[0] || 'all';
+  }
+  function renderTabs() {
+    const el = document.getElementById('otTabs');
+    if (!el) return;
+    if (!PN.list.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const hit = (k) => { const t = pTarget(k, PN.today); return t > 0 && pSales(k, PN.today) >= t; };
+    el.innerHTML = PN.list.map((k) => `<button type="button" data-k="${k}" class="${PN.sel === k ? 'on' : ''}" style="--pc:${PCOL[k] || '#14161a'}"><i></i>${esc(pLabel(k))}${hit(k) ? ' <b>✓</b>' : ''}</button>`).join('')
+      + `<button type="button" data-k="all" class="${PN.sel === 'all' ? 'on' : ''}">All</button>`;
+    el.style.display = 'flex';
+    el.querySelectorAll('button').forEach((b) => { b.onclick = () => selectPanel(b.dataset.k); });
+  }
+  function selectPanel(k) { PN.sel = k; renderTabs(); if (PN.repaint) PN.repaint(); renderTop(); refreshArchive(); }
   const isPre = (fs) => { fs = String(fs || '').toLowerCase(); return fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1; };
 
   function calcCommission(achieved, target, ticket, prepaidPct) {
@@ -169,7 +242,7 @@
   }
 
   function buildOrders(orders, from, to, dayStart) {
-    CM.idx = {}; CM.ord = [];
+    CM.idx = {}; CM.ord = []; PN.sales = {};
     (orders || []).forEach((o) => {
       if (o.cancelled) return;                                                    // cancelled orders earn nothing
       if (!STORE_TO_GROUP[o.store_key] && !(o.allocated && o.house)) return;       // only the house stores (+ MySales orders moved to a panel)
@@ -182,10 +255,12 @@
       CM.ord.push(x);
       const cell = ((CM.idx[rk] = CM.idx[rk] || {})[day] = CM.idx[rk][day] || { ach: 0, n: 0, pre: 0, eff: 0, flat: 0, orders: [] });
       cell.ach += amt; cell.n++; if (pre) cell.pre += amt; cell.eff += x.eff; cell.flat += x.flat; cell.orders.push(x);
+      const pk = panelOfOrder(o);
+      if (pk) { const pc = ((PN.sales[pk] = PN.sales[pk] || {})[day] = PN.sales[pk][day] || { ach: 0, n: 0 }); pc.ach += amt; pc.n++; }
     });
   }
   // One row ('' = all panels, 'tm4u' = the TM4U row) over a set of days.
-  function aggRow(rk, days) {
+  function aggRow(rk, days, useManual) {
     let ach = 0, n = 0, pre = 0, eff = 0, flat = 0, target = 0;
     const orders = [];
     days.forEach((d) => {
@@ -199,15 +274,17 @@
       eff = 0; flat = 0;
       orders.forEach((o) => { const p = calcPrice(o, { hit: c.hit, ticket: c.ticket }); eff += p.eff; flat += p.flat; });
     }
+    const man = useManual ? (CM.manual || {})[rk] : null;      // commission set by hand for him this month (Commission page) replaces the worked-out one
+    if (man) return { ach, n, target, rate: man.rate, amount: man.amount, rated: true, manual: true };
     return { ach, n, target, rate: c ? c.rate : 0, amount: c ? c.rate * eff / 100 + flat : 0, rated: !!c };
   }
-  function period(days) {
-    const rows = ['', 'tm4u'].map((rk) => aggRow(rk, days));
+  function period(days, useManual) {
+    const rows = ['', 'tm4u'].map((rk) => aggRow(rk, days, useManual));
     const sum = (k) => rows.reduce((a, r) => a + r[k], 0);
-    const live = rows.filter((r) => r.ach > 0 && r.rated);
-    return { ach: sum('ach'), n: sum('n'), amount: sum('amount'), rate: live.length === 1 ? live[0].rate : null, rated: live.length > 0 };
+    const live = rows.filter((r) => (r.ach > 0 || r.manual) && r.rated);
+    return { ach: sum('ach'), n: sum('n'), target: sum('target'), amount: sum('amount'), rate: live.length === 1 ? live[0].rate : null, rated: live.length > 0, manual: rows.some((r) => r.manual) };
   }
-  const rateTxt = (r) => r === null ? '' : (Math.round(r * 100) / 100) + '% rate';
+  const rateTxt = (r, man) => r === null ? (man ? 'set by Admin' : '') : (man ? 'set by Admin · ' : '') + (Math.round(r * 100) / 100) + '% rate';
 
   async function loadCommission(d) {
     const setBoth = (txt, sub) => {
@@ -221,48 +298,135 @@
     };
     try {
       const to = d.business_day, from = to.slice(0, 8) + '01';
+      // Already started when the page opened (see PRE below); asked again only if the business day turned out different.
+      const same = (await PRE.to) === to;
       const [cm, od, tm] = await Promise.all([
-        api.get('my.commission'),
-        api.get('shopify.orders', { date_from: from, date_to: to }),
-        api.get('day_timing.get').catch(() => null),
+        same ? PRE.cm : api.get('my.commission'),
+        same ? PRE.od : api.get('shopify.orders', { date_from: from, date_to: to, lite: 1 }),
+        PRE.tm,
       ]);
       if (cm.applicable === false) {      // not a sales role: no commission
         document.getElementById('tComCard').remove(); document.getElementById('mComCard').remove();
         fallbackMonth();
+        TOP.target = Number(d.daily_target || 0); renderTop();
         return;
       }
       const dayStart = tm && Array.isArray(tm.start) && tm.start.length === 7 ? tm.start : ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
       CM.rules = cm.rules || [];
       CM.code = { on: !!(cm.code && cm.code.on), rules: (cm.code && cm.code.rules) || [], shares: (cm.shares && !Array.isArray(cm.shares)) ? cm.shares : {} };
-      CM.target = cm.target || {}; CM.status = cm.status || {};
+      CM.target = cm.target || {}; CM.status = cm.status || {}; CM.manual = (cm.manual && !Array.isArray(cm.manual)) ? cm.manual : {};
       buildOrders(od.orders || [], from, to, dayStart);
       const days = []; for (let x = from; x <= to; ) { days.push(x); const t = new Date(x + 'T00:00:00'); t.setDate(t.getDate() + 1); x = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
-      const m = period(days), t = period([to]);
+      const m = period(days, true), t = period([to]);
       const set = (id, html) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.classList.remove('wait'); } };
       set('mSales', money(m.ach)); set('mOrders', String(m.n));
-      const ml = document.getElementById('monthLine'), mb = document.getElementById('monthBar');   // keep the "This Month" bar in step with the tile
-      if (ml) ml.textContent = inr(m.ach) + ' of ' + (d.month.target > 0 ? inr(d.month.target) : '—') + ' monthly target';
-      if (mb) mb.innerHTML = bar(m.ach, d.month.target);
       set('tCom', money(t.amount)); set('mCom', money(m.amount));
+      LIVE = { cm, od, dayStart, to };
+      setupPanels(cm, to);
+      PN.repaint = () => liveTarget(d, t);
+      renderTabs(); PN.repaint(); renderTop();
+      initArchive(d);
       document.getElementById('tComSub').textContent = t.rated ? rateTxt(t.rate) : (t.ach > 0 ? '' : 'No sales yet today');
-      document.getElementById('mComSub').textContent = m.rated ? rateTxt(m.rate) : (m.ach > 0 ? '' : 'No sales yet this month');
+      document.getElementById('mComSub').textContent = m.rated ? rateTxt(m.rate, m.manual) : (m.ach > 0 ? '' : 'No sales yet this month');
       if (!CM.rules.length) setBoth('—', 'Commission rules not set');
       const errs = (od.errors || []).filter(Boolean);
       if (errs.length) showErr('Some orders could not be loaded, so month figures may be incomplete: ' + errs.join(' · '));
     } catch (err) {
       fallbackMonth();
+      TOP.target = Number(d.daily_target || 0); renderTop();
       setBoth('—', 'Could not load');
       showErr('Commission could not be worked out: ' + err.message);
     }
   }
+  // ---------- Live target (same figure Admin sees on the Orders page) and the day-by-day archive ----------
+  let LIVE = null;
+  const ARC = {};                                   // 'YYYY-MM' -> rows, kept once loaded
+  function liveTarget(d, t) {
+    // The day-wise target is the one Admin sees (automatic rule / set by hand / ladder / profile); the plain profile target is only the fallback.
+    TOP.target = t.target > 0 ? t.target : Number(d.daily_target || 0); renderTop();
+  }
+  const dayTarget = (cm, d) => Number(((cm.target || {})[''] || {})[d] || 0) + Number(((cm.target || {}).tm4u || {})[d] || 0);
+  function archiveRows(cm, orders, from, to, dayStart) {
+    const by = {}, pk = panelMode() ? PN.sel : '';
+    (orders || []).forEach((o) => {
+      if (o.cancelled) return;
+      if (pk && panelOfOrder(o) !== pk) return;
+      if (!STORE_TO_GROUP[o.store_key] && !(o.allocated && o.house)) return;
+      const day = o.biz_date || bizDayOf(o.created_at, dayStart);
+      if (day < from || day > to) return;
+      const x = by[day] = by[day] || { n: 0, ach: 0 };
+      x.n++; x.ach += Number(o.total || 0);
+    });
+    const rows = [];
+    for (let x = from; x <= to; ) {
+      const b = by[x] || { n: 0, ach: 0 };
+      rows.push({ day: x, n: b.n, ach: b.ach, tg: pk ? Number(((cm.target_panels || {})[pk] || {})[x] || 0) : dayTarget(cm, x), st: (cm.status || {})[x] || '' });
+      const t = new Date(x + 'T00:00:00'); t.setDate(t.getDate() + 1);
+      x = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+    }
+    return rows.reverse();
+  }
+  const ST_TXT = { absent: 'Absent', leave: 'Leave', half_leave: 'Half leave', wfh: 'WFH', holiday: 'Holiday', week_off: 'Week off' };
+  function renderArchive(rows) {
+    const body = document.getElementById('arBody');
+    const at = document.getElementById('arTitle'); if (at) at.textContent = panelMode() ? 'Archive — ' + pLabel(PN.sel) : 'Archive';
+    const shown = rows.filter((r) => r.n > 0 || r.tg > 0 || r.st);
+    if (!shown.length) { body.innerHTML = '<div style="color:var(--muted); font-size:13px; padding-top:8px;">Nothing recorded for this month.</div>'; return; }
+    let on = 0, os = 0, ot = 0, hit = 0, days = 0;
+    const tr = shown.map((r) => {
+      on += r.n; os += r.ach; ot += r.tg;
+      const p = pctOf(r.ach, r.tg);
+      if (r.tg > 0) { days++; if (r.ach >= r.tg) hit++; }
+      const chip = p === null ? '<span style="color:var(--muted);">—</span>' : `<span class="ar-p" style="background:${p >= 100 ? '#e7f6ec' : (p >= 60 ? '#fff3df' : '#fdecec')}; color:${pctColor(p)};">${p}%</span>`;
+      const lbl = new Date(r.day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
+      const off = ST_TXT[r.st] && r.st !== 'present' ? `<span class="off">${ST_TXT[r.st]}</span>` : '';
+      return `<div class="ar-r"><div>${lbl}${off}</div><div class="hm">${r.n}</div><div>${inr(r.ach)}</div><div>${r.tg > 0 ? inr(r.tg) : '—'}</div><div>${chip}</div></div>`;
+    }).join('');
+    body.innerHTML = `<div class="ar-r head"><div>Day</div><div class="hm">Orders</div><div>Sales</div><div>Target</div><div></div></div>${tr}
+      <div class="ar-r tot"><div>Total</div><div class="hm">${on}</div><div>${inr(os)}</div><div>${ot > 0 ? inr(ot) : '—'}</div><div></div></div>
+      <div style="font-size:12px; color:var(--muted); margin-top:10px;">${days ? 'Target hit on ' + hit + ' of ' + days + ' days.' : ''} Days with no sales and no target are left out.</div>`;
+  }
+  let ARCD = null;
+  function refreshArchive() { if (ARCD) showArchive(ARCD, document.getElementById('arMonth').value || ARCD.business_day.slice(0, 7)); }
+  function initArchive(d) {
+    ARCD = d;
+    const sel = document.getElementById('arMonth'), card = document.getElementById('arCard');
+    if (!sel.options.length) {
+      const [y, mo] = d.business_day.split('-').map(Number);
+      for (let i = 0; i < 6; i++) {
+        const dt = new Date(y, mo - 1 - i, 1), v = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+        const o = document.createElement('option'); o.value = v; o.textContent = dt.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }); sel.appendChild(o);
+      }
+      sel.addEventListener('change', () => showArchive(d, sel.value));
+    }
+    card.style.display = '';
+    showArchive(d, sel.value || d.business_day.slice(0, 7));
+  }
+  async function showArchive(d, month) {
+    const body = document.getElementById('arBody'), cur = d.business_day.slice(0, 7);
+    if (month === cur && LIVE) { renderArchive(archiveRows(LIVE.cm, LIVE.od.orders, cur + '-01', LIVE.to, LIVE.dayStart)); return; }
+    if (ARC[month]) { const A = ARC[month]; renderArchive(archiveRows(A.cm, A.orders, A.from, A.to, A.dayStart)); return; }
+    body.innerHTML = '<div class="loading" style="padding:8px 0;">Loading...</div>';
+    try {
+      const from = month + '-01', last = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0);
+      const to = month + '-' + String(last.getDate()).padStart(2, '0');
+      const [cm, od] = await Promise.all([api.get('my.commission', { month }), api.get('shopify.orders', { date_from: from, date_to: to })]);
+      if (document.getElementById('arMonth').value !== month) return;      // another month was picked meanwhile
+      const A = ARC[month] = { cm, orders: od.orders, from, to, dayStart: LIVE ? LIVE.dayStart : ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'] };
+      renderArchive(archiveRows(A.cm, A.orders, A.from, A.to, A.dayStart));
+    } catch (err) { body.innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+  }
+  function showDetail(html) { document.getElementById('detailBox').innerHTML = html; document.getElementById('detailCard').style.display = ''; }   // only for "no order tag" and load errors
   function showErr(msg) { document.getElementById('alertBox').innerHTML = `<div class="alert error">${esc(msg)}</div>`; }
 
   async function load() {
     try {
-      const d = await api.get('my.stats');
+      const d = await PRE.stats;
       renderQC(d);
+      TOP.sales = Number(d.today.sales || 0); renderTop();
       if (!d.tag) {
-        document.getElementById('detailBox').innerHTML = 'No order tag is set on your profile yet — ask Admin to add one, then your sales will show here.';
+        document.getElementById('otWrap').style.display = 'none';
+        showDetail('No order tag is set on your profile yet — ask Admin to add one, then your sales will show here.');
         return;
       }
 
@@ -278,26 +442,64 @@
       grid.style.display = 'grid';
       loadCommission(d);
 
-      const dayLabel = new Date(d.business_day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
-      document.getElementById('detailBox').innerHTML = `
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">Today — ${dayLabel} (10 AM to next day 10 AM)</div>
-          <div style="font-size:14px; margin-top:4px;">${inr(d.today.sales)} of ${d.daily_target > 0 ? inr(d.daily_target) : '—'} daily target</div>
-          ${d.ladder ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">New joiner target — week ${d.ladder.week} of 4</div>` : ''}
-          ${bar(d.today.sales, d.daily_target)}
-        </div>
-        <div>
-          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:600;">This Month</div>
-          <div id="monthLine" style="font-size:14px; margin-top:4px;">${inr(d.month.sales)} of ${d.month.target > 0 ? inr(d.month.target) : '—'} monthly target</div>
-          <div id="monthBar">${bar(d.month.sales, d.month.target)}</div>
-        </div>
-        ${d.today.error ? `<div class="alert error" style="margin-top:12px;">${d.today.error}</div>` : ''}
-      `;
-      document.getElementById('detailTitle').textContent = d.name + ' — tag "' + d.tag + '"';
+      if (d.today.error) showDetail(`<div class="alert error">${esc(d.today.error)}</div>`);
     } catch (err) {
-      document.getElementById('detailBox').innerHTML = `<div class="alert error">${err.message}</div>`;
+      document.getElementById('otWrap').style.display = 'none';
+      showDetail(`<div class="alert error">${esc(err.message)}</div>`);
     }
   }
+
+  // ---- My Target: the order target Admin set for him on Order Targets (read-only) ----
+  const otTime = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return ''; const h = Number(m[1]); return ((h % 12) || 12) + ':' + m[2] + ' ' + (h < 12 ? 'AM' : 'PM'); };
+  // The top card: today's ₹ target (the same figure Admin sees) with the ₹ done so far. People tracked on Order Targets
+  // also get the pace marker, their order count and the hour table.
+  const TOP = { sales: null, target: null, ot: null };
+  function renderTop() {
+    const chip = document.getElementById('otChip'), big = document.getElementById('otBig'), box = document.getElementById('otBarBox'), note = document.getElementById('otNote'), sub = document.getElementById('otSub');
+    if (TOP.sales === null) return;
+    let sl = TOP.sales, t = TOP.target, ot = TOP.ot;
+    if (panelMode()) { sl = pSales(PN.sel, PN.today); t = pTarget(PN.sel, PN.today); ot = null; }   // a panel tab: that panel's own sales and target
+    if (t === null) { chip.className = 'ot-chip mute'; chip.textContent = '…'; big.innerHTML = `${inr(sl)} <small>/ …</small>`; box.innerHTML = ''; note.textContent = ''; }
+    else if (t <= 0) { chip.className = 'ot-chip mute'; chip.textContent = 'No target today'; big.innerHTML = `${inr(sl)} <small>sales</small>`; box.innerHTML = ''; note.textContent = panelMode() ? 'No target is set for this panel today.' : 'No target is set for you today (leave, absent or not set yet).'; }
+    else {
+      const pace = ot ? Math.max(0, Math.min(100, Number(ot.pace) || 0)) : 0, expected = t * pace / 100, diff = Math.round(expected - sl), p = pctOf(sl, t);
+      if (sl >= t) { chip.className = 'ot-chip ok'; chip.textContent = 'Target hit 🎉'; }
+      else if (ot && pace > 0) { chip.className = diff > 0 ? 'ot-chip warn' : 'ot-chip ok'; chip.textContent = diff > 0 ? inr(diff) + ' behind pace' : (diff < 0 ? inr(-diff) + ' ahead of pace' : 'On pace'); }
+      else { chip.className = 'ot-chip mute'; chip.textContent = p + '% done'; }
+      big.innerHTML = `${inr(sl)} <small>/ ${inr(t)}</small>`;
+      const w = Math.min(100, sl / t * 100);
+      box.innerHTML = `<div class="ot-bar"><i style="width:${w}%"></i>${ot && pace > 0 && pace < 100 ? `<u style="left:${pace}%"></u>` : ''}</div>
+        <div class="ot-leg"><span>₹0</span>${ot && pace > 0 ? `<span>pace for now: <b>${inr(expected)}</b></span>` : ''}<span>${inr(t)}</span></div>`;
+      note.innerHTML = sl >= t ? `Done — <b>${inr(sl - t)}</b> above the target.`
+        : (ot && ot.hours_left > 0 ? `Need <b>${inr(t - sl)} more</b> in <b>${ot.hours_left} hour${ot.hours_left === 1 ? '' : 's'}</b> (about <b>${inr(Math.ceil((t - sl) / ot.hours_left))} / hour</b>).` : `<b>${inr(t - sl)}</b> to go today.`);
+    }
+    sub.innerHTML = ot ? `Orders <b>${Number(ot.achieved) || 0}</b>${Number(ot.target) > 0 ? ' of <b>' + Number(ot.target) + '</b>' : ''} · Query <b>${Number(ot.query) || 0}</b> · Campaign <b>${Number(ot.campaign) || 0}</b>${ot.last_update ? ' · Last update <b>' + otTime(ot.last_update) + '</b>' : ''}` : '';
+  }
+  async function loadTarget() {
+    let d = null;
+    try { d = await api.get('order_targets.mine'); } catch (err) { /* older api.php or no access: the card works without it */ }
+    TOP.ot = d && d.tracked ? d : null;
+    const card = document.getElementById('otHoursCard');
+    const shown = TOP.ot ? (TOP.ot.hours || []).filter(h => h.open).reverse() : [];
+    card.style.display = shown.length ? '' : 'none';
+    if (shown.length) {
+      const mx = Math.max(1, ...shown.map(h => h.orders));
+      document.getElementById('otHours').innerHTML = '<div class="ot-hr head"><span>Hour</span><span></span><span style="text-align:center">Q</span><span style="text-align:center">C</span></div>'
+        + shown.map(h => `<div class="ot-hr${h.hour === TOP.ot.now_hour ? ' now' : ''}"><span>${h.label}${h.hour === TOP.ot.now_hour ? ' ●' : ''}</span><div class="mini"><i style="width:${h.orders / mx * 100}%"></i></div><b class="q">${h.query || 0}</b><b class="c">${h.campaign || 0}</b></div>`).join('');
+    }
+    renderTop();
+  }
+  // Start every call at once when the page opens (the slow ones used to wait for each other).
+  const dayStartOf = (tm) => tm && Array.isArray(tm.start) && tm.start.length === 7 ? tm.start : ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
+  const PRE = {};
+  PRE.stats = api.get('my.stats');
+  PRE.tm = api.get('day_timing.get').catch(() => null);
+  PRE.cm = api.get('my.commission');
+  PRE.to = PRE.tm.then((tm) => bizDayOf(new Date(), dayStartOf(tm)));
+  PRE.od = PRE.to.then((to) => api.get('shopify.orders', { date_from: to.slice(0, 8) + '01', date_to: to, lite: 1 }));
+  [PRE.stats, PRE.cm, PRE.od].forEach((p) => p.catch(() => {}));
+  loadTarget();
+  setInterval(() => { if (!document.hidden) loadTarget(); }, 60000);
 
   load();
 </script>
