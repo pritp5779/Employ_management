@@ -80,7 +80,6 @@
   .undo-btn{background:none; border:none; padding:4px 0; color:var(--muted); font-size:12.5px; cursor:pointer; text-decoration:underline; min-height:0;}
   .house{display:inline-block; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap;}
   .house.tmph{background:#dbeafe; color:#1d4ed8;}
-  .house.tmf{background:#fef3c7; color:#b45309;}
   .house.tm4u{background:#ede9fe; color:#6d28d9;}
   .house.tmsg{background:#dcfce7; color:#15803d;}
   .house.tmh4{background:#ffe4e6; color:#be123c;}
@@ -324,7 +323,10 @@
   const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
   function todayStr() { return bizDayOf(new Date()); }
 
-  let HOUSES = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  // TM Fragrance is not shown anywhere on this page: not as a panel, a source or a store, and its orders are left out.
+  const NO_FRAG = (o) => o.store_key === 'tmfragrance' || o.house === 'tmf' || o.allocated_house === 'tmf';
+  const dropFrag = (m) => Object.fromEntries(Object.entries(m || {}).filter(([k, v]) => k !== 'tmf' && k !== 'tmfragrance' && !/fragrance/i.test(String(v))));
+  let HOUSES = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   let TYPES = { query: 'Query', campaign: 'Campaign' };
   let SOURCES = {};
   let EMPS = [];          // [{id, code, name, groups:[...]}]
@@ -345,8 +347,6 @@
   const isDirect = (o, p) => (p.emp !== undefined ? p.emp === DIRECT : !!o.allocated_direct);
   const noEmpMsg = (o, p) => (isDirect(o, p) ? 'Direct order has no employee' : 'Choose the employee first');
   const effHouse = (o, p) => (p.house !== undefined ? p.house : (o.house || ''));
-  // TM Fragrance is no longer offered in the Panel dropdown; an order that is already on it still shows it (so its box is not left blank).
-  const panelChoices = (sel) => Object.fromEntries(Object.entries(HOUSES).filter(([k]) => k !== 'tmf' || sel === 'tmf'));
   const effType = (o, p) => (p.type !== undefined ? p.type : (o.order_type || ''));
 
   function matches(o) {
@@ -557,7 +557,7 @@
     const panelCell = lock
       ? (o.allocated ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
          <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>` : (houseSel ? `<span class="house ${houseSel}">${esc(HOUSES[houseSel] || houseSel)}</span>` : '<span class="sub">—</span>'))
-      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(panelChoices(houseSel), houseSel, '— Panel —')}</select>`;
+      : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
     const ready = !o.allocated && houseSel && (empSel > 0 || direct);
     const action = o.cancelled ? '' : o.allocated
       ? (IS_EMP ? '' : `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`)
@@ -1114,10 +1114,10 @@
     document.getElementById('tbody').innerHTML = `<tr><td colspan="${NCOL}" class="loading">Loading...</td></tr>`;
     try {
       const d = await api.get('allocation.list', { date_from: from, date_to: to });
-      orders = d.orders || [];
-      if (d.houses) HOUSES = d.houses;
+      orders = (d.orders || []).filter((o) => !NO_FRAG(o));
+      if (d.houses) HOUSES = dropFrag(d.houses);
       if (d.types) TYPES = d.types;
-      if (d.sources) SOURCES = d.sources;
+      if (d.sources) SOURCES = dropFrag(d.sources);
       if (d.employees) EMPS = d.employees;
       fillFilters();
       (d.errors || []).forEach(e => showAlert(e, 'error'));
@@ -1170,7 +1170,7 @@
         <div class="cust-stat g"><div class="l">Total spent</div><div class="v">${inr(c.spent)}</div></div>
         <div class="cust-stat"><div class="l">First order</div><div class="v">${esc(fmtDay(c.first_at))}</div></div>
         <div class="cust-stat"><div class="l">Last order</div><div class="v">${esc(fmtDay(c.last_at))}</div></div>
-        <div class="cust-stat"><div class="l">Bought from</div><div class="v" style="font-size:13px;">${esc((c.stores || []).join(', '))}</div></div>
+        <div class="cust-stat"><div class="l">Bought from</div><div class="v" style="font-size:13px;">${esc((c.stores || []).filter((x) => !/fragrance/i.test(String(x))).join(', '))}</div></div>
       </div>
       ${c.orders.map(custOrderRow).join('')}
     </div>`;
