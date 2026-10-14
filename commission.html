@@ -277,7 +277,7 @@
   const addDay = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x); };
 
   // ---------- State ----------
-  const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };   // same rule as Targets
+  const STORE_TO_GROUP = { tmperfumehouse: 'tmph' };   // same rule as Targets
   let TODAY = '', FROM = '', TO = '', MSTART = '', RFROM = '', RTO = '', DAYS = [];   // FROM..TO = what is loaded; RFROM..RTO = the Monthly date range; DAYS = days of that range
   let PAGING = true;                                  // NEW: pagination ON / OFF (manual switch)
   const NEW = { mix: [], fixed: [], star: [], panel: [] };                 // NEW: manual rules (code-mix rule, fixed-by-count plans)
@@ -288,10 +288,10 @@
   let CODE = { on: false, rules: [], shares: {}, ok: true };   // order-code rules (Commission Rules page) + shares set by hand
   let RAW = [];           // the orders as loaded, kept so a manual change can re-price without reloading
   let ORDBY = {};         // order key -> order record
-  let ROWS = [];          // one per employee and row: '' = TM Perfume House + TM Fragrance together; 'tm4u', 'tmsg', 'tmh4' = TM4U, TM Shower Gel, TM House 4th — each counted on its own
+  let ROWS = [];          // one per employee and row: '' = TM Perfume House; 'tm4u', 'tmsg', 'tmh4' = TM4U, TM Shower Gel, TM House 4th — each counted on its own
   let READY = false, openKey = null, dScope = 'm';   // dScope: which table the open employee detail belongs to ('t' = Today, 'm' = Monthly)
   // Commission set by hand ("employee|row" -> { rate, amount, reason }): belongs to one month, so it applies only while the Monthly range is that whole month.
-  let MAN = {};
+  let MAN = {}, DAYMAN = {};   // DAYMAN: the commissions set by hand for Today (Today table)
   const monthEndOf = (d) => d.slice(0, 7) + '-' + String(new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)), 0).getDate()).padStart(2, '0');
   const manOk = () => !!RFROM && !!RTO && RFROM.slice(8) === '01' && RTO === (monthEndOf(RFROM) < TODAY ? monthEndOf(RFROM) : TODAY);
   const dDays = () => dScope === 't' ? [TODAY] : DAYS, dFrom = () => dScope === 't' ? TODAY : RFROM, dTo = () => dScope === 't' ? TODAY : RTO;
@@ -395,7 +395,7 @@
   // ---------- Build rows from the loaded data ----------
   const statusOf = (emp, d) => (emp.status || {})[d] || '';
   const OWN_ROWS = ['tm4u', 'tmsg', 'tmh4'];                                   // panels that are their own commission row
-  const PLAB = { '': 'TM Perfume House / Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const PLAB = { '': 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   const targetOf = (row, d) => Number(((row.emp.target || {})[row.rk] || {})[d] || 0);
   const isPre = (fs) => { fs = String(fs || '').toLowerCase(); return fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1; };   // not COD / pending = prepaid, as on Targets
 
@@ -575,7 +575,8 @@
   }
   // A commission set by hand replaces the worked-out one for the whole-month range (not for Today, nor for a single day of the detail).
   function withManual(row, days, c) {
-    const man = days === DAYS && manOk() ? MAN[row.emp.employee_id + '|' + row.rk] : null;
+    const k = row.emp.employee_id + '|' + row.rk;
+    const man = days === DAYS && manOk() ? MAN[k] : (days.length === 1 && days[0] === TODAY ? DAYMAN[k] : null) || null;
     if (!man) return c;
     const autoTxt = inr(c.amount) + (c.steps ? ' (' + fmtN(c.rate) + '%)' : '');
     return Object.assign({}, c, {
@@ -778,10 +779,10 @@
     $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '');
     $('dSub').textContent = e.role + (e.employee_code ? ' · ' + e.employee_code : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)));
     if (m.c.manual) $('dSub').textContent += ' · automatic would be ' + inr(m.c.auto.amount) + (m.c.auto.ok ? ' (' + fmtN(m.c.auto.rate) + '%)' : '');
-    const mb = $('dMan'), canMan = dScope === 'm' && manOk();
-    mb.style.display = dScope === 't' ? 'none' : ''; mb.disabled = !canMan;
+    const mb = $('dMan'), canMan = dScope === 't' || manOk();
+    mb.style.display = ''; mb.disabled = !canMan;
     mb.textContent = m.c.manual ? '✎ Change manual commission' : '✎ Change commission';
-    mb.title = canMan ? 'Change this employee\'s commission by hand (saved for this month)' : 'A manual commission belongs to a month — choose This month or Last month in the date range first.';
+    mb.title = canMan ? 'Change this employee\'s commission by hand (saved for ' + (dScope === 't' ? 'today' : 'this month') + ')' : 'A manual commission belongs to a month — choose This month or Last month in the date range first.';
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
     $('dKpis').innerHTML = `<div class="kpi ${m.c.manual ? 'o' : 'g'}"><div class="l">Commission${m.c.manual ? ' · manual' : ''}</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi${m.c.manual ? ' o' : ''}"><div class="l">${m.c.manual ? 'Manual rate' : m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
     $('dView').style.display = dScope === 't' ? 'none' : '';
@@ -851,7 +852,7 @@
     pop.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
     pop.style.top = (r.bottom + h + 10 > innerHeight ? Math.max(10, r.top - h - 8) : r.bottom + 8) + 'px';
   }
-  const PNAME = { tmph: 'TM Perfume House', tmf: 'TM Fragrance', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const PNAME = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
   const TSRC = { manual: 'Set by hand', shared: 'Set on the Targets page', ladder: 'New Sales Executive ladder', rule: 'Automatic rule', profile: 'Profile / monthly target' };
   function showTgt(btn) {
     const t = TG[btn.dataset.tg]; if (!t) return;
@@ -866,7 +867,7 @@
       ${lines.length ? lines.map((l) => `<div class="ln"><span>${esc(PNAME[l.panel] || l.panel)}<span class="sub">${esc(l.src)}</span></span><b>${inr(l.amt)}</b></div>`).join('') : '<div class="ln"><span>No target detail for this period</span><b>—</b></div>'}
       <div class="ln tot"><span>Target used for commission</span><span>${inr(a.target)}</span></div>
       ${lines.length && Math.abs(sum - a.target) > 1 ? `<div class="note">Panel parts add up to ${inr(sum)}.</div>` : ''}
-      <div class="note">${a.row.rk ? esc(PLAB[a.row.rk]) + ' is counted on its own: its own target and its own commission.' : 'TM Perfume House and TM Fragrance share one automatic target. TM4U, TM Shower Gel and TM House 4th are separate rows.'} Days marked Absent or Leave count no target.</div>`;
+      <div class="note">${a.row.rk ? esc(PLAB[a.row.rk]) + ' is counted on its own: its own target and its own commission.' : 'TM4U, TM Shower Gel and TM House 4th are separate rows.'} Days marked Absent or Leave count no target.</div>`;
     pop.hidden = false;
     pop.style.left = '0px'; pop.style.top = '0px';
     const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
@@ -1063,11 +1064,11 @@
   }
   function openManual() {
     const row = openKey && ROWS.find((r) => r.key === openKey);
-    if (!row || dScope !== 'm' || !manOk() || !READY) return;
-    const a = agg(row, DAYS), man = a.c.manual;
+    if (!row || (dScope !== 't' && !manOk()) || !READY) return;
+    const a = agg(row, dScope === 't' ? [TODAY] : DAYS), man = a.c.manual;
     mcRow = row; mcAch = a.ach;
     mcAuto = man ? a.c.auto : { amount: a.c.amount, rate: a.c.rate, ok: !!a.c.steps, why: a.c.fixedPlan ? 'Fixed commission' : (a.c.mix && a.c.mix.badge) ? 'Code rule' : a.c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' };
-    $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and this month.';
+    $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) + '. Saved for this employee and today.' : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and this month.');
     $('mcAuto').innerHTML = `<div class="row"><span>Automatic now</span><b>${inr(mcAuto.amount)}${mcAuto.ok ? ' · ' + fmtN(mcAuto.rate) + '%' : ''}</b></div>
       <div class="row"><span>Rule used</span><b>${esc(mcAuto.ok ? mcAuto.why : 'No commission earned')}</b></div>
       <div class="row"><span>Rate is worked on</span><b>${inr(mcAch)} sales</b></div>`;
@@ -1079,6 +1080,11 @@
   }
   const closeManual = () => mcModal.classList.remove('open');
   async function reloadManual() {
+    if (dScope === 't') {
+      const d = await api.get('commission_page.manual_list', { day: TODAY });
+      DAYMAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {};
+      return;
+    }
     const d = await api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) });
     MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {};
   }
@@ -1090,7 +1096,7 @@
   async function mcSend(path, body, btn) {
     btn.disabled = true; $('mcAlert').innerHTML = '';
     try {
-      await api.post(path, Object.assign({ month: RFROM.slice(0, 7), employee_id: mcRow.emp.employee_id, row_key: mcRow.rk }, body));
+      await api.post(path, Object.assign({ [dScope === 't' ? 'day' : 'month']: dScope === 't' ? TODAY : RFROM.slice(0, 7), employee_id: mcRow.emp.employee_id, row_key: mcRow.rk }, body));
       await reloadManual();
       closeManual(); renderAll();
     } catch (err) { $('mcAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
@@ -1139,12 +1145,13 @@
     const pCode = S
       ? Promise.all([S.codeList, pShares]).then(([r, sh]) => { CODE = { on: !!r.on, rules: r.rules || [], shares: shOf(sh), ok: true }; }, () => { CODE = { on: false, rules: [], shares: {}, ok: false }; })
       : pShares.then((sh) => { CODE.shares = shOf(sh); }, () => { /* keep the shares we have */ });
-    MAN = {};
+    MAN = {}; DAYMAN = {};
+    const pDayMan = api.get('commission_page.manual_list', { day: TODAY }).then((d) => { DAYMAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { DAYMAN = {}; });
     const pMan = manOk() ? api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) }).then((d) => { MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { MAN = {}; }) : Promise.resolve();
     const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; NEW.star = []; NEW.panel = []; }) : Promise.resolve();
     try {
       const [dd, od] = await Promise.all([pDays, pOrders]);
-      await pRules; await pCode; await pManual; await pMan;
+      await pRules; await pCode; await pManual; await pMan; await pDayMan;
       if (id !== loadId) return;
       EMPS = dd.employees || [];
       if (dd.today && dd.today !== TODAY) { /* server and browser disagree on the day: keep the browser's */ }

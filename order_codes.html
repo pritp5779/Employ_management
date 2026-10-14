@@ -461,7 +461,7 @@
   });
   document.getElementById('btnSample').addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Order ID', 'Code'], ['#TMPH-58211', 'AG00123'], ['#TMF-20418', 'AG00124'], ['369910', 'BR00042']]), 'Codes');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Order ID', 'Code'], ['#TMPH-58211', 'AG00123'], ['369910', 'BR00042']]), 'Codes');
     XLSX.writeFile(wb, 'order_codes_sample.xlsx');
   });
   document.getElementById('btnApply2').addEventListener('click', () => document.getElementById('btnApply').click());
@@ -520,4 +520,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html> 
+</html>

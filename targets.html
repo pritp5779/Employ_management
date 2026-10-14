@@ -66,7 +66,6 @@
         <select id="groupPick" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
           <option value="">All groups</option>
           <option value="tmph">TM Perfume House</option>
-          <option value="tmf">TM Fragrance</option>
           <option value="tm4u">TM4U</option>
         </select>
         <input type="date" id="dayPick" title="Daily view (10 AM to next day 10 AM)" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
@@ -81,7 +80,7 @@
       <div id="alertBox"></div>
 
       <div class="card" id="targetsCard">
-        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their TM Perfume House and TM Fragrance orders add up together. A house tag on an order (<b>tmph</b>, <b>tmf</b>, <b>tm4u</b>) beats the store it came from; <b>tm4u</b> orders count under a separate TM4U row and target. Day runs 10 AM to next day 10 AM. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
+        <div class="card-head" id="dailyHead"><h2 id="dailyTitle">Daily</h2><span id="dailyHint" style="font-size:12px; color:var(--muted);">One target per employee — their TM Perfume House orders add up together. A house tag on an order (<b>tmph</b>, <b>tm4u</b>) beats the store it came from; <b>tm4u</b> orders count under a separate TM4U row and target. Day runs 10 AM to next day 10 AM. The house filter only chooses which employees are listed. Click a Daily Target to set it by hand.</span></div>
         <div class="tscroll"><table>
           <thead>
             <tr><th>Employee</th><th>Queries</th><th>Orders</th><th>Ratio</th><th>Achieved</th><th>Ticket Size</th><th>Daily Target</th><th style="width:220px;">Progress</th><th title="Estimated from this day's orders against this day's target — not the month-end payable amount">Est. commission<div style="font-size:9.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">today only</div></th></tr>
@@ -148,7 +147,7 @@
   const SCOUT_TAGS = ['query', 's'];         // 's' = old tag, still accepted
   const CHAMPION_TAGS = ['campaign', 'c'];   // 'c' = old tag, still accepted
 
-  const HOUSE_COLOR = { tmph: '#2563EB', tmf: '#D97706' };
+  const HOUSE_COLOR = { tmph: '#2563EB' };
   const HOUSE_COLOR_OTHER = '#6B7280';   // any house added later, until it gets its own colour
 
   function showAlert(msg, type = 'success') {
@@ -332,10 +331,10 @@
   // (e.g. last 3 Sundays for a Sunday). Defaults mirror the server's.
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let ruleSet = {
-    enabled: 1, groups: ['tmph', 'tmf'],
+    enabled: 1, groups: ['tmph'],
     rules: [{ name: 'Every day', weekdays: [0, 1, 2, 3, 4, 5, 6], basis: 'days', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 }],
   };
-  let ruleHouses = { tmph: 'TM Perfume House', tmf: 'TM Fragrance' };
+  let ruleHouses = { tmph: 'TM Perfume House' };
 
   async function loadTargetRule() {
     try {
@@ -459,11 +458,11 @@
   // Which Shopify store an order came from -> which house it belongs to.
   // Matches the same mapping used server-side in targets.sync_orders /
   // performance.daily, so today's live numbers land under the right house.
-  const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  const STORE_TO_GROUP = { tmperfumehouse: 'tmph' };
   // A house tag on the order beats the store it came from — same rule as
-  // the server. tmph / tmf keep the order in the person's combined row;
+  // the server. tmph keeps the order in the person's combined row;
   // tm4u sends it to their TM4U row. Two house tags = store's house.
-  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmf: 'tmf', 'tm fragrance': 'tmf' };
+  const HOUSE_TAGS = { tm4u: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph' };
   function orderHouse(o) {
     if (o.house) return o.house;                       // the server already decided
     const ht = [...new Set(String(o.tags || '').split(',').map(t => HOUSE_TAGS[t.trim().toLowerCase()]).filter(Boolean))];
@@ -525,7 +524,7 @@
         // except a MySales order moved to a house on Order Allocation.
         if (!STORE_TO_GROUP[o.store_key] && !(o.allocated && o.house)) return;
         if (!o.salesman) return;
-        // One key per person for the combined TM Perfume House + TM Fragrance
+        // One key per person for the TM Perfume House
         // row ('|' + ''); orders tagged tm4u go to the person's TM4U row.
         const nk = o.salesman + '|' + (orderHouse(o) === 'tm4u' ? 'tm4u' : '');
         const amt = Number(o.total || 0);
