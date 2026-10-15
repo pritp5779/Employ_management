@@ -55,7 +55,7 @@
 #cm .com.man{color:#c2410c;} #cm .pill.man{background:#ffedd5; color:#c2410c; font-size:10px; padding:1px 7px; margin-left:6px; vertical-align:1px;} #cm .kpi.o{background:#fff4e8;} #cm .kpi.o .v{color:#c2410c;} #cm .held.mann{color:#c2410c;}
 #cm .d-h .btn.chgman{background:#fff; color:var(--ink); border:1.5px solid var(--ink); white-space:nowrap;} #cm .d-h .btn.chgman[disabled]{opacity:.45; cursor:not-allowed;}
 #mcModal .auto{background:#f6f7f9; border-radius:12px; padding:10px 14px; font-size:12.5px; line-height:1.7; margin:-4px 0 14px;} #mcModal .auto .row{display:flex; justify-content:space-between; gap:12px;} #mcModal .auto b{color:var(--ink); text-align:right;}
-#mcModal .mcseg{display:flex; background:#f0f1f4; border-radius:12px; padding:3px; margin-bottom:12px;} #mcModal .mcseg button{flex:1; border:0; background:transparent; font:inherit; font-size:12.5px; font-weight:700; padding:8px; border-radius:10px; color:var(--muted); cursor:pointer;} #mcModal .mcseg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.1);}
+#mcModal .mcseg,#shModal .mcseg{display:flex; background:#f0f1f4; border-radius:12px; padding:3px; margin-bottom:12px;} #mcModal .mcseg button,#shModal .mcseg button{flex:1; border:0; background:transparent; font:inherit; font-size:12.5px; font-weight:700; padding:8px; border-radius:10px; color:var(--muted); cursor:pointer;} #mcModal .mcseg button.on,#shModal .mcseg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.1);}
 #mcModal .mcprev{background:#fff4e8; border-radius:12px; padding:10px 14px; font-size:13px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:10px;} #mcModal .mcprev b{font-size:18px; color:#c2410c;}
 #cm .rate{display:inline-block; font-size:11px; font-weight:700; color:var(--gold); background:var(--gold-bg); border:1px solid #f6dfa8; border-radius:10px; padding:1px 7px; margin-left:6px; cursor:pointer;}
 #cm .pill{display:inline-block; padding:2px 10px; border-radius:12px; font-size:11.5px; font-weight:700;}
@@ -115,7 +115,7 @@
 #cm .chips button{border:1px solid var(--line); background:#fff; border-radius:20px; padding:6px 13px; font-size:12px; font-weight:600; cursor:pointer; color:#4b5563;} #cm .chips button.on{background:var(--ink); color:#fff; border-color:var(--ink);}
 /* per-order commission notes */
 #cm .cn{font-size:10.5px; font-weight:600; color:var(--muted); margin-top:1px; white-space:normal;}
-#cm .cn.z{color:#b91c1c;} #cm .cn.mx{color:var(--green);} #cm .cn.fx{color:var(--blue);} #cm .cn.cut{color:var(--gold);}
+#cm .cn.z{color:#b91c1c;} #cm .cn.mx{color:var(--green);} #cm .cn.fx{color:var(--blue);} #cm .cn.cut{color:var(--gold);} #cm .cn.man{color:#14161a; font-weight:700;}
 #cm b.zero{color:#9ca3af;}
 #cm .tgb{background:none; border:0; border-bottom:1px dotted var(--muted); padding:0; margin:0; font:inherit; color:inherit; cursor:pointer; min-height:0; width:auto; border-radius:0; box-shadow:none;}
 #cm .tgb:hover{color:var(--blue); border-bottom-color:var(--blue);}
@@ -211,10 +211,11 @@
 
 <div class="modal-overlay" id="shModal">
   <div class="modal" style="max-width:440px;">
-    <h3>Change this order's share</h3>
+    <h3>Change this order's commission</h3>
     <div id="shInfo" style="font-size:12.5px; color:var(--muted); margin:-8px 0 12px; line-height:1.5;"></div>
     <div id="shAlert"></div>
-    <div class="field"><label for="shPct">Pays this share of the normal commission (%)</label><input id="shPct" type="number" min="0" max="500" step="0.01" inputmode="decimal"></div>
+    <div class="mcseg" id="shSeg"><button type="button" data-m="pct" class="on" title="A share of the commission this order would normally earn">% of normal</button><button type="button" data-m="rate" title="A rate on this order's amount">Rate % of order</button><button type="button" data-m="flat" title="An exact amount in rupees">Set amount ₹</button></div>
+    <div class="field"><label for="shPct" id="shLbl">Pays this share of the normal commission (%)</label><input id="shPct" type="number" min="0" max="500" step="0.01" inputmode="decimal"></div>
     <div class="field"><label for="shWhy">Reason <span style="text-transform:none; font-weight:400;">(optional)</span></label><input id="shWhy" maxlength="255" placeholder="e.g. Customer code added late"></div>
     <div id="shPrev" style="font-size:12.5px; background:#f6f7f9; border-radius:12px; padding:8px 12px;"></div>
     <div class="actions"><button type="button" class="btn secondary" id="shRemove" style="margin-right:auto;">Remove manual</button><button type="button" class="btn secondary" id="shCancel">Cancel</button><button type="button" class="btn" id="shSave">Save</button></div>
@@ -294,6 +295,8 @@
   let MAN = {}, DAYMAN = {};   // DAYMAN: the commissions set by hand for Today (Today table)
   const monthEndOf = (d) => d.slice(0, 7) + '-' + String(new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)), 0).getDate()).padStart(2, '0');
   const manOk = () => !!RFROM && !!RTO && RFROM.slice(8) === '01' && RTO === (monthEndOf(RFROM) < TODAY ? monthEndOf(RFROM) : TODAY);
+  // Where a commission set by hand is saved: Today = that day, the whole month (1st → today / month end) = the month, any other range = that exact range.
+  const manScope = (t) => t ? TODAY : manOk() ? RFROM.slice(0, 7) : RFROM === RTO ? RFROM : RFROM + '_' + RTO;
   const dDays = () => dScope === 't' ? [TODAY] : DAYS, dFrom = () => dScope === 't' ? TODAY : RFROM, dTo = () => dScope === 't' ? TODAY : RTO;
   let SPAN = [];          // every day that was loaded
   const dayOpen = new Set();
@@ -335,12 +338,18 @@
 
   // ---------- Order-code rules: what share of the normal commission each order earns ----------
   const ruleName = (r) => r.label || (r.match_type === 'no_code' ? 'Order has no code' : r.match_type === 'has_code' ? 'Order has a code' : 'Code starts with ' + r.prefix);
+  // An order's commission set by hand: a share of the normal commission (pct), a rate on the order (rate) or a ₹ amount (flat).
+  // pct goes through the normal pricing; rate / flat pay EXACTLY that whatever the other rules say (applied last, see agg()).
+  const manOf = (k) => (CODE.shares && CODE.shares[k]) || null;
+  const manPct = (k) => { const m = manOf(k); return m && (m.mode || 'pct') === 'pct' ? m : null; };
+  const ovAmt = (o) => { const m = manOf(o.key); if (!m || !m.mode || m.mode === 'pct') return null; return m.mode === 'flat' ? Number(m.share_pct) : o.amt * Number(m.share_pct) / 100; };
+  const ovTxt = (m) => m.mode === 'flat' ? inr(m.share_pct) : fmtN(m.share_pct) + '% of the order';
   const shTxt = (sh) => sh.mode === 'flat' ? inr(sh.v) + ' flat' : sh.mode === 'rate' ? (Math.round(sh.v * 100) / 100) + '% rate' : (Math.round(sh.v * 100) / 100) + '%';
   // A share set by hand wins; otherwise the first switched-on rule that matches; otherwise 100% (null).
   // ctx = the employee's situation for the period being worked out ({ hit: target achieved, ticket: avg ticket size }); rules with an
   // "only when" condition need it, and are skipped when it is not known.
   function shareFor(x, ctx) {
-    const m = CODE.shares[x.key];
+    const m = manPct(x.key);
     if (m) return { mode: 'pct', v: Number(m.share_pct), why: 'manual', note: m.reason || '' };
     if (!CODE.on) return null;
     if (ctx && ctx.full) return null;   // NEW: code-mix rule met — no order-code cut
@@ -394,12 +403,20 @@
     }));
   }
   function shChip(o, withBtn, p) {
-    const sh = (p || o).sh;
+    const sh = (p || o).sh, ov = manOf(o.key);
     let h;
-    if (!sh) h = '<span class="muted small">100%</span>';
+    if (ov && ov.mode && ov.mode !== 'pct') h = `<span class="shr man" title="Commission set by hand${ov.reason ? ': ' + esc(ov.reason) : ''}">manual ${ov.mode === 'flat' ? inr(ov.share_pct) : fmtN(ov.share_pct) + '% rate'}</span>`;
+    else if (!sh) h = '<span class="muted small">100%</span>';
     else if (sh.why === 'manual') h = `<span class="shr man" title="Changed by hand${sh.note ? ': ' + esc(sh.note) : ''}">manual ${shTxt(sh)}</span>`;
     else h = `<span class="shr" title="${esc(ruleName(sh.rule))}">${shTxt(sh)}</span>`;
-    return h + (withBtn ? ` <button type="button" class="chg" data-chg="${esc(o.key)}" title="Change this order's share" aria-label="Change this order's share">✎</button>` : '');
+    return h + (withBtn ? ' ' + chgBtn(o) : '');
+  }
+  const chgBtn = (o) => `<button type="button" class="chg" data-chg="${esc(o.key)}" title="Change this order's commission" aria-label="Change this order's commission">✎</button>`;
+  // the Share cell of an order row: what set its share (or the manual figure) + the ✎ button
+  function shCell(o, aggs, p, fixed) {
+    if (ovAmt(o) !== null) return shChip(o, true, p);
+    const t = fixed ? 'fixed' : shNote(o, aggs);
+    return t ? `<span class="muted small">${t}</span> ${chgBtn(o)}` : shChip(o, true, p);
   }
 
   // ---------- Build rows from the loaded data ----------
@@ -574,7 +591,7 @@
         hits.forEach((o) => {
           const r = panelRuleFor(o, gateOk), cur = comStar(o, tmp).v;
           if (r) { dP += o.amt * r.pct / 100 - cur; nP++; names[r.label || 'Panel rule'] = 1; rl[r.id] = r; }
-          else { dF += comOf(o, tmp, gateOk).v - cur; nF++; }
+          else { dF += comOf(o, tmp, gateOk, true).v - cur; nF++; }
         });
         c.amount += dP + dF; c.panelCnt = nP;
         const ids = Object.keys(rl); if (ids.length === 1 && nP === n) c.panelBadge = fmtN(rl[ids[0]].pct) + '% fixed';
@@ -582,12 +599,25 @@
         if (nF) c.steps.push({ label: 'Fixed commission', detail: `${nF} order${nF === 1 ? '' : 's'} on the fixed commission (its dates)`, value: (dF < 0 ? '−' : '+') + inr(Math.abs(dF)) });
       }
     }
+    // NEW — an order whose commission was set by hand pays exactly that (₹ amount, or a rate on the order), whatever it would have earned above
+    if (n > 0) {
+      const ovs = orders.filter((o) => ovAmt(o) !== null);
+      if (ovs.length) {
+        if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
+        if (!c.steps) c.steps = [];
+        const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm, gates };
+        let dO = 0;
+        ovs.forEach((o) => { dO += ovAmt(o) - comOf(o, tmp, gateOk, true).v; });
+        c.amount += dO; c.ovr = { n: ovs.length, d: dO };
+        c.steps.push({ label: 'Order set by hand', detail: `${ovs.length} order${ovs.length === 1 ? '' : 's'} pay the amount you set`, value: (dO < 0 ? '−' : '+') + inr(Math.abs(dO)) });
+      }
+    }
     return { gates, pm, row, ach, n, pre, target, ticket, prePct, pending: Math.max(0, target - ach), leave, absent, worked, orders, c: withManual(row, days, c || { rate: 0, amount: 0, steps: null, held: 0 }) };
   }
   // A commission set by hand replaces the worked-out one for the whole-month range (not for Today, nor for a single day of the detail).
   function withManual(row, days, c) {
     const k = row.emp.employee_id + '|' + row.rk;
-    const man = days === DAYS && manOk() ? MAN[k] : (days.length === 1 && days[0] === TODAY ? DAYMAN[k] : null) || null;
+    const man = (days === DAYS ? MAN[k] : null) || (days.length === 1 && days[0] === TODAY ? DAYMAN[k] : null) || null;
     if (!man) return c;
     const autoTxt = inr(c.amount) + (c.steps ? ' (' + fmtN(c.rate) + '%)' : '');
     return Object.assign({}, c, {
@@ -716,7 +746,7 @@
   // their amount. This wins over the slab, the order-code rules, the person's fixed commission and the rating rules (an order whose share
   // was changed by hand keeps that share). The earliest rule that fits is used.
   function panelRuleFor(o, ok) {
-    if (CODE.shares && CODE.shares[o.key]) return null;
+    if (manPct(o.key)) return null;
     let best = null;
     NEW.panel.forEach((r) => { if (r.on && inWin(r, o.day) && (!ok || ok(r.grp)) && r.panels.indexOf(o.house) !== -1 && (!r.who.length || r.who.indexOf(o.emp) !== -1) && (!best || r.id < best.id)) best = r; });
     return best;
@@ -724,12 +754,18 @@
   // A person's fixed commission that has dates: the orders of those days pay it (a % of the order, or ₹ per order) — once the minimum is reached.
   // (A fixed commission for all days is worked out on the whole period instead, see agg().) The rating cut still applies to it.
   function fixedFor(o, ok) {
-    if (o.rk !== '' || (CODE.shares && CODE.shares[o.key])) return null;
+    if (o.rk !== '' || manPct(o.key)) return null;
     return NEW.fixed.find((p) => p.on && (p.from || p.to) && p.emp === o.emp && inWin(p, o.day) && planReached(p)) || null;
   }
   // the bundle condition of the employee this order belongs to (worked out in agg())
   const gateFn = (o, aggs) => { const A = aggs && aggs[o.emp + '|' + o.rk]; return (g) => !g || !A || !A.gates || A.gates[g] !== false; };
-  function comOf(o, aggs, ok) {
+  // An order whose commission was set by hand (₹ / rate) pays exactly that; noOv = what it would earn by the rules alone.
+  function comOf(o, aggs, ok, noOv) {
+    const ov = noOv ? null : ovAmt(o);
+    if (ov !== null) { const m = manOf(o.key); return { v: ov, note: 'set by hand · ' + ovTxt(m), cls: 'man' }; }
+    return comOfAuto(o, aggs, ok);
+  }
+  function comOfAuto(o, aggs, ok) {
     ok = ok || gateFn(o, aggs);
     const r = panelRuleFor(o, ok);
     if (r) return { v: o.amt * r.pct / 100, note: (r.label || 'Panel rule') + ' · fixed ' + fmtN(r.pct) + '%', cls: 'fx' };
@@ -755,7 +791,7 @@
         <td data-label="Employee">${esc(byEmp[o.emp].full_name)}${o.rk ? ' <span class="pill p-blue">' + esc(PLAB[o.rk]) + '</span>' : ''}</td><td class="r" data-label="Amount"><b>${inr(o.amt)}</b></td>
         <td data-label="Payment"><span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></td><td data-label="Code">${o.code ? `<span class="ocode">${esc(o.code)}</span>` : '<span class="pill p-leave" style="font-size:10.5px;">no code</span>'}</td>
         <td data-label="Rating">${starCell(o)}</td>
-        <td class="r" data-label="Share" style="white-space:nowrap;">${shNote(o, aggs) ? '<span class="muted small">' + shNote(o, aggs) + '</span>' : shChip(o, true, q.p)}</td>
+        <td class="r" data-label="Share" style="white-space:nowrap;">${shCell(o, aggs, q.p)}</td>
         <td class="r" data-label="Commission">${comCell(comOf(o, aggs))}</td></tr>`; }).join('')}
       </tbody></table>
       <div class="ordsum">${list.length} order${list.length === 1 ? '' : 's'} · <b>${inr(tot)}</b></div>
@@ -794,10 +830,10 @@
     $('dAv').textContent = ini(e.full_name); $('dName').textContent = e.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '');
     $('dSub').textContent = e.role + (e.employee_code ? ' · ' + e.employee_code : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)));
     if (m.c.manual) $('dSub').textContent += ' · automatic would be ' + inr(m.c.auto.amount) + (m.c.auto.ok ? ' (' + fmtN(m.c.auto.rate) + '%)' : '');
-    const mb = $('dMan'), canMan = dScope === 't' || manOk();
-    mb.style.display = ''; mb.disabled = !canMan;
+    const mb = $('dMan');
+    mb.style.display = ''; mb.disabled = false;
     mb.textContent = m.c.manual ? '✎ Change manual commission' : '✎ Change commission';
-    mb.title = canMan ? 'Change this employee\'s commission by hand (saved for ' + (dScope === 't' ? 'today' : 'this month') + ')' : 'A manual commission belongs to a month — choose This month or Last month in the date range first.';
+    mb.title = 'Change this employee\'s commission by hand (saved for ' + (dScope === 't' ? 'today' : manOk() ? 'this month' : RFROM === RTO ? 'this day' : 'this date range') + ')';
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
     $('dKpis').innerHTML = `<div class="kpi ${m.c.manual ? 'o' : 'g'}"><div class="l">Commission${m.c.manual ? ' · manual' : ''}</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi${m.c.manual ? ' o' : ''}"><div class="l">${m.c.manual ? 'Manual rate' : m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
     $('dView').style.display = dScope === 't' ? 'none' : '';
@@ -841,7 +877,7 @@
         <td data-label="Payment"><span class="pill ${o.pre ? 'pay-pre' : 'pay-cod'}">${o.pre ? 'Prepaid' : 'COD / pending'}</span></td>
         <td data-label="Code">${o.code ? `<span class="ocode">${esc(o.code)}</span>` : '<span class="pill p-leave" style="font-size:10.5px;">no code</span>'}</td>
         <td data-label="Rating">${starCell(o)}</td>
-        <td class="r" data-label="Share" style="white-space:nowrap;">${m.c.fixedPlan ? '<span class="muted small">fixed</span>' : shNote(o, aggs) ? '<span class="muted small">' + shNote(o, aggs) + '</span>' : shChip(o, false, (m.pm && m.pm[o.key]) || o)}</td>
+        <td class="r" data-label="Share" style="white-space:nowrap;">${shCell(o, aggs, (m.pm && m.pm[o.key]) || o, m.c.fixedPlan)}</td>
         <td class="r" data-label="Commission">${comCell(r)}</td></tr>`).join('')}
       </tbody></table>
       <div class="ordsum">${list.length} order${list.length === 1 ? '' : 's'} · <b>${inr(sumAmt)}</b> sales · commission <b style="color:var(--ok-fg)">${inr(sumCom)}</b>${zeros ? ` · <b>${zeros}</b> order${zeros === 1 ? '' : 's'} earned ₹0` : ''}${Math.abs(sumCom - m.c.amount) < 1 ? ' · <span class="chk">✓ adds up to the ' + (dScope === 't' ? 'Today' : 'Monthly') + ' row</span>' : ''}</div>
@@ -901,7 +937,7 @@
   // ---------- Excel download (Today, Monthly and the date-wise detail) ----------
   // Exports every row of the table (not just the page on screen), with the current search applied.
   const panelOf = (rk) => PLAB[rk] || PLAB[''];
-  const shNum = (o) => { const sh = o.sh; return !sh ? '100%' : shTxt(sh) + (sh.why === 'manual' ? ' (manual' + (sh.note ? ': ' + sh.note : '') + ')' : ''); };
+  const shNum = (o) => { const mo = manOf(o.key); if (mo && mo.mode && mo.mode !== 'pct') return 'manual ' + ovTxt(mo) + (mo.reason ? ' (' + mo.reason + ')' : ''); const sh = o.sh; return !sh ? '100%' : shTxt(sh) + (sh.why === 'manual' ? ' (manual' + (sh.note ? ': ' + sh.note : '') + ')' : ''); };
   const LEAVE_PLAIN = (st) => (LEAVE_TXT[st] || ['', ''])[0];
   function xlsxSheet(head, rows, widths, totals) {
     const aoa = [head].concat(rows); if (totals) aoa.push(totals);
@@ -1014,27 +1050,48 @@
 
   // ---------- Change one order's share by hand ----------
   const shModal = $('shModal');
-  let shOrder = null, shRate = 0;
+  let shOrder = null, shRate = 0, shMode = 'pct', shAuto = 0;
+  const SHM = { pct: ['Pays this share of the normal commission (%)', 500], rate: ['Pays this rate on the order amount (%)', 100], flat: ['Pays exactly this amount for the order (₹)', 99999] };
+  function shSetMode(m) {
+    shMode = m;
+    [...$('shSeg').children].forEach((b) => b.classList.toggle('on', b.dataset.m === m));
+    $('shLbl').textContent = SHM[m][0]; $('shPct').max = SHM[m][1];
+    shPreview();
+  }
   function shPreview() {
-    const pct = Number($('shPct').value || 0), o = shOrder; if (!o) return;
-    const normal = o.amt * shRate / 100;
-    $('shPrev').innerHTML = shRate > 0
-      ? `${inr(o.amt)} order at a ${shRate.toFixed(1).replace(/\.0$/, '')}% rate → normal ${inr(normal)} · at ${pct}% pays <b>${inr(normal * pct / 100)}</b>`
-      : 'This employee has no commission rate for this period yet, so the share has no effect until they earn one.';
+    const val = Number($('shPct').value || 0), o = shOrder; if (!o) return;
+    const base = `Automatic now <b>${inr(shAuto)}</b> · `;
+    if (shMode === 'flat') $('shPrev').innerHTML = base + `this order will pay <b>${inr(val)}</b>`;
+    else if (shMode === 'rate') $('shPrev').innerHTML = base + `${fmtN(val)}% of ${inr(o.amt)} = <b>${inr(o.amt * val / 100)}</b>`;
+    else {
+      const normal = o.amt * shRate / 100;
+      $('shPrev').innerHTML = shRate > 0
+        ? `${inr(o.amt)} order at a ${shRate.toFixed(1).replace(/\.0$/, '')}% rate → normal ${inr(normal)} · at ${fmtN(val)}% pays <b>${inr(normal * val / 100)}</b>`
+        : 'This employee has no commission rate for this period yet, so a share has no effect until they earn one — use "Rate % of order" or "Set amount ₹" instead.';
+    }
   }
   function openShare(key, tbl) {
     const o = ORDBY[key]; if (!o) return;
     const row = ROWS.find((r) => r.key === o.emp + '|' + o.rk);
     const a = row ? agg(row, tbl === 't' ? [TODAY] : DAYS) : null;
     shOrder = o; shRate = a && a.c ? (a.c.rate || 0) : 0;
-    const op = (a && a.pm && a.pm[o.key]) || o;
-    const cur = op.sh ? (op.sh.mode === 'pct' ? op.sh.v : 100) : 100;
+    const aggs = {}; if (row && a) aggs[row.key] = a;
+    shAuto = a ? comOf(o, aggs, null, true).v : 0;
+    const op = (a && a.pm && a.pm[o.key]) || o, cm = manOf(key);
     $('shInfo').innerHTML = `<b>${esc(o.name)}</b> · ${inr(o.amt)} · ${o.code ? 'code ' + esc(o.code) : 'no code'}${op.sh && op.sh.why === 'rule' ? '<br>Now paying ' + esc(shTxt(op.sh)) + ' (' + esc(ruleName(op.sh.rule)) + ')' : ''}`;
-    $('shPct').value = cur; $('shWhy').value = (CODE.shares[key] && CODE.shares[key].reason) || '';
-    $('shRemove').style.display = CODE.shares[key] ? '' : 'none';
+    $('shWhy').value = (cm && cm.reason) || '';
+    $('shRemove').style.display = cm ? '' : 'none';
     $('shAlert').innerHTML = '';
-    shPreview(); shModal.classList.add('open'); $('shPct').focus();
+    shSetMode(cm ? (cm.mode || 'pct') : 'pct');
+    $('shPct').value = cm ? cm.share_pct : (op.sh ? (op.sh.mode === 'pct' ? op.sh.v : 100) : 100);
+    shPreview(); shModal.classList.add('open'); $('shPct').focus(); $('shPct').select();
   }
+  $('shSeg').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b || b.dataset.m === shMode) return;
+    shSetMode(b.dataset.m);
+    $('shPct').value = b.dataset.m === 'flat' ? Math.round(shAuto * 100) / 100 : b.dataset.m === 'rate' ? (shOrder && shOrder.amt > 0 ? Math.round(shAuto / shOrder.amt * 10000) / 100 : 0) : 100;
+    shPreview(); $('shPct').focus(); $('shPct').select();
+  };
   const closeShare = () => shModal.classList.remove('open');
   $('shCancel').onclick = closeShare;
   shModal.addEventListener('click', (e) => { if (e.target === shModal) closeShare(); });
@@ -1042,9 +1099,10 @@
   $('shSave').onclick = async () => {
     const o = shOrder, btn = $('shSave'); btn.disabled = true; $('shAlert').innerHTML = '';
     try {
-      const pct = Number($('shPct').value);
-      await api.post('commission_page.order_share_set', { order_key: o.key, order_day: o.day, share_pct: pct, reason: $('shWhy').value.trim() });
-      CODE.shares[o.key] = { share_pct: pct, reason: $('shWhy').value.trim() };
+      const t = $('shPct').value.trim(), pct = Number(t);
+      if (t === '' || !isFinite(pct) || pct < 0 || pct > SHM[shMode][1]) throw new Error('Enter a number from 0 to ' + SHM[shMode][1] + '.');
+      await api.post('commission_page.order_share_set', { order_key: o.key, order_day: o.day, share_pct: pct, pay_mode: shMode, reason: $('shWhy').value.trim() });
+      CODE.shares[o.key] = { share_pct: pct, mode: shMode, reason: $('shWhy').value.trim() };
       closeShare(); repriceAll(); renderAll();
     } catch (err) { $('shAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     finally { btn.disabled = false; }
@@ -1079,11 +1137,11 @@
   }
   function openManual() {
     const row = openKey && ROWS.find((r) => r.key === openKey);
-    if (!row || (dScope !== 't' && !manOk()) || !READY) return;
+    if (!row || !READY) return;
     const a = agg(row, dScope === 't' ? [TODAY] : DAYS), man = a.c.manual;
     mcRow = row; mcAch = a.ach;
     mcAuto = man ? a.c.auto : { amount: a.c.amount, rate: a.c.rate, ok: !!a.c.steps, why: a.c.fixedPlan ? 'Fixed commission' : (a.c.mix && a.c.mix.badge) ? 'Code rule' : a.c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' };
-    $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) + '. Saved for this employee and today.' : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and this month.');
+    $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) + '. Saved for this employee and today.' : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and ' + (manOk() ? 'this month' : RFROM === RTO ? 'this day' : 'exactly this date range') + '.');
     $('mcAuto').innerHTML = `<div class="row"><span>Automatic now</span><b>${inr(mcAuto.amount)}${mcAuto.ok ? ' · ' + fmtN(mcAuto.rate) + '%' : ''}</b></div>
       <div class="row"><span>Rule used</span><b>${esc(mcAuto.ok ? mcAuto.why : 'No commission earned')}</b></div>
       <div class="row"><span>Rate is worked on</span><b>${inr(mcAch)} sales</b></div>`;
@@ -1100,7 +1158,7 @@
       DAYMAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {};
       return;
     }
-    const d = await api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) });
+    const d = await api.get('commission_page.manual_list', { month: manScope(false) });
     MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {};
   }
   $('dMan').onclick = openManual;
@@ -1111,7 +1169,7 @@
   async function mcSend(path, body, btn) {
     btn.disabled = true; $('mcAlert').innerHTML = '';
     try {
-      await api.post(path, Object.assign({ [dScope === 't' ? 'day' : 'month']: dScope === 't' ? TODAY : RFROM.slice(0, 7), employee_id: mcRow.emp.employee_id, row_key: mcRow.rk }, body));
+      await api.post(path, Object.assign({ [dScope === 't' ? 'day' : 'month']: manScope(dScope === 't'), employee_id: mcRow.emp.employee_id, row_key: mcRow.rk }, body));
       await reloadManual();
       closeManual(); renderAll();
     } catch (err) { $('mcAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
@@ -1125,9 +1183,9 @@
   $('mcClear').onclick = () => mcSend('commission_page.manual_clear', {}, $('mcClear'));
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && mcModal.classList.contains('open')) closeManual(); });
 
-  ['t', 'm'].forEach((k) => $(k + 'Body').addEventListener('click', (e) => {
+  [['t', 'tBody'], ['m', 'mBody'], ['d', 'dBody']].forEach(([k, id]) => $(id).addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-chg]');
-    if (b && READY) { e.stopPropagation(); openShare(b.dataset.chg, k); }
+    if (b && READY) { e.stopPropagation(); openShare(b.dataset.chg, k === 'd' ? dScope : k); }
   }, true));
 
   // ---------- Load ----------
@@ -1162,7 +1220,7 @@
       : pShares.then((sh) => { CODE.shares = shOf(sh); }, () => { /* keep the shares we have */ });
     MAN = {}; DAYMAN = {};
     const pDayMan = api.get('commission_page.manual_list', { day: TODAY }).then((d) => { DAYMAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { DAYMAN = {}; });
-    const pMan = manOk() ? api.get('commission_page.manual_list', { month: RFROM.slice(0, 7) }).then((d) => { MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { MAN = {}; }) : Promise.resolve();
+    const pMan = api.get('commission_page.manual_list', { month: manScope(false) }).then((d) => { MAN = (d && d.manual && !Array.isArray(d.manual)) ? d.manual : {}; }, () => { MAN = {}; });
     const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; NEW.star = []; NEW.panel = []; }) : Promise.resolve();
     try {
       const [dd, od] = await Promise.all([pDays, pOrders]);

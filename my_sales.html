@@ -145,11 +145,11 @@
   // Worked out here from this employee's own orders and the commission rules — the same calculation as the Commission page
   // (slab rate by target / ticket size / prepaid share, then the order-code rules), so the numbers match what Admin sees.
   const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {} };
-  const STORE_TO_GROUP = { tmperfumehouse: 'tmph', tmfragrance: 'tmf' };
+  const STORE_TO_GROUP = { tmperfumehouse: 'tmph' };
   // ---------- Panels: a person on 2+ panels has a separate target (and sales) in each ----------
   const PN = { list: [], sel: '', tgt: {}, labels: {}, sales: {}, today: '', repaint: null };
-  const PORDER = ['tmph', 'tmf', 'tm4u', 'tmsg', 'tmh4'];
-  const PCOL = { tmph: '#1d4ed8', tmf: '#b45309', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
+  const PORDER = ['tmph', 'tm4u', 'tmsg', 'tmh4'];
+  const PCOL = { tmph: '#1d4ed8', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
   const panelOfOrder = (o) => o.house || STORE_TO_GROUP[o.store_key] || '';
   const pLabel = (k) => PN.labels[k] || k;
   const pSales = (k, day) => ((PN.sales[k] || {})[day] || { ach: 0 }).ach;
@@ -204,7 +204,7 @@
   // Order-code rules: a share set by hand wins, else the first switched-on rule that matches, else the full 100%.
   function shareFor(x, ctx) {
     const m = CM.code.shares[x.key];
-    if (m) return { mode: 'pct', v: Number(m.share_pct) };
+    if (m) return { mode: m.mode || 'pct', v: Number(m.share_pct) };   // pct = share of the normal commission, rate = % of the order, flat = ₹
     if (!CM.code.on) return null;
     const has = !!x.code;
     for (const r of CM.code.rules) {
