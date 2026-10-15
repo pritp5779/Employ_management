@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Footwear check — live test</title>
+<style>
+:root{--bg:#faf1e6;--ink:#1c1410;--muted:#7a6b5f;--line:#eadfce;--ok:#0f7a41;--okbg:#e7f7ee;--bad:#c81e1e;--badbg:#fdecec;--acc:#e8590c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);padding:16px;max-width:480px;margin:auto}
+h1{font-size:21px;margin:6px 0 4px}.sub{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.cam{position:relative;border-radius:18px;overflow:hidden;background:#0b0b0f;aspect-ratio:4/3}
+video{width:100%;height:100%;object-fit:cover;display:block}
+.bar{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.t{color:#fff;font-size:13px;font-weight:600;text-align:center}
+.snap{width:62px;height:62px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.28);padding:0;cursor:pointer}.snap:disabled{opacity:.4}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.55);color:#fff;display:none;align-items:center;justify-content:center;font-weight:600}
+.res{margin-top:12px;border-radius:14px;padding:14px;font-size:14px;line-height:1.45;display:none}
+.res.ok{display:block;background:var(--okbg);color:var(--ok);border:1px solid #bfe6cf}.res.bad{display:block;background:var(--badbg);color:var(--bad);border:1px solid #f3c9c9}
+.res b{display:block;font-size:16px;margin-bottom:3px}
+pre{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;word-break:break-word;margin-top:12px}
+.row{display:flex;gap:8px;margin-top:10px}.btn{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:600;font-size:13.5px;cursor:pointer}
+.thumb{width:100%;border-radius:12px;margin-top:10px;display:none}
+</style></head><body>
+<h1>Footwear check — live test</h1>
+<div class="sub">Real camera + real AI check. This only tests the photo; it does not punch in.</div>
+<div class="cam"><video id="v" autoplay playsinline muted></video>
+  <div class="ov" id="ov">Checking your footwear…</div>
+  <div class="bar"><div class="t" id="hint">Starting camera…</div><button class="snap" id="snap" disabled aria-label="Take the footwear photo"></button></div></div>
+<div class="res" id="res"></div>
+<img class="thumb" id="thumb" alt="Last photo">
+<div class="row"><button class="btn" id="flip">Switch camera</button><button class="btn" id="up">Pick a photo from gallery</button></div>
+<input type="file" id="file" accept="image/*" hidden>
+<pre id="json" hidden></pre>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  let stream = null, facing = 'environment', busy = false;
+  if (!api.token()) { location.href = 'index.html'; return; }
+
+  async function startCam(){
+    stopCam(); $('snap').disabled = true; $('hint').textContent = 'Starting camera…';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+      $('v').srcObject = stream; await $('v').play().catch(() => {});
+      $('hint').textContent = 'Place your shoes in the frame, then tap the round button'; $('snap').disabled = false;
+    } catch (e) {
+      $('hint').textContent = 'Camera not available (' + (e.name || 'error') + '). Allow camera access or use the gallery button.';
+    }
+  }
+  function stopCam(){ if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+
+  async function send(blob){
+    if (busy) return; busy = true; $('snap').disabled = true; $('ov').style.display = 'flex'; $('res').className = 'res';
+    $('thumb').src = URL.createObjectURL(blob); $('thumb').style.display = 'block';
+    try {
+      const fd = new FormData(); fd.append('photo', blob, 'footwear.jpg');
+      const r = await fetch(api.buildUrl('attendance.footwear_check'), { method: 'POST', headers: { 'Authorization': 'Bearer ' + api.token() }, body: fd });
+      if (r.status === 401) { location.href = 'index.html'; return; }
+      let j = {}; try { j = await r.json(); } catch (e) { j = { is_valid: false, message: 'Rejected: Server gave an unreadable answer (HTTP ' + r.status + ').' }; }
+      show(j);
+    } catch (e) {
+      show({ is_valid: false, message: 'Network problem. Please try again.' });
+    } finally { busy = false; $('ov').style.display = 'none'; if (stream) $('snap').disabled = false; }
+  }
+  function show(j){
+    const ok = j.is_valid === true;
+    const msg = (j.message || (ok ? 'Approved' : 'Rejected')).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    const seen = j.shoe_type_detected ? ('Detected: ' + String(j.shoe_type_detected).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))) : '';
+    $('res').className = 'res ' + (ok ? 'ok' : 'bad');
+    $('res').innerHTML = '<b>' + (ok ? '✓ ' : '✕ ') + msg + '</b>' + seen;
+    $('json').hidden = false; $('json').textContent = JSON.stringify(j, null, 2);
+  }
+  $('snap').onclick = () => {
+    const v = $('v'); if (!v.videoWidth) return;
+    const c = document.createElement('canvas'); const s = Math.min(1, 1280 / v.videoWidth);
+    c.width = Math.round(v.videoWidth * s); c.height = Math.round(v.videoHeight * s);
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob(b => b && send(b), 'image/jpeg', 0.85);
+  };
+  $('flip').onclick = () => { facing = facing === 'environment' ? 'user' : 'environment'; startCam(); };
+  $('up').onclick = () => $('file').click();
+  $('file').onchange = e => { const f = e.target.files[0]; if (f) send(f); e.target.value = ''; };
+  window.addEventListener('pagehide', stopCam);
+  startCam();
+})();
+</script></body></html>

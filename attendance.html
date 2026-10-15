@@ -841,7 +841,7 @@
     if (done) {
       const last = proofs[proofs.length - 1];
       const dlk = pfLinkInfo(it);
-      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded');
+      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded'));
       const subLk = dlk ? `<br><a href="${pfEsc(dlk.url)}" target="_blank" rel="noopener noreferrer">${pfEsc(dlk.label)} ↗</a>` : '';
       return `<div class="pf-req">${tile}<div class="pf-body">
         <div class="pf-name">${pfEsc(it.title)} <span class="pf-tick">✓</span></div>
@@ -869,7 +869,10 @@
     const linkIn = Number(it.link_required)
       ? `<input class="pf-in" id="pfLink${id}" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ph}" value="${pfEsc(pfLinks[id] != null ? pfLinks[id] : (it.link || ''))}" oninput="pfLinks[${id}] = this.value" aria-label="Link for ${pfEsc(it.title)}">`
       : '';
-    const label = editing ? 'Upload new screenshot' : (need > 1 ? `Upload screenshot (${have + 1} of ${need})` : 'Upload screenshot');
+    const shoe = Number(it.footwear) === 1;     // a shoes requirement: live camera + AI check instead of a screenshot upload
+    const label = shoe
+      ? (editing ? 'Take new photo' : (need > 1 ? `Take photo (${have + 1} of ${need})` : 'Take photo'))
+      : (editing ? 'Upload new screenshot' : (need > 1 ? `Upload screenshot (${have + 1} of ${need})` : 'Upload screenshot'));
     return `<div class="pf-req">${tile}<div class="pf-body">
       <div class="pf-name">${pfEsc(it.title)}</div>
       ${it.instruction ? `<div class="pf-desc">${pfEsc(it.instruction)}</div>` : ''}
@@ -877,7 +880,7 @@
       ${lkHtml}
       ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} screenshots saved</div>` : ''}
       ${linkIn}
-      <div class="pf-acts"><button type="button" class="pf-up" onclick="pfPick(${id}, ${editing ? 'true' : 'false'})">${label}</button>${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
+      <div class="pf-acts"><button type="button" class="pf-up" onclick="${shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
     </div></div>`;
   }
 
@@ -1016,6 +1019,71 @@
       pfFile.value = '';
     }
   });
+
+  // Shoes requirement: "Take photo" opens the back camera (no gallery). The server's AI checks the photo inside proofs.upload:
+  // shoes = saved + approved, Crocs / slippers / unclear = rejected and the same camera takes the next photo.
+  window.pfShoe = async function (ruleId, replace) {
+    if (pfBusy || busy) return;
+    const it = pfItem(ruleId);
+    if (!it) return;
+    pfBusy = true; busy = true; cancelled = false;
+    pfAlert('');
+    document.getElementById('hmVerifyT').textContent = 'Take a photo of your footwear';
+    document.body.classList.add('punching');
+    window.scrollTo(0, 0);
+    stepsEl.hidden = true;
+    setMsg('Opening the camera…', 'var(--accent)');
+    try {
+      await openCamera('environment');
+      if (cancelled) return;
+      panel.classList.add('shoe'); camShoe.hidden = false;
+      for (let tries = 0; tries < 8; tries++) {
+        setMsg('Take a photo of your footwear…', 'var(--accent)');
+        shoeHint('Place your shoes in the frame, then tap the round button', false);
+        btnShoe.disabled = false;
+        if (!(await shoeWaitSnap())) return;                 // ✕ tapped
+        btnShoe.disabled = true;
+        shoeHint('Checking your footwear…', false);
+        overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
+        const blob = await frameBlob();
+        const fd = new FormData();
+        fd.append('rule_id', ruleId);
+        if (pfStage === 'enroll') fd.append('stage', 'enroll');
+        fd.append('replace', replace ? 1 : 0);
+        fd.append('link', '');
+        fd.append('photo', blob, 'footwear.jpg');
+        let d;
+        try { d = await api.upload('proofs.upload', fd); }
+        catch (e) {
+          overlay.hidden = true;
+          if (cancelled) return;
+          const data = e.data || {};
+          if (data.retake) {                                  // rejected: stay on the camera and take it again
+            const fw = data.footwear || {};
+            shoeHint(e.message + (fw.shoe_type_detected ? ' (seen: ' + fw.shoe_type_detected + ')' : ''), true);
+            setMsg(e.message, 'var(--bad-fg)');
+            await sleep(3200);
+            if (cancelled) return;
+            continue;
+          }
+          throw e;
+        }
+        overlay.hidden = true;
+        pfState = d; delete pfEdit[ruleId];                   // saved: show it even if ✕ was tapped a moment ago
+        renderProofs();
+        return;
+      }
+      throw new Error('Footwear not approved after several tries — wear proper closed shoes (no Crocs / slippers / sandals) and tap Take photo again.');
+    } catch (err) {
+      if (!cancelled && err.message !== 'cancelled') pfAlert(err.message);
+    } finally {
+      camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false;
+      document.body.classList.remove('punching');
+      closeCamera();
+      ckApplyLock(); pfApplyLock(); applyRemLock();
+      pfBusy = false; busy = false;
+    }
+  };
 
   window.pfRemove = async function (proofId) {
     if (pfBusy) return;
