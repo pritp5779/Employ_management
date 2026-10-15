@@ -56,10 +56,14 @@
   .steps li i{flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid currentColor; font-style:normal; font-size:10.5px; display:inline-flex; align-items:center; justify-content:center;}
   .steps li[hidden]{display:none;}
   .cam-panel.shoe .cam-oval, .cam-panel.shoe .cam-sw{display:none;}                  /* footwear step: no face oval, no Front/Back switch (back camera) */
-  .cam-shoe{position:absolute; left:0; right:0; bottom:0; padding:34px 14px 16px; display:flex; flex-direction:column; align-items:center; gap:10px; background:linear-gradient(transparent, rgba(0,0,0,.72)); z-index:3;}
+  .cam-shoe{position:absolute; left:0; right:0; bottom:0; padding:26px 12px 12px; display:flex; flex-direction:column; align-items:center; gap:6px; background:linear-gradient(transparent, rgba(0,0,0,.72)); z-index:3;}
   .cam-shoe[hidden]{display:none;}
   .cam-shoe-t{color:#fff; font-size:13px; font-weight:600; text-align:center; line-height:1.35;} .cam-shoe-t.bad{color:#fecaca;}
   .cam-shoe-btn{width:66px; height:66px; min-height:0; border-radius:50%; border:4px solid #fff; background:rgba(255,255,255,.28); padding:0; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.35);}
+  .cam-shoe-enroll{min-height:0; padding:7px 14px; border-radius:20px; border:1.5px solid rgba(255,255,255,.75); background:rgba(0,0,0,.35); color:#fff; font-size:12.5px; font-weight:700; cursor:pointer;} .cam-shoe-enroll[hidden]{display:none;} .cam-shoe-enroll:active{background:rgba(255,255,255,.3);}
+  .cam-shoe-row{display:flex; align-items:center; justify-content:center; gap:10px; width:100%;} .cam-shoe-side{flex:1 1 0; display:flex; justify-content:flex-end;} .cam-shoe-side:first-child{visibility:hidden;} .cam-shoe-side:last-child{justify-content:flex-start;}
+  .cam-shoe-enroll{line-height:1.15; max-width:96px; text-align:center;}
+  .cam-shoe-dots{color:#fff; font-size:13px; letter-spacing:3px; font-weight:700;} .cam-shoe-dots[hidden]{display:none;}
   .cam-shoe-btn:active{background:#fff;} .cam-shoe-btn[disabled]{opacity:.45; cursor:default;} .cam-shoe-btn:focus-visible{outline:3px solid #fff; outline-offset:3px;}
   .steps li.on{color:var(--accent); border-color:var(--accent); background:#eff4ff;}
   .steps li.done{color:#0f7a41; border-color:#bfe6cf; background:#e7f7ee;}
@@ -127,6 +131,25 @@
   .ck-note{font-size:11.5px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45;}
   .ck-lock{background:#FFF4DB; color:#8a5a00; border-radius:9px; padding:10px 12px; font-size:12.5px; line-height:1.5; margin-bottom:12px;}
   .ck-done{background:#e7f7ee; color:#0f7a41; border-radius:9px; padding:11px 12px; font-size:13px; font-weight:600; margin-bottom:12px;}
+  .eg{position:relative; flex:none; width:46px; height:46px; border-radius:9px; overflow:hidden; border:1.5px solid var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.15); cursor:pointer; background:#eceef2; padding:0; min-height:0; display:inline-block;}
+  .eg img{width:100%; height:100%; object-fit:cover; display:block;}
+  .eg em{position:absolute; left:0; right:0; bottom:0; background:rgba(232,89,12,.92); color:#fff; font-size:8px; font-weight:800; text-align:center; font-style:normal; letter-spacing:.03em; padding:1px 0;}
+  .eg-lb{position:fixed; inset:0; z-index:100000; background:rgba(15,10,6,.88); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px; box-sizing:border-box;}
+  .eg-lb[hidden]{display:none;}
+  .eg-lb .cap{color:#fff; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; opacity:.9; margin-bottom:6px;}
+  .eg-lb .tt{color:#fff; font-size:15px; font-weight:700; margin-bottom:12px; text-align:center; max-width:560px;}
+  .eg-lb img{max-width:min(100%,560px); max-height:68vh; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.5); background:#222;}
+  .eg-lb .x{position:absolute; top:14px; right:14px; width:38px; height:38px; min-height:0; padding:0; border-radius:50%; border:none; background:rgba(255,255,255,.22); color:#fff; font-size:19px; cursor:pointer;}
+  .eg-lb .hint{color:#fff; opacity:.75; font-size:12px; margin-top:12px;}
+  .ck-ph{margin-top:14px;} .ck-ph:first-child{margin-top:0;}
+  .ck-phh{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+  .ck-chip{font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:4px 10px; border-radius:12px; white-space:nowrap;}
+  .ck-chip.pre_in{background:#fde8e8; color:#a31515;} .ck-chip.post_in{background:#e8f0ff; color:#1d4fb8;} .ck-chip.pre_out{background:#FFF4DB; color:#8a5a00;} .ck-chip.post_out{background:#efe8fb; color:#5b2fa8;}
+  .pc-card{border:1px solid var(--line); border-radius:11px; padding:10px 12px; margin-bottom:10px; background:#fffdf9;}
+  .pc-card:last-child{margin-bottom:0;}
+  .pc-ch{display:flex; align-items:center; justify-content:space-between; gap:8px;} .pc-ch b{font-size:14.5px;}
+  .ck-wait{font-size:12px; color:var(--muted); line-height:1.45; padding:8px 10px; border:1px dashed var(--line); border-radius:9px;}
+  .ck-wait ul{margin:4px 0 0; padding-left:18px;}
   .ck-shift{font-size:12px; color:var(--muted); margin-top:8px;}
   .ck-shift b{color:var(--ink);}
   /* Punch-in proofs: Instagram / YouTube comment screenshots (and any the admin adds), uploaded before Punch In */
@@ -181,6 +204,7 @@
   .pf-steps{display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;}
   .pf-steps span{font-size:10.8px; font-weight:700; background:#f1ede6; color:#6b5a48; border-radius:99px; padding:3px 8px;}
   .pf-steps span.on{background:#e7f7ee; color:#0f7a41;}
+  .pf-clean{font-weight:700;color:#b45309;} .pf-clean.c4,.pf-clean.c5{color:var(--ok-fg);} .pf-clean.c1,.pf-clean.c2{color:var(--bad-fg);}
   /* Handwritten lines the admin writes for each proof: one above the link (with a small arrow at Open), one under it */
   .pf-hw{position:relative;}
   .pf-ht,.pf-hb{font-family:Caveat,"Segoe Print","Bradley Hand","Comic Sans MS",cursive; font-weight:700; color:#c2410c; overflow-wrap:anywhere;}
@@ -279,7 +303,7 @@
   .pp .ck-tick.now{background:#fff0e6;}
   /* while a punch is running the page becomes the "Verify" screen */
   body.punching .hm-hd, body.punching #todayStatus, body.punching #camHint, body.punching .pulse,
-  body.punching #doneNote, body.punching #remLock, body.punching #pfCard, body.punching #pfLock, body.punching #hmTiles, body.punching #ckCard, body.punching #remCard, body.punching .hm-links{display:none !important;}
+  body.punching #doneNote, body.punching #remLock, body.punching #pfCard, body.punching #pfLock, body.punching #hmTiles, body.punching #ckCard, body.punching #pcCard, body.punching #remCard, body.punching .hm-links{display:none !important;}
   body.punching .hm-vh{display:flex;}
   body.punching .hm-card{background:none; box-shadow:none; padding:0;}
   @media (max-width:400px){ .hm-card{padding:14px;} .hm-hi b{font-size:18px;} .pulse{height:260px; --btn:152px;} .pulse::before{width:260px; height:260px;} .pulse::after{width:206px; height:206px;} .hm .punch-btns .btn{width:152px; height:152px;} }
@@ -331,7 +355,8 @@
             </div>
             <div id="camShoe" class="cam-shoe" hidden>
               <div class="cam-shoe-t" id="camShoeT">Place your shoes in the frame</div>
-              <button type="button" class="cam-shoe-btn" id="btnShoeSnap" aria-label="Take the footwear photo"></button>
+              <div class="cam-shoe-dots" id="camShoeDots" hidden aria-hidden="true"></div>
+              <div class="cam-shoe-row"><span class="cam-shoe-side"></span><button type="button" class="cam-shoe-btn" id="btnShoeSnap" aria-label="Take the footwear photo"></button><span class="cam-shoe-side"><button type="button" class="cam-shoe-enroll" id="btnShoeEnroll">Enroll new shoes</button></span></div>
             </div>
             <div id="camOverlay" class="cam-overlay">Starting camera…</div>
           </div>
@@ -371,13 +396,22 @@
            for everybody else (the card is only shown once the server says
            this employee is on the store checklist). -->
       <div class="card" style="max-width:560px; display:none;" id="ckCard">
-        <div class="card-head"><h2>Opening checklist</h2></div>
+        <div class="card-head"><h2 id="ckHead">Opening checklist</h2></div>
         <div style="padding:14px 20px;">
           <div id="ckAlert"></div>
           <div id="ckBox" class="loading" style="padding:0;">Loading...</div>
         </div>
       </div>
+      <!-- Photo categories the admin made (Cleaning › Shoe rack / Floor / Fan …); shown only when one applies to this employee. -->
+      <div class="card" style="max-width:560px; display:none;" id="pcCard">
+        <div class="card-head"><h2>Photo tasks</h2></div>
+        <div style="padding:14px 20px;">
+          <div id="pcAlert"></div>
+          <div id="pcBox"></div>
+        </div>
+      </div>
       <input type="file" accept="image/*" capture="environment" id="ckFile" style="display:none;">
+      <input type="file" accept="image/*" capture="environment" id="pcFile" style="display:none;">
       <input type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif,.avif,.tif,.tiff" id="pfFile" style="display:none;">
 
       <div class="card" style="max-width:560px;" id="remCard">
@@ -445,6 +479,7 @@
   let stream = null;             // the live camera, only while a punch runs
   let cancelled = false;         // ✕ tapped, or the app was left mid-punch
   let todayRow = null;
+  let shoeEnrolled = true;  // the employee has enrolled their shoes (attendance.today; false = the 5-side enrollment comes first)
   let fwRequired = false;   // footwear photo needed at Punch In (from attendance.today; admin switch FOOTWEAR_CHECK)
 
   let alertTimer = null;
@@ -554,6 +589,7 @@
       const a = data.attendance;
       todayRow = a;
       fwRequired = !!data.footwear_required;
+      shoeEnrolled = data.shoe_enrolled !== false;
       const fmt = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
       // The employee's own working time, when one has been given to them.
       const sh = data.shift || {};
@@ -596,6 +632,7 @@
       document.getElementById('pulse').hidden = done;          // nothing left to tap once done
       document.getElementById('camHint').hidden = done;
       loadChecklist();
+      loadCats();
       loadProofs();
     } catch (err) {
       document.getElementById('todayStatus').classList.remove('loading');
@@ -615,13 +652,41 @@
   let ckTaskId = 0;
   let ckBusy = false;
 
-  // Punch Out is only offered once the list is in (the server refuses it too).
-  const CK_LOCK_MSG = 'Finish and submit the opening checklist first';
+  // Store tasks have four timings: pre_in (Punch In stays locked until the photos are in), post_in (the opening checklist, needs Submit),
+  // pre_out (opens once the opening list is submitted; Punch Out stays locked until done) and post_out (opens after Punch Out, blocks nothing).
+  // The server refuses Punch In / Out too; this only keeps the buttons honest.
+  const CK_LOCK_MSG = 'Finish and submit the store tasks first';
+  const CK_IN_MSG = 'Take the Before Punch In photos first';
+  const CK_PHASES = ['pre_in', 'post_in', 'pre_out', 'post_out'];
+  const CK_NAMES = { pre_in: 'Before Punch In', post_in: 'After Punch In', pre_out: 'Before Punch Out', post_out: 'After Punch Out' };
+  function ckStatus(d) {
+    const inn = !!Number(d.punched_in), out = !!Number(d.punched_out);
+    const ph = d.phases || {};
+    const openingDone = !(ph.post_in && ph.post_in.tasks_total) || !!d.submitted_at;
+    return {
+      pre_in: inn ? 'closed' : 'open',
+      post_in: !inn ? 'wait' : (out ? 'closed' : 'open'),
+      pre_out: !inn ? 'wait' : (out ? 'closed' : (openingDone ? 'open' : 'wait')),
+      post_out: out ? 'open' : 'wait',
+    };
+  }
   function ckApplyLock() {
     const d = ckState;
-    const lock = !!(d && Number(d.is_store) && Number(d.punched_in) && d.tasks_total && !d.submitted_at);
-    if (lock) { btnOut.disabled = true; btnOut.title = CK_LOCK_MSG; }
-    else if (btnOut.title === CK_LOCK_MSG) { btnOut.disabled = false; btnOut.title = ''; }
+    const store = !!(d && Number(d.is_store) && d.phases);
+    const ph = store ? d.phases : {};
+    const lockIn = store && !Number(d.punched_in) && ph.pre_in.tasks_total && !ph.pre_in.complete;
+    const lockOut = store && Number(d.punched_in) && !Number(d.punched_out)
+      && ((ph.post_in.tasks_total && !d.submitted_at) || (ph.pre_out.tasks_total && !ph.pre_out.complete));
+    const pl = pcLocks();                    // photo categories lock Punch In / Out the same way
+    const outMsg = lockOut ? CK_LOCK_MSG : (pl.out ? PC_OUT_MSG : '');
+    const inMsg = (lockIn || pl.inn) ? CK_IN_MSG : '';
+    if (outMsg) { btnOut.disabled = true; btnOut.title = outMsg; }
+    else if (btnOut.title === CK_LOCK_MSG || btnOut.title === PC_OUT_MSG) { btnOut.disabled = false; btnOut.title = ''; }
+    if (inMsg) { btnIn.disabled = true; if (!btnIn.title) btnIn.title = inMsg; }
+    else if (btnIn.title === CK_IN_MSG) {
+      btnIn.title = '';
+      if (faceLoaded && !busy && !(reminderNeeded && !reminderOn)) btnIn.disabled = false;
+    }
   }
 
   function ckAlert(msg, type = 'error') {
@@ -644,55 +709,98 @@
     }
   }
 
+  // Optional example photo: a small square next to a task / proof; tapping it shows the photo big, on this same page (never a new tab).
+  function egSquare(kind, id, v, title) {
+    const url = api.buildUrl('example.image', { kind, id, token: api.token() || '', v: v || '' });
+    return `<button type="button" class="eg" data-egu="${pfEsc(url)}" data-egt="${pfEsc(title)}" aria-label="See an example photo for ${pfEsc(title)}"><img src="${pfEsc(url)}" alt="" loading="lazy"><em>EXAMPLE</em></button>`;
+  }
+  const egLb = document.createElement('div');
+  egLb.className = 'eg-lb'; egLb.hidden = true;
+  egLb.innerHTML = '<button type="button" class="x" aria-label="Close">✕</button><div class="cap">Example photo</div><div class="tt"></div><img alt="Example photo"><div class="hint">Take your photo like this · tap anywhere to close</div>';
+  document.body.appendChild(egLb);
+  const egClose = () => { egLb.hidden = true; egLb.querySelector('img').removeAttribute('src'); };
+  egLb.addEventListener('click', egClose);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !egLb.hidden) egClose(); });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.eg');
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    egLb.querySelector('.tt').textContent = b.dataset.egt || '';
+    egLb.querySelector('img').src = b.dataset.egu;
+    egLb.hidden = false;
+  }, true);
+
+  function ckTaskRow(t, i, canShoot, canRemove, firstOpen) {
+    const have = t.photos.length;
+    const left = t.photos_required - have;
+    const isNow = canShoot && !t.done && firstOpen.v;
+    if (isNow) firstOpen.v = false;
+    const shots = t.photos.map(p => `
+      <span class="ck-shot"><img src="${ckPhotoUrl(p.photo)}" alt="">${canRemove ? `<button type="button" title="Remove this photo" onclick="ckRemove(${p.photo_id})">×</button>` : ''}</span>`).join('');
+    // The empty slot is only shown next to photos already taken; a task with nothing yet just gets the button underneath.
+    const addSlot = canShoot && left > 0 && have > 0 ? `<span class="ck-shot" style="background:#fff; border:1.5px dashed #b6bdc8; display:flex; align-items:center; justify-content:center; color:#7b8494; font-size:19px; cursor:pointer;" onclick="ckShoot(${t.task_id})">+</span>` : '';
+    const sub = t.done
+      ? (t.photos[0] ? `${t.photos.length} photo${t.photos.length === 1 ? '' : 's'} · ${hm12(t.photos[t.photos.length - 1].taken_at.slice(11, 16))}` : 'done')
+      : (have ? `${have} of ${t.photos_required} photos` : `${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}`);
+    return `<div class="ck-task">
+        <span class="ck-tick ${t.done ? 'on' : (isNow ? 'now' : '')}">${t.done ? '✓' : (i + 1)}</span>
+        <div class="ck-body">
+          <div class="ck-name">${pfEsc(t.title)}</div>
+          <div class="ck-sub">${sub}</div>
+          ${(shots || addSlot) ? `<div class="ck-shots">${shots}${addSlot}</div>` : ''}
+          ${isNow ? `<button type="button" class="btn ck-cam" onclick="ckShoot(${t.task_id})">📷 ${have ? 'Take ' + left + ' more photo' + (left === 1 ? '' : 's') : 'Take photo'}</button>` : ''}
+        </div>
+        ${t.example ? egSquare('task', t.task_id, t.example, t.title) : ''}
+      </div>`;
+  }
+
   function renderChecklist() {
     const d = ckState;
     const box = document.getElementById('ckBox');
     box.classList.remove('loading');
-    if (!d.tasks_total) { box.innerHTML = '<div style="font-size:13px; color:var(--muted);">No opening tasks are set for you yet.</div>'; return; }
+    const P = d.phases || {};
+    const total = CK_PHASES.reduce((n, k) => n + (P[k] ? P[k].tasks_total : 0), 0);
+    if (!total) { box.innerHTML = '<div style="font-size:13px; color:var(--muted);">No store tasks are set for you yet.</div>'; ckApplyLock(); return; }
+    const st = ckStatus(d);
     const submitted = !!d.submitted_at;
-    const pct = d.photos_need ? Math.max(2, Math.round(d.photos_have / d.photos_need * 100)) : 0;
-    let head = '';
-    if (submitted) {
-      head = `<div class="ck-done">✓ Opening checklist submitted at ${hm12(d.submitted_at.slice(11, 16))} · ${d.photos_have} photo${d.photos_have === 1 ? '' : 's'}</div>`;
-    } else if (!Number(d.punched_in)) {
-      head = `<div class="ck-lock"><b>Punch in first.</b> The task photos can be uploaded once you have punched in.</div>`;
-    } else {
-      head = `<div class="ck-lock"><b>${d.tasks_total} opening tasks to finish.</b> Take the photo as you do each one — Punch Out opens after all ${d.photos_need} photos are uploaded and you tap Submit.</div>`;
-    }
-    const canShoot = Number(d.punched_in) && !submitted;
-    let firstOpen = true;
-    const rows = d.tasks.map((t, i) => {
-      const have = t.photos.length;
-      const left = t.photos_required - have;
-      const isNow = canShoot && !t.done && firstOpen;
-      if (isNow) firstOpen = false;
-      const shots = t.photos.map(p => `
-        <span class="ck-shot"><img src="${ckPhotoUrl(p.photo)}" alt="">${!submitted ? `<button type="button" title="Remove this photo" onclick="ckRemove(${p.photo_id})">×</button>` : ''}</span>`).join('');
-      // The empty slot is only shown next to photos already taken; a task
-      // with nothing yet just gets the button underneath.
-      const addSlot = canShoot && left > 0 && have > 0 ? `<span class="ck-shot" style="background:#fff; border:1.5px dashed #b6bdc8; display:flex; align-items:center; justify-content:center; color:#7b8494; font-size:19px; cursor:pointer;" onclick="ckShoot(${t.task_id})">+</span>` : '';
-      const sub = t.done
-        ? (t.photos[0] ? `${t.photos.length} photo${t.photos.length === 1 ? '' : 's'} · ${hm12(t.photos[t.photos.length - 1].taken_at.slice(11, 16))}` : 'done')
-        : (have ? `${have} of ${t.photos_required} photos` : `${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}`);
-      return `<div class="ck-task">
-          <span class="ck-tick ${t.done ? 'on' : (isNow ? 'now' : '')}">${t.done ? '✓' : (i + 1)}</span>
-          <div class="ck-body">
-            <div class="ck-name">${t.title}</div>
-            <div class="ck-sub">${sub}</div>
-            ${(shots || addSlot) ? `<div class="ck-shots">${shots}${addSlot}</div>` : ''}
-            ${isNow ? `<button type="button" class="btn ck-cam" onclick="ckShoot(${t.task_id})">📷 ${have ? 'Take ' + left + ' more photo' + (left === 1 ? '' : 's') : 'Take photo'}</button>` : ''}
-          </div>
-        </div>`;
+    const onlyOpening = CK_PHASES.every(k => k === 'post_in' || !P[k].tasks_total);
+    document.getElementById('ckHead').textContent = onlyOpening ? 'Opening checklist' : 'Store tasks';
+    const sections = CK_PHASES.map((k) => {
+      const p = P[k];
+      if (!p || !p.tasks_total) return '';
+      const s = st[k];
+      const pill = `<span class="ck-pill ${p.complete ? 'ok' : ''}">${p.tasks_done} of ${p.tasks_total}</span>`;
+      const chip = `<div class="ck-phh"><span class="ck-chip ${k}">${CK_NAMES[k]}</span>${pill}</div>`;
+      const firstOpen = { v: true };
+      if (k === 'pre_in' && s === 'closed' && !p.complete) return '';           // admin added it after Punch In: not asked any more
+      if (s === 'wait') {
+        const why = k === 'post_in' ? 'Punch in first. The photos can be uploaded once you have punched in.'
+          : (k === 'pre_out' ? 'Opens after you submit the opening checklist.' : 'Opens after you punch out.');
+        return `<div class="ck-ph">${chip}<div class="ck-wait">${why}<ul>${p.tasks.map(t => `<li>${pfEsc(t.title)} · ${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}</li>`).join('')}</ul></div></div>`;
+      }
+      const pct = p.photos_need ? Math.max(2, Math.round(p.photos_have / p.photos_need * 100)) : 0;
+      let head = '', canShoot = s === 'open', canRemove = s === 'open', extra = '';
+      if (k === 'pre_in') {
+        head = p.complete ? `<div class="ck-done">✓ Before Punch In photos done</div>`
+          : `<div class="ck-lock"><b>${p.tasks_total} task${p.tasks_total === 1 ? '' : 's'} before you can punch in.</b> Take the photo, then Punch In opens.</div>`;
+      } else if (k === 'post_in') {
+        canShoot = s === 'open' && !submitted; canRemove = !submitted;
+        head = submitted ? `<div class="ck-done">✓ Opening checklist submitted at ${hm12(d.submitted_at.slice(11, 16))} · ${p.photos_have} photo${p.photos_have === 1 ? '' : 's'}</div>`
+          : `<div class="ck-lock"><b>${p.tasks_total} opening task${p.tasks_total === 1 ? '' : 's'} to finish.</b> Take the photo as you do each one — Punch Out opens after all ${p.photos_need} photos are uploaded and you tap Submit.</div>`;
+        extra = submitted ? '' : `<button type="button" class="btn" id="ckSubmit" style="width:100%; margin-top:6px;" ${p.complete ? '' : 'disabled'}>Submit checklist · ${p.photos_have} / ${p.photos_need} photos</button>
+           <div class="ck-note">Punch Out stays locked until the checklist is submitted</div>`;
+      } else if (k === 'pre_out') {
+        head = p.complete ? `<div class="ck-done">✓ Closing photos done</div>`
+          : `<div class="ck-lock"><b>${p.tasks_total} closing task${p.tasks_total === 1 ? '' : 's'}.</b> Finish ${p.tasks_total === 1 ? 'it' : 'them'}, then Punch Out opens.</div>`;
+      } else {
+        head = p.complete ? `<div class="ck-done">✓ After Punch Out photos done</div>`
+          : `<div class="ck-lock" style="background:#efe8fb; color:#5b2fa8;"><b>${p.tasks_total} task${p.tasks_total === 1 ? '' : 's'} after Punch Out.</b> Your day closes when ${p.tasks_total === 1 ? 'it is' : 'they are'} done.</div>`;
+      }
+      const rows = p.tasks.map((t, i) => ckTaskRow(t, i, canShoot, canRemove, firstOpen)).join('');
+      return `<div class="ck-ph">${chip}${head}<div class="ck-bar ${p.complete ? 'done' : ''}"><i style="width:${pct}%;"></i></div>${rows}${extra}</div>`;
     }).join('');
-    ckApplyLock();
-    const submitBtn = submitted
-      ? ''
-      : `<button type="button" class="btn" id="ckSubmit" style="width:100%; margin-top:6px;" ${d.complete ? '' : 'disabled'}>Submit checklist · ${d.photos_have} / ${d.photos_need} photos</button>
-         <div class="ck-note">Punch Out stays locked until the checklist is submitted</div>`;
-    box.innerHTML = `${head}
-      <div class="ck-head"><b style="font-size:13.5px;">Tasks</b><span class="ck-pill ${d.complete ? 'ok' : ''}">${d.tasks_done} of ${d.tasks_total}</span></div>
-      <div class="ck-bar ${d.complete ? 'done' : ''}"><i style="width:${pct}%;"></i></div>
-      ${rows}${submitBtn}`;
+    ckApplyLock(); pfApplyLock();
+    box.innerHTML = sections;
     const sb = document.getElementById('ckSubmit');
     if (sb) sb.addEventListener('click', ckSubmit);
   }
@@ -763,6 +871,149 @@
     } finally { ckBusy = false; }
   }
 
+  // ---------- Photo categories (admin: Punch-in proofs › + Add category) ----------
+  // One card per timing: each category is a group of items (Shoe rack, Floor, Fan …) with its own photos, taken with the phone camera.
+  // Before Punch In locks Punch In; After Punch In and Before Punch Out lock Punch Out; After Punch Out blocks nothing.
+  // The server refuses Punch In / Out too — ckApplyLock() (below) only keeps the buttons honest.
+  const pcCard = document.getElementById('pcCard');
+  const pcFile = document.getElementById('pcFile');
+  let pcState = null;
+  let pcItemId = 0;
+  let pcBusy = false;
+  const PC_OUT_MSG = 'Finish the photo tasks first';
+  function pcLocks() {
+    const d = pcState;
+    if (!d || !Number(d.total) || !d.phases) return { inn: false, out: false };
+    const ph = d.phases, inn = !!Number(d.punched_in), out = !!Number(d.punched_out);
+    return {
+      inn: !inn && !!ph.pre_in.items_total && !ph.pre_in.complete,
+      out: inn && !out && ((!!ph.post_in.items_total && !ph.post_in.complete) || (!!ph.pre_out.items_total && !ph.pre_out.complete)),
+    };
+  }
+  function pcIcon(name) {
+    const n = String(name || '').toLowerCase();
+    if (/clean|safai|sweep|mop|wash/.test(n)) return '🧹';
+    if (/cash|money|counter|close|closing|bill/.test(n)) return '💵';
+    if (/light|bulb|lamp/.test(n)) return '💡';
+    if (/shoe|rack|display|arrange|stock|shelf/.test(n)) return '🗂️';
+    if (/open|opening|set-?up|morning/.test(n)) return '🔑';
+    if (/safe|secur|lock|shutter/.test(n)) return '🔒';
+    return '📸';
+  }
+  function pcAlert(msg, type = 'error') {
+    document.getElementById('pcAlert').innerHTML = msg ? `<div class="alert ${type}" style="margin-bottom:10px;">${pfEsc(msg)}</div>` : '';
+    if (msg) setTimeout(() => { const b = document.getElementById('pcAlert'); if (b) b.innerHTML = ''; }, 5000);
+  }
+  async function loadCats() {
+    try {
+      const d = await api.get('photocat.my');
+      if (!Number(d.total)) { pcCard.style.display = 'none'; pcState = null; ckApplyLock(); return; }
+      pcState = d;
+      renderCats();
+    } catch (err) {
+      pcCard.style.display = 'none';
+      pcState = null;
+      ckApplyLock();
+    }
+  }
+  function pcItemRow(t, i, canShoot, canRemove, firstOpen) {
+    const have = t.photos.length;
+    const left = t.photos_required - have;
+    const isNow = canShoot && !t.done && firstOpen.v;
+    if (isNow) firstOpen.v = false;
+    const shots = t.photos.map(p => `
+      <span class="ck-shot"><img src="${ckPhotoUrl(p.photo)}" alt="">${canRemove ? `<button type="button" title="Remove this photo" onclick="pcRemove(${p.photo_id})">×</button>` : ''}</span>`).join('');
+    const addSlot = canShoot && left > 0 && have > 0 ? `<span class="ck-shot" style="background:#fff; border:1.5px dashed #b6bdc8; display:flex; align-items:center; justify-content:center; color:#7b8494; font-size:19px; cursor:pointer;" onclick="pcShoot(${t.item_id})">+</span>` : '';
+    const sub = t.done
+      ? `${have} photo${have === 1 ? '' : 's'} · ${hm12(t.photos[have - 1].taken_at.slice(11, 16))}`
+      : (have ? `${have} of ${t.photos_required} photos` : `${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}`);
+    return `<div class="ck-task">
+        <span class="ck-tick ${t.done ? 'on' : (isNow ? 'now' : '')}">${t.done ? '✓' : (i + 1)}</span>
+        <div class="ck-body">
+          <div class="ck-name">${pfEsc(t.title)}</div>
+          <div class="ck-sub">${sub}</div>
+          ${(shots || addSlot) ? `<div class="ck-shots">${shots}${addSlot}</div>` : ''}
+          ${isNow ? `<button type="button" class="btn ck-cam" onclick="pcShoot(${t.item_id})">📷 ${have ? 'Take ' + left + ' more photo' + (left === 1 ? '' : 's') : 'Take photo'}</button>` : ''}
+        </div>
+        ${t.example ? egSquare('catitem', t.item_id, t.example, t.title) : ''}
+      </div>`;
+  }
+  function renderCats() {
+    const d = pcState, box = document.getElementById('pcBox');
+    const P = d.phases || {}, st = d.phase_status || {};
+    const html = CK_PHASES.map((k) => {
+      const p = P[k];
+      if (!p || !p.cats.length) return '';
+      if (k === 'pre_in' && st[k] === 'closed' && !p.complete) return '';          // added after Punch In: not asked any more
+      const s = st[k];
+      const chip = `<div class="ck-phh"><span class="ck-chip ${k}">${CK_NAMES[k]}</span><span class="ck-pill ${p.complete ? 'ok' : ''}">${p.cats.filter(c => Number(c.complete)).length} of ${p.cats.length} ${p.cats.length === 1 ? 'category' : 'categories'}</span></div>`;
+      if (s === 'wait') {
+        const why = k === 'post_out' ? 'Opens after you punch out.' : 'Punch in first. The photos can be taken once you have punched in.';
+        return `<div class="ck-ph">${chip}<div class="ck-wait">${why}<ul>${p.cats.map(c => `<li>${pcIcon(c.name)} ${pfEsc(c.name)} · ${c.items_total} item${c.items_total === 1 ? '' : 's'}</li>`).join('')}</ul></div></div>`;
+      }
+      const open = s === 'open';
+      const names = p.cats.map(c => pfEsc(c.name)).join(', ');
+      let head;
+      if (p.complete) head = `<div class="ck-done">✓ ${CK_NAMES[k]} photos done</div>`;
+      else if (k === 'pre_in') head = `<div class="ck-lock"><b>${names}: ${p.items_total} item${p.items_total === 1 ? '' : 's'} before you can punch in.</b> Take the photo for each one, then Punch In opens.</div>`;
+      else if (k === 'post_out') head = `<div class="ck-lock" style="background:#efe8fb; color:#5b2fa8;"><b>${names}: ${p.items_total} item${p.items_total === 1 ? '' : 's'} after Punch Out.</b> Your day closes when ${p.items_total === 1 ? 'it is' : 'they are'} done.</div>`;
+      else head = `<div class="ck-lock"><b>${names}: ${p.items_total} item${p.items_total === 1 ? '' : 's'}.</b> Take the photo as you finish each one. Punch Out opens when all are done.</div>`;
+      const cards = p.cats.map((c) => {
+        const pct = c.photos_need ? Math.max(2, Math.round(c.photos_have / c.photos_need * 100)) : 0;
+        const firstOpen = { v: true };
+        return `<div class="pc-card"><div class="pc-ch"><b>${pcIcon(c.name)} ${pfEsc(c.name)}</b><span class="ck-pill ${Number(c.complete) ? 'ok' : ''}">${c.items_done} of ${c.items_total}${Number(c.complete) ? ' ✓' : ''}</span></div>
+          <div class="ck-bar ${Number(c.complete) ? 'done' : ''}"><i style="width:${pct}%;"></i></div>
+          ${c.items.map((t, i) => pcItemRow(t, i, open, open, firstOpen)).join('')}</div>`;
+      }).join('');
+      return `<div class="ck-ph">${chip}${head}${cards}</div>`;
+    }).join('');
+    pcCard.style.display = html ? '' : 'none';
+    box.innerHTML = html;
+    ckApplyLock(); pfApplyLock();
+  }
+  window.pcShoot = function (itemId) {
+    if (pcBusy) return;
+    pcItemId = itemId;
+    pcFile.value = '';
+    pcFile.click();
+  };
+  pcFile.addEventListener('change', async () => {
+    const file = pcFile.files && pcFile.files[0];
+    if (!file || !pcItemId) return;
+    pcBusy = true;
+    pcAlert('');
+    const box = document.getElementById('pcBox');
+    box.style.opacity = '.6';
+    try {
+      const fd = new FormData();
+      fd.append('item_id', pcItemId);
+      fd.append('photo', file, 'item.jpg');
+      try { const f = await getLocation(); fd.append('lat', f.lat); fd.append('lng', f.lng); } catch (e) { /* photo is still saved */ }
+      const d = await api.upload('photocat.upload', fd);
+      pcState = Object.assign({}, pcState, d);
+      renderCats();
+    } catch (err) {
+      pcAlert(err.message);
+    } finally {
+      pcBusy = false;
+      box.style.opacity = '';
+      pcFile.value = '';
+    }
+  });
+  window.pcRemove = async function (photoId) {
+    if (pcBusy) return;
+    pcBusy = true;
+    try {
+      const fd = new FormData();
+      fd.append('photo_id', photoId);
+      const d = await api.upload('photocat.remove_photo', fd);
+      pcState = Object.assign({}, pcState, d);
+      renderCats();
+    } catch (err) {
+      pcAlert(err.message);
+    } finally { pcBusy = false; }
+  };
+
   // ---------- Punch-in proofs ----------
   // Instagram / YouTube comment screenshots (and any other proof the admin adds). The card only shows when at least
   // one applies to this employee. Punch In stays locked until every one is uploaded — the server refuses it too.
@@ -829,6 +1080,11 @@
   }
   window.pfLinkOpened = function (id) { pfOpened[id] = 1; setTimeout(renderProofs, 400); };
 
+  // Shoe cleanliness rating (1-5) from the footwear AI: stars + words.
+  const CLEAN_WORDS = ['', 'Very dirty', 'Dirty', 'Average', 'Clean', 'Spotless'];
+  const cleanStars = (n) => { n = Math.max(0, Math.min(5, Number(n) || 0)); return '★'.repeat(n) + '☆'.repeat(5 - n); };
+  const cleanTxt = (n) => `Cleanliness ${cleanStars(n)} ${Number(n)}/5 · ${CLEAN_WORDS[Number(n)] || ''}`;
+
   function pfItemHtml(it, punched) {
     const id = Number(it.rule_id), need = Number(it.shots_required), have = Number(it.have);
     const editing = !!pfEdit[id];
@@ -842,12 +1098,14 @@
       const last = proofs[proofs.length - 1];
       const dlk = pfLinkInfo(it);
       const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded'));
-      const subLk = dlk ? `<br><a href="${pfEsc(dlk.url)}" target="_blank" rel="noopener noreferrer">${pfEsc(dlk.label)} ↗</a>` : '';
+      const rate = (Number(it.footwear) === 1 && last && last.clean_rating != null) ? `<br><span class="pf-clean c${Number(last.clean_rating)}">${pfEsc(cleanTxt(last.clean_rating))}</span>${last.clean_note ? ` <small>(${pfEsc(last.clean_note)})</small>` : ''}` : '';
+      const subLk = (dlk ? `<br><a href="${pfEsc(dlk.url)}" target="_blank" rel="noopener noreferrer">${pfEsc(dlk.label)} ↗</a>` : '') + rate;
       return `<div class="pf-req">${tile}<div class="pf-body">
         <div class="pf-name">${pfEsc(it.title)} <span class="pf-tick">✓</span></div>
         <div class="pf-got"><div class="pf-shots">${thumbs}</div>
           <div class="pf-meta"><b>Saved ${last ? hm12(String(last.uploaded_at).slice(11, 16)) : ''}</b>${sub}${subLk}</div>
           ${(!punched && need === 1) ? `<button type="button" class="pf-alt" onclick="pfEditOn(${id})">Replace</button>` : ''}
+          ${(!punched && Number(it.footwear) === 1) ? `<button type="button" class="pf-alt" onclick="pfShoe(${id}, true, true)">Enroll new shoes</button>` : ''}
         </div></div></div>`;
     }
     const redo = Number(it.redo) ? `<div class="pf-redo">Sent back: ${pfEsc(it.redo_note)}</div>` : '';
@@ -880,7 +1138,7 @@
       ${lkHtml}
       ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} screenshots saved</div>` : ''}
       ${linkIn}
-      <div class="pf-acts"><button type="button" class="pf-up" onclick="${shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
+      <div class="pf-acts"><button type="button" class="pf-up" onclick="${shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${shoe ? `<button type="button" class="pf-alt" onclick="pfShoe(${id}, ${editing ? 'true' : 'false'}, true)">Enroll new shoes</button>` : ''}${it.example ? `<span style="margin-left:auto;">${egSquare('proof', id, it.example, it.title)}</span>` : ''}${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
     </div></div>`;
   }
 
@@ -1022,7 +1280,7 @@
 
   // Shoes requirement: "Take photo" opens the back camera (no gallery). The server's AI checks the photo inside proofs.upload:
   // shoes = saved + approved, Crocs / slippers / unclear = rejected and the same camera takes the next photo.
-  window.pfShoe = async function (ruleId, replace) {
+  window.pfShoe = async function (ruleId, replace, startEnroll) {
     if (pfBusy || busy) return;
     const it = pfItem(ruleId);
     if (!it) return;
@@ -1037,11 +1295,14 @@
       await openCamera('environment');
       if (cancelled) return;
       panel.classList.add('shoe'); camShoe.hidden = false;
-      for (let tries = 0; tries < 8; tries++) {
+      if (startEnroll || !shoeEnrolled) { await shoeEnrollRun(); if (cancelled) return; }   // "Enroll new shoes" (or never enrolled): 5 sides first
+      for (let tries = 0; tries < 12; tries++) {
         setMsg('Take a photo of your footwear…', 'var(--accent)');
-        shoeHint('Place your shoes in the frame, then tap the round button', false);
+        shoeHint('Show your enrolled shoes (any angle), then tap the round button', false);
         btnShoe.disabled = false;
-        if (!(await shoeWaitSnap())) return;                 // ✕ tapped
+        const act = await shoeWaitSnap();
+        if (!act) return;                                    // ✕ tapped
+        if (act === 'enroll') { await shoeEnrollRun(); if (cancelled) return; continue; }
         btnShoe.disabled = true;
         shoeHint('Checking your footwear…', false);
         overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
@@ -1058,6 +1319,7 @@
           overlay.hidden = true;
           if (cancelled) return;
           const data = e.data || {};
+          if (data.footwear && data.footwear.enroll_required) { shoeEnrolled = false; await shoeEnrollRun(); if (cancelled) return; continue; }
           if (data.retake) {                                  // rejected: stay on the camera and take it again
             const fw = data.footwear || {};
             shoeHint(e.message + (fw.shoe_type_detected ? ' (seen: ' + fw.shoe_type_detected + ')' : ''), true);
@@ -1071,13 +1333,14 @@
         overlay.hidden = true;
         pfState = d; delete pfEdit[ruleId];                   // saved: show it even if ✕ was tapped a moment ago
         renderProofs();
+        if (!cancelled) setMsg('');
         return;
       }
-      throw new Error('Footwear not approved after several tries — wear proper closed shoes (no Crocs / slippers / sandals) and tap Take photo again.');
+      throw new Error('Footwear not approved after several tries — wear your enrolled shoes (or tap Enroll new shoes) and try again.');
     } catch (err) {
       if (!cancelled && err.message !== 'cancelled') pfAlert(err.message);
     } finally {
-      camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false;
+      camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; btnShoeEnroll.hidden = false; camShoeDots.hidden = true;
       document.body.classList.remove('punching');
       closeCamera();
       ckApplyLock(); pfApplyLock(); applyRemLock();
@@ -1528,13 +1791,67 @@
   // On a rejection the camera stays open so they can simply take it again. Resolves with the approved photo; throws on cancel / failure.
   const camShoe = document.getElementById('camShoe'), camShoeT = document.getElementById('camShoeT'), btnShoe = document.getElementById('btnShoeSnap');
   function shoeHint(t, bad) { camShoeT.textContent = t; camShoeT.classList.toggle('bad', !!bad); }
+  const btnShoeEnroll = document.getElementById('btnShoeEnroll'), camShoeDots = document.getElementById('camShoeDots');
+  // Resolves 'snap' (round button), 'enroll' ("Enroll new shoes") or false (✕ tapped / app left).
   function shoeWaitSnap() {
     return new Promise((resolve) => {
-      const finish = (v) => { btnShoe.removeEventListener('click', onClick); clearInterval(timer); resolve(v); };
-      const onClick = () => finish(true);
-      btnShoe.addEventListener('click', onClick);
+      const finish = (v) => { btnShoe.removeEventListener('click', onSnap); btnShoeEnroll.removeEventListener('click', onEnroll); clearInterval(timer); resolve(v); };
+      const onSnap = () => finish('snap');
+      const onEnroll = () => finish('enroll');
+      btnShoe.addEventListener('click', onSnap);
+      btnShoeEnroll.addEventListener('click', onEnroll);
       const timer = setInterval(() => { if (cancelled) finish(false); }, 150);
     });
+  }
+  // A photo to the server (multipart). Returns [http response, json answer].
+  async function shoePost(action, fd) {
+    let res, data;
+    try {
+      res = await fetch(api.buildUrl(action), { method: 'POST', headers: { 'Authorization': 'Bearer ' + api.token() }, body: fd });
+      data = await res.json().catch(() => ({}));
+    } catch (e) { throw new Error('No connection — check your internet and tap again.'); }
+    return [res, data];
+  }
+  // "Enroll new shoes": 5 photos (outer, inner, toe, heel, top) of the SAME shoes. The camera is already open (shoe mode).
+  // The server refuses anything but real shoes and a pair another employee has already enrolled. Resolves when the 5th photo is saved.
+  const SHOE_SIDES = ['outer side', 'inner side', 'toe (front)', 'heel (back)', 'top'];
+  async function shoeEnrollRun() {
+    btnShoeEnroll.hidden = true; camShoeDots.hidden = false;
+    try {
+      let side = 0;
+      for (let tries = 0; side < 5; tries++) {
+        if (tries > 30) throw new Error('Too many tries — ask HR for help.');
+        camShoeDots.textContent = '●'.repeat(side) + '○'.repeat(5 - side);
+        shoeHint(`Enroll new shoes · photo ${side + 1} of 5. Show the ${SHOE_SIDES[side]} of your shoes, then tap the round button`, false);
+        setMsg(`Enroll new shoes: photo ${side + 1} of 5`, 'var(--accent)');
+        btnShoe.disabled = false;
+        if ((await shoeWaitSnap()) !== 'snap') throw new Error('cancelled');
+        btnShoe.disabled = true;
+        shoeHint(side === 0 ? 'Checking your shoes…' : 'Saving photo ' + (side + 1) + '…', false);
+        overlay.hidden = false; overlay.textContent = side === 0 ? 'Checking these are shoes, and not enrolled by anyone else…' : 'Saving photo ' + (side + 1) + '…';
+        const blob = await frameBlob();
+        const fd = new FormData(); fd.append('photo', blob, 'shoe.jpg'); fd.append('side', side);
+        const [res, data] = await shoePost('footwear.enroll_photo', fd);
+        if (cancelled) throw new Error('cancelled');
+        overlay.hidden = true;
+        if (data.is_valid) {
+          side++;
+          if (data.enrolled) {
+            camShoeDots.textContent = '●●●●●';
+            shoeHint('Shoes enrolled ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), false);
+            setMsg('Shoes enrolled ✓ — locked to you. Only these shoes work for your Punch In.', 'var(--ok-fg)');
+            shoeEnrolled = true;
+            await sleep(1800);
+            return data;
+          }
+          continue;
+        }
+        if (data.retake === false || (!res.ok && !data.message)) throw new Error(data.message || data.error || 'Shoe enrollment failed.');
+        shoeHint(data.message || 'Rejected: please take the photo again.', true);
+        setMsg(data.message || 'Rejected', 'var(--bad-fg)');
+        await sleep(3200);
+      }
+    } finally { btnShoeEnroll.hidden = false; camShoeDots.hidden = true; btnShoe.disabled = false; }
   }
   async function footwearStep() {
     step('footwear', 'on');
@@ -1543,24 +1860,25 @@
     if (cancelled) throw new Error('cancelled');
     panel.classList.add('shoe'); camShoe.hidden = false;
     try {
-      for (let tries = 0; tries < 8; tries++) {
+      if (!shoeEnrolled) { await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); }       // first time: enroll the shoes (5 sides)
+      for (let tries = 0; tries < 12; tries++) {
         step('footwear', 'on');
-        shoeHint('Place your shoes in the frame, then tap the round button', false);
+        shoeHint('Show your enrolled shoes (any angle), then tap the round button', false);
+        setMsg('Take a photo of your footwear…', 'var(--accent)');
         btnShoe.disabled = false;
-        if (!(await shoeWaitSnap())) throw new Error('cancelled');
+        const act = await shoeWaitSnap();
+        if (!act) throw new Error('cancelled');
+        if (act === 'enroll') { await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); continue; }
         btnShoe.disabled = true;
         shoeHint('Checking your footwear…', false);
         overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
         const blob = await frameBlob();
         const fd = new FormData(); fd.append('photo', blob, 'footwear.jpg');
-        let res, data;
-        try {
-          res = await fetch(api.buildUrl('attendance.footwear_check'), { method: 'POST', headers: { 'Authorization': 'Bearer ' + api.token() }, body: fd });
-          data = await res.json().catch(() => ({}));
-        } catch (e) { throw new Error('No connection — check your internet and tap again.'); }
+        const [res, data] = await shoePost('attendance.footwear_check', fd);
         if (cancelled) throw new Error('cancelled');
         overlay.hidden = true;
-        if (data.is_valid) { step('footwear', 'done'); setMsg('Footwear approved ✓', 'var(--ok-fg)'); return blob; }
+        if (data.is_valid) { step('footwear', 'done'); setMsg('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), 'var(--ok-fg)'); if (data.cleanliness) await sleep(1500); return blob; }
+        if (data.enroll_required) { shoeEnrolled = false; await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); continue; }
         if (data.retake === false || (!res.ok && !data.message)) { step('footwear', 'bad'); throw new Error(data.message || data.error || 'Footwear check failed.'); }
         step('footwear', 'bad');
         shoeHint((data.message || 'Rejected: please take the photo again.') + (data.shoe_type_detected ? ' (seen: ' + data.shoe_type_detected + ')' : ''), true);
@@ -1568,8 +1886,8 @@
         await sleep(3200);                                   // time to read it, then the same camera takes the next photo
       }
       step('footwear', 'bad');
-      throw new Error('Footwear not approved after several tries — wear proper closed shoes (no Crocs / slippers / sandals) and tap Punch In again.');
-    } finally { camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; }
+      throw new Error('Footwear not approved after several tries — wear your enrolled shoes (or tap Enroll new shoes) and tap Punch In again.');
+    } finally { camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; btnShoeEnroll.hidden = false; camShoeDots.hidden = true; }
   }
 
   // ---------- Save ----------

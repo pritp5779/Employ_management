@@ -181,7 +181,7 @@
       <div class="card" id="attCard">
         <table>
           <thead>
-            <tr><th>Employee</th><th style="width:118px;">Shift</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th style="width:190px;">Opening checklist</th><th style="width:170px;">Punch-in proofs</th><th>Photos</th><th style="width:110px;">Face</th></tr>
+            <tr><th>Employee</th><th style="width:118px;">Shift</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Status</th><th style="width:190px;">Store tasks</th><th style="width:170px;">Punch-in proofs</th><th>Photos</th><th style="width:110px;">Face</th></tr>
           </thead>
           <tbody id="tableBody">
             <tr><td colspan="10" class="loading">Loading...</td></tr>
@@ -272,7 +272,7 @@
 </div>
 <div class="modal-overlay" id="ckModal">
   <div class="modal" style="max-width:640px;">
-    <h3 id="ckTitle">Opening checklist</h3>
+    <h3 id="ckTitle">Store tasks</h3>
     <div id="ckSub" style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;"></div>
     <div id="ckAdminAlert"></div>
     <div id="ckBody" style="max-height:62vh; overflow:auto;"></div>
@@ -286,7 +286,7 @@
 <div class="modal-overlay" id="shiftModal">
   <div class="modal" style="max-width:560px;">
     <h3 id="shiftTitle">Working time</h3>
-    <div style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">This employee's own punch-in time. Leave the start empty to keep the Day timing start. Store staff also get an opening checklist they must photograph after punching in.</div>
+    <div style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">This employee's own punch-in time. Leave the start empty to keep the Day timing start. Store staff also get photo tasks (before / after Punch In and Punch Out).</div>
     <div id="shiftAlert"></div>
     <div class="field-grid">
       <div class="field"><label>Shift starts</label><input type="time" id="shStart"></div>
@@ -295,11 +295,11 @@
     </div>
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:13.5px; font-weight:600; margin:4px 0 12px;">
       <input type="checkbox" id="shStore" style="width:16px; height:16px; min-height:0; margin:2px 0 0;">
-      <span>Store employee — opening checklist on
-        <span style="font-weight:400; font-size:12px; color:var(--muted); display:block; margin-top:2px;">Photos required after punch in · Punch Out stays locked until the checklist is submitted.</span></span>
+      <span>Store employee — photo tasks on
+        <span style="font-weight:400; font-size:12px; color:var(--muted); display:block; margin-top:2px;">Each task has a timing: Before Punch In (locks Punch In), After Punch In (opening checklist, locks Punch Out until submitted), Before Punch Out (locks Punch Out) or After Punch Out.</span></span>
     </label>
     <div id="shTasksWrap" style="display:none;">
-      <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;">Checklist for this employee</label>
+      <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;">Tasks for this employee</label>
       <div id="shTasks" style="border:1px solid var(--line); border-radius:9px; overflow:hidden;"></div>
       <div style="display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap;">
         <button type="button" class="btn secondary" id="shAddTask" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px;">+ Add task</button>
@@ -315,6 +315,30 @@
 </div>
 
 <style>
+.ex-th{position:relative; flex:none; border-radius:8px; border:1px solid var(--line); display:inline-block;}
+.ex-th img{width:100%; height:100%; object-fit:cover; border-radius:7px; display:block; cursor:pointer;}
+.ex-th i{position:absolute; top:-7px; right:-7px; width:18px; height:18px; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--bad-fg); font-style:normal; font-size:12px; line-height:16px; text-align:center; cursor:pointer;}
+.ex-add{flex:none; border:1.5px dashed #b9a48c; border-radius:8px; background:#fffaf3; color:#9a8670; font-size:9.5px; font-weight:700; text-align:center; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.15; cursor:pointer;}
+.ex-add b{font-size:17px; line-height:1;}
+.pc-sh{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:18px 0 6px; font-size:11.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--muted);}
+.pc-sh span:last-child{text-transform:none; letter-spacing:0; font-weight:600;}
+.pc-cat{display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; border:1px solid var(--line); border-radius:11px; padding:11px 12px; margin-bottom:8px; background:#fffdf9;}
+.pc-cat.pc-off .pc-mid, .pc-cat.pc-off .pc-ic, .pc-cat.pc-off .pc-sc{opacity:.55;}
+.pc-ic{width:38px; height:38px; border-radius:10px; background:#e7f7ee; font-size:19px; display:flex; align-items:center; justify-content:center; flex:none;}
+.pc-mid{flex:2 1 200px; min-width:0;} .pc-mid b{font-size:13.5px;}
+.pc-its{font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.4;}
+.pc-sc{flex:1 1 150px; min-width:0; text-align:right;} .pc-sc .pfa-cnt{margin-top:3px;}
+.pc-ph{display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:11px; white-space:nowrap; margin-left:6px; vertical-align:1px;}
+.pc-irow{display:flex; align-items:center; gap:8px; padding:8px 10px; border-top:1px solid var(--line); flex-wrap:wrap;}
+.pc-irow:first-child{border-top:0;}
+.pc-irow input[type=text]{flex:1 1 110px; min-width:0; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px;}
+.pc-irow input[type=number]{width:56px; padding:7px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;}
+.pc-del{border:none; background:none; color:var(--bad-fg); font-size:15px; cursor:pointer; min-height:0; padding:2px 4px; width:auto;}
+.pc-addi{display:block; width:100%; border:0; border-top:1px solid var(--line); background:#fff; color:#e8590c; font-weight:700; font-size:12.5px; padding:9px 10px; text-align:left; cursor:pointer; min-height:0; border-radius:0;}
+.pc-vcat{margin-top:14px; border:1px solid var(--line); border-radius:11px; padding:10px 12px; background:#fffdf9;}
+.pc-vhead{display:flex; align-items:center; gap:9px; flex-wrap:wrap;} .pc-vhead b{font-size:13.5px;}
+.pc-vit{padding:9px 0; border-top:1px solid var(--line);} .pc-vit:first-of-type{border-top:0;}
+.pc-vit .t{font-size:13px; font-weight:600;} .pc-vit .m{font-size:11.5px; color:var(--muted); margin-top:2px;}
 #monthBody table { width:100%; }
 @media (max-width:600px) {
   #monthModal .modal { padding:16px 12px; }
@@ -329,6 +353,7 @@
       <h3 style="margin:0;">Punch-in proofs</h3>
       <span style="flex:1;"></span>
       <button type="button" class="btn" id="pfAdd" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px;">+ Add requirement</button>
+      <button type="button" class="btn secondary" id="pcAdd" style="width:auto; padding:6px 12px; min-height:0; font-size:12.5px; color:#e8590c; border:1.5px solid #e8590c; background:#fff;">+ Add category</button>
     </div>
     <div style="font-size:12.5px; color:var(--muted); margin:6px 0 12px; line-height:1.5;">Punch In stays locked until the employee has uploaded every proof that applies to them. Each requirement is yours to set up: what they upload, and who it applies to — everyone, whole departments, individual employees, or departments and employees together.</div>
     <div id="pfRulesAlert"></div>
@@ -353,6 +378,9 @@
     </div>
     <div class="field"><label>Name</label><input type="text" id="pfeTitle" maxlength="120" placeholder="e.g. Google review screenshot"></div>
     <div class="field"><label>What the employee sees</label><textarea id="pfeText" rows="3" maxlength="500" placeholder="Tell them exactly what to do and what the screenshot must show"></textarea></div>
+    <div class="field"><label>Example photo <span style="font-weight:500; color:var(--muted);">(optional)</span></label>
+      <div style="display:flex; align-items:center; gap:12px;"><span id="pfeEx"></span><span style="font-size:12px; color:var(--muted); line-height:1.4;">Employees see it as a small square next to this proof. Tap = big view. Leave empty to show nothing.</span></div>
+    </div>
     <div class="field"><label>Link employees must open <span style="font-weight:500; color:var(--muted);">(optional)</span></label>
       <div class="pfa-urlrow"><input type="text" id="pfeUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="500" placeholder="Paste the exact Instagram Reel, YouTube video or other link"><a class="pfa-test" id="pfeUrlTest" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Test ↗</a></div>
       <div id="pfeUrlDet"></div>
@@ -390,6 +418,43 @@
       <button type="button" class="btn secondary" id="pfeDelete" style="margin-right:auto; color:var(--bad-fg); border-color:#f3c9c9; display:none;">Delete</button>
       <button type="button" class="btn secondary" id="pfeCancel">Cancel</button>
       <button type="button" class="btn" id="pfeSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pcEditModal">
+  <div class="modal" style="max-width:580px;">
+    <h3 id="pceHead">Add category</h3>
+    <div style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">One category = a group of photo items, for the people you choose.</div>
+    <div id="pceAlert"></div>
+    <div class="field"><label>Category name</label><input type="text" id="pceName" maxlength="120" placeholder="e.g. Cleaning" autocomplete="off"></div>
+    <div class="field"><label>When is it asked</label>
+      <div class="pfa-seg" id="pcePhase" style="flex-wrap:wrap;"></div>
+      <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45;" id="pcePhaseNote"></div>
+    </div>
+    <div class="field"><label>Items in this category <span style="font-weight:500; color:var(--muted);">(each = photos the employee must take)</span></label>
+      <div id="pceItems" style="border:1px solid var(--line); border-radius:10px; overflow:hidden;"></div>
+    </div>
+    <div class="field"><label>Applies to</label>
+      <div class="pfa-seg" id="pceScope"><button type="button" data-v="1">Everyone</button><button type="button" data-v="0">Selected people</button></div>
+      <div id="pceSel" style="display:none;">
+        <div class="pfa-box"><div class="lbl">Departments</div><div class="pfa-deps" id="pceDeps"></div></div>
+        <div class="pfa-box"><div class="lbl">Individual employees</div>
+          <div class="pfa-chips" id="pceEmpChips"></div>
+          <input type="text" id="pceEmpSearch" placeholder="Search an employee to add…" autocomplete="off" style="margin-top:8px;">
+          <div class="pfa-resbox" id="pceEmpRes" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="pfa-sum" id="pceSum"></div>
+    </div>
+    <label style="display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:#F8FAFF; font-size:13px; font-weight:600; cursor:pointer;">
+      <span class="pfa-tg"><input type="checkbox" id="pceActive"><i></i></span>
+      <span><span id="pceActiveTxt">Category is on</span> <span style="display:block; font-weight:400; font-size:11.5px; color:var(--muted);">Switch off to pause it without losing the setup.</span></span>
+    </label>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="pceDelete" style="margin-right:auto; color:var(--bad-fg); border-color:#f3c9c9; display:none;">Delete</button>
+      <button type="button" class="btn secondary" id="pceCancel">Cancel</button>
+      <button type="button" class="btn" id="pceSave">Save category</button>
     </div>
   </div>
 </div>
@@ -544,7 +609,7 @@
         ? `<span class="badge" style="background:#FFF4DB; color:#8a5a00;">Late ${r.late_minutes} m</span>`
         : '<span class="badge" style="background:#e7f7ee; color:#0f7a41;">On time</span>';
     }
-    // Store staff only: how far the opening checklist got today.
+    // Store staff only: how far the store tasks got today (opening checklist + the other timings).
     const c = r.checklist;
     let checklist = '<span style="color:var(--muted); font-size:12.5px;">—</span>';
     if (c) {
@@ -554,10 +619,17 @@
       const sub = c.submitted_at
         ? `<div style="font-size:10.5px; color:var(--muted);">submitted ${fmtT(c.submitted_at)} · ${c.photos_have} photos</div>`
         : `<div style="font-size:10.5px; color:var(--muted);">${c.photos_have} of ${c.photos_need} photos${c.tasks_total ? ' · not submitted' : ''}</div>`;
-      checklist = c.tasks_total
-        ? `<a href="#" onclick="viewChecklist(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="text-decoration:none;">
-             <span style="font-weight:700; color:${colour};">${c.tasks_done} / ${c.tasks_total}</span>
-             <span style="margin-left:6px; white-space:nowrap;">${squares}</span>${sub}</a>`
+      // The other timings (Before Punch In / Before Punch Out / After Punch Out): one small chip each, green when done.
+      const SHORT = { pre_in: 'Before In', pre_out: 'Before Out', post_out: 'After Out' };
+      const others = Object.keys(SHORT).filter(k => c.phases && c.phases[k] && c.phases[k].tasks_total).map(k => {
+        const q = c.phases[k], ok = Number(q.complete) === 1;
+        return `<span style="display:inline-block; margin:2px 3px 0 0; padding:1px 6px; border-radius:9px; font-size:10.5px; font-weight:700; background:${ok ? '#e7f7ee' : '#FFF4DB'}; color:${ok ? '#0f7a41' : '#8a5a00'};">${SHORT[k]} ${q.tasks_done}/${q.tasks_total}</span>`;
+      }).join('');
+      const nm = (r.full_name || '').replace(/'/g, "\\'");
+      checklist = (c.tasks_total || others)
+        ? `<a href="#" onclick="viewChecklist(${r.employee_id}, '${nm}'); return false;" style="text-decoration:none;">
+             ${c.tasks_total ? `<span style="font-weight:700; color:${colour};">${c.tasks_done} / ${c.tasks_total}</span>
+             <span style="margin-left:6px; white-space:nowrap;">${squares}</span>${sub}` : ''}${others ? `<div>${others}</div>` : ''}</a>`
         : '<span style="color:var(--muted); font-size:12.5px;">no tasks set</span>';
     } else if (!Number(r.is_store)) {
       checklist = '<span style="color:var(--muted); font-size:12px;">not store staff</span>';
@@ -625,7 +697,7 @@
           ${field('Hours', v.hours)}
           ${field('Status', `<span style="color:${v.statusColor}; font-weight:600;">${v.statusText}</span>${v.lateTag ? ' ' + v.lateTag : ''} <button type="button" class="dayedit" data-emp="${r.employee_id}" title="Change to Present / WFH / Leave">✎</button>`)}
           ${field('Shift', `<a href="#" onclick="editShift(${r.employee_id}, '${(r.full_name || '').replace(/'/g, "\\'")}'); return false;" style="font-weight:600; text-decoration:none;">${v.shift}</a> <span style="font-size:10.5px; color:var(--muted);">${v.shiftSub}</span>`)}
-          ${r.checklist ? field('Opening checklist', v.checklist) : ''}
+          ${r.checklist ? field('Store tasks', v.checklist) : ''}
           ${(Array.isArray(r.proofs) && r.proofs.length) ? field('Punch-in proofs', v.proofs) : ''}
         </div>
         ${(v.photoLinks.length || Number(r.face_enrolled))
@@ -902,7 +974,7 @@
 
   window.viewChecklist = async function (empId, name) {
     ckEmpId = empId; ckName = name;
-    document.getElementById('ckTitle').textContent = `${name} — opening checklist`;
+    document.getElementById('ckTitle').textContent = `${name} — store tasks`;
     document.getElementById('ckSub').textContent = new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' });
     document.getElementById('ckBody').innerHTML = '<div class="loading" style="padding:24px 0;">Loading...</div>';
     document.getElementById('ckAdminAlert').innerHTML = '';
@@ -910,21 +982,37 @@
     ckModal.classList.add('open');
     try {
       const d = await api.get('store_tasks.day', { employee_id: empId, date: currentAttDate });
+      const PH = [
+        { k: 'pre_in', n: 'Before Punch In', bg: '#fde8e8', fg: '#a31515' },
+        { k: 'post_in', n: 'After Punch In', bg: '#e8f0ff', fg: '#1d4fb8' },
+        { k: 'pre_out', n: 'Before Punch Out', bg: '#FFF4DB', fg: '#8a5a00' },
+        { k: 'post_out', n: 'After Punch Out', bg: '#efe8fb', fg: '#5b2fa8' },
+      ];
+      const P = d.phases || { post_in: d };
+      const all = PH.reduce((a, x) => { const q = P[x.k]; if (q) { a.done += q.tasks_done; a.total += q.tasks_total; a.have += q.photos_have; a.need += q.photos_need; } return a; }, { done: 0, total: 0, have: 0, need: 0 });
       document.getElementById('ckSub').textContent =
-        `${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })} · ${d.tasks_done} of ${d.tasks_total} tasks · ${d.photos_have} of ${d.photos_need} photos`
-        + (d.submitted_at ? ` · submitted ${fmtT(d.submitted_at)}` : ' · not submitted');
+        `${new Date(currentAttDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })} · ${all.done} of ${all.total} tasks · ${all.have} of ${all.need} photos`
+        + (P.post_in && P.post_in.tasks_total ? (d.submitted_at ? ` · opening submitted ${fmtT(d.submitted_at)}` : ' · opening not submitted') : '');
       document.getElementById('ckReopen').style.display = d.submitted_at ? '' : 'none';
-      document.getElementById('ckBody').innerHTML = (d.tasks || []).map((t, i) => `
+      const taskHtml = (t, i) => `
         <div style="display:flex; gap:10px; align-items:flex-start; padding:10px 2px; border-bottom:1px solid var(--line);">
           <span style="width:20px; height:20px; border-radius:50%; flex:0 0 auto; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
                        background:${t.done ? '#16a34a' : '#e2e6ec'}; color:${t.done ? '#fff' : 'var(--muted)'};">${t.done ? '✓' : (i + 1)}</span>
           <div style="flex:1; min-width:0;">
-            <div style="font-size:13px; font-weight:600;">${t.title}</div>
+            <div style="font-size:13px; font-weight:600;">${attr(t.title)}</div>
             <div style="font-size:11px; color:var(--muted); margin-top:1px;">${t.photos.length} of ${t.photos_required} photo${t.photos_required === 1 ? '' : 's'}${t.photos.length ? ' · ' + fmtT(t.photos[t.photos.length - 1].taken_at) : ''}</div>
             ${t.photos.length ? `<div style="display:flex; gap:6px; margin-top:7px; flex-wrap:wrap;">${t.photos.map((p, k) =>
               `<a href="#" data-ckp="${attr(p.photo)}" data-ckt="${attr(ckName + ' — ' + t.title + (t.photos.length > 1 ? ' · photo ' + (k + 1) + ' of ' + t.photos.length : ''))}" title="Open photo"><img src="${ckPhotoUrl(p.photo)}" alt="" style="width:64px; height:64px; object-fit:cover; border-radius:7px; display:block;"></a>`).join('')}</div>` : ''}
           </div>
-        </div>`).join('') || '<div class="empty-state">No tasks set for this employee.</div>';
+        </div>`;
+      document.getElementById('ckBody').innerHTML = PH.map((x) => {
+        const q = P[x.k];
+        if (!q || !q.tasks_total) return '';
+        return `<div style="margin-bottom:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:8px; background:${x.bg}; color:${x.fg}; font-size:12px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;">
+            <span>${x.n}</span><span>${q.tasks_done} of ${q.tasks_total}${Number(q.complete) ? ' ✓' : ' · pending'}</span></div>
+          ${q.tasks.map(taskHtml).join('')}</div>`;
+      }).join('') || '<div class="empty-state">No tasks set for this employee.</div>';
     } catch (err) {
       document.getElementById('ckBody').innerHTML = `<div class="alert error">${err.message}</div>`;
     }
@@ -988,12 +1076,14 @@
   }
   const pfTile = (x, sm) => `<span class="pfa-tile ${pfKindOf(x.kind)}${sm ? ' sm' : ''}">${attr(pfTileText(x))}</span>`;
   let PF = { rules: [], departments: [], employees: [], total_employees: 0 };
+  let PC = { categories: [] };
 
   function pfRulesAlert(msg, type = 'error') {
     document.getElementById('pfRulesAlert').innerHTML = msg ? `<div class="alert ${type}" style="margin-bottom:10px;">${attr(msg)}</div>` : '';
   }
   async function pfaLoad() {
     PF = await api.get('proofs.rules');
+    try { PC = await api.get('photocat.admin_list'); } catch (e) { PC = { categories: [] }; }
     pfRulesRender();
   }
   const pfDeptName = (id) => (PF.departments.find(d => Number(d.department_id) === Number(id)) || {}).department_name || ('Department ' + id);
@@ -1001,7 +1091,7 @@
 
   function pfRulesRender() {
     const body = document.getElementById('pfRulesBody');
-    if (!PF.rules.length) { body.innerHTML = '<div class="empty-state">No requirements yet. Add one — Instagram, YouTube or anything else.</div>'; return; }
+    if (!PF.rules.length) { body.innerHTML = '<div class="empty-state">No requirements yet. Add one — Instagram, YouTube or anything else.</div>' + pcSectionHtml(); return; }
     body.innerHTML = PF.rules.map((r) => {
       const all = Number(r.scope_all) === 1;
       const names = all ? [] : r.department_ids.map(id => ({ t: pfDeptName(id), c: 'dep' })).concat(r.employee_ids.map(id => ({ t: pfEmpName(id), c: '' })));
@@ -1019,7 +1109,7 @@
           <button type="button" class="pfa-lnk" onclick="pfaEditRule(${r.rule_id})">Edit</button>
         </div>
       </div>`;
-    }).join('');
+    }).join('') + pcSectionHtml();
   }
 
   function pfRulePayload(r, over) {
@@ -1104,11 +1194,16 @@
     pfeEmpChipsRender();
     pfeSummary();
   }
+  function pfeExRender() { document.getElementById('pfeEx').innerHTML = exSquare(pfEd, 'proof', pfEd.rule_id, 64, 'pfeExPick()', 'pfeExRm()'); }
+  window.pfeExPick = () => exPick((f, url) => { pfEd._file = f; pfEd._preview = url; pfEd._rm = false; pfeExRender(); });
+  window.pfeExRm = () => { pfEd._file = null; pfEd._preview = ''; pfEd._rm = true; pfeExRender(); };
   window.pfaEditRule = function (id) {
     const r = id ? PF.rules.find(x => Number(x.rule_id) === Number(id)) : null;
     pfEd = r
       ? { rule_id: Number(r.rule_id), kind: pfKindOf(r.kind), link: Number(r.link_required) ? 1 : 0, stage: r.stage === 'enroll' ? 'enroll' : 'punch', all: Number(r.scope_all) === 1, deps: new Set(r.department_ids.map(Number)), emps: new Set(r.employee_ids.map(Number)) }
       : { rule_id: 0, kind: 'custom', link: 0, stage: 'punch', all: true, deps: new Set(), emps: new Set() };
+    pfEd.example = r ? (r.example || '') : ''; pfEd._file = null; pfEd._preview = ''; pfEd._rm = false;
+    pfeExRender();
     document.getElementById('pfeHead').textContent = r ? 'Edit requirement' : 'Add requirement';
     document.getElementById('pfeTitle').value = r ? r.title : '';
     document.getElementById('pfeText').value = r ? r.instruction : '';
@@ -1212,8 +1307,13 @@
         stage: pfEd.stage, scope_all: pfEd.all ? 1 : 0, department_ids: pfEd.all ? [] : [...pfEd.deps], employee_ids: pfEd.all ? [] : [...pfEd.emps],
         active: document.getElementById('pfeActive').checked ? 1 : 0,
       });
+      let exErr = '';
+      try {
+        if (pfEd._file) { const f = new FormData(); f.append('kind', 'proof'); f.append('id', d.rule_id); f.append('photo', pfEd._file, 'example.jpg'); await api.upload('example.upload', f); }
+        else if (pfEd._rm && pfEd.rule_id) { const f = new FormData(); f.append('kind', 'proof'); f.append('id', d.rule_id); await api.upload('example.remove', f); }
+      } catch (e) { exErr = ' Example photo not saved: ' + e.message; }
       closePfEdit();
-      pfRulesAlert(d.message || 'Saved.', 'success');
+      pfRulesAlert((d.message || 'Saved.') + exErr, exErr ? 'error' : 'success');
       await pfaLoad();
       load();
     } catch (err) {
@@ -1231,6 +1331,220 @@
       load();
     } catch (err) { pfeAlert(err.message); }
   });
+
+  // ---- Photo categories: "+ Add category" (Cleaning › Shoe rack / Floor / Fan / Light …) ----
+  const pcPh = (k) => SH_PHASES.find(x => x.k === k) || SH_PHASES[1];
+  const PC_NOTE = {
+    pre_in: 'Punch In stays locked until every item has its photos.',
+    post_in: 'Shown right after Punch In. Punch Out stays locked until every item has its photos.',
+    pre_out: 'Shown once the employee has punched in. Punch Out stays locked until every item has its photos.',
+    post_out: 'Shown after Punch Out. It does not block anything.',
+  };
+  function pcIcon(name) {
+    const n = String(name || '').toLowerCase();
+    if (/clean|safai|sweep|mop|wash/.test(n)) return '🧹';
+    if (/cash|money|counter|close|closing|bill/.test(n)) return '💵';
+    if (/light|bulb|lamp/.test(n)) return '💡';
+    if (/shoe|rack|display|arrange|stock|shelf/.test(n)) return '🗂️';
+    if (/open|opening|set-?up|morning/.test(n)) return '🔑';
+    if (/safe|secur|lock|shutter/.test(n)) return '🔒';
+    return '📸';
+  }
+  function pcSectionHtml() {
+    const cats = (PC && PC.categories) || [];
+    const head = '<div class="pc-sh"><span>Categories</span><span>photo tasks grouped by work</span></div>';
+    if (!cats.length) return head + '<div class="empty-state" style="padding:14px 0;">No categories yet. Use <b>+ Add category</b> — for example Cleaning with Shoe rack, Floor, Fan and Light.</div>';
+    return head + cats.map((c) => {
+      const all = Number(c.scope_all) === 1;
+      const names = all ? [] : c.department_ids.map(id => pfDeptName(id)).concat(c.employee_ids.map(id => pfEmpName(id)));
+      const pill = all ? 'Everyone' : (names.slice(0, 2).join(' + ') + (names.length > 2 ? ` +${names.length - 2} more` : '')) || 'Nobody';
+      const ph = pcPh(c.phase);
+      const its = c.items.map(i => attr(i.title)).join(' · ');
+      return `<div class="pc-cat${Number(c.active) ? '' : ' pc-off'}">
+        <span class="pc-ic">${pcIcon(c.name)}</span>
+        <div class="pc-mid"><b>${attr(c.name)}</b><span class="pc-ph" style="background:${ph.bg}; color:${ph.fg};">${ph.n}</span><div class="pc-its">${its}</div></div>
+        <div class="pc-sc"><span class="pfa-chip ${all ? 'all' : 'dep'}">${attr(pill)}</span><div class="pfa-cnt">${c.items.length} item${c.items.length === 1 ? '' : 's'} · ${c.photos_total} photo${c.photos_total === 1 ? '' : 's'} · ${c.applies_count} employee${c.applies_count === 1 ? '' : 's'}</div></div>
+        <div class="ac" style="display:flex; align-items:center; gap:12px;">
+          <label class="pfa-tg" title="${Number(c.active) ? 'On' : 'Off'}"><input type="checkbox" ${Number(c.active) ? 'checked' : ''} onchange="pcToggle(${c.cat_id}, this.checked, this)" aria-label="Category on or off"><i></i></label>
+          <button type="button" class="pfa-lnk" onclick="pcEdit(${c.cat_id})">Edit</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  window.pcToggle = async function (id, on, box) {
+    box.disabled = true;
+    try { await api.post('photocat.admin_toggle', { cat_id: id, active: on ? 1 : 0 }); pfRulesAlert(''); await pfaLoad(); }
+    catch (err) { pfRulesAlert(err.message); await pfaLoad().catch(() => {}); }
+  };
+
+  const pcEditModal = document.getElementById('pcEditModal');
+  let pcEd = null;
+  function pcAlert(msg) { document.getElementById('pceAlert').innerHTML = msg ? `<div class="alert error" style="margin-bottom:10px;">${attr(msg)}</div>` : ''; }
+  function pcSummary() {
+    const box = document.getElementById('pceSum');
+    const total = PF.employees.length;
+    if (pcEd.all) { box.innerHTML = `Matches: <b>all ${total} employees</b>.`; return; }
+    const inDept = PF.employees.filter(e => pcEd.deps.has(Number(e.department_id)));
+    const byName = PF.employees.filter(e => pcEd.emps.has(Number(e.employee_id)) && !pcEd.deps.has(Number(e.department_id)));
+    const n = inDept.length + byName.length;
+    if (!pcEd.deps.size && !pcEd.emps.size) { box.innerHTML = 'Pick at least one department or employee — or choose <b>Everyone</b>.'; return; }
+    const parts = [];
+    if (pcEd.deps.size) parts.push(`${inDept.length} in the chosen department${pcEd.deps.size === 1 ? '' : 's'}`);
+    if (byName.length) parts.push(`${byName.length} chosen by name`);
+    box.innerHTML = `Matches: <b>${n} employee${n === 1 ? '' : 's'}</b>${parts.length ? ' — ' + parts.join(', plus ') : ''}.`;
+  }
+  function pcDepsRender() {
+    document.getElementById('pceDeps').innerHTML = PF.departments.map(d => {
+      const on = pcEd.deps.has(Number(d.department_id));
+      return `<label class="pfa-dep${on ? ' on' : ''}"><input type="checkbox" data-d="${d.department_id}" ${on ? 'checked' : ''}> ${attr(d.department_name)} <small>${d.employees}</small></label>`;
+    }).join('') || '<span style="font-size:12.5px; color:var(--muted);">No departments yet.</span>';
+  }
+  function pcEmpChipsRender() {
+    document.getElementById('pceEmpChips').innerHTML = [...pcEd.emps].map(id => `<span class="pfa-chip x" data-rm="${id}" title="Remove">${attr(pfEmpName(id))}</span>`).join('') || '<span style="font-size:12.5px; color:var(--muted);">None added.</span>';
+  }
+  function pcEmpResults() {
+    const q = document.getElementById('pceEmpSearch').value.trim().toLowerCase();
+    const box = document.getElementById('pceEmpRes');
+    if (!q) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    const hits = PF.employees.filter(e => !pcEd.emps.has(Number(e.employee_id)) && (String(e.full_name).toLowerCase().includes(q) || String(e.employee_code || '').toLowerCase().includes(q))).slice(0, 8);
+    box.innerHTML = hits.length
+      ? hits.map(e => `<button type="button" class="pfa-res" data-id="${e.employee_id}"><b>${attr(e.full_name)}</b><span>${attr(e.employee_code || '')} · ${attr(e.department_name || 'No department')}</span></button>`).join('')
+      : '<div class="pfa-none">No employee found.</div>';
+    box.style.display = '';
+  }
+  function pcItemsRender() {
+    const box = document.getElementById('pceItems');
+    box.innerHTML = pcEd.items.map((it, i) => `<div class="pc-irow">
+        <input type="text" value="${attr(it.title)}" maxlength="160" placeholder="e.g. Shoe rack cleaning" oninput="pcSetTitle(${i}, this.value)">
+        <input type="number" min="1" max="10" value="${it.need}" title="Photos needed" oninput="pcSetNeed(${i}, this.value)">
+        <span style="font-size:11px; color:var(--muted);">photo</span>
+        ${exSquare(it, 'catitem', it.item_id, 38, `pcExPick(${i})`, `pcExRm(${i})`)}
+        <button type="button" class="pc-del" title="Remove this item" onclick="pcDelItem(${i})">🗑</button>
+      </div>`).join('') + '<button type="button" class="pc-addi" onclick="pcAddItem()">+ Add item</button>';
+  }
+  window.pcSetTitle = (i, v) => { pcEd.items[i].title = v; };
+  window.pcSetNeed = (i, v) => { pcEd.items[i].need = Math.max(1, Math.min(10, Number(v) || 1)); };
+  window.pcDelItem = (i) => { pcEd.items.splice(i, 1); pcItemsRender(); };
+  window.pcAddItem = () => { pcEd.items.push({ item_id: 0, title: '', need: 1, example: '' }); pcItemsRender(); const ins = document.querySelectorAll('#pceItems .pc-irow input[type=text]'); if (ins.length) ins[ins.length - 1].focus(); };
+  window.pcExPick = (i) => exPick((f, url) => { const t = pcEd.items[i]; t._file = f; t._preview = url; t._rm = false; pcItemsRender(); });
+  window.pcExRm = (i) => { const t = pcEd.items[i]; t._file = null; t._preview = ''; t._rm = true; pcItemsRender(); };
+  function pcRender() {
+    document.getElementById('pcePhase').innerHTML = SH_PHASES.map(x => `<button type="button" data-p="${x.k}" class="${pcEd.phase === x.k ? 'on' : ''}">${x.n}</button>`).join('');
+    document.getElementById('pcePhaseNote').textContent = PC_NOTE[pcEd.phase] || '';
+    document.querySelectorAll('#pceScope button').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === pcEd.all));
+    document.getElementById('pceSel').style.display = pcEd.all ? 'none' : '';
+    pcDepsRender(); pcEmpChipsRender(); pcSummary();
+  }
+  function pcActiveTxt() { document.getElementById('pceActiveTxt').textContent = document.getElementById('pceActive').checked ? 'Category is on' : 'Category is off'; }
+  window.pcEdit = function (id) {
+    const c = id ? ((PC.categories || []).find(x => Number(x.cat_id) === Number(id))) : null;
+    pcEd = c
+      ? { cat_id: Number(c.cat_id), phase: c.phase, all: Number(c.scope_all) === 1, deps: new Set(c.department_ids.map(Number)), emps: new Set(c.employee_ids.map(Number)),
+          items: c.items.map(i => ({ item_id: i.item_id, title: i.title, need: i.photos_required, example: i.example || '' })) }
+      : { cat_id: 0, phase: 'post_in', all: true, deps: new Set(), emps: new Set(), items: [{ item_id: 0, title: '', need: 1, example: '' }] };
+    document.getElementById('pceHead').textContent = c ? 'Edit category' : 'Add category';
+    document.getElementById('pceName').value = c ? c.name : '';
+    document.getElementById('pceActive').checked = c ? Number(c.active) === 1 : true;
+    pcActiveTxt();
+    document.getElementById('pceEmpSearch').value = '';
+    document.getElementById('pceEmpRes').style.display = 'none';
+    document.getElementById('pceDelete').style.display = c ? '' : 'none';
+    pcAlert('');
+    pcItemsRender(); pcRender();
+    pcEditModal.classList.add('open');
+  };
+  function closePcEdit() { pcEditModal.classList.remove('open'); }
+  document.getElementById('pcAdd').addEventListener('click', () => pcEdit(0));
+  document.getElementById('pceCancel').addEventListener('click', closePcEdit);
+  pcEditModal.addEventListener('click', (e) => { if (e.target === pcEditModal) closePcEdit(); });
+  document.getElementById('pceActive').addEventListener('change', pcActiveTxt);
+  document.getElementById('pcePhase').addEventListener('click', (e) => { const b = e.target.closest('button[data-p]'); if (!b) return; pcEd.phase = b.dataset.p; pcRender(); });
+  document.getElementById('pceScope').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pcEd.all = b.dataset.v === '1'; pcRender(); });
+  document.getElementById('pceDeps').addEventListener('change', (e) => {
+    const c = e.target.closest('input[data-d]'); if (!c) return;
+    const id = Number(c.dataset.d);
+    if (c.checked) pcEd.deps.add(id); else pcEd.deps.delete(id);
+    c.closest('label').classList.toggle('on', c.checked);
+    pcSummary();
+  });
+  document.getElementById('pceEmpSearch').addEventListener('input', pcEmpResults);
+  document.getElementById('pceEmpRes').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-id]'); if (!b) return;
+    pcEd.emps.add(Number(b.dataset.id));
+    document.getElementById('pceEmpSearch').value = '';
+    pcEmpResults(); pcEmpChipsRender(); pcSummary();
+  });
+  document.getElementById('pceEmpChips').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-rm]'); if (!c) return;
+    pcEd.emps.delete(Number(c.dataset.rm));
+    pcEmpChipsRender(); pcSummary();
+  });
+  document.getElementById('pceSave').addEventListener('click', async () => {
+    const btn = document.getElementById('pceSave');
+    const name = document.getElementById('pceName').value.trim();
+    if (!name) { pcAlert('Give the category a name.'); return; }
+    const items = pcEd.items.filter(i => String(i.title).trim() !== '');
+    if (!items.length) { pcAlert('Add at least one item (for example "Floor").'); return; }
+    if (!pcEd.all && !pcEd.deps.size && !pcEd.emps.size) { pcAlert('Choose Everyone, or pick at least one department or employee.'); return; }
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const d = await api.post('photocat.admin_save', {
+        cat_id: pcEd.cat_id, name, phase: pcEd.phase, scope_all: pcEd.all ? 1 : 0,
+        department_ids: pcEd.all ? [] : [...pcEd.deps], employee_ids: pcEd.all ? [] : [...pcEd.emps],
+        active: document.getElementById('pceActive').checked ? 1 : 0,
+        items: items.map(i => ({ item_id: i.item_id || 0, title: i.title.trim(), photos_required: i.need })),
+      });
+      // Example photos go up after the save, with the item ids it returned (same order as the non-empty items).
+      let exErr = '';
+      for (let k = 0; k < items.length; k++) {
+        const it = items[k], row = (d.items || [])[k];
+        if (!row) continue;
+        try {
+          if (it._file) { const f = new FormData(); f.append('kind', 'catitem'); f.append('id', row.item_id); f.append('photo', it._file, 'example.jpg'); await api.upload('example.upload', f); }
+          else if (it._rm && it.item_id) { const f = new FormData(); f.append('kind', 'catitem'); f.append('id', row.item_id); await api.upload('example.remove', f); }
+        } catch (e) { exErr = ' Some example photos were not saved: ' + e.message; }
+      }
+      closePcEdit();
+      pfRulesAlert((d.message || 'Saved.') + exErr, exErr ? 'error' : 'success');
+      await pfaLoad();
+    } catch (err) {
+      pcAlert(err.message);
+    } finally { btn.disabled = false; btn.textContent = 'Save category'; }
+  });
+  document.getElementById('pceDelete').addEventListener('click', async () => {
+    if (!pcEd || !pcEd.cat_id) return;
+    if (!confirm('Delete this category? Employees will no longer be asked for it. Photos already taken stay readable.')) return;
+    try {
+      const d = await api.post('photocat.admin_delete', { cat_id: pcEd.cat_id });
+      closePcEdit();
+      pfRulesAlert(d.message || 'Deleted.', 'success');
+      await pfaLoad();
+    } catch (err) { pcAlert(err.message); }
+  });
+
+  // One employee's categories for the day, shown under the proofs in the viewer (photos open full size; pending ones are marked).
+  async function pcViewBlock(date) {
+    try {
+      const d = await api.get('photocat.admin_day', { employee_id: pfvEmp, date });
+      const order = ['pre_in', 'post_in', 'pre_out', 'post_out'];
+      const cats = [];
+      order.forEach(k => ((d.phases[k] || {}).cats || []).forEach(c => cats.push(c)));
+      if (!cats.length) return;
+      let h = '<div style="font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:18px 0 0;">Categories</div>';
+      h += cats.map(c => {
+        const ph = pcPh(c.phase);
+        const chip = Number(c.complete) ? `<span class="pc-ph" style="background:#e7f7ee; color:#0f7a41;">${c.items_done} of ${c.items_total} ✓</span>` : `<span class="pc-ph" style="background:#FFF4DB; color:#8a5a00;">${c.items_done} of ${c.items_total} · pending</span>`;
+        const rows = c.items.map(it => {
+          const thumbs = it.photos.map(p => `<a href="#" data-pfp="${attr(p.photo)}" data-pft="${attr(pfvName + ' — ' + c.name + ' › ' + it.title)}" title="Open full size"><img class="pfv-img" style="width:72px; height:96px;" src="${ckPhotoUrl(p.photo)}" alt=""></a>`).join('');
+          const last = it.photos[it.photos.length - 1];
+          const meta = it.photos.length ? `${it.photos.length} of ${it.photos_required} photo${it.photos_required === 1 ? '' : 's'} · ${fmtT(last.taken_at)}` : 'Nothing taken yet';
+          return `<div class="pc-vit"><div class="t">${Number(it.done) ? '✅' : '⏳'} ${attr(it.title)}</div><div class="m">${meta}</div>${thumbs ? `<div class="pfv-shots" style="margin-top:6px;">${thumbs}</div>` : ''}</div>`;
+        }).join('');
+        return `<div class="pc-vcat"><div class="pc-vhead"><span class="pc-ic" style="width:30px; height:30px; font-size:16px;">${pcIcon(c.name)}</span><b>${attr(c.name)}</b><span class="pc-ph" style="background:${ph.bg}; color:${ph.fg}; margin-left:0;">${ph.n}</span>${chip}</div>${rows}</div>`;
+      }).join('');
+      document.getElementById('pfvBody').insertAdjacentHTML('beforeend', h);
+    } catch (e) { /* categories are optional */ }
+  }
 
   // ---- one employee's proofs for the day: screenshots, links, send back ----
   let pfvEmp = 0, pfvName = '';
@@ -1250,7 +1564,10 @@
     const link = last && last.link ? (/^https?:\/\//i.test(last.link) ? `<a href="${attr(last.link)}" target="_blank" rel="noopener noreferrer">${attr(last.link.replace(/^https?:\/\//i, ''))}</a>` : attr(last.link)) : '';
     const given = (last && last.target_url) || it.target_url || '';
     const givenHtml = given && /^https?:\/\//i.test(given) ? `<br>Link given: <a href="${attr(given)}" target="_blank" rel="noopener noreferrer">${attr(given.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))}</a>` : '';
+    const cw = ['', 'Very dirty', 'Dirty', 'Average', 'Clean', 'Spotless'];
+    const cleanLn = (last && last.clean_rating != null) ? `<br>Shoes cleanliness: <b style="color:${Number(last.clean_rating) >= 4 ? '#0f7a41' : (Number(last.clean_rating) <= 2 ? '#c81e1e' : '#b45309')}">${'★'.repeat(Number(last.clean_rating))}${'☆'.repeat(5 - Number(last.clean_rating))} ${Number(last.clean_rating)}/5 · ${cw[Number(last.clean_rating)] || ''}</b>${last.clean_note ? ` <small>(${attr(last.clean_note)})</small>` : ''}` : '';
     const meta = (last ? `Uploaded <b>${fmtT(last.uploaded_at)}</b>${ok.length > 1 ? ` · ${ok.length} screenshots` : ''}` : '')
+      + cleanLn
       + (link ? `<br>Link: ${link}` : '') + givenHtml
       + (sent.length ? `<br><span style="color:#c81e1e;">Sent back: ${attr(sent[sent.length - 1].note || 'upload again')}</span>` : '');
     const ask = (ok.length && !noAsk) ? `
@@ -1275,9 +1592,37 @@
       const enr = (d.enroll && d.enroll.items) || [];
       document.getElementById('pfvBody').innerHTML = ((d.items || []).map(it => pfvItemHtml(it, currentAttDate)).join('') || (enr.length ? '' : '<div class="empty-state">No proof requirements apply to this employee.</div>'))
         + (enr.length ? '<div style="font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px;">Asked once, at Enroll</div>' + enr.map(it => pfvItemHtml(it, d.enroll_day, !!Number(d.face_enrolled))).join('') + (Number(d.face_enrolled) ? '<div class="pfv-meta">The face is already enrolled, so these once-only proofs can no longer be sent back.</div>' : '') : '');
+      await pfvShoeBlock();
+      await pcViewBlock(currentAttDate);
     } catch (err) {
       document.getElementById('pfvBody').innerHTML = `<div class="alert error">${attr(err.message)}</div>`;
     }
+  }
+  // Enrolled shoes of this employee (5 sides) + "Reset shoes" for lost / wrong data. Quiet when the feature is off.
+  async function pfvShoeBlock() {
+    try {
+      const d = await api.get('footwear.enroll_list');
+      if (!d.enabled) return;
+      const r = (d.employees || []).find(x => Number(x.employee_id) === Number(pfvEmp));
+      const names = ['Outer', 'Inner', 'Toe', 'Heel', 'Top'];
+      let h = '<div style="font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px;">Enrolled shoes</div>';
+      if (r && r.enroll_id) {
+        const imgs = names.map((n, i) => `<a href="#" data-sh="${i}" title="${n}" style="display:inline-block; text-align:center; font-size:10.5px; color:var(--muted); margin-right:6px;"><img src="${attr(api.buildUrl('footwear.enroll_image', { enroll_id: r.enroll_id, side: i, token: api.token() || '' }))}" alt="${n}" style="width:54px; height:54px; object-fit:cover; border-radius:8px; border:1px solid var(--border); display:block;">${n}</a>`).join('');
+        h += `<div class="pfv-item"><div>${imgs}</div><div class="pfv-meta">${attr(r.shoe_type || 'shoes')} · ${attr(r.main_color || '')} · enrolled ${attr(String(r.activated_at || '').slice(0, 16))}${r.cleanliness ? ' · clean ' + Number(r.cleanliness) + '/5' : ''}</div>
+          <div style="margin-top:8px;"><button type="button" class="btn secondary" id="pfvShoeReset" style="color:var(--bad-fg); border-color:#f3c9c9;">Reset shoes</button></div></div>`;
+      } else {
+        h += '<div class="pfv-meta">No shoes enrolled yet. The employee enrolls at the next Punch In.</div>';
+      }
+      document.getElementById('pfvBody').insertAdjacentHTML('beforeend', h);
+      const rb = document.getElementById('pfvShoeReset');
+      if (rb) rb.addEventListener('click', async () => {
+        if (!confirm('Reset the enrolled shoes of ' + pfvName + '? He must enroll again.')) return;
+        rb.disabled = true;
+        try { const x = await api.post('footwear.enroll_reset', { employee_id: pfvEmp }); document.getElementById('pfvAlert').innerHTML = `<div class="alert success">${attr(x.message)}</div>`; await pfvLoad(); }
+        catch (err) { rb.disabled = false; document.getElementById('pfvAlert').innerHTML = `<div class="alert error">${attr(err.message)}</div>`; }
+      });
+      document.querySelectorAll('#pfvBody a[data-sh]').forEach(a => a.addEventListener('click', (ev) => { ev.preventDefault(); window.open(a.querySelector('img').src, '_blank'); }));
+    } catch (e) { /* shoe block is optional */ }
   }
   window.viewProofs = async function (empId, name) {
     pfvEmp = empId; pfvName = name;
@@ -1318,31 +1663,80 @@
   let shTasks = [];
   let shDefaultTasks = [];
 
+  // ---- Optional example photo (task or proof): a small square, picked from the gallery, shown to employees (tap = big view) ----
+  const exFile = document.createElement('input');
+  exFile.type = 'file'; exFile.accept = 'image/*'; exFile.style.display = 'none';
+  document.body.appendChild(exFile);
+  const exUrl = (kind, id, v) => api.buildUrl('example.image', { kind, id, token: api.token() || '', v: v || '' });
+  function exPick(cb) {
+    exFile.value = '';
+    exFile.onchange = () => { const f = exFile.files && exFile.files[0]; if (f) cb(f, URL.createObjectURL(f)); exFile.value = ''; };
+    exFile.click();
+  }
+  // The square for one item: x = { example (saved file name), _file, _preview, _rm }.
+  function exSquare(x, kind, id, size, pick, rm) {
+    const src = x._preview || ((x.example && !x._rm && id) ? exUrl(kind, id, x.example) : '');
+    if (src) return `<span class="ex-th" style="width:${size}px; height:${size}px;" title="Example photo — tap to change"><img src="${attr(src)}" alt="Example" onclick="${pick}"><i title="Remove the example photo" onclick="${rm}">×</i></span>`;
+    return `<span class="ex-add" style="width:${size}px; height:${size}px;" onclick="${pick}" title="Add an example photo (optional)"><b>+</b>Example</span>`;
+  }
+
+  // The four timings of a store task, in the order of the day.
+  const SH_PHASES = [
+    { k: 'pre_in', n: 'Before Punch In', note: 'Punch In stays locked until these photos are taken', bg: '#fde8e8', fg: '#a31515' },
+    { k: 'post_in', n: 'After Punch In', note: 'opening tasks, shown right after Punch In · needs Submit', bg: '#e8f0ff', fg: '#1d4fb8' },
+    { k: 'pre_out', n: 'Before Punch Out', note: 'closing tasks, Punch Out stays locked until done', bg: '#FFF4DB', fg: '#8a5a00' },
+    { k: 'post_out', n: 'After Punch Out', note: 'shown after Punch Out, does not block anything', bg: '#efe8fb', fg: '#5b2fa8' },
+  ];
+  const shPh = (t) => (SH_PHASES.some(x => x.k === t.phase) ? t.phase : 'post_in');
   function shRenderTasks() {
     const wrap = document.getElementById('shTasks');
-    wrap.innerHTML = shTasks.length ? shTasks.map((t, i) => `
-      <div style="display:flex; align-items:center; gap:8px; padding:7px 9px; border-bottom:1px solid var(--line);">
+    const rowHtml = (t, i) => `
+      <div style="display:flex; align-items:center; gap:8px; padding:7px 9px; border-top:1px solid var(--line); flex-wrap:wrap;">
         <span style="display:flex; flex-direction:column; gap:1px;">
-          <button type="button" onclick="shMove(${i}, -1)" ${i === 0 ? 'disabled' : ''} style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▲</button>
-          <button type="button" onclick="shMove(${i}, 1)" ${i === shTasks.length - 1 ? 'disabled' : ''} style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▼</button>
+          <button type="button" onclick="shMove(${i}, -1)" style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▲</button>
+          <button type="button" onclick="shMove(${i}, 1)" style="width:20px; height:15px; min-height:0; padding:0; border:1px solid var(--line); background:#fff; border-radius:4px; font-size:9px; line-height:1; cursor:pointer;">▼</button>
         </span>
         <input type="text" value="${(t.title || '').replace(/"/g, '&quot;')}" oninput="shSetTitle(${i}, this.value)" placeholder="What has to be done"
-               style="flex:1; min-width:0; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+               style="flex:1 1 90px; min-width:0; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
         <input type="number" min="1" max="10" value="${t.photos_required}" oninput="shSetNeed(${i}, this.value)" title="Photos needed"
                style="width:56px; padding:7px 6px; border:1px solid var(--line); border-radius:6px; font-size:13px; text-align:center;">
         <span style="font-size:11px; color:var(--muted);">photo</span>
+        <select onchange="shSetPhase(${i}, this.value)" title="When this task is done" style="padding:7px 6px; border:1.5px solid #e8590c; background:#fff0e6; color:#9a3d06; border-radius:6px; font-size:12.5px; font-weight:700; min-height:0; width:auto;">
+          ${SH_PHASES.map(x => `<option value="${x.k}" ${shPh(t) === x.k ? 'selected' : ''}>${x.n}</option>`).join('')}
+        </select>
+        ${exSquare(t, 'task', t.task_id, 40, `shExPick(${i})`, `shExRm(${i})`)}
         <button type="button" onclick="shDelete(${i})" title="Remove" style="border:none; background:none; color:var(--bad-fg); font-size:15px; cursor:pointer; min-height:0; padding:2px 4px;">🗑</button>
-      </div>`).join('') : '<div style="padding:12px; font-size:12.5px; color:var(--muted);">No tasks yet — add one, or use the standard six.</div>';
+      </div>`;
+    if (!shTasks.length) { wrap.innerHTML = '<div style="padding:12px; font-size:12.5px; color:var(--muted);">No tasks yet — add one, or use the standard six.</div>'; return; }
+    wrap.innerHTML = SH_PHASES.map((x, n) => {
+      const rows = shTasks.map((t, i) => [t, i]).filter(([t]) => shPh(t) === x.k);
+      return `<div style="${n ? 'border-top:1px solid var(--line);' : ''}">
+        <div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:${x.bg}; color:${x.fg}; font-size:12px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;">
+          <span>${n + 1}. ${x.n}</span><span style="font-weight:500; text-transform:none; letter-spacing:0; opacity:.85; font-size:11.5px; flex:1; min-width:0;">· ${x.note}</span>
+          <button type="button" onclick="shAddTo('${x.k}')" style="border:1px solid currentColor; background:#fff; color:inherit; border-radius:6px; font-size:11.5px; font-weight:700; padding:3px 8px; min-height:0; cursor:pointer; width:auto;">+ Add</button>
+        </div>
+        ${rows.length ? rows.map(([t, i]) => rowHtml(t, i)).join('') : '<div style="padding:7px 10px; font-size:12px; color:var(--muted); border-top:1px solid var(--line);">No task for this timing.</div>'}
+      </div>`;
+    }).join('');
   }
+  window.shExPick = (i) => exPick((f, url) => { const t = shTasks[i]; t._file = f; t._preview = url; t._rm = false; shRenderTasks(); });
+  window.shExRm = (i) => { const t = shTasks[i]; t._file = null; t._preview = ''; t._rm = true; shRenderTasks(); };
+  window.shSetPhase = (i, v) => { shTasks[i].phase = v; shRenderTasks(); };
+  window.shAddTo = (ph) => { shTasks.push({ task_id: 0, title: '', photos_required: 1, phase: ph }); shRenderTasks(); };
   window.shSetTitle = (i, v) => { shTasks[i].title = v; };
   window.shSetNeed = (i, v) => { shTasks[i].photos_required = Math.max(1, Math.min(10, Number(v) || 1)); };
   window.shDelete = (i) => { shTasks.splice(i, 1); shRenderTasks(); };
-  window.shMove = (i, d) => { const j = i + d; if (j < 0 || j >= shTasks.length) return; const t = shTasks[i]; shTasks[i] = shTasks[j]; shTasks[j] = t; shRenderTasks(); };
-  document.getElementById('shAddTask').addEventListener('click', () => { shTasks.push({ task_id: 0, title: '', photos_required: 1 }); shRenderTasks(); });
-  document.getElementById('shDefaults').addEventListener('click', () => { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required })); shRenderTasks(); });
+  window.shMove = (i, d) => {              // swaps with the neighbour of the SAME timing
+    let j = i + d;
+    while (j >= 0 && j < shTasks.length && shPh(shTasks[j]) !== shPh(shTasks[i])) j += d;
+    if (j < 0 || j >= shTasks.length) return;
+    const t = shTasks[i]; shTasks[i] = shTasks[j]; shTasks[j] = t; shRenderTasks();
+  };
+  document.getElementById('shAddTask').addEventListener('click', () => { shTasks.push({ task_id: 0, title: '', photos_required: 1, phase: 'post_in' }); shRenderTasks(); });
+  document.getElementById('shDefaults').addEventListener('click', () => { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required, phase: 'post_in' })); shRenderTasks(); });
   document.getElementById('shStore').addEventListener('change', (e) => {
     document.getElementById('shTasksWrap').style.display = e.target.checked ? '' : 'none';
-    if (e.target.checked && !shTasks.length) { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required })); shRenderTasks(); }
+    if (e.target.checked && !shTasks.length) { shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required, phase: 'post_in' })); shRenderTasks(); }
   });
 
   window.editShift = async function (empId, name) {
@@ -1362,8 +1756,8 @@
       document.getElementById('shLate').value = d.shift.late_after;
       document.getElementById('shStore').checked = !!Number(d.shift.is_store);
       document.getElementById('shTasksWrap').style.display = Number(d.shift.is_store) ? '' : 'none';
-      shTasks = (d.tasks || []).map(t => ({ task_id: t.task_id, title: t.title, photos_required: t.photos_required }));
-      if (Number(d.shift.is_store) && !shTasks.length) shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required }));
+      shTasks = (d.tasks || []).map(t => ({ task_id: t.task_id, title: t.title, photos_required: t.photos_required, phase: t.phase || 'post_in', example: t.example || '' }));
+      if (Number(d.shift.is_store) && !shTasks.length) shTasks = shDefaultTasks.map(t => ({ task_id: 0, title: t.title, photos_required: t.photos_required, phase: 'post_in' }));
       shRenderTasks();
       document.getElementById('shStart').placeholder = d.day_start;
     } catch (err) {
@@ -1391,11 +1785,21 @@
       fd.append('shift_end', document.getElementById('shEnd').value || '');
       fd.append('late_after', document.getElementById('shLate').value || 15);
       fd.append('is_store', isStore ? 1 : 0);
-      fd.append('tasks', JSON.stringify(list));
+      fd.append('tasks', JSON.stringify(list.map(t => ({ task_id: t.task_id, title: t.title, photos_required: t.photos_required, phase: t.phase || 'post_in' }))));
       if (document.getElementById('shApplyAll').checked) fd.append('apply_all', 1);
       const d = await api.upload('shift.save', fd);
+      // Example photos: picked / removed in the list, sent now that every task has an id (the server returns them in the saved order).
+      const saved = d.tasks || [];
+      let exErr = '';
+      for (let i = 0; i < list.length && i < saved.length; i++) {
+        const t = list[i], id = saved[i].task_id;
+        try {
+          if (t._file) { const f = new FormData(); f.append('kind', 'task'); f.append('id', id); f.append('photo', t._file, 'example.jpg'); await api.upload('example.upload', f); }
+          else if (t._rm && t.task_id) { const f = new FormData(); f.append('kind', 'task'); f.append('id', id); await api.upload('example.remove', f); }
+        } catch (e) { exErr = ' Example photo not saved: ' + e.message; }
+      }
       closeShift();
-      showAlert(d.message || 'Saved.');
+      showAlert((d.message || 'Saved.') + exErr);
       load();
     } catch (err) {
       document.getElementById('shiftAlert').innerHTML = `<div class="alert error">${err.message}</div>`;

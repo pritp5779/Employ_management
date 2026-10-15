@@ -56,6 +56,19 @@
   .lg-row .n{font-weight:800; text-align:right; white-space:nowrap;} .lg-row .n.p{color:#16945a;} .lg-row .n.m{color:#d9423b;}
   .kchip{display:inline-block; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:700; margin-right:5px; background:#eaf0ff; color:#1d4ed8;}
   .kchip.order{background:#fdf3e3; color:#b45f06;} .kchip.return{background:#e7f7ee; color:#0f7a41;} .kchip.adjust{background:#f3f4f6; color:#374151;}
+  .citybar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 16px;}
+  .citybar .cc{border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:#374151; cursor:pointer; min-height:0; white-space:nowrap;}
+  .citybar .cc small{opacity:.6; font-weight:600; margin-left:6px;}
+  .citybar .cc i{font-style:normal; margin-left:5px;}
+  .citybar .cc.on{background:#111827; color:#fff; border-color:#111827;}
+  .citybar .cc.set{border-style:dashed; color:var(--muted);}
+  .citybar .lbl{font-size:12px; color:var(--muted); font-weight:600; margin-right:2px;}
+  .cityTbl{width:100%;} .cityTbl td.cl{cursor:pointer; font-weight:600;} .cityTbl tr:hover td{background:#f9fafb;}
+  .cityTbl tfoot td{font-weight:800; background:#f8fafc; padding:12px 10px; font-size:13.5px;} .cityTbl tfoot td:first-child, .cityTbl tbody td:first-child{padding-left:20px;} .cityTbl tfoot td:last-child, .cityTbl tbody td:last-child{padding-right:20px;}
+  .cityTbl th{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700; text-align:center;} .cityTbl th:first-child, .cityTbl td:first-child{text-align:left;} .cityTbl td{text-align:center;}
+  .cpills{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;} .cpill{background:#fff; border:1px solid var(--line); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700;}
+  .cpill.low{color:#b45f06; border-color:#f5d9ac;} .cpill.out{color:#d9423b; border-color:#f4c4c0;}
+  .kcity{color:var(--muted); font-size:11px; font-weight:700; margin-left:6px;}
   @media (max-width:640px){ .tools input[type=text]{min-width:0; flex:1 1 100%;} .grow{margin-left:0;} }
 </style>
 </head>
@@ -73,14 +86,19 @@
     </div>
     <div class="content">
       <div id="alertBox"></div>
+      <div class="citybar" id="cityBar"></div>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Pieces in stock</div><div class="value" id="stPcs">—</div></div>
         <div class="stat-card"><div class="label">Perfumes tracked</div><div class="value" id="stPerf">—</div></div>
         <div class="stat-card"><div class="label">Running low</div><div class="value" id="stLow" style="color:#b45f06;">—</div></div>
         <div class="stat-card"><div class="label">Out of stock</div><div class="value" id="stOut" style="color:#d9423b;">—</div></div>
       </div>
+      <div class="card" id="cityCard" style="display:none;">
+        <div class="card-head"><h2>City-wise stock</h2><span class="sub">each city keeps its own inventory — tap a city to open it</span></div>
+        <div class="tscroll"><table class="cityTbl no-stack"><thead><tr><th>City</th><th>Shops</th><th>Pieces</th><th>Perfumes</th><th>Low</th><th>Out</th></tr></thead><tbody id="cityBody"></tbody><tfoot id="cityFoot"></tfoot></table></div>
+      </div>
       <div class="card">
-        <div class="card-head"><h2>Stock by perfume and size</h2></div>
+        <div class="card-head"><h2 id="stkTitle">Stock by perfume and size</h2></div>
         <div class="tools">
           <input type="text" id="fSearch" placeholder="Search perfume…" autocomplete="off">
           <span class="seg" id="fSeg"><button type="button" data-f="all" class="on">All</button><button type="button" data-f="low">Low</button><button type="button" data-f="out">Out</button></span>
@@ -101,6 +119,7 @@
     <h3 id="mTitle">Add stock</h3>
     <div id="mAlert"></div>
     <div id="mNow" class="nowbox" style="display:none;"></div>
+    <div class="field" id="fCity" style="display:none;"><label>City</label><select id="mCity"></select><div class="hint" id="hCity"></div></div>
     <div class="field" id="fName"><label>Perfume</label><input id="mName" list="mNames" placeholder="Search or type the perfume name" autocomplete="off"><datalist id="mNames"></datalist></div>
     <div class="field" id="fMl"><label>Size</label>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -154,12 +173,18 @@
   const shut = (id) => $(id).classList.remove('open');
 
   let items = [], defLimit = 10, canOverride = false, filter = 'all', cur = null /* item being edited */, mode = 'in';
+  let curCity = ''; try { curCity = localStorage.getItem('retail_city') || ''; } catch (e) {}
+  let cities = [], byCity = [], defaultCity = '';
   const SIZES = [20, 50, 100];
 
   async function load() {
     try {
-      const d = await api.get('retail.stock');
+      const d = await api.get('retail.stock', curCity ? { city: curCity } : {});
+      cities = d.cities || []; byCity = d.by_city || []; defaultCity = d.default_city || '';
+      if (curCity && !cities.includes(curCity)) { setCity('', true); return load(); }
       items = d.items || []; defLimit = d.default_limit; canOverride = !!d.can_override;
+      renderCityBar(); renderCityCard();
+      $('stkTitle').textContent = curCity ? 'Stock by perfume and size — ' + curCity : 'Stock by perfume and size — all cities together';
       const s = d.summary || {};
       $('stPcs').textContent = num(s.pieces); $('stPerf').textContent = num(s.perfumes); $('stLow').textContent = num(s.low); $('stOut').textContent = num(s.out);
       $('defLim').textContent = defLimit; $('sinceTxt').textContent = d.since ? new Date(String(d.since).replace(' ', 'T')).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -168,6 +193,43 @@
       $('stkBody').innerHTML = `<tr><td colspan="6" style="padding:22px; color:#c81e1e;">${esc(err.message)}</td></tr>`;
     }
   }
+
+  // ----- cities: All (every city added up) or one city (its own stock) -----
+  const stateDot = (b) => b.out ? '<i style="color:#d9423b;">●</i>' : (b.low ? '<i style="color:#b45f06;">●</i>' : '');
+  function renderCityBar() {
+    $('cityBar').innerHTML = '<span class="lbl">City</span>' + `<button type="button" class="cc${curCity ? '' : ' on'}" data-city="">All cities</button>`
+      + cities.map(n => { const b = byCity.find(x => x.city === n) || {}; return `<button type="button" class="cc${n === curCity ? ' on' : ''}" data-city="${esc(n)}">${esc(n)}<small>${num(b.pieces || 0)}</small>${stateDot(b)}</button>`; }).join('')
+      + '<button type="button" class="cc set" data-new="1">+ City</button>';
+  }
+  function renderCityCard() {
+    const card = $('cityCard');
+    if (curCity || byCity.length < 2) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    let sh = 0, pc = 0, lo = 0, ou = 0;
+    $('cityBody').innerHTML = byCity.map(b => { sh += b.shops || 0; pc += b.pieces; lo += b.low; ou += b.out;
+      return `<tr><td class="cl" data-city="${esc(b.city)}">${esc(b.city)}</td><td>${b.shops || 0}</td><td><b>${num(b.pieces)}</b></td><td>${b.tracked ? num(b.perfumes) : '—'}</td><td>${b.low ? `<span style="color:#b45f06; font-weight:700;">${b.low}</span>` : '—'}</td><td>${b.out ? `<span style="color:#d9423b; font-weight:700;">${b.out}</span>` : '—'}</td></tr>`; }).join('');
+    $('cityFoot').innerHTML = `<tr><td>All cities</td><td>${sh}</td><td><b>${num(pc)}</b></td><td></td><td>${lo || '—'}</td><td>${ou || '—'}</td></tr>`;
+  }
+  function setCity(n, quiet) {
+    curCity = n || ''; try { localStorage.setItem('retail_city', curCity); } catch (e) {}
+    if (!quiet) { filter = 'all'; document.querySelectorAll('#fSeg button').forEach(x => x.classList.toggle('on', x.dataset.f === 'all')); load(); }
+  }
+  $('cityBar').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.new) {
+      const nn = (prompt('Name of the new city:') || '').trim(); if (!nn) return;
+      try { const d = await api.post('retail.city_save', { name: nn }); showAlert(d.city + ' added — tap it, then “+ Add stock”.'); setCity(d.city); } catch (err) { showAlert(err.message, 'error'); }
+    } else setCity(b.dataset.city || '');
+  });
+  $('cityBody').addEventListener('click', (e) => { const c = e.target.closest('[data-city]'); if (c) setCity(c.dataset.city); });
+  // numbers of the item in one city (a city view's row is that city; the All row carries a per-city list)
+  const inCity = (it, city) => !it ? null : (it.city ? (it.city === city ? it : null) : ((it.cities || []).find(c => c.city === city) || null));
+  function fillCitySel(sel) {
+    const pick = sel || curCity || defaultCity;
+    $('mCity').innerHTML = cities.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if (cities.includes(pick)) $('mCity').value = pick;
+  }
+  const selCity = () => curCity || $('mCity').value;
 
   function render() {
     const sizes = [...new Set(SIZES.concat(items.map(i => Number(i.ml)).filter(Boolean)))].sort((a, b) => a - b);
@@ -188,8 +250,14 @@
         const c = r.cells[m];
         if (!c) return `<td><button class="q none" data-add="${esc(r.name)}" data-ml="${m}" title="Start tracking ${m} ml">+</button></td>`;
         tot += Math.max(0, c.on_hand);
-        const note = c.state === 'out' ? (c.on_hand < 0 ? `short by ${-c.on_hand}` : 'out of stock') : (c.state === 'low' ? `limit ${c.limit}` : '');
-        return `<td><button class="q ${c.state}" data-key="${esc(c.key)}">${c.on_hand}</button>${note ? `<span class="lim ${c.state === 'out' ? 'r' : 'a'}">${note}</span>` : ''}</td>`;
+        let note = c.state === 'out' ? (c.on_hand < 0 ? `short by ${-c.on_hand}` : 'out of stock') : (c.state === 'low' ? `limit ${c.limit}` : '');
+        let tip = '';
+        if (!curCity && c.cities) {
+          tip = c.cities.map(x => x.city + ' ' + x.on_hand).join(' · ');
+          const bad = c.cities.filter(x => x.state === c.state && c.state !== 'ok').map(x => x.city);
+          if (bad.length) note = (c.state === 'out' ? 'out in ' : 'low in ') + bad.join(', ');
+        }
+        return `<td><button class="q ${c.state}" data-key="${esc(c.key)}"${tip ? ` title="${esc(tip)}"` : ''}>${c.on_hand}</button>${note ? `<span class="lim ${c.state === 'out' ? 'r' : 'a'}">${note}</span>` : ''}</td>`;
       }).join('');
       return `<tr><td>${esc(r.name)}</td>${tds}<td><b>${num(tot)}</b></td></tr>`;
     }).join('');
@@ -219,17 +287,36 @@
     document.querySelectorAll('#mSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
     $('fQty').style.display = m === 'lim' ? 'none' : ''; $('fLim').style.display = m === 'lim' ? '' : 'none'; $('fNote').style.display = m === 'lim' ? 'none' : '';
     if (m === 'in') { $('lQty').textContent = 'Pieces that came in'; $('mQty').value = ''; $('hQty').textContent = cur ? 'Added on top of what is in stock now.' : 'First entry for this perfume and size = your opening stock.'; }
-    if (m === 'set') { $('lQty').textContent = 'Pieces counted on the shelf'; $('mQty').value = cur ? cur.on_hand : ''; $('hQty').textContent = 'Use this after a physical check. The stock becomes exactly this number; the difference is saved in the log.'; }
-    if (m === 'lim') $('mLim').value = cur && cur.custom_limit !== null ? cur.custom_limit : '';
+    if (m === 'set') { $('lQty').textContent = 'Pieces counted on the shelf'; $('mQty').value = cur ? (cityNow() ? cityNow().on_hand : 0) : ''; $('hQty').textContent = 'Use this after a physical check. The stock becomes exactly this number; the difference is saved in the log.'; }
+    if (m === 'lim') { const c = cityNow(); $('mLim').value = c && c.custom_limit !== null && c.custom_limit !== undefined ? c.custom_limit : ''; }
   }
   function modalCommon() {
     $('mAlert').innerHTML = ''; $('mNote').value = ''; loadNames();
     $('mSeg').style.display = ''; $('mSeg').querySelector('[data-m="lim"]').style.display = cur ? '' : 'none';
     $('mLinks').style.display = cur ? 'flex' : 'none';
+    $('fCity').style.display = curCity ? 'none' : '';
+    if (!curCity) {
+      // the city that most needs stock comes first
+      let pick = defaultCity;
+      if (cur && cur.cities && cur.cities.length) { const w = cur.cities.slice().sort((a, b) => a.on_hand - b.on_hand)[0]; pick = w.city; }
+      fillCitySel(pick);
+      $('hCity').textContent = 'Each city keeps its own stock — pick the city this is for.';
+    }
+  }
+  function cityNow() { return cur ? inCity(cur, selCity()) : null; }
+  function paintNow() {
+    if (!cur) return;
+    const it = cur, c = cityNow();
+    const on = c ? c.on_hand : 0, st = c ? c.state : 'out';
+    const color = st === 'out' ? '#d9423b' : st === 'low' ? '#b45f06' : '#16945a';
+    const lim = c ? c.limit : defLimit, cl = c ? c.custom_limit : null;
+    const extra = it.city ? `Added ${num(it.added + it.adjusted)} · sent out ${num(it.used)} · returned ${num(it.returned)}<br>` : '';
+    const pills = !curCity && it.cities ? `<div class="cpills">${it.cities.map(x => `<span class="cpill ${x.state}">${esc(x.city)} ${x.on_hand}</span>`).join('')}</div>` : '';
+    $('mNow').innerHTML = `<div>${esc(selCity() || '')} stock<br><b style="color:${color};">${on}</b></div><div class="sub" style="line-height:1.6;">${extra}Alert limit ${lim}${cl === null || cl === undefined ? ' (same as everything)' : ''}${pills}</div>`;
   }
   function openNew(name, ml) {
     cur = null; modalCommon();
-    $('mTitle').textContent = 'Add stock'; $('mNow').style.display = 'none';
+    $('mTitle').textContent = 'Add stock' + (curCity ? ' · ' + curCity : ''); $('mNow').style.display = 'none';
     $('mName').value = name || ''; $('mName').readOnly = false;
     const known = SIZES.includes(Number(ml));
     $('mMl').value = ml ? (known ? String(Number(ml)) : '') : '50'; $('mMlOther').value = ml && !known ? ml : ''; $('mMlOther').style.display = $('mMl').value === '' ? '' : 'none';
@@ -240,13 +327,13 @@
   function openItem(it) {
     if (!it) return;
     cur = it; modalCommon();
-    $('mTitle').textContent = it.product_name + ' · ' + it.ml_text;
-    $('mNow').style.display = 'flex';
-    $('mNow').innerHTML = `<div>In stock<br><b style="color:${it.state === 'out' ? '#d9423b' : it.state === 'low' ? '#b45f06' : '#16945a'};">${it.on_hand}</b></div><div class="sub" style="line-height:1.6;">Added ${num(it.added + it.adjusted)} · sent out ${num(it.used)} · returned ${num(it.returned)}<br>Alert limit ${it.limit}${it.custom_limit === null ? ' (same as everything)' : ''}</div>`;
+    $('mTitle').textContent = it.product_name + ' · ' + it.ml_text + (curCity ? ' · ' + curCity : '');
+    $('mNow').style.display = 'flex'; paintNow();
     $('fName').style.display = 'none'; $('fMl').style.display = 'none';
     $('mName').value = it.product_name; $('mMl').value = SIZES.includes(Number(it.ml)) ? String(Number(it.ml)) : ''; $('mMlOther').value = it.ml;
     setMode('in'); open('stkModal'); setTimeout(() => $('mQty').focus(), 80);
   }
+  $('mCity').addEventListener('change', () => { if (cur) { paintNow(); setMode(mode); } });
   $('btnAdd').addEventListener('click', () => openNew('', ''));
   $('mMl').addEventListener('change', () => { $('mMlOther').style.display = $('mMl').value === '' ? '' : 'none'; });
   $('mSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
@@ -257,10 +344,10 @@
     try {
       const name = $('mName').value.trim(), ml = $('mMl').value === '' ? $('mMlOther').value.trim() : $('mMl').value;
       if (mode === 'lim') {
-        const d = await api.post('retail.stock_limit_save', { product_name: cur.product_name, ml: cur.ml, low_limit: $('mLim').value.trim() });
+        const d = await api.post('retail.stock_limit_save', { city: selCity(), product_name: cur.product_name, ml: cur.ml, low_limit: $('mLim').value.trim() });
         shut('stkModal'); showAlert(d.message || 'Saved.');
       } else {
-        const body = { product_name: cur ? cur.product_name : name, ml: cur ? cur.ml : ml, note: $('mNote').value.trim() };
+        const body = { city: selCity(), product_name: cur ? cur.product_name : name, ml: cur ? cur.ml : ml, note: $('mNote').value.trim() };
         if (!body.product_name) throw new Error('Enter the perfume name.');
         if (mode === 'set') { if ($('mQty').value === '') throw new Error('Enter the counted pieces.'); body.set_to = Number($('mQty').value); }
         else { body.qty = Number($('mQty').value) || 0; }
@@ -272,11 +359,11 @@
     finally { btn.disabled = false; }
   });
   $('btnStop').addEventListener('click', async () => {
-    if (!cur || !confirm(`Stop tracking ${cur.product_name} ${cur.ml_text}? Its stock entries and alerts are deleted. Orders are not touched.`)) return;
-    try { const d = await api.post('retail.stock_remove', { key: cur.key }); shut('stkModal'); showAlert(d.message); await load(); loadBell(); }
+    if (!cur || !confirm(`Stop tracking ${cur.product_name} ${cur.ml_text} in ${selCity()}? Its stock entries and alerts there are deleted. Orders are not touched.`)) return;
+    try { const d = await api.post('retail.stock_remove', { key: cur.key, city: selCity() }); shut('stkModal'); showAlert(d.message); await load(); loadBell(); }
     catch (err) { $('mAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
   });
-  $('btnHist').addEventListener('click', () => { if (cur) { const k = cur.key, t = cur.product_name + ' ' + cur.ml_text; shut('stkModal'); openLog(k, t); } });
+  $('btnHist').addEventListener('click', () => { if (cur) { const k = cur.key, t = cur.product_name + ' ' + cur.ml_text + (curCity ? ' · ' + curCity : ''); shut('stkModal'); openLog(k, t); } });
 
   // ----- default limit -----
   $('btnDefLim').addEventListener('click', () => { $('lVal').value = defLimit; $('lAlert').innerHTML = ''; open('limModal'); setTimeout(() => $('lVal').select(), 80); });
@@ -290,13 +377,13 @@
   // ----- log -----
   const KIND = { in: 'Stock in', opening: 'Opening stock', adjust: 'Count fix', order: 'Order', return: 'Return' };
   async function openLog(key, title) {
-    $('gTitle').textContent = title ? 'Log · ' + title : 'Stock log'; $('gBody').innerHTML = '<div class="sub" style="padding:14px 0;">Loading…</div>'; open('logModal');
+    $('gTitle').textContent = title ? 'Log · ' + title : 'Stock log' + (curCity ? ' · ' + curCity : ' · all cities'); $('gBody').innerHTML = '<div class="sub" style="padding:14px 0;">Loading…</div>'; open('logModal');
     try {
-      const d = await api.get('retail.stock_log', key ? { key } : {});
+      const d = await api.get('retail.stock_log', Object.assign(key ? { key } : {}, curCity ? { city: curCity } : {}));
       const rows = d.log || [];
       $('gBody').innerHTML = rows.length ? rows.map(r => {
         const who = r.kind === 'order' || r.kind === 'return' ? `${esc(r.order_no)}${r.shop ? ' · ' + esc(r.shop) : ''}` : esc(r.by || '');
-        return `<div class="lg-row"><div class="d">${fmtDT(r.at)}</div><div><span class="kchip ${esc(r.kind)}">${esc(KIND[r.kind] || r.kind)}</span><b>${esc(r.product_name)} ${esc(r.ml_text)}</b><small>${who}${r.note ? (who ? ' · ' : '') + esc(r.note) : ''}</small></div><div class="n ${r.qty >= 0 ? 'p' : 'm'}">${r.qty > 0 ? '+' : ''}${r.qty}</div></div>`;
+        return `<div class="lg-row"><div class="d">${fmtDT(r.at)}</div><div><span class="kchip ${esc(r.kind)}">${esc(KIND[r.kind] || r.kind)}</span><b>${esc(r.product_name)} ${esc(r.ml_text)}</b>${!curCity && r.city ? `<span class="kcity">${esc(r.city)}</span>` : ''}<small>${who}${r.note ? (who ? ' · ' : '') + esc(r.note) : ''}</small></div><div class="n ${r.qty >= 0 ? 'p' : 'm'}">${r.qty > 0 ? '+' : ''}${r.qty}</div></div>`;
       }).join('') : '<div class="sub" style="padding:14px 0;">Nothing yet.</div>';
     } catch (err) { $('gBody').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
   }

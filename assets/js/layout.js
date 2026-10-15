@@ -3,7 +3,7 @@
  * Call renderSidebar('dashboard' | 'departments' | 'employees' | 'documents'
  *                     | 'history' | 'approvals' | 'users' | 'ex_employees') after guardPage().
  */
-const LAYOUT_BUILD = '261008.3';   // shown under your name in the sidebar
+const LAYOUT_BUILD = '261015.1';   // shown under your name in the sidebar
 
 // Opening splash (TM·PH comet chain + name). Loaded on every page; assets/js/splash.js decides whether to
 // play (new tab / app launch, or back after 10+ min away). Add ?splash=1 to any page address to force it.
@@ -205,6 +205,7 @@ function renderSidebarCore(active) {
     targets: [['targets.html', 'Targets', 'targets']],
     order_targets: [['order_targets.html', 'Order Targets', 'order_targets']],
     performance: [['performance.html', 'Performance', 'performance']],
+    detailed_report: [['detailed_report.html', 'Detailed Report', 'detailed_report']],
     departments: [['departments.html', 'Departments', 'departments']],
     employees: [
       ['employees.html', 'Employees', 'employees'],
@@ -383,6 +384,7 @@ function renderSidebarCore(active) {
       ['targets.html', 'Targets', 'targets'],
       ['order_targets.html', 'Order Targets', 'order_targets'],
       ['performance.html', 'Performance', 'performance'],
+      ['detailed_report.html', 'Detailed Report', 'detailed_report'],
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
       ['commission.html', 'Commission', 'commission'],
@@ -510,7 +512,7 @@ const RAIL_ICONS = {
 const RAIL_ICON_FOR = {
   dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
   attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
-  performance: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
+  performance: 'chart', detailed_report: 'sheet', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
   commission_rules: 'sliders', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
   departments: 'building', employees: 'users', documents: 'folder', whatsapp_groups: 'chat', excel_files: 'sheet',
   ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart', leave: 'calendar', leave_requests: 'calendar',
@@ -1042,7 +1044,7 @@ function addMobileMenu() {
     if (!me || !localStorage.getItem('hrms_token')) return;
     var load = function () {
       var s = document.createElement('script');
-      s.src = me.replace(/layout\.js.*$/, 'tmph.js') + '?v=1';
+      s.src = me.replace(/layout\.js.*$/, 'tmph.js') + '?v=2';
       s.async = true;
       document.head.appendChild(s);
     };

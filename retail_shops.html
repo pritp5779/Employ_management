@@ -82,6 +82,17 @@
   .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
   .seg button{padding:8px 14px; font-size:13px; font-weight:600; color:var(--muted); background:#fff; border:none; min-height:0; cursor:pointer;}
   .seg button.on{background:#111827; color:#fff;}
+  .citybar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 16px;}
+  .citybar .cc{border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:#374151; cursor:pointer; min-height:0; white-space:nowrap;}
+  .citybar .cc small{opacity:.6; font-weight:600; margin-left:6px;}
+  .citybar .cc.on{background:#111827; color:#fff; border-color:#111827;}
+  .citybar .cc.set{border-style:dashed; color:var(--muted);}
+  .citybar .lbl{font-size:12px; color:var(--muted); font-weight:600; margin-right:2px;}
+  #cityRows .cr{display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--line);}
+  #cityRows .cr b{flex:1; min-width:0;} #cityRows .cr .sub{white-space:nowrap;}
+  #cityRows .cr button{padding:5px 10px; font-size:12px; min-height:0;}
+  .cityTbl td.cl{cursor:pointer; font-weight:600;} .cityTbl tr:hover td{background:#f9fafb;}
+  .cityTbl tfoot td{font-weight:800; background:#f8fafc; padding:12px 10px; font-size:13.5px;} .cityTbl tfoot td:first-child, .cityTbl tbody td:first-child{padding-left:20px;} .cityTbl tfoot td:last-child, .cityTbl tbody td:last-child{padding-right:20px;}
   .mchart{display:flex; align-items:flex-end; gap:12px; height:140px; padding:14px 20px 0;}
   .mchart .mb{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; cursor:pointer;}
   .mchart i{display:block; width:100%; flex:none; background:#93b4f7; border-radius:6px 6px 0 0; min-height:3px; transition:background .15s;}
@@ -404,6 +415,7 @@
     </div>
     <div class="content">
       <div id="alertBox"></div>
+      <div class="citybar" id="cityBar"></div>
 
       <!-- ===== LIST ===== -->
       <div id="viewList">
@@ -414,6 +426,13 @@
           <div class="stat-card hstat a"><div class="label">Overdue</div><div class="value" id="hsOvd">—</div><div class="sub" id="hsOvdS">&nbsp;</div></div>
         </div>
         <div class="sub" style="margin:-4px 2px 14px;"><b id="stShops">—</b> shops · <b id="stMonth">—</b> orders this month · <b id="stDisplay">—</b> display bottles out</div>
+        <div class="card" id="cityCard" style="display:none;">
+          <div class="card-head"><h2>City-wise</h2><span class="sub">tap a city to open only its shops</span></div>
+          <div class="tscroll"><table class="no-stack cityTbl">
+            <thead><tr><th>City</th><th>Shops</th><th>Outstanding</th><th>Overdue</th></tr></thead>
+            <tbody id="cityBody"></tbody><tfoot id="cityFoot"></tfoot>
+          </table></div>
+        </div>
         <div class="hgrid">
           <div class="card" id="dbCard">
             <div class="card-head"><h2>Day book</h2>
@@ -544,6 +563,7 @@
           <span class="sub" id="tRange"></span>
         </div>
         <div class="stat-grid" id="tCards"></div>
+        <div id="tCityWrap"></div>
         <div class="card">
           <div class="card-head"><h2>Month by month — all shops</h2><span class="sub">tap a bar to open that month</span></div>
           <div class="mchart" id="tChart"></div>
@@ -684,6 +704,18 @@
   </div>
 </div>
 
+<!-- Cities -->
+<div class="modal-overlay" id="cityModal">
+  <div class="modal" style="max-width:460px;">
+    <h3>Cities</h3>
+    <div class="sub" style="margin:-4px 0 10px;">Every shop belongs to a city, and each city keeps its own inventory. The pinned location fills the city for you.</div>
+    <div id="cityAlert"></div>
+    <div id="cityRows"></div>
+    <form id="cityAddForm" style="display:flex; gap:8px; margin-top:14px;"><input id="cityNew" placeholder="Add a city, e.g. Vadodara" maxlength="60" style="flex:1;"><button type="submit" class="btn" style="width:auto;">Add</button></form>
+    <div class="actions" style="justify-content:flex-end; margin-top:14px;"><button type="button" class="btn secondary" id="btnCityClose">Close</button></div>
+  </div>
+</div>
+
 <!-- Add / edit shop -->
 <div class="modal-overlay" id="shopModal">
   <div class="modal" style="max-width:560px;">
@@ -695,6 +727,7 @@
       <div class="field-grid">
         <div class="field"><label>Owner / contact person</label><input id="fOwner"></div>
         <div class="field"><label>Mobile</label><input id="fMobile" inputmode="tel" placeholder="98250 00000"></div>
+        <div class="field"><label>City</label><select id="fCity"></select><div class="sub" id="fCityNote" style="margin-top:4px;"></div></div>
         <div class="field"><label>Area</label><input id="fArea" list="areaList" placeholder="Adajan"><datalist id="areaList"></datalist></div>
         <div class="field"><label>Note (commission, timing…)</label><input id="fNote" placeholder="e.g. 20% on sale"></div>
       </div>
@@ -1049,6 +1082,126 @@
   const tiles = (map) => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
 
   let shops = [], areas = [], currentShop = null, view = 'list';
+  // ---------- cities: the bar at the top picks "All" or one city; every list below is for that choice ----------
+  let curCity = ''; try { curCity = localStorage.getItem('retail_city') || ''; } catch (e) {}
+  let cityList = [], defaultCity = '';
+  const CITY_ACTIONS = new Set(['retail.shops', 'retail.outstanding', 'retail.totals', 'retail.map', 'retail.visit_plan', 'retail.visit_history', 'retail.register', 'retail.daybook', 'retail.visit_plan_save', 'retail.visit_plan_mark', 'retail.visit_plan_move', 'retail.visit_plan_remove']);
+  const _apiRequest = api.request.bind(api);
+  api.request = (action, options, params) => _apiRequest(action, options || {}, curCity && CITY_ACTIONS.has(action) ? Object.assign({ city: curCity }, params || {}) : (params || {}));
+  const cityCount = () => cityList.reduce((n, c) => n + (c.shops || 0), 0);
+  function renderCityBar() {
+    const bar = document.getElementById('cityBar'); if (!bar) return;
+    bar.innerHTML = '<span class="lbl">City</span>' + `<button type="button" class="cc${curCity ? '' : ' on'}" data-city="">All cities<small>${cityCount()}</small></button>`
+      + cityList.map(c => `<button type="button" class="cc${c.name === curCity ? ' on' : ''}" data-city="${esc(c.name)}">${esc(c.name)}<small>${c.shops || 0}</small></button>`).join('')
+      + '<button type="button" class="cc set" data-manage="1">⚙ Cities</button>';
+  }
+  function setCityList(list, def) {
+    if (Array.isArray(list)) cityList = list;
+    if (def) defaultCity = def;
+    renderCityBar();
+  }
+  function setCity(name, quiet) {
+    curCity = name || '';
+    try { localStorage.setItem('retail_city', curCity); } catch (e) {}
+    renderCityBar();
+    if (quiet) return;
+    ppCache = { at: 0, rows: [] };
+    ['ppShops', 'ppReg', 'ppTot', 'ppLed', 'ppVisit'].forEach(id => { if (PP[id] && PP[id].ids.size) PP[id].set([], false); });
+    if (view === 'list') loadShops();
+    else if (view === 'totals') loadTotals();
+    else if (view === 'ledgerAll') loadLedgerAll();
+    else if (view === 'register') { rg.page = 1; loadRegister(); }
+    else if (view === 'visits') { if (vp.tab === 'hist') vhLoad(); else vpLoad(); }
+    else if (view === 'map') renderAllMap();
+    else loadShops();
+  }
+  document.getElementById('cityBar').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.manage) openCityModal(); else setCity(b.dataset.city || '');
+  });
+  const cityNames = () => cityList.map(c => c.name);
+  function noteCity(name) { if (name && !cityList.some(c => c.name === name)) { cityList.push({ name, shops: 0, active: 0 }); renderCityBar(); } }
+  function renderCityCard() {
+    const card = document.getElementById('cityCard'); if (!card) return;
+    const os = (hm.os && hm.os.shops) || [];
+    if (curCity || cityList.length < 2) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const by = {}; cityList.forEach(c => { by[c.name] = { shops: c.shops || 0, out: 0, ovd: 0 }; });
+    os.forEach(x => { const k = x.city || defaultCity; if (!by[k]) by[k] = { shops: 0, out: 0, ovd: 0 }; if (x.balance > 0.004) by[k].out += x.balance; if (x.overdue > 0.004) by[k].ovd += x.overdue; });
+    const names = Object.keys(by); let ts = 0, to = 0, tv = 0;
+    document.getElementById('cityBody').innerHTML = names.map(n => { const r = by[n]; ts += r.shops; to += r.out; tv += r.ovd;
+      return `<tr><td class="cl" data-city="${esc(n)}">${esc(n)}</td><td>${r.shops}</td><td>${r.out ? `<span class="neg">${inr(r.out)}</span>` : '—'}</td><td>${r.ovd ? `<span class="neg">${inr(r.ovd)}</span>` : '—'}</td></tr>`; }).join('');
+    document.getElementById('cityFoot').innerHTML = `<tr><td>All cities</td><td>${ts}</td><td class="neg">${to ? inr(to) : '—'}</td><td class="neg">${tv ? inr(tv) : '—'}</td></tr>`;
+  }
+  document.getElementById('cityBody').addEventListener('click', (e) => { const c = e.target.closest('[data-city]'); if (c) setCity(c.dataset.city); });
+  // manage the list: add, rename, make default, remove
+  const cityModal = document.getElementById('cityModal');
+  function cityMsg(m, bad) { document.getElementById('cityAlert').innerHTML = m ? `<div class="alert ${bad ? 'error' : 'success'}">${esc(m)}</div>` : ''; }
+  function drawCityRows() {
+    document.getElementById('cityRows').innerHTML = cityList.map(c => `<div class="cr"><b>${esc(c.name)}${c.name === defaultCity ? ' <span class="chip c-blue">default</span>' : ''}</b><span class="sub">${c.shops || 0} shop${c.shops === 1 ? '' : 's'}</span>
+      <button type="button" class="btn secondary" data-ren="${esc(c.name)}">Rename</button>${c.name === defaultCity ? '' : `<button type="button" class="btn secondary" data-def="${esc(c.name)}">Make default</button><button type="button" class="btn secondary" data-rm="${esc(c.name)}" style="color:#c81e1e;">Remove</button>`}</div>`).join('') || '<div class="sub">No city yet.</div>';
+  }
+  async function openCityModal() {
+    cityMsg(''); document.getElementById('cityNew').value = ''; cityModal.classList.add('open');
+    try { const d = await api.get('retail.cities'); setCityList(d.cities, d.default_city); } catch (err) { cityMsg(err.message, true); }
+    drawCityRows();
+  }
+  const closeCityModal = () => { cityModal.classList.remove('open'); if (view === 'list') loadShops(true); };
+  document.getElementById('btnCityClose').addEventListener('click', closeCityModal);
+  cityModal.addEventListener('click', (e) => { if (e.target === cityModal) closeCityModal(); });
+  document.getElementById('cityAddForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); const v = document.getElementById('cityNew').value.trim(); if (!v) return;
+    try { const d = await api.post('retail.city_save', { name: v }); setCityList(d.cities, d.default_city); document.getElementById('cityNew').value = ''; drawCityRows(); cityMsg(d.city + ' added.'); }
+    catch (err) { cityMsg(err.message, true); }
+  });
+  document.getElementById('cityRows').addEventListener('click', async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    try {
+      let d;
+      if (b.dataset.ren) {
+        const nn = prompt('New name for ' + b.dataset.ren + ':', b.dataset.ren); if (!nn || nn.trim() === b.dataset.ren) return;
+        d = await api.post('retail.city_save', { old_name: b.dataset.ren, name: nn.trim() });
+        if (curCity === b.dataset.ren) setCity(d.city, true);
+      } else if (b.dataset.def) d = await api.post('retail.city_save', { name: b.dataset.def, make_default: true });
+      else if (b.dataset.rm) {
+        if (!confirm('Remove ' + b.dataset.rm + ' from the list?')) return;
+        d = await api.post('retail.city_delete', { name: b.dataset.rm });
+        if (curCity === b.dataset.rm) setCity('', true);
+      }
+      if (d) { setCityList(d.cities, d.default_city); drawCityRows(); cityMsg(d.message || 'Saved.'); }
+    } catch (err) { cityMsg(err.message, true); }
+  });
+  // the city select of the shop form
+  const NEW_CITY = '__new__';
+  function fillCitySelect(val) {
+    const sel = document.getElementById('fCity');
+    const names = cityNames(); if (val && !names.includes(val)) names.push(val);
+    sel.innerHTML = names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') + `<option value="${NEW_CITY}">+ Add a new city…</option>`;
+    sel.value = val && names.includes(val) ? val : (names[0] || NEW_CITY);
+    sel.dataset.prev = sel.value;
+  }
+  document.getElementById('fCity').addEventListener('change', async (e) => {
+    const sel = e.target;
+    if (sel.value !== NEW_CITY) { sel.dataset.prev = sel.value; document.getElementById('fCityNote').textContent = ''; return; }
+    const nn = (prompt('Name of the new city:') || '').trim();
+    if (!nn) { sel.value = sel.dataset.prev || ''; return; }
+    try { const d = await api.post('retail.city_save', { name: nn }); setCityList(d.cities, d.default_city); fillCitySelect(d.city); }
+    catch (err) { showAlert(err.message, 'error'); sel.value = sel.dataset.prev || ''; }
+  });
+  // the pinned location tells the city (known cities first, then OpenStreetMap)
+  let cityDetSeq = 0;
+  function useDetectedCity(city, from) {
+    const note = document.getElementById('fCityNote');
+    if (city) { noteCity(city); fillCitySelect(city); note.textContent = 'City filled from the pin: ' + city + (from === 'map' ? ' (new city added)' : ''); }
+    else note.textContent = 'Could not tell the city from this pin — pick it from the list.';
+  }
+  async function cityFromPin(lat, lng) {
+    if (lat === '' || lat === null || lat === undefined) return;
+    const my = ++cityDetSeq, note = document.getElementById('fCityNote');
+    note.textContent = 'Finding the city of this pin…';
+    try { const d = await api.post('retail.geo_city', { lat: Number(lat), lng: Number(lng) }); if (my === cityDetSeq) useDetectedCity(d.city, d.source); }
+    catch (err) { if (my === cityDetSeq) note.textContent = ''; }
+  }
   // Shared hosting drops a request now and then ("Failed to fetch") — try once more before showing an error.
   async function withRetry(fn, tries = 2) {
     let last;
@@ -1099,6 +1252,7 @@
     stopListRestore();
     if (view === 'list' && v !== 'list') listY = window.scrollY;   // remember where the list was
     view = v;
+    document.getElementById('cityBar').style.display = v === 'shop' || v === 'ledger' ? 'none' : '';
     document.getElementById('viewList').style.display = v === 'list' ? '' : 'none';
     document.getElementById('viewShop').style.display = v === 'shop' ? '' : 'none';
     document.getElementById('viewMap').style.display = v === 'map' ? '' : 'none';
@@ -1424,8 +1578,10 @@
       const chip = x.overdue > 0.004 ? `<span class="chip c-red">${x.overdue_days} d</span>` : (x.next_due !== null && x.next_due !== undefined ? `<span class="chip ${x.next_due <= 3 ? 'c-amber' : 'c-blue'}">${x.next_due === 0 ? 'due today' : 'due in ' + x.next_due + ' d'}</span>` : '<span class="sub">—</span>');
       return `<tr><td><span class="shopLink" data-led="${x.shop_id}">${esc(x.shop_name)}</span><span class="sub">${x.last_payment ? 'Last paid ' + fmtDS(x.last_payment) : 'Never paid'}</span><div class="obar"><i style="width:${Math.round(x.balance / max * 100)}%"></i></div></td><td class="neg">${inr(x.balance)}</td><td>${chip}</td><td><button type="button" class="lk" data-led="${x.shop_id}">Ledger ›</button></td></tr>`;
     }).join('') : `<tr><td colspan="4" class="sub" style="text-align:center; padding:22px;">${hm.osF === 'overdue' ? 'Nothing is overdue.' : 'No shop owes you anything.'}</td></tr>`;
+    renderCityCard();
     document.getElementById('osFoot').innerHTML = list.length > show.length ? `Showing the biggest ${show.length} of ${list.length}. <button type="button" class="link" id="osAll">See all in Ledger ›</button>` : 'Biggest first. Tap a shop to open its ledger.';
   }
+  document.getElementById('tCityWrap').addEventListener('click', (e) => { const c = e.target.closest('[data-city]'); if (c) setCity(c.dataset.city); });
   document.getElementById('osCard').addEventListener('click', (e) => {
     if (e.target.id === 'osAll') { openLedgerAll(); return; }
     const b = e.target.closest('#osSeg button'); if (b) { hm.osF = b.dataset.f; document.querySelectorAll('#osSeg button').forEach(x => x.classList.toggle('on', x === b)); renderOutstanding(); }
@@ -1445,6 +1601,10 @@
     try {
       const d = await withRetry(() => api.get('retail.shops', { area: document.getElementById('areaSel').value, q: document.getElementById('q').value.trim(), shop_ids: ppIds('ppShops').join(',') }));
       shops = d.shops || []; areas = d.areas || [];
+      if (d.cities) {
+        setCityList(d.cities, d.default_city);
+        if (curCity && !d.cities.some(c => c.name === curCity)) { setCity('', true); return loadShops(listOnly); }
+      }
       const t = d.totals || {};
       document.getElementById('stShops').textContent = t.shops ?? shops.length;
       document.getElementById('stMonth').textContent = t.month_orders ?? 0;
@@ -1467,7 +1627,7 @@
       const pinned = s.lat !== null && s.lat !== undefined;
       const pending = Number(st.balance !== undefined ? st.balance : (st.pending || 0));
       return `<tr${s.status === 'inactive' ? ' style="opacity:.6;"' : ''}>
-        <td><b>${esc(s.shop_name)}</b>${s.status === 'inactive' ? ' <span class="chip c-grey">inactive</span>' : ''}<div class="sub">${esc([s.area, s.owner_name].filter(Boolean).join(' · '))}</div></td>
+        <td><b>${esc(s.shop_name)}</b>${s.status === 'inactive' ? ' <span class="chip c-grey">inactive</span>' : ''}<div class="sub">${esc([curCity ? '' : s.city, s.area, s.owner_name].filter(Boolean).join(' · '))}</div></td>
         <td>${s.mobile ? `${esc(s.mobile)}<div class="sub"><a href="${waUrl(s.mobile)}" target="_blank" rel="noopener" style="color:#25d366;">WhatsApp</a> · <a href="tel:${esc(s.mobile)}">Call</a></div>` : '<span class="sub">—</span>'}</td>
         <td>${pinned ? `<span class="chip c-green">📍 Pinned</span>` : `<span class="chip c-amber">No pin yet</span>`}<div class="sub">${esc(s.address || '')}${pinned ? `${s.address ? ' · ' : ''}<a href="${mapsUrl(s)}" target="_blank" rel="noopener">Open in Maps</a>` : ` <button class="link" data-pin="${s.shop_id}" style="font-size:11.5px;">Pin now</button>`}</div></td>
         <td>${st.orders_count ? `<b>${st.display_qty}</b> perfumes<div class="sub">${inr(st.amount)} · ${st.orders_count} order${st.orders_count === 1 ? '' : 's'}</div>${st.to_deliver > 0 ? `<span class="chip c-amber">${st.to_deliver} to deliver</span>` : ''}` : '<span class="sub">no order yet</span>'}</td>
@@ -1532,7 +1692,7 @@
     bestFix({ onProgress: (b) => showAlert(`Reading your location… ±${Math.round(b.coords.accuracy)} m, refining`) }).then(async (pos) => {
       try {
         const d = await api.post('retail.shop_pin', { shop_id: shopId, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
-        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); loadShops();
+        if (d.city) noteCity(d.city); showAlert(d.message + (d.city ? ' City: ' + d.city + '.' : '') + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); loadShops();
       } catch (err) { showAlert(err.message, 'error'); }
     }).catch((err) => showAlert(gpsErrMsg(err, 'Could not read the location — allow location for this site and try again, or open the shop and paste a Google Maps link.'), 'error'));
   }
@@ -1552,6 +1712,7 @@
       document.getElementById('shMeta').innerHTML = [
         s.owner_name ? `<span>👤 <b>${esc(s.owner_name)}</b></span>` : '',
         s.mobile ? `<span>📞 <b>${esc(s.mobile)}</b> · <a href="${waUrl(s.mobile)}" target="_blank" rel="noopener" style="color:#25d366;">WhatsApp</a> · <a href="tel:${esc(s.mobile)}">Call</a></span>` : '',
+        s.city ? `<span>🏙 <b>${esc(s.city)}</b></span>` : '',
         s.area ? `<span>🏷 <b>${esc(s.area)}</b></span>` : '',
         `<span>Added <b>${fmtD(s.created_at)}</b></span>`,
         s.note ? `<span>📝 ${esc(s.note)}</span>` : '',
@@ -1594,13 +1755,13 @@
     bestFix({ onProgress: (b) => showAlert(`Reading your location… ±${Math.round(b.coords.accuracy)} m, refining`) }).then(async (pos) => {
       try {
         const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: Math.round(pos.coords.accuracy) });
-        showAlert(d.message + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); openShop(currentShop.shop_id);
+        if (d.city) noteCity(d.city); showAlert(d.message + (d.city ? ' City: ' + d.city + '.' : '') + ` (GPS ±${Math.round(pos.coords.accuracy)} m)` + (pos.coords.accuracy > 80 ? ' — weak GPS fix, the pin may be off. ' + PRECISE_HINT : '')); openShop(currentShop.shop_id);
       } catch (err) { showAlert(err.message, 'error'); }
     }).catch((err) => showAlert(gpsErrMsg(err, 'Could not read the location — allow location for this site and try again.'), 'error'));
   }
   async function linkPinShop() {
     const link = prompt('Paste the Google Maps link or "lat, lng":'); if (!link) return;
-    try { const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, link }); showAlert(d.message); openShop(currentShop.shop_id); }
+    try { const d = await api.post('retail.shop_pin', { shop_id: currentShop.shop_id, link }); if (d.city) noteCity(d.city); showAlert(d.message + (d.city ? ' City: ' + d.city + '.' : '')); openShop(currentShop.shop_id); }
     catch (err) { showAlert(err.message, 'error'); }
   }
   let curDisplay = [];
@@ -1721,12 +1882,12 @@
     if (!HAS_L) return;
     if (!pinMap) {
       pinMap = L.map(document.getElementById('pinMap'), { scrollWheelZoom: false }); tiles(pinMap);
-      pinMap.on('click', (ev) => setPin(ev.latlng.lat, ev.latlng.lng, '', `Pinned where you tapped: ${ev.latlng.lat.toFixed(5)}, ${ev.latlng.lng.toFixed(5)}.`, 'ok'));
+      pinMap.on('click', (ev) => { setPin(ev.latlng.lat, ev.latlng.lng, '', `Pinned where you tapped: ${ev.latlng.lat.toFixed(5)}, ${ev.latlng.lng.toFixed(5)}.`, 'ok'); cityFromPin(ev.latlng.lat, ev.latlng.lng); });
     }
     if (pinMarker) { pinMap.removeLayer(pinMarker); pinMarker = null; }
     if (lat) {
       pinMarker = L.marker([lat, lng], { draggable: true }).addTo(pinMap);
-      pinMarker.on('dragend', () => { const p = pinMarker.getLatLng(); setPin(p.lat, p.lng, '', `Pin moved to ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}.`, 'ok'); });
+      pinMarker.on('dragend', () => { const p = pinMarker.getLatLng(); setPin(p.lat, p.lng, '', `Pin moved to ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}.`, 'ok'); cityFromPin(p.lat, p.lng); });
       pinMap.setView([lat, lng], 17);
     } else pinMap.setView([21.1702, 72.8311], 12);
     setTimeout(() => pinMap.invalidateSize(), 60);
@@ -1778,6 +1939,7 @@
     document.getElementById('fOwner').value = s ? s.owner_name || '' : '';
     document.getElementById('fMobile').value = s ? s.mobile || '' : '';
     document.getElementById('fArea').value = s ? s.area || '' : '';
+    fillCitySelect(s ? (s.city || defaultCity) : (curCity || defaultCity)); document.getElementById('fCityNote').textContent = '';
     document.getElementById('fNote').value = s ? s.note || '' : '';
     document.getElementById('fAddr').value = s ? s.address || '' : '';
     document.getElementById('fOpen').value = s && Number(s.opening_balance) ? Number(s.opening_balance) : '';
@@ -1818,6 +1980,7 @@
       b.disabled = false; b.textContent = '📍 Pin my current location';
       const acc = Math.round(pos.coords.accuracy);
       setPin(pos.coords.latitude, pos.coords.longitude, acc, `Location captured (GPS ±${acc} m).${acc > 60 ? ' Accuracy is poor — step outside the shop door and tap again, or drag the pin onto the shop. ' + PRECISE_HINT : ' Drag the pin if it is not exactly on the shop.'}`, acc > 60 ? 'bad' : 'ok');
+      cityFromPin(pos.coords.latitude, pos.coords.longitude);
     }, (err) => {
       b.disabled = false; b.textContent = '📍 Pin my current location';
       setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', gpsErrMsg(err, 'Could not read the location — try again, or paste a Google Maps link.'), 'bad');
@@ -1825,7 +1988,7 @@
   });
   document.getElementById('btnPasteLink').addEventListener('click', async () => {
     const txt = prompt('Paste a Google Maps link or "lat, lng":'); if (!txt) return;
-    try { const d = await api.post('retail.parse_link', { link: txt }); setPin(d.lat, d.lng, '', `Coordinates set from the link: ${d.lat}, ${d.lng}. Drag the pin if needed.`, 'ok'); }
+    try { const d = await api.post('retail.parse_link', { link: txt }); setPin(d.lat, d.lng, '', `Coordinates set from the link: ${d.lat}, ${d.lng}. Drag the pin if needed.`, 'ok'); useDetectedCity(d.city, d.city_from); }
     catch (err) { setPin(document.getElementById('fLat').value, document.getElementById('fLng').value, '', err.message, 'bad'); }
   });
   document.getElementById('shopForm').addEventListener('submit', async (e) => {
@@ -1837,6 +2000,7 @@
       const d = await api.post('retail.shop_save', {
         shop_id: document.getElementById('fShopId').value || 0,
         shop_name: document.getElementById('fName').value.trim(), owner_name: document.getElementById('fOwner').value.trim(), mobile: document.getElementById('fMobile').value.trim(),
+        city: document.getElementById('fCity').value === NEW_CITY ? '' : document.getElementById('fCity').value,
         area: document.getElementById('fArea').value.trim(), address: document.getElementById('fAddr').value.trim(), note: document.getElementById('fNote').value.trim(),
         lat: document.getElementById('fLat').value, lng: document.getElementById('fLng').value, accuracy_m: document.getElementById('fAcc').value,
         status: document.getElementById('fStatus').value,
@@ -2037,7 +2201,7 @@
   async function loadStock(o) {
     STK = null; STK_OWN = {}; STK_OWN_ON = false;
     try {
-      const d = await api.get('retail.stock');
+      const d = await api.get('retail.stock', { shop_id: Number(document.getElementById('oShop').value) || 0 });
       STK_SINCE = String(d.since || ''); STK_ADMIN = !!d.can_override;
       const m = {}; (d.items || []).forEach(i => { m[i.key] = i; });
       if (o && ['sale', 'display', 'replacement'].includes(o.order_type) && !(o.created_at && STK_SINCE && String(o.created_at).replace('T', ' ') < STK_SINCE)) {
@@ -2593,6 +2757,8 @@
   }
   function renderTotals(d) {
     const c = d.cards, r = d.range;
+    const cw = document.getElementById('tCityWrap');
+    cw.innerHTML = !curCity && (d.by_city || []).length > 1 ? `<div class="card"><div class="card-head"><h2>City-wise — ${esc(r.label)}</h2><span class="sub">tap a city to open only its shops</span></div><div class="tscroll"><table class="no-stack cityTbl"><thead><tr><th>City</th><th>Shops</th><th>Orders</th><th>Pcs</th><th>Billed</th><th>Pending</th></tr></thead><tbody>${d.by_city.map(x => `<tr><td class="cl" data-city="${esc(x.city)}">${esc(x.city)}</td><td>${x.shops}</td><td>${x.orders}</td><td>${x.qty}</td><td>${inr(x.amount)}</td><td>${x.due ? `<span class="neg">${inr(x.due)}</span>` : '—'}</td></tr>`).join('')}</tbody></table></div></div>` : '';
     document.getElementById('tRange').textContent = `${fmtD(r.from)} – ${fmtD(r.to)} · ${d.shop_count} shops`;
     const pct = c.range.qty ? Math.round(c.range.delivered_qty / c.range.qty * 100) : 0;
     document.getElementById('tCards').innerHTML = `
@@ -4064,6 +4230,7 @@
   });
 
   // ---------- start ----------
+  renderCityBar();
   loadShops().then(() => {
     const qp = new URLSearchParams(location.search);
     const id = Number(qp.get('shop')), lid = Number(qp.get('ledger'));

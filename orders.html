@@ -1190,11 +1190,11 @@
     if (ev.key === 'Escape') { ptEdit = ''; renderSummary(); }
   });
 
-  // ---- Ad spend + ROAS in the panel boxes. ROAS = total collection (the box's revenue) / ad spend. The ad spend is typed by hand
-  // (one amount per panel and day, one-day view only). Several days = the sum of the days typed. The All box = the sum of the
-  // panel spends (Auto) unless typed for the box itself. chk = [[panel key, revenue]] of the boxes shown, to warn about missing spends.
+  // ---- Ad spend + ROAS, only in the All Orders & Revenue box. ROAS = total collection / ad spend. The ad spend is typed by hand
+  // (one amount per day, one-day view only). Several days = the sum of the days typed. Per-house spends typed on the Detailed
+  // Report still add up here as "Auto" unless an amount is typed for the box itself.
   let rsEdit = '';        // panel being typed in
-  function roasHtml(label, s, forceKey, chk) {
+  function roasHtml(label, s, forceKey) {
     const pn = forceKey ? [forceKey] : PANELS.find(p => p[1] === label && p[0] !== 'none');
     if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_spend) return '';
     if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';   // the sheet for these dates is still loading
@@ -1212,11 +1212,9 @@
       : (can ? `<span class="tgt-chip empty" data-rs="edit" data-k="${k}" title="Type the ad spend">Set spend ✎</span>` : '<b>—</b>');
     const partial = has && days > 1 && n < days && (!isAll || man)
       ? `<div class="rs-warn">Ad spend entered for ${n} of ${days} days. ROAS is higher than real until all days are filled.</div>` : '';
-    const missing = isAll && has && !man && (chk || []).some(([pk, tot]) => tot > 0 && ((teamData.panel_spend[pk] || {}).n || 0) < days)
-      ? '<div class="rs-warn">Some cards are missing ad spend, so this ROAS is higher than real.</div>' : '';
     return `<div class="pt-box rs-box"><div class="pt-top"><span>Ad spend ${pill}</span>${right}</div>` +
       `<div class="rs-tile"><div class="rs-big${r === null ? ' none' : ''}">${r === null ? '—' : r.toFixed(2) + '<small>×</small>'}</div><div class="rs-tx"><small>ROAS</small></div></div>` +
-      `<div class="rs-f">${has ? ptInr(coll) + ' ÷ ' + ptInr(spend) : 'Collection ÷ Ad spend'}</div>${partial}${missing}</div>`;
+      `<div class="rs-f">${has ? ptInr(coll) + ' ÷ ' + ptInr(spend) : 'Collection ÷ Ad spend'}</div>${partial}</div>`;
   }
   async function rsSave(k, amount) {
     if (!teamData || !teamData.single) return;
@@ -1281,7 +1279,6 @@
     });
     Object.entries(byStore).forEach(([label, s]) => { if (!PANELS.some(p => p[0] !== 'none' && p[1] === label)) boxes.push([label, s]); });
 
-    const roasChk = boxes.map(([label, x]) => [(PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0], Number(x.total) || 0]).filter(c => c[0]);     // panel key + revenue of every panel box shown
     const grid = document.getElementById('summaryGrid');
     // Each card carries both a full label/amount and a short one; CSS shows
     // whichever fits (short only under the mobile breakpoint).
@@ -1298,7 +1295,7 @@
         <div class="tkr"><span>Campaign order</span> <b class="n">${cOrders}</b></div>
         <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
-        ${roasHtml('All Orders & Revenue', { total: grandTotal }, allKey, roasChk)}
+        ${roasHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
         ${qhHtml(shownKeys, false, 'all')}
       </div>
       ${boxes.map(([label, s]) => `
@@ -1314,7 +1311,6 @@
               (EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(x.qo, (platformQueries[pk] || {}).query || 0)}</div>`) + `<div class="tkr"><span>Campaign order</span> <b class="n">${x.co}</b></div>`; })()}
           <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
           ${panelTargetHtml(label, s)}
-          ${roasHtml(label, s)}
           ${(() => { const pk = (PANELS.find(p => p[1] === label) || [])[0]; return pk && HOUR_KEYS.includes(pk) ? qhHtml([pk], true, 'p-' + pk) : ''; })()}
         </div>`).join('')}
       <div class="stat-card">
