@@ -251,7 +251,6 @@
   .qh input{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;padding:3px 4px;font-size:12.5px;font-weight:800;text-align:center;background:#fff;outline:none;}
   .qh input.q{color:#0ea5e9;} .qh input.c{color:#d97706;} .qh input:focus{border-color:#2563eb;box-shadow:0 0 0 2px #bfdbfe;} .qh input:disabled{opacity:.5;}
   .qh .ro{font-size:10.5px;color:var(--muted);margin-top:5px;}
-  .shr{margin-top:7px; padding-top:6px; border-top:1px dashed var(--line);} .shh{font-size:10.5px; font-weight:700; color:#1e40af; text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px;} .shr .tkr{margin-top:3px; padding-top:0; border-top:0;}
   .tkr + .tkr{margin-top:3px; padding-top:0; border-top:0;} .tkr b.n{color:var(--ink);} .tkr b.g{color:#0f7a41;} .tkr b.a{color:#b45f06;} .tkr b.r{color:#c81e1e;}
   @media (max-width:820px){ .tkr{flex-direction:column; align-items:flex-start; gap:1px; font-size:10.5px;} .stat-card.ar .tkr{flex-direction:row; align-items:baseline; gap:8px; font-size:12.5px;} }
   /* store picker: tick one or several stores */
@@ -313,6 +312,35 @@
   .pt-ring .it{line-height:1.2; white-space:nowrap;} .pt-ring .it small{display:block; font-size:10.5px; font-weight:600; color:var(--muted);} .pt-ring .it b{font-size:13px;}
   .pt-ring .a b{color:#0f7a41;} .pt-ring .p b{color:#b45f06;}
   @media (max-width:820px){ .pt-top{flex-direction:column; align-items:flex-start; gap:2px; font-size:10.5px;} .pt-top b{font-size:13px;} .pt-edit input{font-size:16px; width:70px;} .pt-ring{flex-direction:column; align-items:flex-start; gap:7px;} .pt-ring .tx{width:100%; gap:4px;} .pt-ring .rg, .pt-ring svg{width:46px; height:46px;} .pt-ring .rg span{font-size:11.5px;} .pt-ring .rg span.o{font-size:10px;} .pt-ring .it small{font-size:10px;} .pt-ring .it b{font-size:12px;} }
+  /* Remark (a note typed by hand) under the employee, with the writer's name after it */
+  .rm{margin-top:7px; max-width:100%; font-size:12px; line-height:1.35; white-space:normal;}
+  .rm-add{display:inline-flex; align-items:center; gap:4px; border:1px dashed #c3cad6; border-radius:8px; padding:3px 9px; color:#6b7686; background:#fff; cursor:pointer; font-weight:600; font-size:11.5px; min-height:0; width:auto;}
+  .rm-add:hover{border-color:var(--accent); color:var(--accent);}
+  .rm-note{display:block; background:#fff8e6; border:1px solid #f6e2a8; border-radius:9px; padding:6px 9px; color:#4a3b0b; white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere;}
+  .rm-note.can{cursor:pointer;} .rm-note.can:hover{border-color:#e8cd7d;}
+  .rm-note .by{display:block; margin-top:3px; font-size:10.5px; font-weight:700; color:#9a7b1a; white-space:normal;}
+  .rm-note .by small{font-weight:500; color:#a8923f; font-size:10.5px;}
+  .rm-edit{display:flex; flex-direction:column; gap:5px;}
+  .rm-edit textarea{width:100%; min-height:54px; resize:vertical; padding:6px 8px; border:1px solid var(--accent); border-radius:8px; font:inherit; font-size:12.5px; box-sizing:border-box;}
+  .rm-edit .row{display:flex; gap:5px; align-items:center; flex-wrap:wrap;}
+  .rm-edit .row small{color:var(--muted); margin-right:auto; font-size:10.5px;}
+  .rm-edit button{min-height:0; width:auto; padding:4px 10px; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid var(--line); background:#fff;}
+  .rm-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .rm-edit button.del{color:var(--bad-fg);}
+  @media (max-width:820px){ .rm-edit textarea{font-size:16px;} }
+  /* Ad spend + ROAS box under the Target box (ROAS = total collection / ad spend typed by hand) */
+  .rs-box{min-width:0;}
+  .rs-box .pt-top b{display:inline-flex; align-items:center; gap:2px;}
+  .rs-box .tgt-chip{max-width:100%;}
+  .rs-tile{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:#f4f8ff; border:1px solid #dbe7ff; border-radius:14px; padding:9px 11px;}
+  .rs-big{font-size:25px; font-weight:800; letter-spacing:-.02em; color:#1d4ed8; line-height:1; white-space:nowrap;}
+  .rs-big small{font-size:15px; font-weight:800; margin-left:1px;}
+  .rs-big.none{color:#9aa3b2;}
+  .rs-tx{min-width:0; line-height:1.25;}
+  .rs-tx small{display:block; font-size:10.5px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:.05em;}
+  .rs-f{margin-top:5px; font-size:11px; color:var(--muted); line-height:1.3;}
+  .rs-warn{margin-top:6px; font-size:10.5px; color:#b45f06; font-weight:600; line-height:1.3;}
+  @media (max-width:520px){ .rs-big{font-size:21px;} }
   .stbox{display:flex; align-items:center; gap:5px; flex-wrap:nowrap;}
   .cl1{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
   .seg{display:flex; width:96px; height:10px; background:var(--bg); border-radius:5px; overflow:hidden; flex:none;}
@@ -1151,7 +1179,7 @@
   document.getElementById('summaryGrid').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-pt]'); if (!b) return;
     const k = b.dataset.k, act = b.dataset.pt;
-    if (act === 'edit') { ptEdit = k; renderSummary(); const i = document.getElementById('ptIn'); if (i) { i.focus(); i.select(); } }
+    if (act === 'edit') { ptEdit = k; rsEdit = ''; renderSummary(); const i = document.getElementById('ptIn'); if (i) { i.focus(); i.select(); } }
     else if (act === 'x') { ptEdit = ''; renderSummary(); }
     else if (act === 'save') { const v = Number((document.getElementById('ptIn') || {}).value); ptSave(k, v > 0 ? v : null); }
     else if (act === 'rev') ptSave(k, null);
@@ -1160,6 +1188,59 @@
     if (ev.target.id !== 'ptIn') return;
     if (ev.key === 'Enter') { const b = document.querySelector('#summaryGrid [data-pt="save"]'); if (b) b.click(); }
     if (ev.key === 'Escape') { ptEdit = ''; renderSummary(); }
+  });
+
+  // ---- Ad spend + ROAS in the panel boxes. ROAS = total collection (the box's revenue) / ad spend. The ad spend is typed by hand
+  // (one amount per panel and day, one-day view only). Several days = the sum of the days typed. The All box = the sum of the
+  // panel spends (Auto) unless typed for the box itself. chk = [[panel key, revenue]] of the boxes shown, to warn about missing spends.
+  let rsEdit = '';        // panel being typed in
+  function roasHtml(label, s, forceKey, chk) {
+    const pn = forceKey ? [forceKey] : PANELS.find(p => p[1] === label && p[0] !== 'none');
+    if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_spend) return '';
+    if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';   // the sheet for these dates is still loading
+    const k = pn[0], sp = teamData.panel_spend[k];
+    if (!sp) return '';
+    const can = esCanEdit(), isAll = k === 'all', spend = Number(sp.spend) || 0, has = spend > 0, days = Number(sp.days) || 1, n = Number(sp.n) || 0;
+    const man = isAll ? sp.src === 'manual' : n > 0;
+    const pill = has ? (isAll && !man ? '<span class="tgt-pill auto">Auto</span>' : `<span class="tgt-pill man" title="${n} of ${days} day${days === 1 ? '' : 's'} typed">Manual</span>`) : '';
+    if (can && rsEdit === k) {
+      return `<div class="pt-box rs-box"><div class="pt-top"><span>Ad spend</span><span class="pt-edit"><input type="number" id="rsIn" min="0" step="500" inputmode="numeric" value="${man && has ? Math.round(spend) : ''}" placeholder="${isAll && Number(sp.auto) > 0 ? Math.round(sp.auto) : 'Ad spend'}"><button type="button" class="ok" data-rs="save" data-k="${k}" title="Save">✓</button><button type="button" data-rs="x" data-k="${k}" title="Cancel">✕</button></span></div>` +
+        (isAll && man ? `<button type="button" class="tgt-revert" data-rs="rev" data-k="all">↺ Back to automatic${Number(sp.auto) > 0 ? ' (' + ptInr(sp.auto) + ')' : ''}</button>` : '') + '</div>';
+    }
+    const coll = Number(s.total) || 0, r = has ? coll / spend : null;
+    const right = has ? `<b>${ptInr(spend)}${can ? `<button type="button" class="stedit" data-rs="edit" data-k="${k}" title="Type the ad spend">✎</button>` : ''}</b>`
+      : (can ? `<span class="tgt-chip empty" data-rs="edit" data-k="${k}" title="Type the ad spend">Set spend ✎</span>` : '<b>—</b>');
+    const partial = has && days > 1 && n < days && (!isAll || man)
+      ? `<div class="rs-warn">Ad spend entered for ${n} of ${days} days. ROAS is higher than real until all days are filled.</div>` : '';
+    const missing = isAll && has && !man && (chk || []).some(([pk, tot]) => tot > 0 && ((teamData.panel_spend[pk] || {}).n || 0) < days)
+      ? '<div class="rs-warn">Some cards are missing ad spend, so this ROAS is higher than real.</div>' : '';
+    return `<div class="pt-box rs-box"><div class="pt-top"><span>Ad spend ${pill}</span>${right}</div>` +
+      `<div class="rs-tile"><div class="rs-big${r === null ? ' none' : ''}">${r === null ? '—' : r.toFixed(2) + '<small>×</small>'}</div><div class="rs-tx"><small>ROAS</small></div></div>` +
+      `<div class="rs-f">${has ? ptInr(coll) + ' ÷ ' + ptInr(spend) : 'Collection ÷ Ad spend'}</div>${partial}${missing}</div>`;
+  }
+  async function rsSave(k, amount) {
+    if (!teamData || !teamData.single) return;
+    const from = teamData.from, to = teamData.to;
+    try {
+      await api.post('panel_spend.save', { date: from, panel: k, amount });
+      const r = await api.get('panel_spend.get', { date_from: from, date_to: to });
+      if (teamData && teamData.from === from && teamData.to === to && r && r.panel_spend) teamData.panel_spend = r.panel_spend;
+      rsEdit = '';
+      renderSummary();
+    } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
+  }
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-rs]'); if (!b) return;
+    const k = b.dataset.k, act = b.dataset.rs;
+    if (act === 'edit') { rsEdit = k; ptEdit = ''; renderSummary(); const i = document.getElementById('rsIn'); if (i) { i.focus(); i.select(); } }
+    else if (act === 'x') { rsEdit = ''; renderSummary(); }
+    else if (act === 'save') { const v = Number((document.getElementById('rsIn') || {}).value); rsSave(k, v > 0 ? v : null); }
+    else if (act === 'rev') rsSave(k, null);
+  });
+  document.getElementById('summaryGrid').addEventListener('keydown', (ev) => {
+    if (ev.target.id !== 'rsIn') return;
+    if (ev.key === 'Enter') { const b = document.querySelector('#summaryGrid [data-rs="save"]'); if (b) b.click(); }
+    if (ev.key === 'Escape') { rsEdit = ''; renderSummary(); }
   });
 
   const TOP_ORDER = ['tmph', 'tm4u', 'tmh4', 'tmsg'];     // order of the panel boxes in the top boxes
@@ -1200,6 +1281,7 @@
     });
     Object.entries(byStore).forEach(([label, s]) => { if (!PANELS.some(p => p[0] !== 'none' && p[1] === label)) boxes.push([label, s]); });
 
+    const roasChk = boxes.map(([label, x]) => [(PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0], Number(x.total) || 0]).filter(c => c[0]);     // panel key + revenue of every panel box shown
     const grid = document.getElementById('summaryGrid');
     // Each card carries both a full label/amount and a short one; CSS shows
     // whichever fits (short only under the mobile breakpoint).
@@ -1214,12 +1296,9 @@
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         <div class="tkr"><span>Campaign order</span> <b class="n">${cOrders}</b></div>
-        ${(() => { const rows = boxes.filter(([label]) => PANELS.some(p => p[0] !== 'none' && p[1] === label));
-          if (!rows.length) return '';
-          const pc = (n, tot) => tot > 0 ? Math.round(n / tot * 100) : 0;      // this panel's share of all orders (and of all revenue)
-          return `<div class="shr"><div class="shh">Share · orders (revenue)</div>${rows.map(([label, x]) => `<div class="tkr"><span>${label}</span> <b class="n">${pc(x.count, base.length)}(${pc(x.total, grandTotal)})%</b></div>`).join('')}</div>`; })()}
         <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
+        ${roasHtml('All Orders & Revenue', { total: grandTotal }, allKey, roasChk)}
         ${qhHtml(shownKeys, false, 'all')}
       </div>
       ${boxes.map(([label, s]) => `
@@ -1235,6 +1314,7 @@
               (EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(x.qo, (platformQueries[pk] || {}).query || 0)}</div>`) + `<div class="tkr"><span>Campaign order</span> <b class="n">${x.co}</b></div>`; })()}
           <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
           ${panelTargetHtml(label, s)}
+          ${roasHtml(label, s)}
           ${(() => { const pk = (PANELS.find(p => p[1] === label) || [])[0]; return pk && HOUR_KEYS.includes(pk) ? qhHtml([pk], true, 'p-' + pk) : ''; })()}
         </div>`).join('')}
       <div class="stat-card">
@@ -1784,6 +1864,7 @@
       if (!d.order || Array.isArray(d.order)) d.order = {};
       Object.keys(d.order).forEach(k => { d.order[k] = (d.order[k] || []).map(Number); });
       if (!esSortTouched && Object.keys(d.order).length) esEl('esSort').value = 'manual';      // a saved order is used until another sort is picked
+      if (!teamData || teamData.from !== d.from || teamData.to !== d.to) esRemEdit = '';      // another day: no note box stays open
       teamData = d;
       teamData.rulePending = !!d.auto_rule;        // the Target with the automatic rule is still on its way
       try { renderTeamSheet(); } catch (re) { teamData = null; throw new Error('could not draw the sheet (' + re.message + ')'); }
@@ -2027,7 +2108,34 @@
     const nm = e.real
       ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show this person's orders in ${esEsc(label)}"><b>${esEsc(e.n)}</b></a>`
       : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
-    return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${e.real ? `<div class="el2">${esStatus(e)}</div>` : ''}</div>`;
+    return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${e.real ? `<div class="el2">${esStatus(e)}</div>${esRemark(e)}` : ''}</div>`;
+  }
+  // ---- Remark: a note typed by hand under the employee (one per day, employee and panel); the writer's name follows it. One-day view only.
+  let esRemEdit = '';        // "employee id|panel" being typed in
+  function esRemark(e) {
+    if (!teamData || !teamData.single) return '';
+    const key = e.id + '|' + e.b, r = (teamData.remarks || {})[key], can = esCanEdit();
+    if (can && esRemEdit === key) {
+      return `<div class="rm"><div class="rm-edit"><textarea id="esRemIn" maxlength="500" placeholder="Write a note…">${esEsc(r ? r.note : '')}</textarea><div class="row"><small>Saved with your name</small>` +
+        (r ? `<button type="button" class="del" data-rm="del" data-id="${e.id}" data-b="${e.b}">Delete</button>` : '') +
+        `<button type="button" data-rm="x">✕</button><button type="button" class="ok" data-rm="save" data-id="${e.id}" data-b="${e.b}">✓ Save</button></div></div></div>`;
+    }
+    if (r && r.note) {
+      let when = '';
+      if (r.at) { const d = new Date(String(r.at).replace(' ', 'T')); if (!isNaN(d)) when = ' <small>· ' + d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) + '</small>'; }
+      return `<div class="rm"><span class="rm-note${can ? ' can' : ''}"${can ? ` data-rm="edit" data-id="${e.id}" data-b="${e.b}" title="Click to change"` : ''}>${esEsc(r.note)}${r.by ? `<b class="by">— ${esEsc(r.by)}${when}</b>` : ''}</span></div>`;
+    }
+    return can ? `<div class="rm"><button type="button" class="rm-add" data-rm="edit" data-id="${e.id}" data-b="${e.b}">✎ Add remark</button></div>` : '';
+  }
+  async function esRemSave(id, b, note) {
+    if (!teamData || !teamData.single) return;
+    try {
+      const r = await api.post('panel_remark.save', { date: teamData.from, employee_id: id, panel: b, note });
+      if (!teamData.remarks || Array.isArray(teamData.remarks)) teamData.remarks = {};
+      if (r && r.remark) teamData.remarks[id + '|' + b] = r.remark; else delete teamData.remarks[id + '|' + b];
+      esRemEdit = '';
+      renderTeamSheet();
+    } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
   }
   const PBX = (k) => '<button type="button" class="pbx" data-xl="panel:' + k + '" title="Download this panel as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button>';
   // ---- the sheet as a table (computer) ...
@@ -2259,13 +2367,24 @@
     });
     document.addEventListener('click', (ev) => { if (esPop && !ev.target.closest('.stpop') && !ev.target.closest('[data-sx]')) esClosePop(); });
     document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } }
+      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } if (esRemEdit) { esRemEdit = ''; renderTeamSheet(); } }
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey) && ev.target.id === 'esRemIn') { const b = document.querySelector('[data-rm="save"]'); if (b) b.click(); }
       if (ev.key === 'Enter' && ev.target.id === 'esTgIn') document.querySelector('[data-tg="save"]').click();
     });
     const esSheetClick = (ev) => {
       if (ev.target.closest('#esRetry')) { ev.preventDefault(); esReload(); return; }
       const cmk = ev.target.closest('[data-cm]');
       if (cmk) { ev.preventDefault(); const [cid, cb] = cmk.dataset.cm.split('|'); esCmOpen(Number(cid), cb); return; }
+      const rm = ev.target.closest('[data-rm]');
+      if (rm) {
+        ev.preventDefault();
+        const id = Number(rm.dataset.id), pn = rm.dataset.b, act = rm.dataset.rm;
+        if (act === 'edit') { esRemEdit = id + '|' + pn; renderTeamSheet(); const i = esEl('esRemIn'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+        else if (act === 'x') { esRemEdit = ''; renderTeamSheet(); }
+        else if (act === 'save') esRemSave(id, pn, (esEl('esRemIn') || {}).value || '');
+        else if (act === 'del') { if (confirm('Delete this remark?')) esRemSave(id, pn, ''); }
+        return;
+      }
       const sx = ev.target.closest('[data-sx]');
       if (sx) { ev.preventDefault(); esOpenStatus(sx, Number(sx.dataset.sx)); return; }
       const tg = ev.target.closest('[data-tg]');

@@ -944,7 +944,7 @@ function addMobileMenu() {
  * so the history never fills up with leftovers.
  */
 (function () {
-  const LAYERS = '.modal-overlay, .daypop';
+  const LAYERS = '.modal-overlay, .daypop, .tmph-panel';   // .tmph-panel = the TMPH assistant (tmph.js), so Back closes it too
   const MENU = 'menu';                       // the phone menu (body.sidebar-open)
   const MARK = { hrmsLayer: 1 };
   const stack = [];                          // open layers, oldest first — each owns one history entry
@@ -1029,4 +1029,23 @@ function addMobileMenu() {
     sync();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+
+/**
+ * TMPH assistant: loads assets/js/tmph.js (next to this file) on every page, for logged-in people only.
+ * tmph.js asks the server (ai.status) whether this person may use TMPH and stays invisible if not.
+ * To switch TMPH off everywhere, delete this block (or the file tmph.js).
+ */
+(function () {
+  try {
+    var me = document.currentScript && document.currentScript.src;
+    if (!me || !localStorage.getItem('hrms_token')) return;
+    var load = function () {
+      var s = document.createElement('script');
+      s.src = me.replace(/layout\.js.*$/, 'tmph.js') + '?v=1';
+      s.async = true;
+      document.head.appendChild(s);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
+  } catch (e) { /* TMPH is optional — never let it break a page */ }
 })();

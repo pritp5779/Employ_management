@@ -376,6 +376,16 @@
   const hasCond = () => CODE.on && CODE.rules.some((r) => Number(r.enabled) && ((r.when_target || 'any') !== 'any' || (r.when_ticket || 'any') !== 'any'));
   // Commission of one order at its row's rate.
   const orderCom = (x, rate) => x.flat + rate * x.eff / 100;
+  // A person's FIXED commission is always paid. When the bundle's order-code condition is not met (e.g. fewer than 80% of the orders have a code),
+  // each order still earns the fixed amount, but cut by the order-code rule that matches it (e.g. "no code → 50%"). ctx = { hit, ticket } of the person.
+  const fixedBaseOf = (o, mode, per) => mode === 'rate' ? o.amt * per / 100 : per;
+  function fixedPayOf(o, mode, per, cut, ctx) {
+    const base = fixedBaseOf(o, mode, per);
+    if (!cut) return base;
+    const sh = shareFor(o, ctx);
+    if (!sh) return base;
+    return sh.mode === 'flat' ? sh.v : sh.mode === 'rate' ? o.amt * sh.v / 100 : base * sh.v / 100;
+  }
   function repriceAll() {
     ORD.forEach(priceOrder);
     Object.keys(IDX).forEach((k) => Object.keys(IDX[k]).forEach((d) => {
@@ -530,17 +540,18 @@
       c.steps.push({ label: mixRule.label || 'Code rule', detail: `${Math.round(mixPct)}% of ${mixDated ? 'the orders in its dates' : 'orders'} have a code (rule: ${mixRule.op === 'lte' ? 'at most' : 'at least'} ${fmtN(mixRule.thr)}%) → ${payTxt(mode, v)}`, value: saved > 0.5 || saved < -0.5 ? (saved > 0 ? '+' : '−') + inr(Math.abs(saved)) : 'full' });
     }
     // NEW — fixed commission for selected people, once the minimum is reached: a % of sales, or ₹ per order
-    const plan = (c && row.rk === '') ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p) && gateOk(p.grp)) : null;
-    if (c && c.steps && row.rk === '' && n > 0 && !plan) {
-      const blk = NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p) && !gateOk(p.grp));
-      if (blk) c.steps.push({ label: 'Fixed commission not paid', detail: gateTxt(blk.grp) + ' → normal commission is paid', value: 'normal' });
-    }
+    const plan = (c && row.rk === '') ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p)) : null;
     if (plan && n > 0) {
-      const v = Number(plan.per);
-      c.fixedPlan = { mode: plan.mode, v, n, ach, badge: payBadge(plan.mode, v) };
+      const v = Number(plan.per), cut = !gateOk(plan.grp), fctx = { hit: c.hit, ticket: c.ticket };
+      let full = 0, paid = 0, cutN = 0;
+      orders.forEach((o) => { const b = fixedBaseOf(o, plan.mode, v), q = fixedPayOf(o, plan.mode, v, cut, fctx); full += b; paid += q; if (cut && Math.abs(q - b) > 0.005) cutN++; });
+      c.fixedPlan = { mode: plan.mode, v, n, ach, badge: payBadge(plan.mode, v), cut, ctx: fctx };
       c.slabAmount = c.amount;
-      c.amount = plan.mode === 'rate' ? ach * v / 100 : v * n; c.held = 0; c.adj = false; c.mix = null; c.full = c.amount;
-      c.steps = [{ label: 'Fixed commission', detail: `${plan.mode === 'rate' ? fmtN(v) + '% of ' + inr(ach) + ' sales' : n + ' order' + (n === 1 ? '' : 's') + ' × ' + inr(v)} (minimum ${planMinTxt(plan)} reached)`, value: inr(c.amount) }];
+      c.amount = paid; c.held = full - paid; c.adj = false; c.mix = null; c.full = full;
+      c.steps = [{ label: 'Fixed commission', detail: `${plan.mode === 'rate' ? fmtN(v) + '% of ' + inr(ach) + ' sales' : n + ' order' + (n === 1 ? '' : 's') + ' × ' + inr(v)} (minimum ${planMinTxt(plan)} reached)`, value: inr(full) }];
+      if (cut) {
+        c.steps.push({ label: 'Order code', detail: `${gateTxt(plan.grp)} → orders are cut by the order-code rules (${cutN} order${cutN === 1 ? '' : 's'})`, value: (full - paid > 0.005 ? '−' : '') + inr(full - paid) });
+      }
     }
     // NEW — order-rating rules: each order's commission is cut by its star rating (and by "no code"), see starMul()
     if (c && c.steps && n > 0 && NEW.star.some((r) => r.on)) {
@@ -616,9 +627,11 @@
       <td class="r" data-label="Achieved"><b>${inr(a.ach)}</b>${pctTxt(a)}${a.target > 0 ? progress(a) : ''}</td>
       <td class="r" data-label="Pending">${pendCell(a)}</td>
       <td class="r" data-label="Average">${inr(mode === 'today' ? avgTo(a.row, TODAY) : (a.worked > 0 ? a.ach / a.worked : 0))}<div class="small muted">per day${mode === 'today' ? ' (this month)' : ''}</div></td>
-      <td class="r" data-label="Commission">${a.c.steps ? `<span class="com${a.c.manual ? ' man' : ''}">${inr(a.c.amount)}</span>${rateBtn(a, key)}${a.c.manual ? `<div class="held mann">manual · automatic would be ${inr(a.c.auto.amount)}</div>` : ''}${a.c.fixedPlan ? `<div class="held fxn">fixed · ${a.c.fixedPlan.mode === 'rate' ? fmtN(a.c.fixedPlan.v) + '% of ' + inr(a.c.fixedPlan.ach) : inr(a.c.fixedPlan.v) + ' × ' + a.c.fixedPlan.n + ' orders'}</div>` : a.c.mix ? `<div class="held mixn">✓ ${esc(a.c.mix.label || 'code rule')} · ${a.c.mix.pct}% with code → ${esc(payTxt(a.c.mix.mode, a.c.mix.v))}${a.c.mix.mode === 'full' && a.c.mix.saved > 0.5 ? ' (+' + inr(a.c.mix.saved) + ')' : ''}</div>` : Math.abs(a.c.held) >= 0.5 ? `<div class="held">order-code rules ${a.c.held > 0 ? '−' : '+'}${inr(Math.abs(a.c.held))}</div>` : ''}` : '<span class="com none">₹0</span>'}</td>
+      <td class="r" data-label="Commission">${a.c.steps ? `<span class="com${a.c.manual ? ' man' : ''}">${inr(a.c.amount)}</span>${rateBtn(a, key)}${a.c.manual ? `<div class="held mann">manual · automatic would be ${inr(a.c.auto.amount)}</div>` : ''}${a.c.fixedPlan ? `<div class="held fxn">fixed · ${a.c.fixedPlan.mode === 'rate' ? fmtN(a.c.fixedPlan.v) + '% of ' + inr(a.c.fixedPlan.ach) : inr(a.c.fixedPlan.v) + ' × ' + a.c.fixedPlan.n + ' orders'}${a.c.fixedPlan.cut && Math.abs(a.c.held) >= 0.5 ? ' · order-code −' + inr(Math.abs(a.c.held)) : ''}${ratingTxt(a.c)}</div>` : a.c.mix ? `<div class="held mixn">✓ ${esc(a.c.mix.label || 'code rule')} · ${a.c.mix.pct}% with code → ${esc(payTxt(a.c.mix.mode, a.c.mix.v))}${a.c.mix.mode === 'full' && a.c.mix.saved > 0.5 ? ' (+' + inr(a.c.mix.saved) + ')' : ''}</div>` : Math.abs(a.c.held) >= 0.5 ? `<div class="held">order-code rules ${a.c.held > 0 ? '−' : '+'}${inr(Math.abs(a.c.held))}${ratingTxt(a.c)}</div>` : (ratingTxt(a.c) ? `<div class="held">${ratingTxt(a.c).replace(/^ · /, '')}</div>` : '')}` : '<span class="com none">₹0</span>'}</td>
       <td data-label="Leave">${leave}</td></tr>`;
   }
+  // the order-rating cut (Commission Rules → rating rules) is part of the total too, so it is named next to the order-code cut
+  const ratingTxt = (c) => c && c.starCut && Math.abs(c.starCut.cut) >= 0.5 ? ' · rating ' + (c.starCut.cut < 0 ? '−' : '+') + inr(Math.abs(c.starCut.cut)) : '';
   const THEAD = '<thead><tr><th>Employee</th><th class="r">Target</th><th class="r">Ticket Size</th><th class="r">Achieved</th><th class="r">Pending</th><th class="r">Average</th><th class="r">Commission</th><th>Leave</th></tr></thead>';
 
   function kpis(list) {
@@ -657,7 +670,7 @@
   // NEW: what ONE order earns, with a short reason when it is ₹0 or special
   function comBase(o, aggs) {
     const A = aggs[o.emp + '|' + o.rk], c = A && A.c;
-    if (c && c.fixedPlan) return { v: c.fixedPlan.mode === 'rate' ? o.amt * c.fixedPlan.v / 100 : c.fixedPlan.v, note: 'fixed · ' + payTxt(c.fixedPlan.mode, c.fixedPlan.v), cls: 'fx' };
+    if (c && c.fixedPlan) { const fp = c.fixedPlan, v = fixedPayOf(o, fp.mode, fp.v, fp.cut, fp.ctx), b = fixedBaseOf(o, fp.mode, fp.v); return { v, note: 'fixed · ' + payTxt(fp.mode, fp.v) + (fp.cut && Math.abs(v - b) > 0.005 ? ' · order-code cut' : ''), cls: Math.abs(v - b) > 0.005 ? 'cut' : 'fx' }; }
     const p = (A && A.pm && A.pm[o.key]) || o, rate = c ? (c.rate || 0) : 0;
     if (!c || !c.steps) return { v: 0, note: 'no commission earned this period', cls: 'z' };
     if (c.mix && c.mix.mode !== 'full' && inWin(c.mix.win, o.day)) {
@@ -687,6 +700,7 @@
   // a fixed %, % or ₹ keep their own amount and the rating cut is applied to that.)
   function starBase(o, aggs) {
     const A = aggs[o.emp + '|' + o.rk], c = A && A.c, b = comBase(o, aggs);
+    if (c && c.fixedPlan && c.fixedPlan.cut && starMul(o)) return { v: fixedBaseOf(o, c.fixedPlan.mode, c.fixedPlan.v), replaces: true };      // fixed paid with the order-code cut: a rating rule decides the cut itself (incl. "no code"), as for the normal commission
     if (!c || !c.steps || c.fixedPlan || (c.mix && c.mix.mode !== 'full')) return { v: b.v, replaces: false };
     return { v: (c.rate || 0) * o.amt / 100, replaces: true };
   }
@@ -711,7 +725,7 @@
   // (A fixed commission for all days is worked out on the whole period instead, see agg().) The rating cut still applies to it.
   function fixedFor(o, ok) {
     if (o.rk !== '' || (CODE.shares && CODE.shares[o.key])) return null;
-    return NEW.fixed.find((p) => p.on && (p.from || p.to) && p.emp === o.emp && inWin(p, o.day) && planReached(p) && (!ok || ok(p.grp))) || null;
+    return NEW.fixed.find((p) => p.on && (p.from || p.to) && p.emp === o.emp && inWin(p, o.day) && planReached(p)) || null;
   }
   // the bundle condition of the employee this order belongs to (worked out in agg())
   const gateFn = (o, aggs) => { const A = aggs && aggs[o.emp + '|' + o.rk]; return (g) => !g || !A || !A.gates || A.gates[g] !== false; };
@@ -721,8 +735,9 @@
     if (r) return { v: o.amt * r.pct / 100, note: (r.label || 'Panel rule') + ' · fixed ' + fmtN(r.pct) + '%', cls: 'fx' };
     const fp = fixedFor(o, ok);
     if (fp) {
-      const sm = starMul(o), v = (fp.mode === 'rate' ? o.amt * fp.per / 100 : fp.per) * (sm ? sm.m : 1);
-      return { v, note: 'fixed · ' + payTxt(fp.mode, fp.per) + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: 'fx' };
+      const A = aggs && aggs[o.emp + '|' + o.rk], cc = A && A.c, cut = !!(ok && fp.grp && !ok(fp.grp)), sm = starMul(o), fv = fixedPayOf(o, fp.mode, fp.per, cut && !sm, cc ? { hit: cc.hit, ticket: cc.ticket } : undefined);      // a rating rule decides the cut itself (incl. "no code")
+      const v = fv * (sm ? sm.m : 1);
+      return { v, note: 'fixed · ' + payTxt(fp.mode, fp.per) + (cut && Math.abs(fv - fixedBaseOf(o, fp.mode, fp.per)) > 0.005 ? ' · order-code cut' : '') + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: 'fx' };
     }
     return comStar(o, aggs);
   }
@@ -845,7 +860,7 @@
       <div class="ln"><span>Prepaid share</span><b>${Math.round(c.prepaidPct)}%</b></div>
       ${c.fixedPlan ? `<div class="ln"><span>Normal slab would be</span><b>${inr(c.slabAmount)}</b></div>` : ''}
       ${c.steps.map((s) => `<div class="ln"><span>${esc(s.label)} · ${esc(s.detail)}</span><b>${esc(s.value)}</b></div>`).join('')}
-      <div class="ln tot"><span>${c.manual ? 'Manual commission' : c.fixedPlan ? (c.fixedPlan.mode === 'rate' ? fmtN(c.fixedPlan.v) + '% × ' + inr(c.fixedPlan.ach) : c.fixedPlan.n + ' orders × ' + inr(c.fixedPlan.v)) : c.mix ? esc(c.mix.label || 'Code rule') + ' · ' + esc(payTxt(c.mix.mode, c.mix.v)) : c.adj ? 'After order-code rules' : inr(a.ach) + ' × ' + c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</span><span>${inr(c.amount)}</span></div>`;
+      <div class="ln tot"><span>${c.manual ? 'Manual commission' : c.fixedPlan ? ((c.fixedPlan.cut || c.starCut) ? 'Fixed commission after cuts' : c.fixedPlan.mode === 'rate' ? fmtN(c.fixedPlan.v) + '% × ' + inr(c.fixedPlan.ach) : c.fixedPlan.n + ' orders × ' + inr(c.fixedPlan.v)) : c.mix ? esc(c.mix.label || 'Code rule') + ' · ' + esc(payTxt(c.mix.mode, c.mix.v)) : c.adj ? 'After order-code rules' : inr(a.ach) + ' × ' + c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</span><span>${inr(c.amount)}</span></div>`;
     pop.hidden = false;
     pop.style.left = '0px'; pop.style.top = '0px';
     const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
