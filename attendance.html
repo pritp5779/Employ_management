@@ -54,6 +54,13 @@
   .steps[hidden]{display:none;}
   .steps li{flex:1 1 0; min-width:70px; display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:8px; background:var(--bg); border:1px solid var(--line); font-size:12px; color:var(--muted); font-weight:600; white-space:nowrap;}
   .steps li i{flex:none; width:18px; height:18px; border-radius:50%; border:1.5px solid currentColor; font-style:normal; font-size:10.5px; display:inline-flex; align-items:center; justify-content:center;}
+  .steps li[hidden]{display:none;}
+  .cam-panel.shoe .cam-oval, .cam-panel.shoe .cam-sw{display:none;}                  /* footwear step: no face oval, no Front/Back switch (back camera) */
+  .cam-shoe{position:absolute; left:0; right:0; bottom:0; padding:34px 14px 16px; display:flex; flex-direction:column; align-items:center; gap:10px; background:linear-gradient(transparent, rgba(0,0,0,.72)); z-index:3;}
+  .cam-shoe[hidden]{display:none;}
+  .cam-shoe-t{color:#fff; font-size:13px; font-weight:600; text-align:center; line-height:1.35;} .cam-shoe-t.bad{color:#fecaca;}
+  .cam-shoe-btn{width:66px; height:66px; min-height:0; border-radius:50%; border:4px solid #fff; background:rgba(255,255,255,.28); padding:0; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.35);}
+  .cam-shoe-btn:active{background:#fff;} .cam-shoe-btn[disabled]{opacity:.45; cursor:default;} .cam-shoe-btn:focus-visible{outline:3px solid #fff; outline-offset:3px;}
   .steps li.on{color:var(--accent); border-color:var(--accent); background:#eff4ff;}
   .steps li.done{color:#0f7a41; border-color:#bfe6cf; background:#e7f7ee;}
   .steps li.done i::before{content:'✓';}
@@ -300,6 +307,7 @@
           <ol class="steps" id="steps" hidden>
             <li data-k="loc"><i data-n="1"></i>Location</li>
             <li data-k="face"><i data-n="2"></i>Face</li>
+            <li data-k="footwear" hidden><i data-n="3"></i>Footwear</li>
           </ol>
 
           <div id="locBox" class="locbox" hidden>
@@ -320,6 +328,10 @@
             <div class="cam-sw" id="camSw" role="group" aria-label="Choose camera">
               <button type="button" data-f="user" class="on" aria-pressed="true"><b></b>Front</button>
               <button type="button" data-f="environment" aria-pressed="false"><b></b>Back</button>
+            </div>
+            <div id="camShoe" class="cam-shoe" hidden>
+              <div class="cam-shoe-t" id="camShoeT">Place your shoes in the frame</div>
+              <button type="button" class="cam-shoe-btn" id="btnShoeSnap" aria-label="Take the footwear photo"></button>
             </div>
             <div id="camOverlay" class="cam-overlay">Starting camera…</div>
           </div>
@@ -433,6 +445,7 @@
   let stream = null;             // the live camera, only while a punch runs
   let cancelled = false;         // ✕ tapped, or the app was left mid-punch
   let todayRow = null;
+  let fwRequired = false;   // footwear photo needed at Punch In (from attendance.today; admin switch FOOTWEAR_CHECK)
 
   let alertTimer = null;
   function showAlert(msg, type = 'success') {
@@ -447,10 +460,12 @@
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   // ---------- Step strip ----------
-  // Two checks, in order: 1 Location, 2 Face.
-  function stepsShow() {
+  // Checks in order: 1 Location, 2 Face, 3 Footwear (Punch In only, when the admin has the footwear check on).
+  function stepsShow(withShoe) {
     stepsEl.hidden = false;
     stepsEl.querySelectorAll('li').forEach(li => { li.className = ''; });
+    const sl = stepsEl.querySelector('li[data-k="footwear"]');
+    if (sl) sl.hidden = !withShoe;
   }
   function step(k, state) {
     const li = stepsEl.querySelector(`li[data-k="${k}"]`);
@@ -538,6 +553,7 @@
       const data = await api.get('attendance.today');
       const a = data.attendance;
       todayRow = a;
+      fwRequired = !!data.footwear_required;
       const fmt = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
       // The employee's own working time, when one has been given to them.
       const sh = data.shift || {};
@@ -1439,12 +1455,62 @@
     return frameBlob();
   }
 
+  // ---------- Footwear photo (Punch In) ----------
+  // Back camera, no gallery: the employee takes a live photo of their shoes; the server's AI check approves or rejects it.
+  // On a rejection the camera stays open so they can simply take it again. Resolves with the approved photo; throws on cancel / failure.
+  const camShoe = document.getElementById('camShoe'), camShoeT = document.getElementById('camShoeT'), btnShoe = document.getElementById('btnShoeSnap');
+  function shoeHint(t, bad) { camShoeT.textContent = t; camShoeT.classList.toggle('bad', !!bad); }
+  function shoeWaitSnap() {
+    return new Promise((resolve) => {
+      const finish = (v) => { btnShoe.removeEventListener('click', onClick); clearInterval(timer); resolve(v); };
+      const onClick = () => finish(true);
+      btnShoe.addEventListener('click', onClick);
+      const timer = setInterval(() => { if (cancelled) finish(false); }, 150);
+    });
+  }
+  async function footwearStep() {
+    step('footwear', 'on');
+    setMsg('Take a photo of your footwear…', 'var(--accent)');
+    await openCamera('environment');
+    if (cancelled) throw new Error('cancelled');
+    panel.classList.add('shoe'); camShoe.hidden = false;
+    try {
+      for (let tries = 0; tries < 8; tries++) {
+        step('footwear', 'on');
+        shoeHint('Place your shoes in the frame, then tap the round button', false);
+        btnShoe.disabled = false;
+        if (!(await shoeWaitSnap())) throw new Error('cancelled');
+        btnShoe.disabled = true;
+        shoeHint('Checking your footwear…', false);
+        overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
+        const blob = await frameBlob();
+        const fd = new FormData(); fd.append('photo', blob, 'footwear.jpg');
+        let res, data;
+        try {
+          res = await fetch(api.buildUrl('attendance.footwear_check'), { method: 'POST', headers: { 'Authorization': 'Bearer ' + api.token() }, body: fd });
+          data = await res.json().catch(() => ({}));
+        } catch (e) { throw new Error('No connection — check your internet and tap again.'); }
+        if (cancelled) throw new Error('cancelled');
+        overlay.hidden = true;
+        if (data.is_valid) { step('footwear', 'done'); setMsg('Footwear approved ✓', 'var(--ok-fg)'); return blob; }
+        if (data.retake === false || (!res.ok && !data.message)) { step('footwear', 'bad'); throw new Error(data.message || data.error || 'Footwear check failed.'); }
+        step('footwear', 'bad');
+        shoeHint((data.message || 'Rejected: please take the photo again.') + (data.shoe_type_detected ? ' (seen: ' + data.shoe_type_detected + ')' : ''), true);
+        setMsg(data.message || 'Rejected', 'var(--bad-fg)');
+        await sleep(3200);                                   // time to read it, then the same camera takes the next photo
+      }
+      step('footwear', 'bad');
+      throw new Error('Footwear not approved after several tries — wear proper closed shoes (no Crocs / slippers / sandals) and tap Punch In again.');
+    } finally { camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; }
+  }
+
   // ---------- Save ----------
-  async function submitPunch(type, loc, faceBlob) {
+  async function submitPunch(type, loc, faceBlob, shoeBlob) {
     setMsg('All checks passed ✓ Saving...', 'var(--ok-fg)');
     const fd = new FormData();
     fd.append('type', type);
     fd.append('photo', faceBlob, 'punch.jpg');
+    if (shoeBlob) fd.append('footwear', shoeBlob, 'footwear.jpg');        // the exact photo the server approved
     if (loc) { fd.append('lat', loc.lat); fd.append('lng', loc.lng); fd.append('accuracy', loc.acc); }
     const res = await fetch(api.buildUrl('attendance.punch'), {
       method: 'POST',
@@ -1476,7 +1542,7 @@
     document.body.classList.add('punching');
     window.scrollTo(0, 0);
     [btnIn, btnOut].forEach(b => (b.disabled = true));
-    if (enrollMode) stepsEl.hidden = true; else stepsShow();
+    if (enrollMode) stepsEl.hidden = true; else stepsShow(type === 'in' && fwRequired);
     try {
       // Face models download while the location question is on screen.
       const modelsReady = loadModels();
@@ -1509,7 +1575,13 @@
       const faceBlob = await faceStep();
       if (cancelled) return;
       closeCamera();
-      await submitPunch(type, loc, faceBlob);
+      let shoeBlob = null;
+      if (type === 'in' && fwRequired) {                     // Step 3: footwear photo (back camera) approved by the AI check
+        shoeBlob = await footwearStep();
+        if (cancelled) return;
+        closeCamera();
+      }
+      await submitPunch(type, loc, faceBlob, shoeBlob);
     } catch (err) {
       if (!cancelled && err.message !== 'cancelled') setMsg(err.message, 'var(--bad-fg)');
     } finally {
@@ -1902,4 +1974,4 @@
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
-</html>s
+</html>
