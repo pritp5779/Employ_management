@@ -58,12 +58,25 @@
   .cam-panel.shoe .cam-oval, .cam-panel.shoe .cam-sw{display:none;}                  /* footwear step: no face oval, no Front/Back switch (back camera) */
   .cam-shoe{position:absolute; left:0; right:0; bottom:0; padding:26px 12px 12px; display:flex; flex-direction:column; align-items:center; gap:6px; background:linear-gradient(transparent, rgba(0,0,0,.72)); z-index:3;}
   .cam-shoe[hidden]{display:none;}
-  .cam-shoe-t{color:#fff; font-size:13px; font-weight:600; text-align:center; line-height:1.35;} .cam-shoe-t.bad{color:#fecaca;}
+  .cam-shoe-t{color:#fff; font-size:13px; font-weight:600; text-align:center; line-height:1.35;} .cam-shoe-t.bad{color:#fecaca;} .cam-shoe-t.ok{color:#bbf7d0;}
   .cam-shoe-btn{width:66px; height:66px; min-height:0; border-radius:50%; border:4px solid #fff; background:rgba(255,255,255,.28); padding:0; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.35);}
-  .cam-shoe-enroll{min-height:0; padding:7px 14px; border-radius:20px; border:1.5px solid rgba(255,255,255,.75); background:rgba(0,0,0,.35); color:#fff; font-size:12.5px; font-weight:700; cursor:pointer;} .cam-shoe-enroll[hidden]{display:none;} .cam-shoe-enroll:active{background:rgba(255,255,255,.3);}
-  .cam-shoe-row{display:flex; align-items:center; justify-content:center; gap:10px; width:100%;} .cam-shoe-side{flex:1 1 0; display:flex; justify-content:flex-end;} .cam-shoe-side:first-child{visibility:hidden;} .cam-shoe-side:last-child{justify-content:flex-start;}
-  .cam-shoe-enroll{line-height:1.15; max-width:96px; text-align:center;}
-  .cam-shoe-dots{color:#fff; font-size:13px; letter-spacing:3px; font-weight:700;} .cam-shoe-dots[hidden]{display:none;}
+  .cam-shoe-row{display:flex; align-items:center; justify-content:center; width:100%;} .cam-shoe-row[hidden]{display:none;}
+  /* Shoe photo: taken first, checked after. The still replaces the live view while the server looks at it. */
+  .cam-shoe-frame{position:absolute; inset:38px 22px 112px; border:2px dashed rgba(255,255,255,.55); border-radius:14px; pointer-events:none; z-index:2;}
+  .cam-shoe-frame span{position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); color:#fff; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap;}
+  .cam-shoe-frame[hidden]{display:none;}
+  .cam-still{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; background:#0b0b0f;} .cam-still[hidden]{display:none;}
+  .cam-panel.still .cam-live b{background:#9ca3af; animation:none;}
+  .cam-check{position:absolute; inset:0; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff; font-weight:700; font-size:14px; background:rgba(0,0,0,.42); text-align:center; padding:12px;}
+  .cam-check[hidden]{display:none;} .cam-check small{font-weight:600; font-size:12px; opacity:.85;}
+  .cam-check i{width:38px; height:38px; border-radius:50%; border:3.5px solid rgba(255,255,255,.3); border-top-color:var(--accent); animation:shoeSpin .9s linear infinite;}
+  @keyframes shoeSpin{to{transform:rotate(360deg);}}
+  .cam-stamp{position:absolute; top:12%; left:50%; transform:translateX(-50%) rotate(-4deg); z-index:4; padding:8px 14px; border-radius:12px; font-weight:900; font-size:14px; letter-spacing:.02em; border:2.5px solid; background:rgba(0,0,0,.45); max-width:86%; text-align:center; line-height:1.25;}
+  .cam-stamp.ok{color:#86efac; border-color:#86efac;} .cam-stamp.bad{color:#fca5a5; border-color:#fca5a5;} .cam-stamp[hidden]{display:none;}
+  .cam-shoe-acts{display:flex; gap:8px; width:100%;} .cam-shoe-acts[hidden]{display:none;}
+  .cam-shoe-acts button{flex:1; height:44px; min-height:0; border-radius:999px; font-weight:800; font-size:13.5px; cursor:pointer; padding:0 10px;}
+  .cam-shoe-acts .rt{background:var(--accent); color:#fff; border:none;} .cam-shoe-acts .cx{background:rgba(255,255,255,.14); color:#fff; border:1.5px solid rgba(255,255,255,.6);}
+  @media (prefers-reduced-motion: reduce){ .cam-check i{animation:none;} }
   .cam-shoe-btn:active{background:#fff;} .cam-shoe-btn[disabled]{opacity:.45; cursor:default;} .cam-shoe-btn:focus-visible{outline:3px solid #fff; outline-offset:3px;}
   .steps li.on{color:var(--accent); border-color:var(--accent); background:#eff4ff;}
   .steps li.done{color:#0f7a41; border-color:#bfe6cf; background:#e7f7ee;}
@@ -353,10 +366,14 @@
               <button type="button" data-f="user" class="on" aria-pressed="true"><b></b>Front</button>
               <button type="button" data-f="environment" aria-pressed="false"><b></b>Back</button>
             </div>
+            <img id="camStill" class="cam-still" alt="The photo you took" hidden>
+            <div id="camShoeFrame" class="cam-shoe-frame" aria-hidden="true" hidden><span>Keep both shoes inside</span></div>
+            <div id="camStamp" class="cam-stamp" hidden></div>
+            <div id="camCheck" class="cam-check" hidden><i></i>Checking the photo…<small>Is this proper shoes?</small></div>
             <div id="camShoe" class="cam-shoe" hidden>
               <div class="cam-shoe-t" id="camShoeT">Place your shoes in the frame</div>
-              <div class="cam-shoe-dots" id="camShoeDots" hidden aria-hidden="true"></div>
-              <div class="cam-shoe-row"><span class="cam-shoe-side"></span><button type="button" class="cam-shoe-btn" id="btnShoeSnap" aria-label="Take the footwear photo"></button><span class="cam-shoe-side"><button type="button" class="cam-shoe-enroll" id="btnShoeEnroll">Enroll new shoes</button></span></div>
+              <div class="cam-shoe-row" id="camShoeRow"><button type="button" class="cam-shoe-btn" id="btnShoeSnap" aria-label="Take the footwear photo"></button></div>
+              <div class="cam-shoe-acts" id="camShoeActs" hidden><button type="button" class="cx" id="btnShoeCancel">✕ Cancel</button><button type="button" class="rt" id="btnShoeRetake">📷 Retake photo</button></div>
             </div>
             <div id="camOverlay" class="cam-overlay">Starting camera…</div>
           </div>
@@ -479,7 +496,6 @@
   let stream = null;             // the live camera, only while a punch runs
   let cancelled = false;         // ✕ tapped, or the app was left mid-punch
   let todayRow = null;
-  let shoeEnrolled = true;  // the employee has enrolled their shoes (attendance.today; false = the 5-side enrollment comes first)
   let fwRequired = false;   // footwear photo needed at Punch In (from attendance.today; admin switch FOOTWEAR_CHECK)
 
   let alertTimer = null;
@@ -589,7 +605,6 @@
       const a = data.attendance;
       todayRow = a;
       fwRequired = !!data.footwear_required;
-      shoeEnrolled = data.shoe_enrolled !== false;
       const fmt = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
       // The employee's own working time, when one has been given to them.
       const sh = data.shift || {};
@@ -1097,7 +1112,7 @@
     if (done) {
       const last = proofs[proofs.length - 1];
       const dlk = pfLinkInfo(it);
-      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded'));
+      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (it.kind === 'custom' ? (need > 1 ? need + ' photos' : 'Photo uploaded') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded')));
       const rate = (Number(it.footwear) === 1 && last && last.clean_rating != null) ? `<br><span class="pf-clean c${Number(last.clean_rating)}">${pfEsc(cleanTxt(last.clean_rating))}</span>${last.clean_note ? ` <small>(${pfEsc(last.clean_note)})</small>` : ''}` : '';
       const subLk = (dlk ? `<br><a href="${pfEsc(dlk.url)}" target="_blank" rel="noopener noreferrer">${pfEsc(dlk.label)} ↗</a>` : '') + rate;
       return `<div class="pf-req">${tile}<div class="pf-body">
@@ -1105,7 +1120,6 @@
         <div class="pf-got"><div class="pf-shots">${thumbs}</div>
           <div class="pf-meta"><b>Saved ${last ? hm12(String(last.uploaded_at).slice(11, 16)) : ''}</b>${sub}${subLk}</div>
           ${(!punched && need === 1) ? `<button type="button" class="pf-alt" onclick="pfEditOn(${id})">Replace</button>` : ''}
-          ${(!punched && Number(it.footwear) === 1) ? `<button type="button" class="pf-alt" onclick="pfShoe(${id}, true, true)">Enroll new shoes</button>` : ''}
         </div></div></div>`;
     }
     const redo = Number(it.redo) ? `<div class="pf-redo">Sent back: ${pfEsc(it.redo_note)}</div>` : '';
@@ -1127,18 +1141,19 @@
     const linkIn = Number(it.link_required)
       ? `<input class="pf-in" id="pfLink${id}" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ph}" value="${pfEsc(pfLinks[id] != null ? pfLinks[id] : (it.link || ''))}" oninput="pfLinks[${id}] = this.value" aria-label="Link for ${pfEsc(it.title)}">`
       : '';
-    const shoe = Number(it.footwear) === 1;     // a shoes requirement: live camera + AI check instead of a screenshot upload
+    const shoe = Number(it.footwear) === 1;     // a shoes requirement WITH the AI check on (PROOF_SHOE_AI): live camera instead of an upload
+    const word = it.kind === 'custom' ? 'photo' : 'screenshot';   // a custom proof (shoes photo etc.) is a photo from the phone, not a screenshot
     const label = shoe
       ? (editing ? 'Take new photo' : (need > 1 ? `Take photo (${have + 1} of ${need})` : 'Take photo'))
-      : (editing ? 'Upload new screenshot' : (need > 1 ? `Upload screenshot (${have + 1} of ${need})` : 'Upload screenshot'));
+      : (editing ? `Upload new ${word}` : (need > 1 ? `Upload ${word} (${have + 1} of ${need})` : `Upload ${word}`));
     return `<div class="pf-req">${tile}<div class="pf-body">
       <div class="pf-name">${pfEsc(it.title)}</div>
       ${it.instruction ? `<div class="pf-desc">${pfEsc(it.instruction)}</div>` : ''}
       ${redo}
       ${lkHtml}
-      ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} screenshots saved</div>` : ''}
+      ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} ${word}s saved</div>` : ''}
       ${linkIn}
-      <div class="pf-acts"><button type="button" class="pf-up" onclick="${shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${shoe ? `<button type="button" class="pf-alt" onclick="pfShoe(${id}, ${editing ? 'true' : 'false'}, true)">Enroll new shoes</button>` : ''}${it.example ? `<span style="margin-left:auto;">${egSquare('proof', id, it.example, it.title)}</span>` : ''}${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
+      <div class="pf-acts"><button type="button" class="pf-up" onclick="${shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${it.example ? `<span style="margin-left:auto;">${egSquare('proof', id, it.example, it.title)}</span>` : ''}${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
     </div></div>`;
   }
 
@@ -1280,7 +1295,7 @@
 
   // Shoes requirement: "Take photo" opens the back camera (no gallery). The server's AI checks the photo inside proofs.upload:
   // shoes = saved + approved, Crocs / slippers / unclear = rejected and the same camera takes the next photo.
-  window.pfShoe = async function (ruleId, replace, startEnroll) {
+  window.pfShoe = async function (ruleId, replace) {
     if (pfBusy || busy) return;
     const it = pfItem(ruleId);
     if (!it) return;
@@ -1294,19 +1309,16 @@
     try {
       await openCamera('environment');
       if (cancelled) return;
-      panel.classList.add('shoe'); camShoe.hidden = false;
-      if (startEnroll || !shoeEnrolled) { await shoeEnrollRun(); if (cancelled) return; }   // "Enroll new shoes" (or never enrolled): 5 sides first
+      panel.classList.add('shoe'); camShoe.hidden = false; shoeUnfreeze();
       for (let tries = 0; tries < 12; tries++) {
         setMsg('Take a photo of your footwear…', 'var(--accent)');
-        shoeHint('Show your enrolled shoes (any angle), then tap the round button', false);
+        shoeHint('Place your shoes in the frame, then tap the round button', false);
         btnShoe.disabled = false;
-        const act = await shoeWaitSnap();
-        if (!act) return;                                    // ✕ tapped
-        if (act === 'enroll') { await shoeEnrollRun(); if (cancelled) return; continue; }
+        if (!(await shoeWaitSnap())) return;                 // ✕ tapped
         btnShoe.disabled = true;
-        shoeHint('Checking your footwear…', false);
-        overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
-        const blob = await frameBlob();
+        const blob = await frameBlob();                      // the photo is taken first…
+        shoeFreeze(blob);                                    // …then shown and checked
+        setMsg('Checking the photo you took…', 'var(--accent)');
         const fd = new FormData();
         fd.append('rule_id', ruleId);
         if (pfStage === 'enroll') fd.append('stage', 'enroll');
@@ -1316,31 +1328,33 @@
         let d;
         try { d = await api.upload('proofs.upload', fd); }
         catch (e) {
-          overlay.hidden = true;
           if (cancelled) return;
           const data = e.data || {};
-          if (data.footwear && data.footwear.enroll_required) { shoeEnrolled = false; await shoeEnrollRun(); if (cancelled) return; continue; }
-          if (data.retake) {                                  // rejected: stay on the camera and take it again
-            const fw = data.footwear || {};
-            shoeHint(e.message + (fw.shoe_type_detected ? ' (seen: ' + fw.shoe_type_detected + ')' : ''), true);
+          const fw = data.footwear || {};
+          const noAi = data.reason === 'ai_unavailable' || fw.reason === 'ai_unavailable' || e.status === 503;
+          if (data.retake || noAi) {                          // rejected (or the AI could not be reached): the stamp goes on the photo, Retake opens the camera again
+            shoeStamp(false, noAi ? '! COULD NOT CHECK' : '✕ REJECTED' + (fw.shoe_type_detected ? ' · ' + fw.shoe_type_detected : ''));
+            shoeHint(e.message, true);
             setMsg(e.message, 'var(--bad-fg)');
-            await sleep(3200);
-            if (cancelled) return;
+            if ((await shoeWaitRetake(noAi ? '↻ Try again' : '')) !== 'retake') return;
+            shoeUnfreeze();
             continue;
           }
           throw e;
         }
-        overlay.hidden = true;
+        const fwr = (d && d.footwear) || {};
+        shoeStamp(true, '✓ APPROVED' + (fwr.shoe_type_detected ? ' · ' + fwr.shoe_type_detected : ''));
+        shoeHint('Footwear approved ✓' + (fwr.cleanliness ? ' · ' + cleanTxt(fwr.cleanliness) : ''), false); camShoeT.classList.add('ok');
         pfState = d; delete pfEdit[ruleId];                   // saved: show it even if ✕ was tapped a moment ago
         renderProofs();
-        if (!cancelled) setMsg('');
+        if (!cancelled) { setMsg('Footwear approved ✓', 'var(--ok-fg)'); await sleep(1400); setMsg(''); }
         return;
       }
-      throw new Error('Footwear not approved after several tries — wear your enrolled shoes (or tap Enroll new shoes) and try again.');
+      throw new Error('Footwear not approved after several tries — wear proper shoes and try again.');
     } catch (err) {
       if (!cancelled && err.message !== 'cancelled') pfAlert(err.message);
     } finally {
-      camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; btnShoeEnroll.hidden = false; camShoeDots.hidden = true;
+      shoeReset(); camShoeT.classList.remove('ok');
       document.body.classList.remove('punching');
       closeCamera();
       ckApplyLock(); pfApplyLock(); applyRemLock();
@@ -1791,15 +1805,44 @@
   // On a rejection the camera stays open so they can simply take it again. Resolves with the approved photo; throws on cancel / failure.
   const camShoe = document.getElementById('camShoe'), camShoeT = document.getElementById('camShoeT'), btnShoe = document.getElementById('btnShoeSnap');
   function shoeHint(t, bad) { camShoeT.textContent = t; camShoeT.classList.toggle('bad', !!bad); }
-  const btnShoeEnroll = document.getElementById('btnShoeEnroll'), camShoeDots = document.getElementById('camShoeDots');
-  // Resolves 'snap' (round button), 'enroll' ("Enroll new shoes") or false (✕ tapped / app left).
+  // Photo first, check after: the live view is replaced by the photo that was taken, the server looks at it, and the result is
+  // stamped on that photo. Rejected = "Retake photo" (same camera) or Cancel.
+  const camStill = document.getElementById('camStill'), camStamp = document.getElementById('camStamp'), camCheck = document.getElementById('camCheck');
+  const camShoeFrame = document.getElementById('camShoeFrame'), camShoeRow = document.getElementById('camShoeRow'), camShoeActs = document.getElementById('camShoeActs');
+  const camLiveT = document.querySelector('.cam-live');
+  let stillUrl = '';
+  function shoeFreeze(blob) {                       // show the photo just taken + "Checking…"
+    if (stillUrl) URL.revokeObjectURL(stillUrl);
+    stillUrl = URL.createObjectURL(blob); camStill.src = stillUrl; camStill.hidden = false;
+    panel.classList.add('still'); camLiveT.lastChild.textContent = 'Photo taken';
+    camShoeFrame.hidden = true; camShoeRow.hidden = true; camShoeActs.hidden = true; camStamp.hidden = true; camCheck.hidden = false;
+    shoeHint('Camera is paused, the photo you took is being checked', false);
+  }
+  function shoeStamp(ok, text) { camCheck.hidden = true; camStamp.className = 'cam-stamp ' + (ok ? 'ok' : 'bad'); camStamp.textContent = text; camStamp.hidden = false; }
+  function shoeUnfreeze() {                         // back to the live camera
+    camStill.hidden = true; camStill.removeAttribute('src'); if (stillUrl) { URL.revokeObjectURL(stillUrl); stillUrl = ''; }
+    panel.classList.remove('still'); camLiveT.lastChild.textContent = 'Camera on';
+    camStamp.hidden = true; camCheck.hidden = true; camShoeActs.hidden = true; camShoeRow.hidden = false; camShoeFrame.hidden = false;
+  }
+  function shoeReset() { shoeUnfreeze(); camShoeFrame.hidden = true; camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; }
+  // Resolves 'retake' or false (Cancel / ✕ tapped / app left).
+  function shoeWaitRetake(label) {
+    document.getElementById('btnShoeRetake').textContent = label || '📷 Retake photo';
+    camShoeActs.hidden = false;
+    return new Promise((resolve) => {
+      const btnRt = document.getElementById('btnShoeRetake'), btnCx = document.getElementById('btnShoeCancel');
+      const finish = (v) => { btnRt.removeEventListener('click', onRt); btnCx.removeEventListener('click', onCx); clearInterval(timer); camShoeActs.hidden = true; resolve(v); };
+      const onRt = () => finish('retake'); const onCx = () => { cancelled = true; finish(false); };
+      btnRt.addEventListener('click', onRt); btnCx.addEventListener('click', onCx);
+      const timer = setInterval(() => { if (cancelled) finish(false); }, 150);
+    });
+  }
+  // Resolves 'snap' (round button) or false (✕ tapped / app left).
   function shoeWaitSnap() {
     return new Promise((resolve) => {
-      const finish = (v) => { btnShoe.removeEventListener('click', onSnap); btnShoeEnroll.removeEventListener('click', onEnroll); clearInterval(timer); resolve(v); };
+      const finish = (v) => { btnShoe.removeEventListener('click', onSnap); clearInterval(timer); resolve(v); };
       const onSnap = () => finish('snap');
-      const onEnroll = () => finish('enroll');
       btnShoe.addEventListener('click', onSnap);
-      btnShoeEnroll.addEventListener('click', onEnroll);
       const timer = setInterval(() => { if (cancelled) finish(false); }, 150);
     });
   }
@@ -1812,82 +1855,46 @@
     } catch (e) { throw new Error('No connection — check your internet and tap again.'); }
     return [res, data];
   }
-  // "Enroll new shoes": 5 photos (outer, inner, toe, heel, top) of the SAME shoes. The camera is already open (shoe mode).
-  // The server refuses anything but real shoes and a pair another employee has already enrolled. Resolves when the 5th photo is saved.
-  const SHOE_SIDES = ['outer side', 'inner side', 'toe (front)', 'heel (back)', 'top'];
-  async function shoeEnrollRun() {
-    btnShoeEnroll.hidden = true; camShoeDots.hidden = false;
-    try {
-      let side = 0;
-      for (let tries = 0; side < 5; tries++) {
-        if (tries > 30) throw new Error('Too many tries — ask HR for help.');
-        camShoeDots.textContent = '●'.repeat(side) + '○'.repeat(5 - side);
-        shoeHint(`Enroll new shoes · photo ${side + 1} of 5. Show the ${SHOE_SIDES[side]} of your shoes, then tap the round button`, false);
-        setMsg(`Enroll new shoes: photo ${side + 1} of 5`, 'var(--accent)');
-        btnShoe.disabled = false;
-        if ((await shoeWaitSnap()) !== 'snap') throw new Error('cancelled');
-        btnShoe.disabled = true;
-        shoeHint(side === 0 ? 'Checking your shoes…' : 'Saving photo ' + (side + 1) + '…', false);
-        overlay.hidden = false; overlay.textContent = side === 0 ? 'Checking these are shoes, and not enrolled by anyone else…' : 'Saving photo ' + (side + 1) + '…';
-        const blob = await frameBlob();
-        const fd = new FormData(); fd.append('photo', blob, 'shoe.jpg'); fd.append('side', side);
-        const [res, data] = await shoePost('footwear.enroll_photo', fd);
-        if (cancelled) throw new Error('cancelled');
-        overlay.hidden = true;
-        if (data.is_valid) {
-          side++;
-          if (data.enrolled) {
-            camShoeDots.textContent = '●●●●●';
-            shoeHint('Shoes enrolled ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), false);
-            setMsg('Shoes enrolled ✓ — locked to you. Only these shoes work for your Punch In.', 'var(--ok-fg)');
-            shoeEnrolled = true;
-            await sleep(1800);
-            return data;
-          }
-          continue;
-        }
-        if (data.retake === false || (!res.ok && !data.message)) throw new Error(data.message || data.error || 'Shoe enrollment failed.');
-        shoeHint(data.message || 'Rejected: please take the photo again.', true);
-        setMsg(data.message || 'Rejected', 'var(--bad-fg)');
-        await sleep(3200);
-      }
-    } finally { btnShoeEnroll.hidden = false; camShoeDots.hidden = true; btnShoe.disabled = false; }
-  }
   async function footwearStep() {
     step('footwear', 'on');
     setMsg('Take a photo of your footwear…', 'var(--accent)');
     await openCamera('environment');
     if (cancelled) throw new Error('cancelled');
-    panel.classList.add('shoe'); camShoe.hidden = false;
+    panel.classList.add('shoe'); camShoe.hidden = false; shoeUnfreeze();
     try {
-      if (!shoeEnrolled) { await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); }       // first time: enroll the shoes (5 sides)
       for (let tries = 0; tries < 12; tries++) {
         step('footwear', 'on');
-        shoeHint('Show your enrolled shoes (any angle), then tap the round button', false);
+        shoeHint('Place your shoes in the frame, then tap the round button', false); camShoeT.classList.remove('ok');
         setMsg('Take a photo of your footwear…', 'var(--accent)');
         btnShoe.disabled = false;
-        const act = await shoeWaitSnap();
-        if (!act) throw new Error('cancelled');
-        if (act === 'enroll') { await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); continue; }
+        if (!(await shoeWaitSnap())) throw new Error('cancelled');
         btnShoe.disabled = true;
-        shoeHint('Checking your footwear…', false);
-        overlay.hidden = false; overlay.textContent = 'Checking your footwear…';
-        const blob = await frameBlob();
+        const blob = await frameBlob();                      // the photo is taken first…
+        shoeFreeze(blob);                                    // …then shown and checked
+        setMsg('Checking the photo you took…', 'var(--accent)');
         const fd = new FormData(); fd.append('photo', blob, 'footwear.jpg');
         const [res, data] = await shoePost('attendance.footwear_check', fd);
         if (cancelled) throw new Error('cancelled');
-        overlay.hidden = true;
-        if (data.is_valid) { step('footwear', 'done'); setMsg('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), 'var(--ok-fg)'); if (data.cleanliness) await sleep(1500); return blob; }
-        if (data.enroll_required) { shoeEnrolled = false; await shoeEnrollRun(); if (cancelled) throw new Error('cancelled'); continue; }
-        if (data.retake === false || (!res.ok && !data.message)) { step('footwear', 'bad'); throw new Error(data.message || data.error || 'Footwear check failed.'); }
+        if (data.is_valid) {
+          step('footwear', 'done');
+          shoeStamp(true, '✓ APPROVED' + (data.shoe_type_detected ? ' · ' + data.shoe_type_detected : ''));
+          shoeHint('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : '') + ' — saving your Punch In…', false); camShoeT.classList.add('ok');
+          setMsg('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), 'var(--ok-fg)');
+          await sleep(1400);
+          return blob;
+        }
+        const noAi = data.reason === 'ai_unavailable' || res.status === 503;
+        if (!noAi && (data.retake === false || (!res.ok && !data.message))) { step('footwear', 'bad'); throw new Error(data.message || data.error || 'Footwear check failed.'); }
         step('footwear', 'bad');
-        shoeHint((data.message || 'Rejected: please take the photo again.') + (data.shoe_type_detected ? ' (seen: ' + data.shoe_type_detected + ')' : ''), true);
+        shoeStamp(false, noAi ? '! COULD NOT CHECK' : '✕ REJECTED' + (data.shoe_type_detected ? ' · ' + data.shoe_type_detected : ''));
+        shoeHint(data.message || 'Rejected: please take the photo again.', true);
         setMsg(data.message || 'Rejected', 'var(--bad-fg)');
-        await sleep(3200);                                   // time to read it, then the same camera takes the next photo
+        if ((await shoeWaitRetake(noAi ? '↻ Try again' : '')) !== 'retake') throw new Error('cancelled');
+        shoeUnfreeze();                                      // Retake: the same camera, live again
       }
       step('footwear', 'bad');
-      throw new Error('Footwear not approved after several tries — wear your enrolled shoes (or tap Enroll new shoes) and tap Punch In again.');
-    } finally { camShoe.hidden = true; panel.classList.remove('shoe'); btnShoe.disabled = false; btnShoeEnroll.hidden = false; camShoeDots.hidden = true; }
+      throw new Error('Footwear not approved after several tries — wear proper shoes and tap Punch In again.');
+    } finally { shoeReset(); camShoeT.classList.remove('ok'); }
   }
 
   // ---------- Save ----------

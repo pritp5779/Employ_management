@@ -47,7 +47,47 @@
   .dnav input[type=date]{padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-size:13px; min-height:0; width:auto;}
   .hgrid .card table.no-stack#dbTable{min-width:470px;} .hgrid .card table.no-stack#osTable{min-width:420px;}
   .hgrid tfoot td{padding:12px 10px; font-size:13.5px;} .hgrid tfoot td:first-child{padding-left:20px;} .hgrid tfoot td:last-child{padding-right:20px;}
-  @media (max-width:900px){.hgrid{grid-template-columns:1fr;}}
+  /* Cash box: collected from shops vs used (paid out) vs in hand, cash / upi */
+  .cb-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:14px;}
+  .cb-grid .stat-card .value{font-size:26px;} .cb-grid .use .value{color:#c2410c;} .cb-grid .hand .value{color:#0f7a41;}
+  .cb-sp{display:flex; gap:14px; font-size:12.5px; font-weight:700; margin-top:2px; flex-wrap:wrap;} .cb-sp span{display:inline-flex; align-items:center; gap:5px;} .cb-sp i{width:9px; height:9px; border-radius:3px; display:inline-block;}
+  .cb-sp i.c{background:#16a34a;} .cb-sp i.u{background:#2563eb;}
+  .cb-bar{height:8px; border-radius:999px; background:#eef0f3; overflow:hidden; display:flex; margin-top:10px;} .cb-bar i{display:block; height:100%;} .cb-bar i.c{background:#16a34a;} .cb-bar i.u{background:#2563eb;}
+  .cb-two{display:grid; grid-template-columns:1.6fr 1fr; gap:14px; align-items:start;}
+  .cb-filt{display:flex; gap:8px; align-items:center; flex-wrap:wrap;} .cb-filt input[type=date], .cb-filt select{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff;}
+  .cb-mode{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:800;} .cb-mode.c{background:#e7f7ee; color:#0f7a41;} .cb-mode.u{background:#e8efff; color:#1d4ed8;}
+  .cb-party{font-weight:700;} .cb-by{font-size:11px; color:var(--muted);} .cb-amt.in{color:#0f7a41;} .cb-kind{display:inline-block; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:800; margin-left:6px;} .cb-kind.a{background:#e7f7ee; color:#0f7a41;} .cb-kind.u{background:#fff4ec; color:#c2410c;} .cb-note{font-size:12px; color:#4b5563; margin-top:2px;} .cb-amt{font-weight:800; color:#c2410c; white-space:nowrap;}
+  .cb-tbl td.r, .cb-tbl th.r{text-align:right;} .cb-tbl tr.tot td{font-weight:800; background:#f8f9fb;}
+  .cb-tbl .ib{background:none; border:none; cursor:pointer; font-size:14px; padding:2px 5px; min-height:0; width:auto; color:var(--muted);} .cb-tbl .ib:hover{color:var(--ink);}
+  .cb-tbl tr.pk{cursor:pointer;} .cb-tbl tr.pk.on td{background:#fff3ea;}
+  .cb-seg{display:flex; gap:6px;} .cb-seg button{flex:1; min-height:42px; border:1.5px solid var(--line); border-radius:12px; background:#fff; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; color:var(--ink);}
+  .cb-seg button small{font-weight:600; color:var(--muted);} .cb-seg button.on{border-color:#16a34a; background:#e7f7ee; color:#0f7a41;} .cb-seg button.on.u{border-color:#2563eb; background:#e8efff; color:#1d4ed8;}
+  /* Party picker: search box + list (Display payment, every shop, Other) */
+  .cb-pick{position:relative;} .cb-pick input{width:100%; padding-right:34px;}
+  .cb-pick-x{position:absolute; right:8px; top:50%; transform:translateY(-50%); width:24px; height:24px; min-height:0; border:none; border-radius:50%; background:#f1f2f5; color:#6b7280; font-size:12px; cursor:pointer; padding:0;}
+  .cb-pick-list{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:20; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 14px 40px rgba(20,22,26,.18); max-height:280px; overflow:auto; padding:6px;}
+  .cb-pick-list .it{padding:9px 10px; border-radius:9px; cursor:pointer; font-size:13.5px; display:flex; align-items:center; gap:8px;} .cb-pick-list .it:hover, .cb-pick-list .it.on{background:#fff3ea;}
+  .cb-pick-list .it b{font-weight:700;} .cb-pick-list .it small{color:var(--muted); font-size:11.5px; margin-left:auto; white-space:nowrap;}
+  .cb-pick-list .it.sp{background:#f5f0ff; font-weight:800; color:#6d28d9;} .cb-pick-list .it.sp:hover, .cb-pick-list .it.sp.on{background:#ede9fe;}
+  .cb-pick-list .it.ot{color:#4b5563; font-weight:700;}
+  .cb-pick-list .hd{font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px 3px;}
+  .cb-pick-list .no{padding:10px; font-size:12.5px; color:var(--muted);}
+  .cb-pick input.picked{font-weight:700; color:var(--ink); background:#f8fff9;}
+  .cb-after{font-size:12px; color:#0f7a41; background:#e7f7ee; border-radius:10px; padding:8px 10px; margin-top:4px;} .cb-after.neg{color:#b91c1c; background:#fee2e2;}
+  /* Display payment picked in Use amount: what is pending on displays and what stays after this amount */
+  .cb-dp{background:#fff4ec; border:1.5px solid #fdba74; border-radius:12px; padding:9px 12px; margin-top:8px; font-size:13px;}
+  .cb-dp .row{display:flex; justify-content:space-between; align-items:center; font-weight:700;} .cb-dp .row b{font-size:15px; color:#c2410c;}
+  .cb-dp .after{margin-top:6px; padding-top:6px; border-top:1px dashed #fdba74; display:flex; justify-content:space-between; color:#0f7a41; font-weight:800;} .cb-dp .after.neg{color:#b91c1c;}
+  .cb-pick-list .it.sp small{color:#c2410c; font-weight:800; font-size:12px;}
+  /* Display (perfume demo displays): home cards, view cards, status chips, the form */
+  .hstat.p .value{color:#6d28d9;} .hs-dp{cursor:pointer;} .hs-dp:hover{box-shadow:0 0 0 2px #ff7a2f33, var(--shadow);}
+  .dp-grid{grid-template-columns:repeat(3,1fr);} .dp-grid .tot .value{color:#6d28d9;} .dp-grid .paid .value{color:#0f7a41;} .dp-grid .pend .value{color:#c2410c;}
+  .dp-st{display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800; white-space:nowrap;} .dp-st.pend{background:#fff4ec; color:#c2410c;} .dp-st.paid{background:#e7f7ee; color:#0f7a41;}
+  .dp-mk{display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 9px; font-size:11.5px; font-weight:700; color:#1d4ed8; background:#fff; cursor:pointer; min-height:0; width:auto; margin-left:4px; white-space:nowrap;} .dp-mk:hover{background:#eef3ff;}
+  .dp-amt{font-weight:800; white-space:nowrap;} .dp-pend{color:#c2410c; font-weight:800;}
+  @media (min-width:821px){.dp-qp{display:none;}}   /* qty × price sits in its own column on desktop, under the shop on the phone */
+  @media (max-width:900px){.hgrid{grid-template-columns:1fr;} .cb-two{grid-template-columns:1fr;} .cb-grid{grid-template-columns:1fr; gap:8px;} .cb-grid .stat-card{padding:12px 14px;} .cb-grid .stat-card .value{font-size:21px;} .dp-grid{grid-template-columns:1fr;}}
+  @media (max-width:820px){ .cb-hm{display:none;} .card table.cb-tbl{min-width:0; width:100%;} .cb-tbl th, .cb-tbl td{padding-left:6px; padding-right:6px;} .cb-tbl .cb-party{font-size:13px;} .cb-tbl td:first-child{white-space:nowrap; font-size:12px;} }
   @media (max-width:640px){
     .hgrid .card-head{flex-direction:column; align-items:stretch;}
     .hgrid .dnav{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:6px; width:100%;} .hgrid .dnav button{width:auto !important; min-width:0; min-height:0; padding:7px 14px; flex:none;} .hgrid .dnav input[type=date]{min-width:0; width:100%;}
@@ -407,6 +447,8 @@
         <button class="btn secondary" id="btnVisits">🗓 Visits</button>
         <button class="btn secondary" id="btnRegister">📋 Orders</button>
         <button class="btn secondary" id="btnLedgerAll">📒 Ledger</button>
+        <button class="btn secondary" id="btnCash">💰 Cash box</button>
+        <button class="btn secondary" id="btnDisplay">🧴 Display</button>
         <button class="btn secondary" id="btnTotals">📊 Totals</button>
         <button class="btn secondary" id="btnMapView">📍 Map view</button>
         <button class="btn secondary" id="btnSets">🧴 Perfume sets</button>
@@ -424,6 +466,8 @@
           <div class="stat-card hstat g"><div class="label" id="hsColL">Collected today</div><div class="value" id="hsCol">—</div><div class="sub" id="hsColS">&nbsp;</div></div>
           <div class="stat-card hstat r"><div class="label">Total outstanding</div><div class="value" id="hsOut">—</div><div class="sub" id="hsOutS">&nbsp;</div></div>
           <div class="stat-card hstat a"><div class="label">Overdue</div><div class="value" id="hsOvd">—</div><div class="sub" id="hsOvdS">&nbsp;</div></div>
+          <div class="stat-card hstat p hs-dp" id="hsDispCard" title="Open Display"><div class="label">Total display</div><div class="value" id="hsDisp">—</div><div class="sub" id="hsDispS">&nbsp;</div></div>
+          <div class="stat-card hstat a hs-dp" id="hsDispPCard" title="Open pending displays"><div class="label">Display pending payment</div><div class="value" id="hsDispP">—</div><div class="sub" id="hsDispPS">&nbsp;</div></div>
         </div>
         <div class="sub" style="margin:-4px 2px 14px;"><b id="stShops">—</b> shops · <b id="stMonth">—</b> orders this month · <b id="stDisplay">—</b> display bottles out</div>
         <div class="card" id="cityCard" style="display:none;">
@@ -590,6 +634,43 @@
       </div>
 
       <!-- ===== LEDGER (all shops) ===== -->
+      <!-- ===== CASH BOX: collected from shops vs used (paid out) ===== -->
+      <div id="viewCash" style="display:none;">
+        <div class="card-head" style="padding:0 0 12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+          <div><h2 style="margin:0;">Cash box</h2><div class="sub" id="cbSub">Collected from shops, what was used, what is in hand</div></div>
+          <div class="cb-filt"><input type="date" id="cbFrom"><span class="sub">to</span><input type="date" id="cbTo"><select id="cbKind"><option value="">Added + Used</option><option value="add">Added only</option><option value="use">Used only</option></select><select id="cbMode"><option value="">All modes</option><option value="cash">Cash</option><option value="upi">UPI</option></select><button type="button" class="btn green" id="btnCbAdd" style="width:auto; padding:9px 14px;">+ Add amount</button><button type="button" class="btn" id="btnCbUse" style="width:auto; padding:9px 14px;">+ Use amount</button></div>
+        </div>
+        <div class="cb-grid" id="cbCards"><div class="stat-card"><div class="label">Loading…</div></div></div>
+        <div class="cb-two">
+          <div class="card">
+            <div class="card-head"><div><h2>Entries</h2><div class="sub">Money added by hand (+) and money used (−)</div></div><span class="sub" id="cbCnt"></span></div>
+            <div class="tscroll"><table class="cb-tbl no-stack" id="cbTable"><thead><tr><th>Date</th><th>Party / used for</th><th>From</th><th class="r">Amount</th><th></th></tr></thead><tbody id="cbBody"></tbody><tfoot id="cbFoot"></tfoot></table></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h2>Party wise</h2><div class="sub">How much went to whom (used amounts)</div></div></div>
+            <div class="tscroll"><table class="cb-tbl no-stack" id="cbPartyTbl"><thead><tr><th>Party</th><th class="r">Entries</th><th class="r cb-hm">Cash</th><th class="r cb-hm">UPI</th><th class="r">Total</th></tr></thead><tbody id="cbParty"></tbody></table></div>
+            <div class="sub" style="padding:8px 20px 14px;">Tap a party to see only its entries; tap again for all.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DISPLAY: perfume demo displays (date, display, amount; pending or paid) ===== -->
+      <div id="viewDisplay" style="display:none;">
+        <div class="card-head" style="padding:0 0 12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+          <div><h2 style="margin:0;">Display</h2><div class="sub" id="dpSub">Perfume demo displays</div></div>
+          <div class="cb-filt"><input type="date" id="dpFrom"><span class="sub">to</span><input type="date" id="dpTo"><select id="dpStatus"><option value="all">Pending + Paid</option><option value="pending">Pending only</option><option value="paid">Paid only</option></select><button type="button" class="btn" id="btnDpAdd" style="width:auto; padding:9px 14px;">+ Add display</button></div>
+        </div>
+        <div class="cb-grid dp-grid" id="dpCards"><div class="stat-card"><div class="label">Loading…</div></div></div>
+        <div class="card">
+          <div class="card-head"><div><h2>Display entries</h2><div class="sub">Tap <b>Mark paid</b> when the payment comes</div></div><span class="sub" id="dpCnt"></span></div>
+          <div class="tscroll"><table class="cb-tbl no-stack" id="dpTable"><thead><tr><th>Date</th><th>Display</th><th class="r">Amount</th><th>Payment</th><th></th></tr></thead><tbody id="dpBody"></tbody><tfoot id="dpFoot"></tfoot></table></div>
+        </div>
+        <div class="card" id="dpCashCard" style="margin-top:14px;">
+          <div class="card-head"><div><h2>Display payments from the Cash box</h2><div class="sub">"Display payment" entries of Use amount — they come off the pending total</div></div><span class="sub" id="dpCashCnt"></span></div>
+          <div class="tscroll"><table class="cb-tbl no-stack" id="dpCashTbl"><thead><tr><th>Date</th><th>By</th><th>From</th><th class="r">Amount</th></tr></thead><tbody id="dpCashBody"></tbody></table></div>
+        </div>
+      </div>
+
       <div id="viewLedgerAll" style="display:none;">
         <div class="ld-top">
           <div><h2>Retail ledger</h2><div class="sub" id="laSub">What every shop owes us</div></div>
@@ -912,6 +993,46 @@
   </div>
 </div>
 
+<!-- Use amount (cash box) -->
+<div class="modal-overlay" id="cbModal">
+  <div class="modal" style="max-width:460px;">
+    <h3 id="cbTitle">Use amount</h3>
+    <div class="sub" style="margin:-8px 0 12px;" id="cbSubT">Take money out of the collection and note where it went</div>
+    <div id="cbAlert"></div>
+    <input type="hidden" id="cbId" value="0"><input type="hidden" id="cbKindV" value="use">
+    <div class="field"><label>Date</label><input type="date" id="cbDate"></div>
+    <div class="field"><label id="cbSegL">From</label><div class="cb-seg" id="cbSeg"><button type="button" data-m="cash" class="on">💵 Cash <small id="cbHandC"></small></button><button type="button" data-m="upi">📱 UPI <small id="cbHandU"></small></button></div></div>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="cbAmt" min="0" step="any" inputmode="decimal" placeholder="0" style="font-size:18px; font-weight:700;"></div>
+    <div class="field"><label id="cbPickL">Party / used for</label>
+      <div class="cb-pick" id="cbPick">
+        <input id="cbPickIn" maxlength="120" placeholder="Search a shop, or pick Display payment…" autocomplete="off">
+        <button type="button" class="cb-pick-x" id="cbPickX" title="Clear" style="display:none;">✕</button>
+        <div class="cb-pick-list" id="cbPickList" style="display:none;"></div>
+      </div>
+      <input type="hidden" id="cbPartySel" value="">
+      <input id="cbParty2" maxlength="120" placeholder="Type the party / what it was used for" autocomplete="off" style="display:none; margin-top:8px;">
+      <div class="cb-dp" id="cbDpBox" style="display:none;"></div>
+    </div>
+    <div class="field"><label>Note <span class="sub">(optional)</span></label><input id="cbNote" maxlength="255" placeholder="e.g. Parcel to Vadodara"></div>
+    <div class="cb-after" id="cbAfter" style="display:none;"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnCbCancel">Cancel</button><button type="button" class="btn" id="btnCbSave">Save</button></div>
+  </div>
+</div>
+
+<!-- Display: add / change a perfume demo display (3 fields) -->
+<div class="modal-overlay" id="dpModal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="dpTitle">Add display</h3>
+    <div class="sub" style="margin:-8px 0 12px;">A perfume demo display · it stays <b>Pending</b> till you mark it paid</div>
+    <div id="dpAlert"></div>
+    <input type="hidden" id="dpId" value="0">
+    <div class="field"><label>Date</label><input type="date" id="dpDate"></div>
+    <div class="field"><label>Display</label><input id="dpName" maxlength="120" placeholder="e.g. Krishna Novelty · 6 pc set" autocomplete="off"></div>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="dpTotal" min="0" step="any" inputmode="decimal" placeholder="0" style="font-size:18px; font-weight:700;"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnDpCancel">Cancel</button><button type="button" class="btn" id="btnDpSave">Save display</button></div>
+  </div>
+</div>
+
 <!-- Receive payment (ledger) -->
 <div class="modal-overlay" id="rcvModal">
   <div class="modal" style="max-width:520px;">
@@ -1085,7 +1206,7 @@
   // ---------- cities: the bar at the top picks "All" or one city; every list below is for that choice ----------
   let curCity = ''; try { curCity = localStorage.getItem('retail_city') || ''; } catch (e) {}
   let cityList = [], defaultCity = '';
-  const CITY_ACTIONS = new Set(['retail.shops', 'retail.outstanding', 'retail.totals', 'retail.map', 'retail.visit_plan', 'retail.visit_history', 'retail.register', 'retail.daybook', 'retail.visit_plan_save', 'retail.visit_plan_mark', 'retail.visit_plan_move', 'retail.visit_plan_remove']);
+  const CITY_ACTIONS = new Set(['retail.cash_get', 'retail.demo_get', 'retail.shops', 'retail.outstanding', 'retail.totals', 'retail.map', 'retail.visit_plan', 'retail.visit_history', 'retail.register', 'retail.daybook', 'retail.visit_plan_save', 'retail.visit_plan_mark', 'retail.visit_plan_move', 'retail.visit_plan_remove']);
   const _apiRequest = api.request.bind(api);
   api.request = (action, options, params) => _apiRequest(action, options || {}, curCity && CITY_ACTIONS.has(action) ? Object.assign({ city: curCity }, params || {}) : (params || {}));
   const cityCount = () => cityList.reduce((n, c) => n + (c.shops || 0), 0);
@@ -1109,6 +1230,8 @@
     ['ppShops', 'ppReg', 'ppTot', 'ppLed', 'ppVisit'].forEach(id => { if (PP[id] && PP[id].ids.size) PP[id].set([], false); });
     if (view === 'list') loadShops();
     else if (view === 'totals') loadTotals();
+    else if (view === 'cash') cbLoad();
+    else if (view === 'display') dpLoad();
     else if (view === 'ledgerAll') loadLedgerAll();
     else if (view === 'register') { rg.page = 1; loadRegister(); }
     else if (view === 'visits') { if (vp.tab === 'hist') vhLoad(); else vpLoad(); }
@@ -1257,6 +1380,8 @@
     document.getElementById('viewShop').style.display = v === 'shop' ? '' : 'none';
     document.getElementById('viewMap').style.display = v === 'map' ? '' : 'none';
     document.getElementById('viewTotals').style.display = v === 'totals' ? '' : 'none';
+    document.getElementById('viewCash').style.display = v === 'cash' ? '' : 'none';
+    document.getElementById('viewDisplay').style.display = v === 'display' ? '' : 'none';
     document.getElementById('viewLedger').style.display = v === 'ledger' ? '' : 'none';
     document.getElementById('viewLedgerAll').style.display = v === 'ledgerAll' ? '' : 'none';
     document.getElementById('viewRegister').style.display = v === 'register' ? '' : 'none';
@@ -1266,6 +1391,8 @@
     document.getElementById('btnLedgerAll').textContent = v === 'ledgerAll' ? '☰ List view' : '📒 Ledger';
     document.getElementById('btnMapView').textContent = v === 'map' ? '☰ List view' : '📍 Map view';
     document.getElementById('btnTotals').textContent = v === 'totals' ? '☰ List view' : '📊 Totals';
+    document.getElementById('btnCash').textContent = v === 'cash' ? '☰ List view' : '💰 Cash box';
+    document.getElementById('btnDisplay').textContent = v === 'display' ? '☰ List view' : '🧴 Display';
     if (v !== 'shop') history.replaceState(null, '', location.pathname);
     if (v === 'list' && listY > 0) {   // back to the list: stay where it was (the list may still be redrawing, so try again a few times)
       const y = listY, go = () => window.scrollTo(0, y);
@@ -1275,7 +1402,259 @@
   }
   document.getElementById('btnMapView').addEventListener('click', () => { if (view === 'map') showView('list'); else { showView('map'); renderAllMap(); } });
   document.getElementById('btnTotals').addEventListener('click', () => { if (view === 'totals') showView('list'); else { showView('totals'); loadTotals(); } });
+  document.getElementById('btnCash').addEventListener('click', () => { if (view === 'cash') showView('list'); else { showView('cash'); cbLoad(); } });
+  document.getElementById('btnDisplay').addEventListener('click', () => { if (view === 'display') showView('list'); else { showView('display'); dpLoad(); } });
+
+  // ---------- Cash box: collected from shops (ledger receipts) vs used (paid out) vs in hand, cash / upi ----------
+  const cb = { data: null, party: '', mode: 'cash', req: 0 };
+  const cbEl = (id) => document.getElementById(id);
+  const cbDay = (iso) => { const d = new Date(iso + 'T00:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }); };
+  const cbWhen = (ts) => { if (!ts) return ''; const d = new Date(String(ts).replace(' ', 'T')); return isNaN(d) ? '' : d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }); };
+  (function cbInit() {
+    const t = new Date(), ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    cbEl('cbFrom').value = ymd(new Date(t.getFullYear(), t.getMonth(), 1)); cbEl('cbTo').value = ymd(t);
+  })();
+  ['cbFrom', 'cbTo'].forEach(id => cbEl(id).addEventListener('change', () => cbLoad()));
+  cbEl('cbMode').addEventListener('change', () => cbRender());
+  cbEl('cbKind').addEventListener('change', () => cbRender());
+  async function cbLoad() {
+    const id = ++cb.req, from = cbEl('cbFrom').value, to = cbEl('cbTo').value;
+    if (!from || !to) return;
+    if (!cb.data) cbEl('cbCards').innerHTML = '<div class="stat-card"><div class="label">Loading…</div></div>';
+    try {
+      const d = await withRetry(() => api.get('retail.cash_get', { from, to }));
+      if (id !== cb.req) return;
+      cb.data = d; cbRender();
+    } catch (err) {
+      if (id !== cb.req) return;
+      cbEl('cbCards').innerHTML = `<div class="stat-card"><div class="label">Cash box</div><div class="sub" style="color:#d9423b;">${esc(/unknown action/i.test(err.message || '') ? 'Your server api.php is old — upload the latest api.php' : err.message)}</div></div>`;
+    }
+  }
+  function cbRender() {
+    const d = cb.data; if (!d) return;
+    const col = d.collected, use = d.used, addv = d.added || { total: 0, cash: 0, upi: 0, n: 0 }, hand = d.in_hand, mode = cbEl('cbMode').value, kind = cbEl('cbKind').value;
+    const sp = (o) => `<div class="cb-sp"><span><i class="c"></i>Cash ${inr(o.cash)}</span><span><i class="u"></i>UPI ${inr(o.upi)}</span></div>`;
+    const ht = Math.max(0, hand.cash) + Math.max(0, hand.upi), pc = ht > 0 ? Math.round(Math.max(0, hand.cash) / ht * 100) : 0;
+    cbEl('cbSub').textContent = (curCity ? curCity + ' · ' : 'All cities · ') + cbDay(d.from) + ' – ' + cbDay(d.to);
+    cbEl('cbCards').innerHTML =
+      `<div class="stat-card"><div class="label">Collected from shops</div><div class="value">${inr(col.total + addv.total)}</div>${sp({ cash: col.cash + addv.cash, upi: col.upi + addv.upi })}<div class="sub" style="margin-top:6px;">${col.n} receipt${col.n === 1 ? '' : 's'} in the ledger${addv.n ? ` · <b style="color:#0f7a41;">+ ${inr(addv.total)} added by hand</b> (${addv.n})` : ''}</div></div>` +
+      `<div class="stat-card use"><div class="label">Used (paid out)</div><div class="value">${inr(use.total)}</div>${sp(use)}<div class="sub" style="margin-top:6px;">${use.n} entr${use.n === 1 ? 'y' : 'ies'} in these dates</div></div>` +
+      `<div class="stat-card hand"><div class="label">In hand till ${cbDay(hand.till)}</div><div class="value">${inr(hand.total)}</div>${sp(hand)}<div class="cb-bar"><i class="c" style="width:${pc}%"></i><i class="u" style="width:${100 - pc}%"></i></div><div class="sub" style="margin-top:6px;">Collected + added till this date − used${hand.cash < 0 || hand.upi < 0 ? ' · <b style="color:#b91c1c;">more used than collected</b>' : ''}</div></div>`;
+    const rows = d.entries.filter(e => (!mode || e.mode === mode) && (!kind || (e.kind || 'use') === kind) && (!cb.party || e.party.trim().toLowerCase() === cb.party));
+    let tot = 0, tin = 0, tout = 0;
+    cbEl('cbBody').innerHTML = rows.map(e => { const isAdd = (e.kind || 'use') === 'add'; if (isAdd) tin += e.amount; else tout += e.amount; tot += isAdd ? e.amount : -e.amount; return `<tr><td style="white-space:nowrap;">${cbDay(e.use_date)}</td><td><span class="cb-party">${esc(e.party)}</span><span class="cb-kind ${isAdd ? 'a' : 'u'}">${isAdd ? '+ Added' : '− Used'}</span>${e.shop_id ? ' <span class="cb-mode u" style="background:#f1f2f5; color:#6b7280;">Shop</span>' : (/^display payment$/i.test(e.party) ? ' <span class="cb-mode c">Display</span>' : '')}<div class="cb-by">by ${esc(e.created_by_name || '—')}${cbWhen(e.created_at) ? ' · ' + cbWhen(e.created_at) : ''}${e.updated_at ? ' · edited' : ''}</div>${e.note ? `<div class="cb-note">${esc(e.note)}</div>` : ''}</td><td><span class="cb-mode ${e.mode === 'cash' ? 'c' : 'u'}">${e.mode === 'cash' ? 'Cash' : 'UPI'}</span></td><td class="r cb-amt${isAdd ? ' in' : ''}">${isAdd ? '+' : '−'} ${inr(e.amount)}</td><td style="white-space:nowrap; text-align:right;">${d.can_edit ? `<button type="button" class="ib" data-cbe="${e.use_id}" title="Change">✎</button><button type="button" class="ib" data-cbd="${e.use_id}" title="Delete">✕</button>` : ''}</td></tr>`; }).join('')
+      || `<tr><td colspan="6" class="sub" style="text-align:center; padding:18px;">${d.entries.length ? 'Nothing for this filter.' : 'No entries in these dates. Tap + Add amount or + Use amount.'}</td></tr>`;
+    cbEl('cbFoot').innerHTML = rows.length ? `<tr class="tot"><td colspan="3">Total · ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}${cb.party ? ' · ' + esc(rows[0].party) : ''}${tin && tout ? ` <span class="sub" style="font-weight:600;">(+${inr(tin)} added · −${inr(tout)} used)</span>` : ''}</td><td class="r${tot < 0 ? '' : ' cb-amt in'}">${tot < 0 ? '− ' + inr(-tot) : '+ ' + inr(tot)}</td><td></td></tr>` : '';
+    cbEl('cbCnt').textContent = cb.party ? 'filtered by party' : '';
+    const pw = d.parties;
+    cbEl('cbParty').innerHTML = pw.map(p => `<tr class="pk${cb.party === p.party.trim().toLowerCase() ? ' on' : ''}" data-cbp="${esc(p.party.trim().toLowerCase())}"><td class="cb-party">${esc(p.party)}</td><td class="r">${p.n}</td><td class="r cb-hm">${inr(p.cash)}</td><td class="r cb-hm">${inr(p.upi)}</td><td class="r cb-amt">${inr(p.total)}</td></tr>`).join('')
+      + (pw.length ? `<tr class="tot"><td>Total</td><td class="r">${use.n}</td><td class="r cb-hm">${inr(use.cash)}</td><td class="r cb-hm">${inr(use.upi)}</td><td class="r">${inr(use.total)}</td></tr>` : '<tr><td colspan="5" class="sub" style="text-align:center; padding:18px;">No parties yet.</td></tr>');
+  }
+  cbEl('cbParty').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-cbp]'); if (!tr) return; cb.party = cb.party === tr.dataset.cbp ? '' : tr.dataset.cbp; cbRender(); });
+  cbEl('cbBody').addEventListener('click', async (e) => {
+    const ed = e.target.closest('button[data-cbe]'), del = e.target.closest('button[data-cbd]');
+    if (ed) { const x = (cb.data.entries || []).find(r => r.use_id == ed.dataset.cbe); if (x) cbOpen(x); return; }
+    if (del) {
+      const x = (cb.data.entries || []).find(r => r.use_id == del.dataset.cbd); if (!x) return;
+      if (!confirm(`Delete this entry?\n${(x.kind || 'use') === 'add' ? 'Added' : 'Used'} · ${x.party} · ${inr(x.amount)} · ${x.mode === 'cash' ? 'Cash' : 'UPI'} · ${cbDay(x.use_date)}`)) return;
+      try { await api.post('retail.cash_use_delete', { use_id: x.use_id }); showAlert('Entry removed.'); cbLoad(); dp.data = null; loadDisplayHome(); } catch (err) { showAlert(err.message, 'error'); }
+    }
+  });
+  // ---- the Use amount form
+  const cbModal = cbEl('cbModal');
+  let cbY = 0;
+  function cbOpen(x, kind) {
+    const d = cb.data || {}, hand = d.in_hand || { cash: 0, upi: 0 };
+    const k = x ? (x.kind || 'use') : (kind || 'use'), isAdd = k === 'add';
+    cbEl('cbKindV').value = k;
+    cbEl('cbId').value = x ? x.use_id : 0;
+    cbEl('cbTitle').textContent = x ? (isAdd ? 'Change added amount' : 'Change entry') : (isAdd ? 'Add amount' : 'Use amount');
+    cbEl('cbSubT').textContent = isAdd ? 'Put money into the cash box by hand (not from a ledger receipt)' : 'Take money out of the collection and note where it went';
+    cbEl('cbSegL').textContent = isAdd ? 'Into' : 'From'; cbEl('cbPickL').textContent = isAdd ? 'From whom / where did it come (optional)' : 'Party / used for';
+    cbEl('cbPickIn').placeholder = isAdd ? 'Leave empty to add it directly, or search a shop…' : 'Search a shop, or pick Display payment…';
+    cbEl('cbDate').value = x ? x.use_date : (cbEl('cbTo').value || new Date().toISOString().slice(0, 10));
+    cbEl('cbDate').max = new Date().toISOString().slice(0, 10);
+    cbEl('cbAmt').value = x ? x.amount : ''; cbEl('cbNote').value = x ? x.note : '';
+    // Party picker: search box over Display payment + every shop (of the picked city) + Other (typed). An old typed party opens under Other.
+    let v = '';
+    if (x) { if (x.shop_id && (d.shops || []).some(sh => sh.shop_id === x.shop_id)) v = 's:' + x.shop_id; else if (/^display payment$/i.test(x.party)) v = 'display'; else if (isAdd && /^direct add$/i.test(x.party)) v = 'direct'; else v = 'other'; }
+    cbPickSet(v, x && v === 'other' ? x.party : '');
+    cb.mode = x ? x.mode : 'cash'; cbSeg();
+    cbEl('cbHandC').textContent = inr(hand.cash) + ' in hand'; cbEl('cbHandU').textContent = inr(hand.upi) + ' in hand';
+    cbEl('cbAlert').innerHTML = ''; cbAfter();
+    cbY = window.scrollY; cbModal.classList.add('open'); setTimeout(() => cbEl('cbAmt').focus(), 60);
+  }
+  function cbSeg() { cbEl('cbSeg').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.m === cb.mode); b.classList.toggle('u', b.dataset.m === 'upi' && cb.mode === 'upi'); }); }
+  function cbAfter() {
+    const d = cb.data || {}, hand = d.in_hand || { cash: 0, upi: 0 }, amt = Number(cbEl('cbAmt').value) || 0, id = Number(cbEl('cbId').value) || 0;
+    const el = cbEl('cbAfter'); if (!amt) { el.style.display = 'none'; return; }
+    let c = hand.cash, u = hand.upi;
+    const isAdd = cbEl('cbKindV').value === 'add', sign = isAdd ? 1 : -1;
+    const old = id ? (d.entries || []).find(r => r.use_id == id) : null;
+    if (old) { const os = (old.kind || 'use') === 'add' ? -1 : 1; if (old.mode === 'cash') c += os * old.amount; else u += os * old.amount; }      // changing an entry: first undo the old amount
+    if (cb.mode === 'cash') c += sign * amt; else u += sign * amt;
+    el.style.display = ''; el.className = 'cb-after' + ((cb.mode === 'cash' ? c : u) < 0 ? ' neg' : '');
+    el.textContent = ((cb.mode === 'cash' ? c : u) < 0 ? 'Careful — this is more than what is in hand. ' : '') + 'After this: Cash in hand ' + inr(c) + ' · UPI ' + inr(u);
+  }
+  cbEl('cbSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-m]'); if (!b) return; cb.mode = b.dataset.m; cbSeg(); cbAfter(); });
+  cbEl('cbAmt').addEventListener('input', () => { cbAfter(); cbDpBox(); });
+  // ---- the party picker (search + list)
+  let cbPickIdx = -1;
+  const cbPickLabel = (v) => { if (v === 'display') return '🏪 Display payment'; if (v === 'direct') return '➕ Direct add (no party)'; if (v === 'other') return 'Other (type below)'; const sh = ((cb.data || {}).shops || []).find(z => 's:' + z.shop_id === v); return sh ? sh.name : ''; };
+  function cbPickSet(v, typed) {
+    cbEl('cbPartySel').value = v; const inp = cbEl('cbPickIn');
+    inp.value = cbPickLabel(v); inp.classList.toggle('picked', !!v); cbEl('cbPickX').style.display = v ? '' : 'none';
+    cbEl('cbPickList').style.display = 'none';
+    const other = v === 'other'; cbEl('cbParty2').style.display = other ? '' : 'none';
+    if (typed !== undefined) cbEl('cbParty2').value = typed;
+    if (other && !typed) setTimeout(() => cbEl('cbParty2').focus(), 30);
+    cbDpBox();
+  }
+  // "Display payment" picked: this amount comes off the display pending total (Display view / home card) — displays are not shops, nothing else changes
+  function cbDpBox() {
+    const el = cbEl('cbDpBox'), d = (cb.data || {}).display, on = cbEl('cbPartySel').value === 'display' && cbEl('cbKindV').value !== 'add';
+    if (!on || !d) { el.style.display = 'none'; return; }
+    const amt = Number(cbEl('cbAmt').value) || 0, id = Number(cbEl('cbId').value) || 0;
+    const old = id ? (cb.data.entries || []).find(r => r.use_id == id && /^display payment$/i.test(r.party)) : null;   // changing an entry: its old amount is already in the paid figure
+    const pend = Math.max(0, (d.net_pending || 0) + (old ? old.amount : 0)), after = pend - amt;
+    el.style.display = '';
+    el.innerHTML = `<div class="row"><span>Display pending payment</span><b>${inr(pend)}</b></div><div class="sub" style="margin-top:2px;">Total display ${inr(d.total || 0)} · paid so far ${inr((d.paid || 0) + (d.cash_paid || 0) - (old ? old.amount : 0))}</div>`
+      + (amt > 0 ? `<div class="after${after < 0 ? ' neg' : ''}"><span>After this ${inr(amt)}</span><span>${after < 0 ? 'More than pending · pending 0' : 'Pending ' + inr(after)}</span></div>` : '');
+  }
+  function cbPickDraw() {
+    const q = cbEl('cbPickIn').value.trim().toLowerCase(), shops = (cb.data || {}).shops || [], list = cbEl('cbPickList');
+    const hit = (sh) => !q || [sh.name, sh.area, sh.city].some(t => String(t || '').toLowerCase().includes(q));
+    const rows = shops.filter(hit).slice(0, 60);
+    let h = '';
+    const dpd = (cb.data || {}).display;
+    if (cbEl('cbKindV').value !== 'add' && (!q || 'display payment'.includes(q))) h += `<div class="it sp" data-v="display">🏪 Display payment${dpd ? `<small>Display pending ${inr(dpd.net_pending || 0)}</small>` : ''}</div>`;
+    if (cbEl('cbKindV').value === 'add' && (!q || 'direct add'.includes(q))) h += `<div class="it sp" data-v="direct">➕ Direct add (no party)<small>Just add it to the total in hand</small></div>`;
+    h += `<div class="hd">Shops${q ? ' · ' + rows.length + (shops.filter(hit).length > 60 ? '+' : '') : ' · ' + shops.length}</div>`;
+    h += rows.map(sh => `<div class="it" data-v="s:${sh.shop_id}"><b>${esc(sh.name)}</b><small>${esc(sh.area || '')}${!curCity && sh.city ? (sh.area ? ' · ' : '') + esc(sh.city) : ''}</small></div>`).join('') || '<div class="no">No shop matches — pick Other below to type it.</div>';
+    h += `<div class="it ot" data-v="other">✎ Other (type it)${q ? ': "' + esc(cbEl('cbPickIn').value.trim()) + '"' : ''}</div>`;
+    list.innerHTML = h; list.style.display = ''; cbPickIdx = -1;
+  }
+  cbEl('cbPickIn').addEventListener('focus', () => { if (cbEl('cbPartySel').value) { cbEl('cbPickIn').value = ''; cbEl('cbPartySel').value = ''; cbEl('cbPickIn').classList.remove('picked'); cbEl('cbPickX').style.display = 'none'; cbEl('cbParty2').style.display = 'none'; } cbPickDraw(); });
+  cbEl('cbPickIn').addEventListener('input', () => { cbEl('cbPartySel').value = ''; cbEl('cbPickIn').classList.remove('picked'); cbEl('cbPickX').style.display = 'none'; cbPickDraw(); });
+  cbEl('cbPickIn').addEventListener('keydown', (e) => {
+    const its = [...cbEl('cbPickList').querySelectorAll('.it')]; if (!its.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); cbPickIdx = (cbPickIdx + (e.key === 'ArrowDown' ? 1 : -1) + its.length) % its.length; its.forEach((it, i) => it.classList.toggle('on', i === cbPickIdx)); its[cbPickIdx].scrollIntoView({ block: 'nearest' }); }
+    else if (e.key === 'Enter') { e.preventDefault(); const it = cbPickIdx >= 0 ? its[cbPickIdx] : its.find(z => !z.classList.contains('ot')) || its[0]; const typed = cbEl('cbPickIn').value.trim(); cbPickSet(it.dataset.v, it.dataset.v === 'other' ? typed : undefined); }
+    else if (e.key === 'Escape') { cbEl('cbPickList').style.display = 'none'; }
+  });
+  cbEl('cbPickList').addEventListener('mousedown', (e) => { const it = e.target.closest('.it[data-v]'); if (!it) return; e.preventDefault(); const typed = cbEl('cbPickIn').value.trim(); cbPickSet(it.dataset.v, it.dataset.v === 'other' ? typed : undefined); });
+  cbEl('cbPickX').addEventListener('click', () => { cbPickSet('', ''); cbEl('cbPickIn').focus(); });
+  document.addEventListener('mousedown', (e) => { if (!e.target.closest('#cbPick')) cbEl('cbPickList').style.display = 'none'; });
+  function cbClose() { cbModal.classList.remove('open'); const y = cbY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  cbEl('btnCbCancel').addEventListener('click', cbClose);
+  cbModal.addEventListener('click', (e) => { if (e.target === cbModal) cbClose(); });
+  cbEl('btnCbUse').addEventListener('click', () => cbOpen(null, 'use'));
+  cbEl('btnCbAdd').addEventListener('click', () => cbOpen(null, 'add'));
+  cbEl('btnCbSave').addEventListener('click', async () => {
+    const btn = cbEl('btnCbSave'); btn.disabled = true;
+    try {
+      const pv = cbEl('cbPartySel').value, isAdd = cbEl('cbKindV').value === 'add';
+      if (!pv && !isAdd) throw new Error('Pick the party / what the money was used for.');
+      // adding with nothing picked (or "Direct add") = straight into the total in hand
+      const party = pv === 'display' ? 'Display payment' : (pv === 'other' ? cbEl('cbParty2').value : (isAdd && (!pv || pv === 'direct') ? 'Direct add' : '')), shopId = pv.startsWith('s:') ? Number(pv.slice(2)) : 0;
+      await api.post('retail.cash_use_save', { use_id: Number(cbEl('cbId').value) || 0, date: cbEl('cbDate').value, amount: cbEl('cbAmt').value, mode: cb.mode, kind: cbEl('cbKindV').value, party, shop_id: shopId, note: cbEl('cbNote').value, city: curCity });
+      cbClose(); showAlert('Saved.'); cbLoad(); dp.data = null; loadDisplayHome();
+    } catch (err) { cbEl('cbAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    btn.disabled = false;
+  });
   document.getElementById('btnBack').addEventListener('click', () => showView('list'));
+
+  // ---------- Display: perfume demo displays — date, display, amount; pending till marked paid ----------
+  const dp = { data: null, req: 0 };
+  const dpEl = (id) => document.getElementById(id);
+  (function dpInit() {
+    const t = new Date(), ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    dpEl('dpFrom').value = ymd(new Date(t.getFullYear(), t.getMonth(), 1)); dpEl('dpTo').value = ymd(t);
+  })();
+  ['dpFrom', 'dpTo', 'dpStatus'].forEach(id => dpEl(id).addEventListener('change', () => dpLoad()));
+  async function dpLoad() {
+    const id = ++dp.req, from = dpEl('dpFrom').value, to = dpEl('dpTo').value, status = dpEl('dpStatus').value;
+    if (!dp.data) dpEl('dpCards').innerHTML = '<div class="stat-card"><div class="label">Loading…</div></div>';
+    try {
+      const d = await withRetry(() => api.get('retail.demo_get', { from, to, status }));
+      if (id !== dp.req) return;
+      dp.data = d; dpRender();
+    } catch (err) {
+      if (id !== dp.req) return;
+      dpEl('dpCards').innerHTML = `<div class="stat-card"><div class="label">Display</div><div class="sub" style="color:#d9423b;">${esc(/unknown action/i.test(err.message || '') ? 'Your server api.php is old — upload the latest api.php' : err.message)}</div></div>`;
+    }
+  }
+  const dpN = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  function dpRender() {
+    const d = dp.data; if (!d) return; const t = d.totals || {}, a = d.all_time || t;
+    const range = (d.from ? cbDay(d.from) : 'start') + ' – ' + (d.to ? cbDay(d.to) : 'today');
+    dpEl('dpSub').textContent = (curCity ? curCity + ' · ' : 'All cities · ') + range;
+    const cp = Number(t.cash_paid || 0), cpn = Number(t.cash_paid_n || 0), net = Number(a.net_pending != null ? a.net_pending : Math.max(0, (a.total || 0) - (a.paid || 0) - (a.cash_paid || 0)));
+    dpEl('dpCards').innerHTML =
+      `<div class="stat-card tot"><div class="label">Total display</div><div class="value">${inr(t.total || 0)}</div><div class="sub" style="margin-top:6px;">${t.count ? dpN(t.count, 'display') + ' in these dates' : 'No display in these dates'}</div></div>` +
+      `<div class="stat-card paid"><div class="label">Paid</div><div class="value">${inr((t.paid || 0) + cp)}</div><div class="sub" style="margin-top:6px;">${inr(t.paid || 0)} marked paid (${dpN(t.paid_count || 0, 'display')})${cp ? ` · <b>${inr(cp)}</b> via Cash box (${cpn})` : ''}</div></div>` +
+      `<div class="stat-card pend"><div class="label">Pending payment · till today</div><div class="value">${inr(net)}</div><div class="sub" style="margin-top:6px;">All displays ${inr(a.total || 0)} − marked paid ${inr(a.paid || 0)} − via Cash box ${inr(a.cash_paid || 0)}</div></div>`;
+    const rows = d.entries || [];
+    let tot = 0, pend = 0;
+    dpEl('dpBody').innerHTML = rows.map(e => {
+      const paid = e.pay_status === 'paid'; tot += e.total; if (!paid) pend += e.total;
+      return `<tr><td style="white-space:nowrap;">${cbDay(e.disp_date)}</td><td><span class="cb-party">${esc(e.shop_name)}</span><div class="cb-by">by ${esc(e.created_by_name || '—')}${e.updated_at ? ' · edited' : ''}</div>${e.note ? `<div class="cb-note">${esc(e.note)}</div>` : ''}</td><td class="r dp-amt">${inr(e.total)}</td><td style="white-space:nowrap;">${paid ? `<span class="dp-st paid">Paid · ${e.pay_mode === 'upi' ? 'UPI' : 'Cash'}</span>${e.paid_date ? `<div class="cb-by">${cbDay(e.paid_date)}</div>` : ''}` : `<span class="dp-st pend">Pending</span>${d.can_edit ? `<button type="button" class="dp-mk" data-dpp="${e.disp_id}">Mark paid</button>` : ''}`}</td><td style="white-space:nowrap; text-align:right;">${d.can_edit ? `<button type="button" class="ib" data-dpe="${e.disp_id}" title="Change">✎</button><button type="button" class="ib" data-dpd="${e.disp_id}" title="Delete">✕</button>` : ''}</td></tr>`;
+    }).join('') || `<tr><td colspan="5" class="sub" style="text-align:center; padding:18px;">No display in these dates. Tap + Add display.</td></tr>`;
+    dpEl('dpFoot').innerHTML = rows.length ? `<tr class="tot"><td colspan="2">Total · ${dpN(rows.length, 'display')}</td><td class="r">${inr(tot)}</td><td colspan="2" class="${pend ? 'dp-pend' : 'sub'}">${pend ? 'Pending ' + inr(pend) + (cp ? ` <span class="sub" style="font-weight:600;">· ${inr(cp)} paid via Cash box in these dates</span>` : '') : 'All paid'}</td></tr>` : '';
+    dpEl('dpCnt').textContent = '';
+    const ce = d.cash_entries || [];
+    dpEl('dpCashCnt').textContent = ce.length ? inr(cp) + ' in these dates' : '';
+    dpEl('dpCashBody').innerHTML = ce.map(e => `<tr><td style="white-space:nowrap;">${cbDay(e.date)}</td><td><span class="cb-party">${esc(e.by || '—')}</span>${e.note ? `<div class="cb-note">${esc(e.note)}</div>` : ''}</td><td><span class="cb-mode ${e.mode === 'cash' ? 'c' : 'u'}">${e.mode === 'cash' ? 'Cash' : 'UPI'}</span></td><td class="r dp-amt" style="color:#0f7a41;">${inr(e.amount)}</td></tr>`).join('')
+      || '<tr><td colspan="4" class="sub" style="text-align:center; padding:14px;">No Display payment from the Cash box in these dates. (Cash box → + Use amount → Display payment)</td></tr>';
+  }
+  dpEl('dpBody').addEventListener('click', async (e) => {
+    const ed = e.target.closest('button[data-dpe]'), del = e.target.closest('button[data-dpd]'), mk = e.target.closest('button[data-dpp]');
+    const find = (id) => (dp.data.entries || []).find(r => r.disp_id == id);
+    if (ed) { const x = find(ed.dataset.dpe); if (x) dpOpen(x); return; }
+    if (mk) {
+      // first tap: ask Cash or UPI in place of the button; a tap on one of those saves it
+      if (!mk.dataset.m) { mk.outerHTML = `<span class="sub" style="font-size:11px;">Paid by</span> <button type="button" class="dp-mk" data-dpp="${mk.dataset.dpp}" data-m="cash">💵 Cash</button><button type="button" class="dp-mk" data-dpp="${mk.dataset.dpp}" data-m="upi">📱 UPI</button>`; return; }
+      const x = find(mk.dataset.dpp); if (!x) return;
+      try { await api.post('retail.demo_paid', { disp_id: x.disp_id, pay_status: 'paid', pay_mode: mk.dataset.m }); showAlert('Marked paid.'); dpLoad(); loadDisplayHome(); } catch (err) { showAlert(err.message, 'error'); }
+      return;
+    }
+    if (del) {
+      const x = find(del.dataset.dpd); if (!x) return;
+      if (!confirm(`Delete this display?\n${x.shop_name} · ${inr(x.total)} · ${cbDay(x.disp_date)}`)) return;
+      try { await api.post('retail.demo_delete', { disp_id: x.disp_id }); showAlert('Display entry removed.'); dpLoad(); loadDisplayHome(); } catch (err) { showAlert(err.message, 'error'); }
+    }
+  });
+  // ---- the Add / Change display form: date, display, amount
+  const dpModal = dpEl('dpModal');
+  let dpY = 0;
+  function dpOpen(x) {
+    dpEl('dpId').value = x ? x.disp_id : 0;
+    dpEl('dpTitle').textContent = x ? 'Change display' : 'Add display';
+    const today = new Date().toISOString().slice(0, 10);
+    dpEl('dpDate').value = x ? x.disp_date : (view === 'display' && dpEl('dpTo').value ? dpEl('dpTo').value : today); dpEl('dpDate').max = today;
+    dpEl('dpName').value = x ? x.shop_name : ''; dpEl('dpTotal').value = x ? x.total : '';
+    dpEl('dpAlert').innerHTML = '';
+    dpY = window.scrollY; dpModal.classList.add('open'); setTimeout(() => dpEl('dpName').focus(), 60);
+  }
+  function dpClose() { dpModal.classList.remove('open'); const y = dpY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); }
+  dpEl('btnDpCancel').addEventListener('click', dpClose);
+  dpModal.addEventListener('click', (e) => { if (e.target === dpModal) dpClose(); });
+  dpEl('btnDpAdd').addEventListener('click', () => dpOpen(null));
+  dpEl('dpTotal').addEventListener('keydown', (e) => { if (e.key === 'Enter') dpEl('btnDpSave').click(); });
+  dpEl('btnDpSave').addEventListener('click', async () => {
+    const btn = dpEl('btnDpSave'); btn.disabled = true;
+    try {
+      const name = dpEl('dpName').value.trim();
+      if (!name) throw new Error('Type the display.');
+      if (!(Number(dpEl('dpTotal').value) > 0)) throw new Error('Type the amount (more than 0).');
+      const id = Number(dpEl('dpId').value) || 0, old = id && dp.data ? (dp.data.entries || []).find(r => r.disp_id == id) : null;
+      await api.post('retail.demo_save', { disp_id: id, date: dpEl('dpDate').value, display: name, total: dpEl('dpTotal').value, pay_status: old ? old.pay_status : 'pending', pay_mode: old ? old.pay_mode : '', paid_date: old ? old.paid_date : '', city: curCity });
+      dpClose(); showAlert('Saved.');
+      if (view === 'display') dpLoad(); else dp.data = null;
+      loadDisplayHome();
+    } catch (err) { dpEl('dpAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
+    btn.disabled = false;
+  });
 
   // ---------- Visits: the day's plan (Done / Pending) and the history ----------
   const vp = { tab: 'today', date: '', st: 'all', grp: false, data: null, hist: null, histOpen: new Set(), draft: new Set(), area: 'All', smart: '', all: [], busy: false };
@@ -1536,9 +1915,26 @@
   const shiftDay = (d, n) => { const t = new Date(d + 'T00:00:00'); t.setDate(t.getDate() + n); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
   function loadHome() {
     if (hm.busy) return hm.busy;
-    hm.busy = Promise.all([loadDayBook(), loadOutstanding()]).finally(() => { hm.busy = null; });
+    hm.busy = Promise.all([loadDayBook(), loadOutstanding(), loadDisplayHome()]).finally(() => { hm.busy = null; });
     return hm.busy;
   }
+  // the two display cards on the home row: all-time totals of demo displays (for the picked city)
+  async function loadDisplayHome() {
+    try {
+      const d = await withRetry(() => api.get('retail.demo_get', { from: '', to: '', status: 'all' }));
+      const t = d.all_time || d.totals || {};
+      document.getElementById('hsDisp').textContent = inr(t.total || 0);
+      document.getElementById('hsDispS').textContent = t.count ? `${t.count} display${t.count === 1 ? '' : 's'} till today` : 'No display added yet';
+      const net = t.net_pending != null ? Number(t.net_pending) : Math.max(0, (t.total || 0) - (t.paid || 0) - (t.cash_paid || 0));
+      document.getElementById('hsDispP').textContent = inr(net);
+      document.getElementById('hsDispPS').textContent = net > 0 ? `after ${inr((t.paid || 0) + (t.cash_paid || 0))} paid${t.cash_paid ? ' (' + inr(t.cash_paid) + ' via Cash box)' : ''}` : 'All displays paid';
+    } catch (err) {
+      document.getElementById('hsDisp').textContent = '—'; document.getElementById('hsDispP').textContent = '—';
+      document.getElementById('hsDispS').textContent = /unknown action/i.test(err.message || '') ? 'Upload the latest api.php' : err.message; document.getElementById('hsDispPS').textContent = ' ';
+    }
+  }
+  document.getElementById('hsDispCard').addEventListener('click', () => { dpEl('dpStatus').value = 'all'; showView('display'); dpLoad(); });
+  document.getElementById('hsDispPCard').addEventListener('click', () => { dpEl('dpStatus').value = 'pending'; showView('display'); dpLoad(); });
   async function loadDayBook() {
     try {
       const d = await withRetry(() => api.get('retail.daybook', hm.date ? { date: hm.date } : {}));

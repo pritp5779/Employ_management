@@ -480,7 +480,7 @@
   }
 
   // NEW — fixed-by-count plans: the minimum is measured on the current calendar month (1st → today)
-  const monthStat = (empId) => { let n = 0, ach = 0; ORD.forEach((o) => { if (o.emp === empId && o.rk === '' && o.day >= MSTART && o.day <= TODAY) { n++; ach += o.amt; } }); return { n, ach }; };
+  const monthStat = (empId) => { let n = 0, ach = 0; ORD.forEach((o) => { if (o.emp === empId && o.day >= MSTART && o.day <= TODAY) { n++; ach += o.amt; } }); return { n, ach }; };   // every panel of the person counts (TM Perfume House, TM4U, TM Shower Gel, TM House 4th)
   // A rule's dates: no From / To = all days. day is a business day 'YYYY-MM-DD'.
   const inWin = (r, day) => (!r.from || day >= r.from) && (!r.to || day <= r.to);
   const planReached = (p) => { if (!(Number(p.min) > 0)) return true; const s = monthStat(p.emp); return p.minType === 'amount' ? s.ach >= Number(p.min) : s.n >= Number(p.min); };   // no minimum (blank / 0) = never locked
@@ -557,8 +557,11 @@
       c.steps.push({ label: mixRule.label || 'Code rule', detail: `${Math.round(mixPct)}% of ${mixDated ? 'the orders in its dates' : 'orders'} have a code (rule: ${mixRule.op === 'lte' ? 'at most' : 'at least'} ${fmtN(mixRule.thr)}%) → ${payTxt(mode, v)}`, value: saved > 0.5 || saved < -0.5 ? (saved > 0 ? '+' : '−') + inr(Math.abs(saved)) : 'full' });
     }
     // NEW — fixed commission for selected people, once the minimum is reached: a % of sales, or ₹ per order
-    const plan = (c && row.rk === '') ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p)) : null;
-    if (plan && n > 0) {
+    // A person's fixed commission is paid on EVERY panel row of that person (TM Perfume House, TM4U, TM Shower Gel, TM House 4th),
+    // and even when the slab gives no rate (no slab rule / no target): the fixed % of sales (or ₹ per order) is the whole commission then.
+    const plan = n > 0 ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p)) : null;
+    if (plan) {
+      if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
       const v = Number(plan.per), cut = !gateOk(plan.grp), fctx = { hit: c.hit, ticket: c.ticket };
       let full = 0, paid = 0, cutN = 0;
       orders.forEach((o) => { const b = fixedBaseOf(o, plan.mode, v), q = fixedPayOf(o, plan.mode, v, cut, fctx); full += b; paid += q; if (cut && Math.abs(q - b) > 0.005) cutN++; });
@@ -587,14 +590,16 @@
       if (hits.length) {
         if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
         const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm };
-        let dP = 0, dF = 0, nP = 0, nF = 0; const names = {}, rl = {};
+        let dP = 0, dF = 0, nP = 0, nF = 0, fullF = 0, paidF = 0; const names = {}, rl = {}, fl = {};
         hits.forEach((o) => {
           const r = panelRuleFor(o, gateOk), cur = comStar(o, tmp).v;
           if (r) { dP += o.amt * r.pct / 100 - cur; nP++; names[r.label || 'Panel rule'] = 1; rl[r.id] = r; }
-          else { dF += comOf(o, tmp, gateOk, true).v - cur; nF++; }
+          else { const fp = fixedFor(o, gateOk), v = comOf(o, tmp, gateOk, true).v; dF += v - cur; nF++; fullF += fixedBaseOf(o, fp.mode, fp.per); paidF += v; fl[fp.id] = fp; }
         });
         c.amount += dP + dF; c.panelCnt = nP;
         const ids = Object.keys(rl); if (ids.length === 1 && nP === n) c.panelBadge = fmtN(rl[ids[0]].pct) + '% fixed';
+        // every order of the row is on ONE dated fixed commission: show it as the rate (not the slab %), and the held-back amount is the fixed one's order-code cut
+        const fids = Object.keys(fl); if (fids.length === 1 && nF === n) { c.fixedBadge = payBadge(fl[fids[0]].mode, fl[fids[0]].per); c.held = fullF - paidF; c.full = fullF; c.adj = false; c.mix = null; }
         if (nP) c.steps.push({ label: 'Panel rule', detail: `${nP} order${nP === 1 ? '' : 's'} pay a fixed % of sales · ${Object.keys(names).join(', ')}`, value: (dP < 0 ? '−' : '+') + inr(Math.abs(dP)) });
         if (nF) c.steps.push({ label: 'Fixed commission', detail: `${nF} order${nF === 1 ? '' : 's'} on the fixed commission (its dates)`, value: (dF < 0 ? '−' : '+') + inr(Math.abs(dF)) });
       }
@@ -621,8 +626,8 @@
     if (!man) return c;
     const autoTxt = inr(c.amount) + (c.steps ? ' (' + fmtN(c.rate) + '%)' : '');
     return Object.assign({}, c, {
-      auto: { amount: c.amount, rate: c.rate, ok: !!c.steps, why: c.fixedPlan ? 'Fixed commission' : (c.mix && c.mix.badge) ? 'Code rule' : c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' },
-      manual: man, amount: man.amount, rate: man.rate, held: 0, fixedPlan: null, mix: null, panelBadge: null, adj: null,
+      auto: { amount: c.amount, rate: c.rate, ok: !!c.steps, why: (c.fixedPlan || c.fixedBadge) ? 'Fixed commission' : (c.mix && c.mix.badge) ? 'Code rule' : c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' },
+      manual: man, amount: man.amount, rate: man.rate, held: 0, fixedPlan: null, fixedBadge: null, mix: null, panelBadge: null, adj: null,
       steps: [{ label: 'Manual commission', detail: 'Set by hand' + (man.reason ? ': ' + man.reason : '') + ' · automatic would be ' + autoTxt, value: fmtN(man.rate) + '%' }].concat((c.steps || []).map((x) => Object.assign({}, x, { label: 'Automatic · ' + x.label, muted: true }))),
     });
   }
@@ -635,7 +640,7 @@
   const ini = (n) => String(n).split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   const progress = (a) => { const p = a.target > 0 ? a.ach / a.target * 100 : 0; return `<div class="prog"><i class="${p > 130 ? 'over' : p >= 100 ? 'done' : ''}" style="width:${Math.min(100, p)}%"></i></div>`; };
   const pctTxt = (a) => a.target > 0 ? `<span class="pct">${Math.round(a.ach / a.target * 100)}%</span>` : '';
-  const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || a.c.panelBadge || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.panelBadge ? a.c.panelBadge : a.c.fixedPlan ? a.c.fixedPlan.badge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
+  const rateBtn = (a, key) => { if (!a.c.steps) return ''; WHY[key] = a; return `<button type="button" class="rate${a.c.fixedPlan || a.c.panelBadge || a.c.fixedBadge || (a.c.mix && a.c.mix.badge) ? ' fx' : ''}" data-why="${key}" title="How this was calculated">${a.c.panelBadge ? a.c.panelBadge : a.c.fixedPlan ? a.c.fixedPlan.badge : a.c.fixedBadge ? a.c.fixedBadge : (a.c.mix && a.c.mix.badge) ? a.c.mix.badge : a.c.rate.toFixed(1).replace(/\.0$/, '') + '%'}</button>`; };
   const pendCell = (a) => a.target <= 0 ? '<span class="muted">—</span>' : a.pending > 0 ? `<span class="pend">${inr(a.pending)}</span>` : '<span class="pend zero">✓ Done</span>';
   const nameHtml = (row, chev, man) => `<b>${esc(row.emp.full_name)}${row.rk ? ' <span class="pill p-blue">' + esc(PLAB[row.rk]) + '</span>' : ''}${man ? ' <span class="pill man">MANUAL</span>' : ''}${chev ? ' <span class="chev">›</span>' : ''}</b>`;
 
@@ -754,7 +759,7 @@
   // A person's fixed commission that has dates: the orders of those days pay it (a % of the order, or ₹ per order) — once the minimum is reached.
   // (A fixed commission for all days is worked out on the whole period instead, see agg().) The rating cut still applies to it.
   function fixedFor(o, ok) {
-    if (o.rk !== '' || manPct(o.key)) return null;
+    if (manPct(o.key)) return null;                 // every panel row of the person (not only TM Perfume House)
     return NEW.fixed.find((p) => p.on && (p.from || p.to) && p.emp === o.emp && inWin(p, o.day) && planReached(p)) || null;
   }
   // the bundle condition of the employee this order belongs to (worked out in agg())
@@ -835,7 +840,7 @@
     mb.textContent = m.c.manual ? '✎ Change manual commission' : '✎ Change commission';
     mb.title = 'Change this employee\'s commission by hand (saved for ' + (dScope === 't' ? 'today' : manOk() ? 'this month' : RFROM === RTO ? 'this day' : 'this date range') + ')';
     const cpct = m.n ? Math.round(m.orders.filter((o) => o.code).length / m.n * 100) : 0, zero0 = m.orders.length;
-    $('dKpis').innerHTML = `<div class="kpi ${m.c.manual ? 'o' : 'g'}"><div class="l">Commission${m.c.manual ? ' · manual' : ''}</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi${m.c.manual ? ' o' : ''}"><div class="l">${m.c.manual ? 'Manual rate' : m.c.panelBadge ? 'Panel rule' : m.c.fixedPlan ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
+    $('dKpis').innerHTML = `<div class="kpi ${m.c.manual ? 'o' : 'g'}"><div class="l">Commission${m.c.manual ? ' · manual' : ''}</div><div class="v">${inr(m.c.amount)}</div></div><div class="kpi${m.c.manual ? ' o' : ''}"><div class="l">${m.c.manual ? 'Manual rate' : m.c.panelBadge ? 'Panel rule' : (m.c.fixedPlan || m.c.fixedBadge) ? 'Fixed commission' : (m.c.mix && m.c.mix.badge) ? 'Code rule' : 'Rate'}</div><div class="v">${m.c.panelBadge ? m.c.panelBadge : m.c.fixedPlan ? m.c.fixedPlan.badge : m.c.fixedBadge ? m.c.fixedBadge : (m.c.mix && m.c.mix.badge) ? m.c.mix.badge : (m.c.steps ? m.c.rate.toFixed(1).replace(/\.0$/, '') : 0) + '%'}</div></div><div class="kpi"><div class="l">Orders</div><div class="v">${m.n}</div></div><div class="kpi"><div class="l">Orders with code</div><div class="v">${cpct}%</div></div>`;
     $('dView').style.display = dScope === 't' ? 'none' : '';
     if (dScope === 't') ST.d.tab = 'ord';
     [...$('dView').children].forEach((b) => b.classList.toggle('on', b.dataset.v === ST.d.tab));
@@ -1140,7 +1145,7 @@
     if (!row || !READY) return;
     const a = agg(row, dScope === 't' ? [TODAY] : DAYS), man = a.c.manual;
     mcRow = row; mcAch = a.ach;
-    mcAuto = man ? a.c.auto : { amount: a.c.amount, rate: a.c.rate, ok: !!a.c.steps, why: a.c.fixedPlan ? 'Fixed commission' : (a.c.mix && a.c.mix.badge) ? 'Code rule' : a.c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' };
+    mcAuto = man ? a.c.auto : { amount: a.c.amount, rate: a.c.rate, ok: !!a.c.steps, why: (a.c.fixedPlan || a.c.fixedBadge) ? 'Fixed commission' : (a.c.mix && a.c.mix.badge) ? 'Code rule' : a.c.panelBadge ? 'Panel rule' : 'Rate by target / ticket size / prepaid' };
     $('mcSub').textContent = row.emp.full_name + (row.rk ? ' · ' + PLAB[row.rk] : '') + ' · ' + (dScope === 't' ? 'Today · ' + dFmt(TODAY) + '. Saved for this employee and today.' : dFmt(RFROM) + (RFROM === RTO ? '' : ' → ' + dFmt(RTO)) + '. Saved for this employee and ' + (manOk() ? 'this month' : RFROM === RTO ? 'this day' : 'exactly this date range') + '.');
     $('mcAuto').innerHTML = `<div class="row"><span>Automatic now</span><b>${inr(mcAuto.amount)}${mcAuto.ok ? ' · ' + fmtN(mcAuto.rate) + '%' : ''}</b></div>
       <div class="row"><span>Rule used</span><b>${esc(mcAuto.ok ? mcAuto.why : 'No commission earned')}</b></div>
