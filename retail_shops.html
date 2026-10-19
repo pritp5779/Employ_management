@@ -52,6 +52,16 @@
   .cb-grid .stat-card .value{font-size:26px;} .cb-grid .use .value{color:#c2410c;} .cb-grid .hand .value{color:#0f7a41;}
   .cb-sp{display:flex; gap:14px; font-size:12.5px; font-weight:700; margin-top:2px; flex-wrap:wrap;} .cb-sp span{display:inline-flex; align-items:center; gap:5px;} .cb-sp i{width:9px; height:9px; border-radius:3px; display:inline-block;}
   .cb-sp i.c{background:#16a34a;} .cb-sp i.u{background:#2563eb;}
+  /* Cash box: a card's amount opens the list of entries behind it */
+  #cbCards .stat-card[data-cbk]{cursor:pointer; transition:box-shadow .15s, transform .15s;} #cbCards .stat-card[data-cbk]:hover{box-shadow:0 6px 18px rgba(20,22,26,.1); transform:translateY(-1px);}
+  #cbCards .stat-card[data-cbk] .value::after{content:" ›"; font-size:.6em; color:#9ca3af;} .cb-sp span[data-cbm]{cursor:pointer;} .cb-sp span[data-cbm]:hover{text-decoration:underline;}
+  .bd-kp{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;} .bd-kp div{flex:1; min-width:120px; background:#f8f9fb; border-radius:12px; padding:8px 11px; font-size:11.5px; color:#6b7280;} .bd-kp b{display:block; font-size:17px; color:#141618;}
+  .bd-tbl{width:100%; border-collapse:collapse; font-size:12.5px;} .bd-tbl th{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:#6b7280; text-align:left; padding:7px 8px; border-bottom:1px solid #eef0f3; position:sticky; top:0; background:#fff;}
+  .bd-tbl td{padding:7px 8px; border-bottom:1px solid #f3f4f6; vertical-align:top;} .bd-tbl td.r, .bd-tbl th.r{text-align:right; white-space:nowrap;} .bd-tbl tr.tot td{font-weight:800; background:#f8f9fb;}
+  a.bd-shop{font-weight:800; color:#141618; text-decoration:none; border-bottom:1px dashed #9ca3af;} a.bd-shop:hover{color:#ff7a2f; border-color:#ff7a2f;} a.bd-shop.sm{font-weight:600; color:#374151;}
+  .bd-ord{font-size:11.5px; color:#6b7280; margin-top:2px;} .bd-ord b{color:#374151; font-weight:700;}
+  .bd-h{font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; margin:14px 0 6px;} .bd-h.g{color:#16945a;} .bd-h.r{color:#d9423b;} .bd-h.b{color:#1d4ed8;}
+  .bd-tabs{display:flex; gap:6px; margin-bottom:10px;} .bd-tabs button{border:1px solid #e5e7eb; background:#fff; border-radius:999px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;} .bd-tabs button.on{background:#141618; color:#fff; border-color:#141618;}
   .cb-bar{height:8px; border-radius:999px; background:#eef0f3; overflow:hidden; display:flex; margin-top:10px;} .cb-bar i{display:block; height:100%;} .cb-bar i.c{background:#16a34a;} .cb-bar i.u{background:#2563eb;}
   .cb-two{display:grid; grid-template-columns:1.6fr 1fr; gap:14px; align-items:start;}
   .cb-filt{display:flex; gap:8px; align-items:center; flex-wrap:wrap;} .cb-filt input[type=date], .cb-filt select{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff;}
@@ -1029,6 +1039,15 @@
 </div>
 
 <!-- Display: add / change a perfume demo display (3 fields) -->
+<div class="modal-overlay" id="bdModal">
+  <div class="modal" style="max-width:860px;">
+    <h3 id="bdTitle">Cash box</h3>
+    <div class="sub" id="bdSub" style="margin:-8px 0 10px;"></div>
+    <div class="bd-tabs" id="bdTabs"><button type="button" data-m="" class="on">All</button><button type="button" data-m="cash">💵 Cash</button><button type="button" data-m="upi">UPI</button></div>
+    <div id="bdBody" style="max-height:62vh; overflow:auto;"></div>
+    <div class="actions"><button type="button" class="btn secondary" id="btnBdClose">Close</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="dpModal">
   <div class="modal" style="max-width:420px;">
     <h3 id="dpTitle">Add display</h3>
@@ -1217,7 +1236,7 @@
   // ---------- cities: the bar at the top picks "All" or one city; every list below is for that choice ----------
   let curCity = ''; try { curCity = localStorage.getItem('retail_city') || ''; } catch (e) {}
   let cityList = [], defaultCity = '';
-  const CITY_ACTIONS = new Set(['retail.cash_get', 'retail.demo_get', 'retail.shops', 'retail.outstanding', 'retail.totals', 'retail.map', 'retail.visit_plan', 'retail.visit_history', 'retail.register', 'retail.daybook', 'retail.visit_plan_save', 'retail.visit_plan_mark', 'retail.visit_plan_move', 'retail.visit_plan_remove']);
+  const CITY_ACTIONS = new Set(['retail.cash_get', 'retail.cash_breakdown', 'retail.demo_get', 'retail.shops', 'retail.outstanding', 'retail.totals', 'retail.map', 'retail.visit_plan', 'retail.visit_history', 'retail.register', 'retail.daybook', 'retail.visit_plan_save', 'retail.visit_plan_mark', 'retail.visit_plan_move', 'retail.visit_plan_remove']);
   const _apiRequest = api.request.bind(api);
   api.request = (action, options, params) => _apiRequest(action, options || {}, curCity && CITY_ACTIONS.has(action) ? Object.assign({ city: curCity }, params || {}) : (params || {}));
   const cityCount = () => cityList.reduce((n, c) => n + (c.shops || 0), 0);
@@ -1444,13 +1463,13 @@
   function cbRender() {
     const d = cb.data; if (!d) return;
     const col = d.collected, use = d.used, addv = d.added || { total: 0, cash: 0, upi: 0, n: 0 }, hand = d.in_hand, mode = cbEl('cbMode').value, kind = cbEl('cbKind').value;
-    const sp = (o) => `<div class="cb-sp"><span><i class="c"></i>Cash ${inr(o.cash)}</span><span><i class="u"></i>UPI ${inr(o.upi)}</span></div>`;
+    const sp = (o) => `<div class="cb-sp"><span data-cbm="cash" title="Only cash"><i class="c"></i>Cash ${inr(o.cash)}</span><span data-cbm="upi" title="Only UPI"><i class="u"></i>UPI ${inr(o.upi)}</span></div>`;
     const ht = Math.max(0, hand.cash) + Math.max(0, hand.upi), pc = ht > 0 ? Math.round(Math.max(0, hand.cash) / ht * 100) : 0;
     cbEl('cbSub').textContent = (curCity ? curCity + ' · ' : 'All cities · ') + cbDay(d.from) + ' – ' + cbDay(d.to);
     cbEl('cbCards').innerHTML =
-      `<div class="stat-card"><div class="label">Collected from shops</div><div class="value">${inr(col.total + addv.total)}</div>${sp({ cash: col.cash + addv.cash, upi: col.upi + addv.upi })}<div class="sub" style="margin-top:6px;">${col.n} receipt${col.n === 1 ? '' : 's'} in the ledger${addv.n ? ` · <b style="color:#0f7a41;">+ ${inr(addv.total)} added by hand</b> (${addv.n})` : ''}</div></div>` +
-      `<div class="stat-card use"><div class="label">Used (paid out)</div><div class="value">${inr(use.total)}</div>${sp(use)}<div class="sub" style="margin-top:6px;">${use.n} entr${use.n === 1 ? 'y' : 'ies'} in these dates</div></div>` +
-      `<div class="stat-card hand"><div class="label">In hand till ${cbDay(hand.till)}</div><div class="value">${inr(hand.total)}</div>${sp(hand)}<div class="cb-bar"><i class="c" style="width:${pc}%"></i><i class="u" style="width:${100 - pc}%"></i></div><div class="sub" style="margin-top:6px;">Collected + added till this date − used${hand.cash < 0 || hand.upi < 0 ? ' · <b style="color:#b91c1c;">more used than collected</b>' : ''}</div></div>`;
+      `<div class="stat-card" data-cbk="collected" title="Click to see every receipt and the orders it paid"><div class="label">Collected from shops</div><div class="value">${inr(col.total + addv.total)}</div>${sp({ cash: col.cash + addv.cash, upi: col.upi + addv.upi })}<div class="sub" style="margin-top:6px;">${col.n} receipt${col.n === 1 ? '' : 's'} in the ledger${addv.n ? ` · <b style="color:#0f7a41;">+ ${inr(addv.total)} added by hand</b> (${addv.n})` : ''}</div></div>` +
+      `<div class="stat-card use" data-cbk="used" title="Click to see every entry"><div class="label">Used (paid out)</div><div class="value">${inr(use.total)}</div>${sp(use)}<div class="sub" style="margin-top:6px;">${use.n} entr${use.n === 1 ? 'y' : 'ies'} in these dates</div></div>` +
+      `<div class="stat-card hand" data-cbk="hand" title="Click to see every receipt, added and used entry behind this amount"><div class="label">In hand till ${cbDay(hand.till)}</div><div class="value">${inr(hand.total)}</div>${sp(hand)}<div class="cb-bar"><i class="c" style="width:${pc}%"></i><i class="u" style="width:${100 - pc}%"></i></div><div class="sub" style="margin-top:6px;">Collected + added till this date − used${hand.cash < 0 || hand.upi < 0 ? ' · <b style="color:#b91c1c;">more used than collected</b>' : ''}</div></div>`;
     const rows = d.entries.filter(e => (!mode || e.mode === mode) && (!kind || (e.kind || 'use') === kind) && (!cb.party || e.party.trim().toLowerCase() === cb.party));
     let tot = 0, tin = 0, tout = 0;
     cbEl('cbBody').innerHTML = rows.map(e => { const isAdd = (e.kind || 'use') === 'add'; if (isAdd) tin += e.amount; else tout += e.amount; tot += isAdd ? e.amount : -e.amount; return `<tr><td style="white-space:nowrap;">${cbDay(e.use_date)}</td><td><span class="cb-party">${esc(e.party)}</span><span class="cb-kind ${isAdd ? 'a' : 'u'}">${isAdd ? '+ Added' : '− Used'}</span>${e.shop_id ? ' <span class="cb-mode u" style="background:#f1f2f5; color:#6b7280;">Shop</span>' : (/^display payment$/i.test(e.party) ? ' <span class="cb-mode c">Display</span>' : '')}<div class="cb-by">by ${esc(e.created_by_name || '—')}${cbWhen(e.created_at) ? ' · ' + cbWhen(e.created_at) : ''}${e.updated_at ? ' · edited' : ''}</div>${e.note ? `<div class="cb-note">${esc(e.note)}</div>` : ''}</td><td><span class="cb-mode ${e.mode === 'cash' ? 'c' : 'u'}">${e.mode === 'cash' ? 'Cash' : 'UPI'}</span></td><td class="r cb-amt${isAdd ? ' in' : ''}">${isAdd ? '+' : '−'} ${inr(e.amount)}</td><td style="white-space:nowrap; text-align:right;">${d.can_edit ? `<button type="button" class="ib" data-cbe="${e.use_id}" title="Change">✎</button><button type="button" class="ib" data-cbd="${e.use_id}" title="Delete">✕</button>` : ''}</td></tr>`; }).join('')
@@ -1461,6 +1480,68 @@
     cbEl('cbParty').innerHTML = pw.map(p => `<tr class="pk${cb.party === p.party.trim().toLowerCase() ? ' on' : ''}" data-cbp="${esc(p.party.trim().toLowerCase())}"><td class="cb-party">${esc(p.party)}</td><td class="r">${p.n}</td><td class="r cb-hm">${inr(p.cash)}</td><td class="r cb-hm">${inr(p.upi)}</td><td class="r cb-amt">${inr(p.total)}</td></tr>`).join('')
       + (pw.length ? `<tr class="tot"><td>Total</td><td class="r">${use.n}</td><td class="r cb-hm">${inr(use.cash)}</td><td class="r cb-hm">${inr(use.upi)}</td><td class="r">${inr(use.total)}</td></tr>` : '<tr><td colspan="5" class="sub" style="text-align:center; padding:18px;">No parties yet.</td></tr>');
   }
+  // ---- Cash box breakdown: click a card (or its Cash / UPI line) = every line behind that amount ----
+  const bdModal = document.getElementById('bdModal'); let bdY = 0, bd = { what: 'hand', mode: '', data: null };
+  const BD_NAME = { hand: 'In hand', collected: 'Collected from shops', used: 'Used (paid out)' };
+  cbEl('cbCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.stat-card[data-cbk]'); if (!card) return;
+    const m = e.target.closest('[data-cbm]');
+    bdOpen(card.dataset.cbk, m ? m.dataset.cbm : '');
+  });
+  async function bdOpen(what, mode) {
+    bd = { what, mode: mode || '', data: null };
+    document.querySelectorAll('#bdTabs button').forEach(b => b.classList.toggle('on', b.dataset.m === bd.mode));
+    const d0 = cb.data || {};
+    cbEl('bdTitle').textContent = BD_NAME[what] + (what === 'hand' ? ' till ' + cbDay(d0.to || '') : '');
+    cbEl('bdSub').textContent = (curCity ? curCity : 'All cities') + ' · ' + (what === 'hand' ? 'everything up to ' + cbDay(d0.to || '') + ' (collected + added − used)' : cbDay(d0.from || '') + ' – ' + cbDay(d0.to || ''));
+    cbEl('bdBody').innerHTML = '<div class="sub" style="padding:16px; text-align:center;">Loading…</div>';
+    bdY = window.scrollY; bdModal.classList.add('open');
+    await bdLoad();
+  }
+  async function bdLoad() {
+    const d0 = cb.data || {};
+    try {
+      const d = await api.get('retail.cash_breakdown', { what: bd.what === 'collected' ? 'collected' : bd.what, from: d0.from, to: d0.to, mode: bd.mode });
+      bd.data = d; bdRender();
+    } catch (err) { cbEl('bdBody').innerHTML = `<div class="sub" style="color:#d9423b; padding:16px;">${esc(/unknown action/i.test(err.message || '') ? 'Your server api.php is old — upload the latest api.php' : err.message)}</div>`; }
+  }
+  function bdRender() {
+    const d = bd.data; if (!d) return;
+    const t = d.totals || {}, md = (m) => m === 'cash' ? '💵 Cash' : (m === 'upi' ? 'UPI' : esc(m || ''));
+    let h = '<div class="bd-kp">';
+    if (bd.what !== 'used') h += `<div>Collected from shops<b style="color:#16945a;">${inr(t.collected)}</b>${d.receipts.length} receipt${d.receipts.length === 1 ? '' : 's'}</div><div>Added by hand<b style="color:#1d4ed8;">+ ${inr(t.added)}</b>${d.added.length} entr${d.added.length === 1 ? 'y' : 'ies'}</div>`;
+    if (bd.what === 'hand' || bd.what === 'used') h += `<div>Used (paid out)<b style="color:#d9423b;">− ${inr(t.used)}</b>${d.used.length} entr${d.used.length === 1 ? 'y' : 'ies'}</div>`;
+    const total = bd.what === 'hand' ? t.collected + t.added - t.used : (bd.what === 'used' ? t.used : t.collected + t.added);
+    h += `<div style="background:#141618; color:#d1d5db;">${BD_NAME[bd.what]}${bd.mode ? ' · ' + (bd.mode === 'cash' ? 'Cash' : 'UPI') : ''}<b style="color:#fff;">${inr(total)}</b>${bd.what === 'hand' ? 'collected + added − used' : ''}</div></div>`;
+    if (bd.what !== 'used') {
+      h += `<div class="bd-h g">Collected from shops · ${inr(t.collected)}</div>`;
+      h += d.receipts.length ? `<table class="bd-tbl"><thead><tr><th>Date</th><th>Shop · orders paid</th><th>Receipt</th><th>Mode</th><th class="r">Amount</th></tr></thead><tbody>` +
+        d.receipts.map(r => `<tr><td style="white-space:nowrap;">${cbDay(r.date)}</td><td><a href="#" class="bd-shop" data-bds="${r.shop_id}" title="Open this shop">${esc(r.shop)}</a>${r.area ? ` <span class="sub">· ${esc(r.area)}</span>` : ''}` +
+          (r.orders.length ? r.orders.map(o => `<div class="bd-ord">Order <b>${esc(o.order_no || '#' + o.order_id)}</b>${o.bill_no ? ' · Bill ' + esc(o.bill_no) : ''}${o.order_date ? ' · ' + cbDay(o.order_date) : ''}${o.bill ? ' · bill ' + inr(o.bill) : ''} → paid <b>${inr(o.paid)}</b></div>`).join('') : '<div class="bd-ord">Advance / not linked to an order</div>') +
+          `${r.reference || r.note ? `<div class="bd-ord">${esc([r.reference, r.note].filter(Boolean).join(' · '))}</div>` : ''}</td><td>${esc(r.receipt_no || '')}</td><td>${md(r.mode)}</td><td class="r"><b>${inr(r.amount)}</b></td></tr>`).join('') +
+        `<tr class="tot"><td colspan="4">Total · ${d.receipts.length} receipt${d.receipts.length === 1 ? '' : 's'}</td><td class="r">${inr(t.collected)}</td></tr></tbody></table>` : '<div class="sub" style="padding:8px 0;">No receipts.</div>';
+      h += `<div class="bd-h b">Added by hand · + ${inr(t.added)}</div>`;
+      h += d.added.length ? bdUseTbl(d.added, t.added, md) : '<div class="sub" style="padding:8px 0;">Nothing added by hand.</div>';
+    }
+    if (bd.what === 'hand' || bd.what === 'used') {
+      h += `<div class="bd-h r">Used (paid out) · − ${inr(t.used)}</div>`;
+      h += d.used.length ? bdUseTbl(d.used, t.used, md) : '<div class="sub" style="padding:8px 0;">Nothing used.</div>';
+    }
+    cbEl('bdBody').innerHTML = h;
+  }
+  function bdUseTbl(rows, tot, md) {
+    return `<table class="bd-tbl"><thead><tr><th>Date</th><th>Party / for</th><th>Note</th><th>Mode</th><th class="r">Amount</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td style="white-space:nowrap;">${cbDay(r.date)}</td><td><b>${esc(r.party || '—')}</b>${r.shop ? `<div class="bd-ord">${r.shop_id ? `<a href="#" class="bd-shop sm" data-bds="${r.shop_id}" title="Open this shop">${esc(r.shop)}</a>` : esc(r.shop)}</div>` : ''}</td><td class="sub">${esc(r.note || '')}${r.by ? `<div class="bd-ord">by ${esc(r.by)}</div>` : ''}</td><td>${md(r.mode)}</td><td class="r"><b>${inr(r.amount)}</b></td></tr>`).join('') +
+      `<tr class="tot"><td colspan="4">Total · ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}</td><td class="r">${inr(tot)}</td></tr></tbody></table>`;
+  }
+  document.querySelectorAll('#bdTabs button').forEach(b => b.addEventListener('click', () => { bd.mode = b.dataset.m; document.querySelectorAll('#bdTabs button').forEach(x => x.classList.toggle('on', x === b)); cbEl('bdBody').innerHTML = '<div class="sub" style="padding:16px; text-align:center;">Loading…</div>'; bdLoad(); }));
+  const bdClose = () => { bdModal.classList.remove('open'); const y = bdY; window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y)); };
+  cbEl('btnBdClose').addEventListener('click', bdClose);
+  bdModal.addEventListener('click', (e) => {
+    if (e.target === bdModal) { bdClose(); return; }
+    const a = e.target.closest('a[data-bds]');
+    if (a) { e.preventDefault(); bdModal.classList.remove('open'); openShop(Number(a.dataset.bds)); window.scrollTo(0, 0); }   // the shop's own page: details, orders, ledger
+  });
   cbEl('cbParty').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-cbp]'); if (!tr) return; cb.party = cb.party === tr.dataset.cbp ? '' : tr.dataset.cbp; cbRender(); });
   cbEl('cbBody').addEventListener('click', async (e) => {
     const ed = e.target.closest('button[data-cbe]'), del = e.target.closest('button[data-cbd]');

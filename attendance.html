@@ -1344,10 +1344,11 @@
         }
         const fwr = (d && d.footwear) || {};
         shoeStamp(true, '✓ APPROVED' + (fwr.shoe_type_detected ? ' · ' + fwr.shoe_type_detected : ''));
-        shoeHint('Footwear approved ✓' + (fwr.cleanliness ? ' · ' + cleanTxt(fwr.cleanliness) : ''), false); camShoeT.classList.add('ok');
+        const fDirty = Number(fwr.cleanliness) > 0 && Number(fwr.cleanliness) <= 2;     // 1-2 stars: saved, with a "clean your shoes" warning
+        shoeHint('Footwear approved ✓' + (fwr.cleanliness ? ' · ' + cleanTxt(fwr.cleanliness) : '') + (fwr.cleanliness_note ? ' — “' + fwr.cleanliness_note + '”' : '') + (fDirty ? ' ⚠ Please clean your shoes before tomorrow.' : ''), fDirty); camShoeT.classList.add('ok');
         pfState = d; delete pfEdit[ruleId];                   // saved: show it even if ✕ was tapped a moment ago
         renderProofs();
-        if (!cancelled) { setMsg('Footwear approved ✓', 'var(--ok-fg)'); await sleep(1400); setMsg(''); }
+        if (!cancelled) { setMsg(fDirty ? '⚠ Footwear approved · ' + cleanTxt(fwr.cleanliness) + ' — your shoes are dirty, please clean them before tomorrow.' : 'Footwear approved ✓' + (fwr.cleanliness ? ' · ' + cleanTxt(fwr.cleanliness) : ''), fDirty ? '#b45309' : 'var(--ok-fg)'); await sleep(fDirty ? 3200 : 1600); setMsg(''); }
         return;
       }
       throw new Error('Footwear not approved after several tries — wear proper shoes and try again.');
