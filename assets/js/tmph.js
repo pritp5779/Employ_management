@@ -8,7 +8,7 @@
  *   - a "+" menu to attach photos / camera / documents (also paste and drag-drop), a mic for voice typing,
  *     pictures and videos that TMPH creates (shown in the chat with Download)
  *
- * Safety: this file never sees the Gemini key. It only talks to api.php (?action=ai.status / ai.chat);
+ * Safety: this file never sees the AI key. It only talks to api.php (?action=ai.status / ai.chat);
  * the server checks who you are, keeps the key, and applies the limits.
  * The button only appears for people the server says may use TMPH (config.php: TMPH_ALLOWED_ROLES / TMPH_ALLOWED_USERS).
  *
@@ -300,7 +300,7 @@
             '<button type="button" data-pick="doc" role="menuitem">' + IC.doc + 'Document · PDF, Word, Excel…</button></div>' +
             '<input type="file" id="tmphFCam" accept="image/*" capture="environment" hidden>' +
             '<input type="file" id="tmphFImg" accept="image/*" multiple hidden>' +
-            '<input type="file" id="tmphFDoc" multiple hidden accept=".pdf,.docx,.xlsx,.csv,.tsv,.txt,.md,.json,.xml,.html,application/pdf,text/*,audio/*,video/*">' : '') +
+            '<input type="file" id="tmphFDoc" multiple hidden accept=".pdf,.docx,.xlsx,.csv,.tsv,.txt,.md,.json,.xml,.html,application/pdf,text/*' + (cfg.provider === 'claude' ? '' : ',audio/*,video/*') + '">' : '') +
           '<div class="tmph-note" id="tmphNote"></div><div class="tmph-tray" id="tmphTray"></div>' +
           '<div class="tmph-box">' +
             (caps.files ? '<button class="tmph-plus" id="tmphPlus" type="button" aria-label="Attach" aria-haspopup="true">' + IC.plus + '</button>' : '') +

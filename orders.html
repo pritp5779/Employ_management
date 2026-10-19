@@ -27,6 +27,7 @@
   .plat-card .li i.cd.c-mb{background:#f59e0b; border-color:#f59e0b;} .plat-card .li i.cd.c-ma{background:#4f46e5; border-color:#4f46e5;}
   .plat-card .li b small{font-size:11px; font-weight:600; color:var(--muted); margin-left:6px;}
   .plat-card .li.t{border-bottom:none; background:#f9fafb; margin:3px -6px 0; padding:6px 6px; border-radius:6px;} .plat-card .li.t b{font-size:14px;}
+  .ml-rm{margin-left:6px; border:1px solid var(--line); background:#fff; color:#b91c1c; border-radius:999px; font-size:11px; font-weight:700; padding:2px 8px; cursor:pointer; min-height:0; width:auto; white-space:nowrap;} .ml-rm:hover{background:#fee2e2;} .ml-rm.back{color:#0f7a41;} .ml-rm.back:hover{background:#e7f7ee;} tr.ml-off td{color:var(--muted);}
   .plat-card .g{color:#0f7a41;} .plat-card .a{color:#b45f06;} .plat-card .r{color:#c81e1e;}
   /* Phones: cards stack, and each card's nine figures become a 3×3 grid of
      small tiles (label above value) so all three platforms fit in about
@@ -90,6 +91,19 @@
   .es-cu{display:inline-flex; flex-direction:column; align-items:center; gap:1px; text-decoration:none; color:#6d28d9; line-height:1.1;} .es-cu b{font-size:17px; font-weight:900;} .es-cu small{font-size:10px; font-weight:700; color:#8b7fb0;}
   .es-cu.n{color:#6b7280;} .es-cu.n small{color:#9ca3af;} .es-cu .pc{display:inline-block; margin-top:2px; background:#ede9fe; color:#6d28d9; font-size:10px; font-weight:800; padding:0 6px; border-radius:999px;}
   a.es-cu:hover b{text-decoration:underline;} td.cuc{background:#f8f5ff;}
+  /* Order time (per employee): orders before punch-out / punch-out to 12 AM / 12 AM to day start — count, ₹ under it */
+  .g-tm{background:#0f766e !important;} td.tmc{background:#f3faf8;}
+  .es-tm{display:inline-flex; flex-direction:column; align-items:center; gap:1px; line-height:1.1; color:#0f766e;} .es-tm b{font-size:16px; font-weight:900;} .es-tm small{font-size:10px; font-weight:700; color:#6b7280;}
+  .es-tm.z{color:#9ca3af;} .es-tm.z b{font-weight:700;} a.es-tm{text-decoration:none;} a.es-tm:hover b{text-decoration:underline;}
+  /* Community typed by hand: pencil under the numbers, Manual pill, small two-field editor */
+  .cu-wrap{display:inline-flex; flex-direction:column; align-items:center; gap:3px;}
+  .cu-ed{min-height:0; width:auto; padding:1px 7px; border-radius:999px; font-size:11px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#6b7280; line-height:1.4;} .cu-ed:hover{border-color:var(--accent); color:var(--accent);}
+  .cu-edit{display:inline-flex; flex-direction:column; gap:5px; align-items:stretch; text-align:left;}
+  .cu-edit label{display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11.5px; font-weight:700; color:#6b7280;}
+  .cu-edit input{width:64px; padding:3px 6px; border:1px solid var(--accent); border-radius:6px; font-size:13px; min-height:0; text-align:right;}
+  .cu-edit .row{display:flex; gap:4px; justify-content:flex-end;}
+  .cu-edit button{min-height:0; width:auto; padding:3px 8px; border-radius:6px; font-size:11.5px; cursor:pointer; border:1px solid var(--line); background:#fff;}
+  .cu-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);} .cu-edit button.rv{color:#6b7280;}
   .cmd .cutabs{display:flex; gap:6px; margin:0 0 12px;} .cmd .cutabs button{min-height:0; width:auto; padding:7px 14px; border-radius:999px; font-size:12.5px; font-weight:700; background:#f1f2f5; color:#4a4f5a; border:none; cursor:pointer;} .cmd .cutabs button.on{background:#6d28d9; color:#fff;} .cmd .cutabs button span{margin-left:6px; opacity:.8;}
   .cmd .cupill{display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; background:#e7f7ee; color:#0f7a41;} .cmd .cupill.n{background:#f1f2f5; color:#6b7280;} .cmd a.cuord{color:var(--accent); font-weight:800; text-decoration:none;} .cmd td.cuy{color:#6d28d9; font-weight:800;}
   /* live commission column */
@@ -682,7 +696,7 @@
     try {
       const data = await api.get('shopify.stores');
       STORE_OPTS = (data.stores || []).filter(s => s.key !== HIDDEN_STORE).map(s => [s.key, s.label]).concat([
-        ['tm4u', 'TM4U (orders tagged tm4u)'], ['tmsg', 'TM Shower Gel'], ['tmh4', 'TM House 4th'], ['manual', 'Manual']]);
+        ['tm4u', 'TM4U (orders tagged tm4u)'], ['tmsg', 'TM Shower Gel'], ['manual', 'Manual']]);
       renderStorePanel();
     } catch (err) {
       showAlert(err.message, 'error');
@@ -896,12 +910,12 @@
   // ---------- Panels ----------
   // The five panels (businesses), each with its own block, its own button and its own daily target.
   // "No panel" holds MySales / manual orders that were not moved to a panel on the Order Allocation page.
-  const PANELS = [['tmph', 'TM Perfume House', '#1d4ed8'], ['tm4u', 'TM4U', '#7e22ce'], ['tmsg', 'TM Shower Gel', '#15803d'], ['tmh4', 'TM House 4th', '#be123c'], ['none', 'No panel', '#475569']];
+  const PANELS = [['tmph', 'TM Perfume House', '#1d4ed8'], ['tm4u', 'TM4U', '#7e22ce'], ['tmsg', 'TM Shower Gel', '#15803d'], ['none', 'No panel', '#475569']];
   const PANEL_NAME = {}; PANELS.forEach(p => { PANEL_NAME[p[0]] = p[1]; });
-  const PANEL_GK = { tmph: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };       // every panel has a target → the key its daily target is saved under
+  const PANEL_GK = { tmph: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg' };       // every panel has a target → the key its daily target is saved under
   const panelOfHouse = (h) => PANEL_GK[h] !== undefined ? h : 'none';
   const panelOf = (o) => panelOfHouse(o.house || STORE_HOUSE_MAP[o.store_key] || '');
-  const STORE_PANEL = { tmperfumehouse: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg', tmh4: 'tmh4' };   // any other store (MySales, Manual) = no panel
+  const STORE_PANEL = { tmperfumehouse: 'tmph', tm4u: 'tm4u', tmsg: 'tmsg' };   // any other store (MySales, Manual) = no panel
   let panelPick = '';       // the panel button picked above the sheet ('' = all panels)
   const panelAllowed = (k) => !storeSel.size || [...storeSel].some(s => (STORE_PANEL[s] || 'none') === k);   // the Store picker can hide panels
 
@@ -927,7 +941,17 @@
   let pickPanel = '';      // a name / count was clicked inside a panel block: only that panel's orders
   let housePick = '';      // a platform card was clicked: only that platform's orders (cleared with the ✕ chip)
   let listType = '';      // '' = all orders, 'query' / 'campaign' = only that kind (Query orders / Campaign orders tabs)
-  const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', unalloc: 'Not allocated orders', cancelled: 'Cancelled orders' };
+  const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', unalloc: 'Not allocated orders', cancelled: 'Cancelled orders',
+    t1: 'Orders 10 AM – punch out', t2: 'Orders punch out – 12 AM', t3: 'Orders 12 AM – 10 AM' };
+  const TIME_SEGS = ['t1', 't2', 't3'];
+  // Which part of the business day an order came in, for its salesman: t1 = 10 AM – punch out, t2 = punch out – 12 AM, t3 = 12 AM – 10 AM
+  // (no punch-out that day = still working until midnight). The punch-outs come with the employee sheet (team.sheet).
+  function esOutMap() { const m = {}; if (teamData) teamData.rows.forEach(r => { m[String(r.full_name || '').trim().toLowerCase()] = r.outs || {}; }); return m; }
+  function orderTimeSeg(o, outMap) {
+    const nm = String(o.salesman || '').trim().toLowerCase();
+    const d = new Date(o.created_at), day = bizDayOf(d), ot = Number((outMap[nm] || {})[day]) || 0, after = ot > 0 && d.getTime() / 1000 > ot, same = ymdOf(d) === day;
+    return ot > 0 ? (after ? (same ? 't2' : 't3') : 't1') : (same ? 't1' : 't3');
+  }
   function listBase() {
     let b = listType === 'cancelled' ? scopedAll().filter(o => o.cancelled)
       : listType === 'unalloc' ? scopedAll().filter(o => !o.cancelled && !isCounted(o))
@@ -935,6 +959,7 @@
     if (pickSalesman) b = b.filter(o => o.salesman === pickSalesman);
     if (pickPanel) b = b.filter(o => panelOf(o) === pickPanel);
     if (housePick) b = b.filter(o => (o.house || STORE_HOUSE_MAP[o.store_key]) === housePick);
+    if (TIME_SEGS.includes(listType)) { const om = esOutMap(); return b.filter(o => orderTimeSeg(o, om) === listType); }
     return listType && listType !== 'cancelled' && listType !== 'unalloc' ? b.filter(o => orderTagType(o.tags) === listType) : b;
   }
 
@@ -1001,7 +1026,7 @@
   // One column per platform (house). A platform is the house tag first,
   // then the store — the same rule the server uses (o.house). Query counts
   // come from Assign Queries for the same dates.
-  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tm4u', 'TM4U', 'fu'], ['tmsg', 'TM Shower Gel', 'sg'], ['tmh4', 'TM House 4th', 'h4']];
+  const PLATFORMS = [['tmph', 'TM Perfume House', 'ph'], ['tm4u', 'TM4U', 'fu'], ['tmsg', 'TM Shower Gel', 'sg']];
   const QUERY_TAGS = ['query', 's'], CAMPAIGN_TAGS = ['campaign', 'c'];
   const STORE_HOUSE_MAP = { tmperfumehouse: 'tmph' };
   function orderTagType(tags) {
@@ -1039,7 +1064,7 @@
   }
   // ---- "Queries by hour" (o_details): the day's Query / Campaign counts per hour for each panel, from Assign Queries ----
   let hourData = {}, hourFor = '', hourReq = 0;      // panel key -> queries.hourly reply, for the single day picked
-  const HOUR_KEYS = ['tmph', 'tm4u', 'tmsg', 'tmh4'];
+  const HOUR_KEYS = ['tmph', 'tm4u', 'tmsg'];
   const qhOpen = new Set();                          // boxes whose hour list is open (kept across redraws)
   async function loadHourly(from, to, force) {
     if (EMP_VIEW) return;
@@ -1099,7 +1124,7 @@
     const shown = platformShown();
     if (!shown.length || (!base.length && !Object.keys(platformQueries).length)) { card.style.display = 'none'; return; }
     const stats = {};
-    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0, pre: 0, cod: 0, bn: 0, bt: 0, an: 0, at: 0, col: [0, 0, 0, 0] });
+    [...PLATFORMS.map(p => p[0]), 'all'].forEach(k => stats[k] = { q: 0, c: 0, qo: 0, qc: 0, co: 0, cc: 0, to: 0, tc: 0, pre: 0, cod: 0, bn: 0, bt: 0, an: 0, at: 0, col: [0, 0, 0, 0], ml: 0, mlo: 0 });
     PLATFORMS.forEach(([k]) => { const pq = platformQueries[k] || {}; stats[k].q = pq.query || 0; stats[k].c = pq.campaign || 0; });
     base.forEach(o => {
       const h = o.house || STORE_HOUSE_MAP[o.store_key]; if (!stats[h]) return;
@@ -1109,6 +1134,7 @@
       if (afterMidnight(o)) { stats[h].an++; stats[h].at += amt; } else { stats[h].bn++; stats[h].bt += amt; }      // came in before 12 AM / after 12 AM
       const cc = o.colors || {};
       stats[h].col[0] += Number(cc.dg) || 0; stats[h].col[1] += Number(cc.lg) || 0; stats[h].col[2] += Number(cc.wh) || 0; stats[h].col[3] += Number(cc.other) || 0;
+      const m10 = Number(cc.ml10) || 0; if (m10 > 0) { stats[h].ml += m10; stats[h].mlo++; }      // Extra ml: 10 ml items (pcs) and the orders that have them
       if (t === 'query') { stats[h].qo++; stats[h].qc += amt; }
       if (t === 'campaign') { stats[h].co++; stats[h].cc += amt; }
     });
@@ -1131,10 +1157,11 @@
       ['afm w2', '<i class="cd c-ma"></i>After 12 AM', `<b>${inr(p.at)}${p.tc > 0 ? `<small>${100 - Math.round(p.bt / p.tc * 100)}%</small>` : ''}</b>`, '', 'a'],
       ['afm', '<i class="cd c-ma"></i>After 12 AM order', `<b>${p.an}</b>`, '', 'a'],
       ...(k === 'tmsg' ? [] : [clrTile(p, 0, 'c-dg', 'DG'), clrTile(p, 1, 'c-lg', 'LG'), clrTile(p, 2, 'c-wh', 'WH'), clrTile(p, 3, 'c-ot', 'OTHER')]),      // Shower Gel has no bottle colours
+      ['ml w2', 'Extra ml (10 ml)', `<b>${p.ml} pc${p.ml === 1 ? '' : 's'}<small>${p.mlo} order${p.mlo === 1 ? '' : 's'}${p.to > 0 ? ' · ' + Math.round(p.mlo / p.to * 100) + '%' : ''}</small></b>`, '', 'ml'],
       ['t', 'Total collection', `<b>${inr(p.tc)}</b>`, 'orders'],
       ['t', 'Total order', `<b>${p.to}</b>`, 'orders'],
     ].map(([c, l, v, go, mb]) => go ? `<div class="li ${c}" data-go="${go}" data-h="${k}" title="Click to see these orders"><span>${l}</span>${v}</div>` : (mb ? `<div class="li ${c}" data-mb="${k}|${mb}" title="Click for prepaid / COD and the order IDs"><span>${l}</span>${v}</div>` : `<div class="li ${c}"><span>${l}</span>${v}</div>`)).join('');
-    const colors = { tmph: '#1d4ed8', tm4u: '#7e22ce', tmsg: '#15803d', tmh4: '#be123c' };
+    const colors = { tmph: '#1d4ed8', tm4u: '#7e22ce', tmsg: '#15803d' };
     document.getElementById('platCards').innerHTML = shown.map(([k, label]) =>
       `<div class="plat-card" style="--c:${colors[k]};"><h3>${label}<small>${stats[k].to} order${stats[k].to === 1 ? '' : 's'}</small></h3><div class="plat-lines">${lines(stats[k], k)}</div></div>`).join('');
     const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
@@ -1248,7 +1275,7 @@
     if (ev.key === 'Escape') { rsEdit = ''; renderSummary(); }
   });
 
-  const TOP_ORDER = ['tmph', 'tm4u', 'tmh4', 'tmsg'];     // order of the panel boxes in the top boxes
+  const TOP_ORDER = ['tmph', 'tm4u', 'tmsg'];     // order of the panel boxes in the top boxes
   function renderSummary() {
     const base = scopedOrders();
     const byStore = {};
@@ -1279,7 +1306,7 @@
     });
 
     // One box per panel — also a panel with no orders (shown with zeros) so none goes missing.
-    // Top-box order: TM Perfume House, TM4U, TM House 4th, TM Shower Gel Anything else (MySales, Manual) follows when it has orders.
+    // Top-box order: TM Perfume House, TM4U, TM Shower Gel. Anything else (MySales, Manual) follows when it has orders.
     const boxes = [];
     TOP_ORDER.map(k => PANELS.find(p => p[0] === k)).forEach(([k, label]) => {
       if (byStore[label] || (ES_ALLOWED && panelAllowed(k) && (!panelPick || panelPick === k))) boxes.push([label, byStore[label] || { count: 0, total: 0, currency: 'INR', pre: 0, cod: 0 }]);
@@ -1346,8 +1373,8 @@
 
   // Which house the order counts under, and why — same rule as the server:
   // a house tag (tmph / tm4u) beats the store; two house tags = store.
-  const HOUSE_TAG = { tm4u: 'tm4u', tmforu: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmsg: 'tmsg', 'tm shower gel': 'tmsg', tmh4: 'tmh4', 'tm house 4th': 'tmh4' };
-  const HOUSE_LABEL = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const HOUSE_TAG = { tm4u: 'tm4u', tmforu: 'tm4u', tmph: 'tmph', 'tm perfume house': 'tmph', tmsg: 'tmsg', 'tm shower gel': 'tmsg' };
+  const HOUSE_LABEL = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel' };
   const STORE_HOUSE = { tmperfumehouse: 'tmph' };
   function houseReason(o, tags) {
     if (!STORE_HOUSE[o.store_key]) return '—';
@@ -1753,7 +1780,7 @@
   let teamData = null;               // last team.sheet response
   let teamReqId = 0;
   const ES_GROUPS = [
-    { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'tk', n: 'Ticket size', cls: 'g-tk' }, { k: 'cmu', n: 'Community', cls: 'g-cmu' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
+    { k: 'to', n: 'Target & Orders', cls: 'g-to' }, { k: 'tk', n: 'Ticket size', cls: 'g-tk' }, { k: 'cmu', n: 'Community', cls: 'g-cmu' }, { k: 'tm', n: 'Order time', cls: 'g-tm' }, { k: 'qry', n: 'Query', cls: 'g-qry' },
     { k: 'cmp', n: 'Campaign', cls: 'g-cmp' }, { k: 'pay', n: 'Payments', cls: 'g-pay' }, { k: 'rat', n: 'Ratings', cls: 'g-rat' },
     { k: 'cm', n: 'Commission', cls: 'g-cm' }
   ];
@@ -1761,13 +1788,14 @@
     to: [['Target · Collection · Orders', 'to']],      // one box: Target, Collection, Orders, Total query, Ratio
     tk: [['Ticket size', 'tkt']],                       // collection ÷ orders per employee (Query / Campaign ticket under it)
     cmu: [['Yes', 'cy'], ['No', 'cn']],                 // Community (Order Allocation page): how many of this person's orders are marked Yes / No
+    tm: [['10 AM – punch out', 't1'], ['Punch out – 12 AM', 't2'], ['12 AM – 10 AM', 't3']],   // when the person's orders came in (count, ₹ under it)
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
     pay: [['COD / Paid', 'cod'], ['Prepaid', 'pre']],
     rat: [['Per order', 'or']],
     cm: [['Commission · % · rules applied', 'cm']]      // live: read from the Commission page, so the numbers are the same
   };
-  const esOn = { to: 1, tk: 1, cmu: 1, qry: 1, cmp: 1, pay: 1, rat: 1, cm: 1 };   // every column group (Campaign too) starts ticked
+  const esOn = { to: 1, tk: 1, cmu: 1, tm: 1, qry: 1, cmp: 1, pay: 1, rat: 1, cm: 1 };   // every column group (Campaign too) starts ticked
   const esEl = (id) => document.getElementById(id);
   const esInr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
   const esPct = (a, b) => b > 0 ? Math.round(a / b * 100) : null;   // whole percent (12%, not 12.3%)
@@ -1844,15 +1872,34 @@
   }
 
   // Community (Order Allocation page, Yes / No per order): one person's count, click = that person's orders in the popup.
+  // Typed by hand (one-day view, ✎): the typed Yes / No replace the order count of that day; a range sums typed days + counted days.
+  let esCuEdit = '';         // "employee id|panel" being typed in
   function esCu(e, side) {
-    const n = side === 'yes' ? e.cy : e.cn, pc = side === 'yes' && e.ord ? `<span class="pc">${Math.round(e.cy / e.ord * 100)}%</span>` : '';
-    if (!e.ord) return '<span class="es-sl">—</span>';
+    const key = e.id + '|' + e.b, man = (e.cmd || 0) > 0, can = esCanEdit() && e.real && teamData && teamData.single, d = `data-id="${e.id}" data-b="${e.b}"`;
+    if (can && esCuEdit === key) {
+      if (side === 'no') return '<span class="es-sl">—</span>';
+      const cur = ((teamData.community_manual || {})[key] || {})[teamData.from] || null;
+      return `<div class="cu-edit"><label>Yes <input type="number" id="esCuY" min="0" max="9999" value="${cur ? cur.yes : ''}" placeholder="${e.cy}"></label><label>No <input type="number" id="esCuN" min="0" max="9999" value="${cur ? cur.no : ''}" placeholder="${e.cn}"></label>` +
+        `<div class="row">${cur ? `<button type="button" class="rv" data-cue="del" ${d} title="Back to the order count">↺ Auto</button>` : ''}<button type="button" data-cue="x">✕</button><button type="button" class="ok" data-cue="save" ${d}>✓ Save</button></div></div>`;
+    }
+    const pen = can && side === 'yes' ? `<button type="button" class="cu-ed" data-cue="edit" ${d} title="Write Yes / No by hand">✎ Write</button>` : '';
+    if (!e.ord && !man) return pen ? `<span class="cu-wrap"><span class="es-sl">—</span>${pen}</span>` : '<span class="es-sl">—</span>';
+    const n = side === 'yes' ? e.cy : e.cn, base = man ? e.cy + e.cn : e.ord, pc = side === 'yes' && base ? `<span class="pc">${Math.round(e.cy / base * 100)}%</span>` : '';      // typed: Yes % of Yes + No
     const inner = `<b>${n}</b><small>order${n === 1 ? '' : 's'}</small>${pc}`;
-    return n > 0 ? `<a href="#" class="es-cu${side === 'no' ? ' n' : ''}" data-cu="${side}" data-n="${esEsc(e.n)}" data-b="${e.b}" data-real="${e.real ? 1 : 0}" title="Show these orders">${inner}</a>` : `<span class="es-cu${side === 'no' ? ' n' : ''}">${inner}</span>`;
+    const num = n > 0 && !man ? `<a href="#" class="es-cu${side === 'no' ? ' n' : ''}" data-cu="${side}" data-n="${esEsc(e.n)}" data-b="${e.b}" data-real="${e.real ? 1 : 0}" title="Show these orders">${inner}</a>` : `<span class="es-cu${side === 'no' ? ' n' : ''}">${inner}</span>`;
+    const pill = man && side === 'yes' ? `<span class="tgt-pill man" title="${teamData && teamData.single ? 'Typed by hand' : e.cmd + ' day' + (e.cmd === 1 ? '' : 's') + ' typed by hand'}">Manual</span>` : '';
+    return pill || pen ? `<span class="cu-wrap">${num}${pill}${pen}</span>` : num;
+  }
+  // Order time cell: how many orders (₹ under it) came in that part of the day.
+  function esTm(e, k) {
+    if (!e.ord) return '<span class="es-sl">—</span>';
+    const n = e[k + 'n'] || 0, v = e[k + 't'] || 0;
+    const inner = `<b>${n}</b><small>${n ? esInr(v) : 'none'}</small>`;
+    return e.real && n > 0 ? `<a href="#" class="es-tm" data-lk="${k}" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${inner}</a>` : `<span class="es-tm${n ? '' : ' z'}">${inner}</span>`;
   }
   function esCuTot(t, side) {
-    const n = side === 'yes' ? t.cy : t.cn, pc = side === 'yes' && t.ord ? `<span class="pc">${Math.round(t.cy / t.ord * 100)}%</span>` : '';
-    if (!t.ord) return '<span class="es-sl">—</span>';
+    const base = (t.cmd || 0) > 0 ? t.cy + t.cn : t.ord, n = side === 'yes' ? t.cy : t.cn, pc = side === 'yes' && base ? `<span class="pc">${Math.round(t.cy / base * 100)}%</span>` : '';
+    if (!t.ord && !(t.cmd || 0)) return '<span class="es-sl">—</span>';
     return `<a href="#" class="es-cu${side === 'no' ? ' n' : ''}" data-cu="${side}" data-b="${t.b}" data-all="1" title="Every employee's Yes / No"><b>${n}</b><small>${side}</small>${pc}</a>`;
   }
 
@@ -1915,7 +1962,9 @@
     const by = {};
     const slot = slot0;
     const outMap = {};      // person -> { business day: punch-out time (seconds) }
-    if (teamData) teamData.rows.forEach(r => { outMap[String(r.full_name || '').trim().toLowerCase()] = r.outs || {}; });
+    const idOf = {}, nameOf = {};   // person name <-> employee id (the typed Community numbers are keyed by employee id)
+    if (teamData) teamData.rows.forEach(r => { const k = String(r.full_name || '').trim().toLowerCase(); outMap[k] = r.outs || {}; idOf[k] = r.employee_id; nameOf[r.employee_id] = k; });
+    const cman = (teamData && teamData.community_manual && !Array.isArray(teamData.community_manual)) ? teamData.community_manual : {};
     allOrders.forEach(o => {
       if (o.cancelled || !isCounted(o)) return;
       const nm = String(o.salesman || '').trim().toLowerCase();
@@ -1923,13 +1972,16 @@
       const a = by[key] = by[key] || slot();
       const amt = Number(o.total) || 0, t = orderTagType(o.tags);
       a.coll += amt; a.ord++;
-      if (o.community === 'yes') a.cy++; else a.cn++;
+      const cmm = idOf[nm] !== undefined ? cman[idOf[nm] + '|' + panelOf(o)] : null;
+      if (!(cmm && cmm[bizDayOf(new Date(o.created_at))])) { if (o.community === 'yes') a.cy++; else a.cn++; }      // a day typed by hand replaces the count of that day
       if (t === 'query') { a.qo++; a.qc += amt; }
       if (t === 'campaign') { a.ko++; a.kc += amt; }
       const out = orderOutstanding(o, amt);
       if (out > 0) { a.cod += amt; a.codPaid += amt - out; } else a.pre += amt;
       const c = o.colors || {};
       a.col[0] += Number(c.dg) || 0; a.col[1] += Number(c.lg) || 0; a.col[2] += Number(c.wh) || 0; a.col[3] += Number(c.other) || 0;
+      // Order time: 10 AM – punch out / punch out – 12 AM / 12 AM – 10 AM (same business day; no punch-out = still working until midnight).
+      { const seg = orderTimeSeg(o, outMap); a[seg + 'n']++; a[seg + 't'] += amt; }
       // After punch-out: the order came in later than this person's punch-out on that business day; then before 12 AM or after 12 AM.
       const outs = outMap[nm];
       if (outs) {
@@ -1939,6 +1991,12 @@
           if (ymdOf(d) !== day) { a.poan++; a.poat += amt; } else { a.pobn++; a.pobt += amt; }
         }
       }
+    });
+    Object.keys(cman).forEach(key => {
+      const id = Number(key.slice(0, key.indexOf('|'))), b = key.slice(key.indexOf('|') + 1), nm = nameOf[id];
+      if (nm === undefined) return;
+      const a = by[nm + '|' + b] = by[nm + '|' + b] || slot();
+      Object.keys(cman[key] || {}).forEach(day => { const m = cman[key][day]; a.cy += Number(m.yes) || 0; a.cn += Number(m.no) || 0; a.cmd++; });
     });
     return by;
   }
@@ -1972,7 +2030,7 @@
     Object.keys(by).forEach(key => {
       if (used.has(key)) return;
       const b = key.slice(key.lastIndexOf('|') + 1), o = other[b] = other[b] || slot0(), a = by[key];
-      ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn'].forEach(f => o[f] += a[f]);
+      ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => o[f] += a[f]);
       a.col.forEach((v, n) => o.col[n] += v);
     });
     Object.keys(other).forEach(b => {
@@ -1982,7 +2040,7 @@
     if (commValid()) out.forEach(e => { e.cm = e.real ? (((COMM.res.emps || {})[e.id] || {})[e.b] || null) : null; });
     return out;
   }
-  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, cy: 0, cn: 0, col: [0, 0, 0, 0] }; }
+  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, cy: 0, cn: 0, cmd: 0, t1n: 0, t1t: 0, t2n: 0, t2t: 0, t3n: 0, t3t: 0, col: [0, 0, 0, 0] }; }
 
   // The employees of one panel in the order picked in the Sort box. "My order" is the one set by drag and drop.
   function esSortRows(real, s, panel) {
@@ -2004,7 +2062,7 @@
   function esTotals(rows) {
     const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0, cmAmt: 0, cmColl: 0 });
     rows.forEach(e => {
-      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn'].forEach(f => t[f] += e[f]);
+      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => t[f] += e[f]);
       e.col.forEach((v, i) => t.col[i] += v);
       if (e.or[1]) { t.orN += e.or[1]; t.orS += e.or[0] * e.or[1]; }
       if (e.cm) { t.cmAmt += e.cm.amt; t.cmColl += e.cm.coll; }
@@ -2098,6 +2156,7 @@
       case 'tkt':   return `<td class="gl">${esTk(e)}</td>`;
       case 'cy':    return `<td class="gl cuc">${esCu(e, 'yes')}</td>`;
       case 'cn':    return `<td class="cuc">${esCu(e, 'no')}</td>`;
+      case 't1': case 't2': case 't3': return `<td class="tmc${k === 't1' ? ' gl' : ''}">${esTm(e, k)}</td>`;
       case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col, e.b) : dash}</td>`;
       case 'ratio': return `<td>${e.real && e.tot ? esRt(esPct(e.ord, e.tot)) : dash}</td>`;
       case 'q':     return `<td class="gl">${e.real ? e.q : dash}</td>`;
@@ -2119,8 +2178,8 @@
     if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col, t.b), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t), cy: esCuTot(t, 'yes'), cn: esCuTot(t, 'no') };
-    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm', 'cy'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : (k === 'cy' ? ' cuc' : '')) + '"' : (k === 'cn' ? ' class="cuc"' : '')}>${m[k]}</td>`;
+      or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t), cy: esCuTot(t, 'yes'), cn: esCuTot(t, 'no'), t1: esTm(t, 't1'), t2: esTm(t, 't2'), t3: esTm(t, 't3') };
+    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm', 'cy', 't1'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : (k === 'cy' ? ' cuc' : (k === 't1' ? ' tmc' : ''))) + '"' : (k === 'cn' ? ' class="cuc"' : (k === 't2' || k === 't3' ? ' class="tmc"' : ''))}>${m[k]}</td>`;
   }
 
   // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
@@ -2154,6 +2213,18 @@
       if (!teamData.remarks || Array.isArray(teamData.remarks)) teamData.remarks = {};
       if (r && r.remark) teamData.remarks[id + '|' + b] = r.remark; else delete teamData.remarks[id + '|' + b];
       esRemEdit = '';
+      renderTeamSheet();
+    } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
+  }
+  async function esCuSave(id, b, yes, no) {
+    if (!teamData || !teamData.single) return;
+    try {
+      const r = await api.post('panel_community.save', { date: teamData.from, employee_id: id, panel: b, yes, no });
+      if (!teamData.community_manual || Array.isArray(teamData.community_manual)) teamData.community_manual = {};
+      const key = id + '|' + b;
+      if (r && r.entry) { teamData.community_manual[key] = teamData.community_manual[key] || {}; teamData.community_manual[key][teamData.from] = r.entry; }
+      else if (teamData.community_manual[key]) { delete teamData.community_manual[key][teamData.from]; if (!Object.keys(teamData.community_manual[key]).length) delete teamData.community_manual[key]; }
+      esCuEdit = '';
       renderTeamSheet();
     } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
   }
@@ -2194,6 +2265,7 @@
     return `<div class="mc ${tot ? 'tot' : (abs ? 'abs' : (e.real ? '' : 'un'))}"${e.real && !tot ? ` data-id="${e.id}" data-b="${e.b}"` : ''}>${head}${box}` +
       sec('tk', 'Ticket size', '#0369a1', [['Ticket size', 'tkt']]) +
       sec('cmu', 'Community', '#6d28d9', [['Yes', 'cy'], ['No', 'cn']]) +
+      sec('tm', 'Order time', '#0f766e', [['10 AM – punch out', 't1'], ['Punch out – 12 AM', 't2'], ['12 AM – 10 AM', 't3']]) +
       sec('qry', 'Query', '#7c3aed', [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']]) +
       sec('cmp', 'Campaign', '#b45309', [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']]) +
       sec('pay', 'Payments', '#0e7490', [['COD / Paid', 'cod'], ['Prepaid', 'pre']]) +
@@ -2293,9 +2365,10 @@
   function esView(v) {
     esEl('paneSheet').hidden = v !== 'sheet';
     esEl('paneOrders').hidden = v === 'sheet';
-    const lt = v === 'query' || v === 'campaign' || v === 'cancelled' || v === 'unalloc' ? v : '';
+    const lt = v === 'query' || v === 'campaign' || v === 'cancelled' || v === 'unalloc' || TIME_SEGS.includes(v) ? v : '';
     if (lt !== listType) { listType = lt; currentPage = 1; applyFilters(); }
-    document.querySelectorAll('#vtabs button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    const tab = TIME_SEGS.includes(v) ? 'orders' : v;      // an Order time list is shown under the All orders tab
+    document.querySelectorAll('#vtabs button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tab));
   }
   function esPick(name, house, panel) {
     pickSalesman = name || '';
@@ -2388,7 +2461,8 @@
     });
     document.addEventListener('click', (ev) => { if (esPop && !ev.target.closest('.stpop') && !ev.target.closest('[data-sx]')) esClosePop(); });
     document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } if (esRemEdit) { esRemEdit = ''; renderTeamSheet(); } }
+      if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } if (esRemEdit) { esRemEdit = ''; renderTeamSheet(); } if (esCuEdit) { esCuEdit = ''; renderTeamSheet(); } }
+      if (ev.key === 'Enter' && (ev.target.id === 'esCuY' || ev.target.id === 'esCuN')) { const b = document.querySelector('[data-cue="save"]'); if (b) b.click(); }
       if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey) && ev.target.id === 'esRemIn') { const b = document.querySelector('[data-rm="save"]'); if (b) b.click(); }
       if (ev.key === 'Enter' && ev.target.id === 'esTgIn') document.querySelector('[data-tg="save"]').click();
     });
@@ -2406,6 +2480,16 @@
         else if (act === 'del') { if (confirm('Delete this remark?')) esRemSave(id, pn, ''); }
         return;
       }
+      const cue = ev.target.closest('[data-cue]');
+      if (cue) {
+        ev.preventDefault();
+        const id = Number(cue.dataset.id), pn = cue.dataset.b, act = cue.dataset.cue;
+        if (act === 'edit') { esCuEdit = id + '|' + pn; renderTeamSheet(); const i = esEl('esCuY'); if (i) { i.focus(); i.select(); } }
+        else if (act === 'x') { esCuEdit = ''; renderTeamSheet(); }
+        else if (act === 'save') { const y = (esEl('esCuY') || {}).value || '', n = (esEl('esCuN') || {}).value || ''; if (y === '' && n === '') { esCuEdit = ''; renderTeamSheet(); return; } esCuSave(id, pn, y, n); }
+        else if (act === 'del') esCuSave(id, pn, '', '');
+        return;
+      }
       const sx = ev.target.closest('[data-sx]');
       if (sx) { ev.preventDefault(); esOpenStatus(sx, Number(sx.dataset.sx)); return; }
       const tg = ev.target.closest('[data-tg]');
@@ -2417,7 +2501,7 @@
         else if (act === 'rev') esSaveTarget(id, pn, null);
         return;
       }
-      const lk = ev.target.closest('.es-lk');
+      const lk = ev.target.closest('.es-lk, a.es-tm');
       if (lk) { ev.preventDefault(); esPick(lk.dataset.n, '', lk.dataset.b); esView(lk.dataset.lk); window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' }); return; }
       const a = ev.target.closest('.es-nm'); if (!a) return;
       ev.preventDefault(); esPick(a.dataset.n, '', a.dataset.b); esView('orders');
@@ -2521,6 +2605,7 @@
   }));
 
   function mbOpen(h, side) {
+    if (side === 'ml') return mlOpen(h);
     const after = side === 'a', pn = (PLATFORMS.find(p => p[0] === h) || [])[1] || h;
     const list = scopedOrders().filter(o => (STORE_HOUSE_MAP[o.store_key] || o.house) && (o.house || STORE_HOUSE_MAP[o.store_key]) === h && afterMidnight(o) === after)
       .sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
@@ -2541,6 +2626,43 @@
       `<h4>Order IDs</h4>` + (rows.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Order ID</th><th class="hm">Time</th><th class="hm">Salesman</th><th class="r">Amount</th><th>Payment</th></tr></thead><tbody>${body}<tr class="tt"><td>Total · ${rows.length}</td><td class="hm"></td><td class="hm"></td><td class="r">${inr(tot)}</td><td></td></tr></tbody></table></div>` : '<div class="rl"><span class="n">No orders in this window.</span></div>');
     cmY = window.scrollY; esEl('mbOv').hidden = false; esEl('mbBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, cmY);
   }
+  // Extra ml: the platform's orders that have 10 ml items, with how many each (same popup; the Excel button works on it too)
+  function mlOpen(h) {
+    const pn = (PLATFORMS.find(p => p[0] === h) || [])[1] || h;
+    const canRm = ES_ALLOWED;        // Admin / HR (and roles with the Orders page controls) can take an order out of Extra ml, or put it back
+    const list = scopedOrders().filter(o => (STORE_HOUSE_MAP[o.store_key] || o.house) && (o.house || STORE_HOUSE_MAP[o.store_key]) === h && ((Number((o.colors || {}).ml10) || 0) > 0 || (o.ml_skip && Number((o.colors || {}).ml10_was) > 0)))
+      .sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
+    let tot = 0, pre = 0, cod = 0, pcs = 0, rmN = 0;
+    const removed = list.filter(o => o.ml_skip).map(o => ({ o, ml: Number(o.colors.ml10_was) || 0 }));     // taken out by hand: shown at the end, not counted
+    const rows = list.filter(o => !o.ml_skip).map(o => { const amt = Number(o.total) || 0, isCod = orderOutstanding(o, amt) > 0, ml = Number(o.colors.ml10) || 0; tot += amt; pcs += ml; if (isCod) cod += amt; else pre += amt; return { o, amt, isCod, ml }; });
+    rmN = removed.length;
+    const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
+    const from = esEl('dateFrom').value, to = esEl('dateTo').value;
+    const all = scopedOrders().filter(o => (o.house || STORE_HOUSE_MAP[o.store_key]) === h).length;
+    mbCur = { h, side: 'ml', pn, label: 'Extra ml (10 ml)', win: pcs + ' pcs in ' + rows.length + ' orders', rows, tot, pre, cod, from, to };
+    esEl('mbTtl').textContent = pn + ' · Extra ml (10 ml)';
+    esEl('mbSub').textContent = (from === to ? dateLabel(from) : dateLabel(from) + ' – ' + dateLabel(to)) + ' · orders that have 10 ml items';
+    const body = rows.map(({ o, amt, isCod, ml }) => {
+      const d = new Date(o.created_at), t = isNaN(d) ? '' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      return `<tr><td><b>${esEsc(o.order_name || '')}</b></td><td class="hm">${t}</td><td class="hm">${esEsc(o.salesman || '—')}</td><td class="r"><b>${ml} × 10 ml</b></td><td class="r">${inr(amt)}</td><td><span class="pay ${isCod ? 'c' : 'p'}">${isCod ? 'COD' : 'Prepaid'}</span>${canRm ? ` <button type="button" class="ml-rm" data-mlrm="${esEsc(o.store_key || o.source || '')}|${esEsc(String(o.id))}" data-skip="1" title="Take this order out of Extra ml">Remove</button>` : ''}</td></tr>`;
+    }).join('') + removed.map(({ o, ml }) => `<tr class="ml-off"><td><b>${esEsc(o.order_name || '')}</b></td><td class="hm" colspan="2">removed from Extra ml</td><td class="r"><s>${ml} × 10 ml</s></td><td class="r"><s>${inr(Number(o.total) || 0)}</s></td><td>${canRm ? `<button type="button" class="ml-rm back" data-mlrm="${esEsc(o.store_key || o.source || '')}|${esEsc(String(o.id))}" data-skip="0" title="Count it in Extra ml again">Put back</button>` : ''}</td></tr>`).join('');
+    esEl('mbBd').innerHTML = `<div class="big"><div><span>10 ml pcs</span><b>${pcs}</b></div><div><span>Orders with 10 ml</span><b>${rows.length}<small>${all ? Math.round(rows.length / all * 100) + '% of ' + all : ''}</small></b></div><div><span>Collection</span><b>${inr(tot)}</b></div><div class="pp"><span>Prepaid / COD</span><b>${inr(pre)}<small>/ ${inr(cod)}</small></b></div></div>` +
+      `<h4>Orders</h4>` + (rows.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Order ID</th><th class="hm">Time</th><th class="hm">Salesman</th><th class="r">Extra ml</th><th class="r">Amount</th><th>Payment</th></tr></thead><tbody>${body}<tr class="tt"><td>Total · ${rows.length}${rmN ? `<small class="muted" style="font-weight:400;"> · ${rmN} removed</small>` : ''}</td><td class="hm"></td><td class="hm"></td><td class="r">${pcs} pcs</td><td class="r">${inr(tot)}</td><td></td></tr></tbody></table></div>` : '<p class="muted" style="padding:10px 0;">No 10 ml items in these orders.</p>');
+    cmY = window.scrollY; esEl('mbOv').hidden = false; esEl('mbBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, cmY);
+  }
+  // Remove / Put back in the Extra ml popup: saved on the server, the order's 10 ml count is zeroed (or restored) here and the summary redrawn
+  esEl('mbBd').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('button[data-mlrm]'); if (!b || !mbCur || mbCur.side !== 'ml') return;
+    const [source, id] = b.dataset.mlrm.split('|'), skip = b.dataset.skip === '1';
+    const o = scopedOrders().find(x => String(x.id) === id && (x.store_key || x.source || '') === source); if (!o) return;
+    b.disabled = true; b.textContent = '…';
+    try {
+      await api.post('order_ml.set', { source, order_id: id, order_name: o.order_name || '', skip: skip ? 1 : 0 });
+      o.colors = o.colors || {};
+      if (skip) { o.colors.ml10_was = Number(o.colors.ml10) || 0; o.colors.ml10 = 0; o.ml_skip = 1; } else { o.colors.ml10 = Number(o.colors.ml10_was) || 0; o.ml_skip = 0; }
+      renderPlatformSummary(); mlOpen(mbCur.h);
+    } catch (er) { alert(er.message); b.disabled = false; b.textContent = skip ? 'Remove' : 'Put back'; }
+  });
   const mbClose = () => { esEl('mbOv').hidden = true; document.documentElement.classList.remove('cm-lock'); window.scrollTo(0, cmY); };
   esEl('mbX').addEventListener('click', mbClose);
   esEl('mbOv').addEventListener('click', (ev) => { if (ev.target.id === 'mbOv') mbClose(); });
@@ -2549,9 +2671,10 @@
     const m = mbCur; if (!m) return;
     if (typeof XLSX === 'undefined') { alert('The Excel library could not load (no internet?). Reload the page and try again.'); return; }
     const rd = (v) => Math.round(v * 100) / 100, pc = (v) => m.tot > 0 ? rd(v / m.tot * 100) : 0;
-    const aoa = [['Order ID', 'Business day', 'Date & time', 'Salesman', 'Code', 'Amount', 'Payment']];
-    m.rows.forEach(({ o, amt, isCod }) => { const d = new Date(o.created_at), ok = !isNaN(d), z = (n) => String(n).padStart(2, '0');
-      aoa.push([o.order_name || '', ok ? bizDayOf(d) : '', ok ? ymdOf(d) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) : '', o.salesman || '', o.code || '', rd(amt), isCod ? 'COD' : 'Prepaid']); });
+    const isMl = m.side === 'ml';
+    const aoa = [['Order ID', 'Business day', 'Date & time', 'Salesman', 'Code', 'Amount', 'Payment'].concat(isMl ? ['Extra ml (10 ml pcs)'] : [])];
+    m.rows.forEach(({ o, amt, isCod, ml }) => { const d = new Date(o.created_at), ok = !isNaN(d), z = (n) => String(n).padStart(2, '0');
+      aoa.push([o.order_name || '', ok ? bizDayOf(d) : '', ok ? ymdOf(d) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) : '', o.salesman || '', o.code || '', rd(amt), isCod ? 'COD' : 'Prepaid'].concat(isMl ? [ml || 0] : [])); });
     aoa.push(['TOTAL', '', '', '', m.rows.length + ' orders', rd(m.tot), '']);
     const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(aoa);
     ws['!cols'] = [14, 13, 17, 22, 12, 12, 10].map(w => ({ wch: w }));
@@ -2580,9 +2703,9 @@
     const commText = (c) => c ? [c.rate > 0 ? 'Slab ' + rd(c.rate) + '%' : ''].filter(Boolean).concat((c.tags || []).map(t => t.l + ' · ' + t.n + ' order' + (t.n === 1 ? '' : 's') + (t.d ? ' · ' + (t.d < 0 ? '-' : '+') + '₹' + Math.abs(Math.round(t.d)) : ''))).join('; ') : '';
 
     // ---- employee rows (one panel, or all panels in one sheet)
-    const EMP_HEAD = ['Panel', 'Employee', 'Code', 'Status', 'Target', 'Collection', 'Achieved %', 'Orders', 'Total query', 'Order ratio %', 'Ticket size', 'Community Yes', 'Community No', 'Query', 'Q orders', 'Q ratio %', 'Q collection',
+    const EMP_HEAD = ['Panel', 'Employee', 'Code', 'Status', 'Target', 'Collection', 'Achieved %', 'Orders', 'Total query', 'Order ratio %', 'Ticket size', 'Community Yes', 'Community No', '10 AM – punch out', 'Punch out – 12 AM', '12 AM – 10 AM', '10 AM – punch out ₹', 'Punch out – 12 AM ₹', '12 AM – 10 AM ₹', 'Query', 'Q orders', 'Q ratio %', 'Q collection',
       'Campaign', 'C orders', 'C ratio %', 'C collection', 'COD', 'COD paid', 'Prepaid', 'Rating avg (of 5)', 'Rated orders', 'Commission ₹', 'Commission %', 'Slab %', 'Rules applied'];
-    const EMP_FMT = [0, 0, 0, 0, money, money, 0, 0, 0, 0, money, 0, 0, 0, 0, 0, money, 0, 0, 0, money, money, money, money, stars, 0, money, pct1, pct1, 0];
+    const EMP_FMT = [0, 0, 0, 0, money, money, 0, 0, 0, 0, money, 0, 0, 0, 0, 0, money, money, money, 0, 0, 0, money, 0, 0, 0, money, money, money, money, stars, 0, money, pct1, pct1, 0];
     const EMP_W = [18, 24, 10, 16, 11, 12, 11, 8, 11, 11, 11, 13, 13, 8, 9, 10, 12, 10, 9, 10, 12, 11, 11, 11, 12, 11, 13, 12, 9, 70];
     function statusOf(e) {
       if (!e.real) return '';
@@ -2592,12 +2715,12 @@
     function empLine(e, label) {
       const c = e.cm;
       return [label, e.n, e.c, statusOf(e), e.tg || '', rd(e.coll), e.tg ? Math.round(e.coll / e.tg * 100) : '', e.ord, e.tot || '', esPct(e.ord, e.tot) == null ? '' : esPct(e.ord, e.tot), e.ord ? rd(e.coll / e.ord) : '',
-        e.ord ? e.cy : '', e.ord ? e.cn : '', e.q || '', e.qo || '', esPct(e.qo, e.q) == null ? '' : esPct(e.qo, e.q), rd(e.qc), e.k || '', e.ko || '', esPct(e.ko, e.k) == null ? '' : esPct(e.ko, e.k), rd(e.kc),
+        e.ord ? e.cy : '', e.ord ? e.cn : '', e.t1n || 0, e.t2n || 0, e.t3n || 0, rd(e.t1t || 0), rd(e.t2t || 0), rd(e.t3t || 0), e.q || '', e.qo || '', esPct(e.qo, e.q) == null ? '' : esPct(e.qo, e.q), rd(e.qc), e.k || '', e.ko || '', esPct(e.ko, e.k) == null ? '' : esPct(e.ko, e.k), rd(e.kc),
         rd(e.cod), rd(e.codPaid), rd(e.pre), e.or[1] ? rd(e.or[0] / 2) : '', e.or[1] || '', c ? c.amt : '', c && c.coll > 0 ? rd(c.amt / c.coll * 100) : '', c && c.rate ? rd(c.rate) : '', commText(c)];
     }
     function totLine(t, label, who) {
       return [label, who, '', '', t.tg || '', rd(t.coll), t.tg ? Math.round(t.coll / t.tg * 100) : '', t.ord, t.tot || '', esPct(t.ord, t.tot) == null ? '' : esPct(t.ord, t.tot), t.ord ? rd(t.coll / t.ord) : '',
-        t.ord ? t.cy : '', t.ord ? t.cn : '', t.q || '', t.qo || '', esPct(t.qo, t.q) == null ? '' : esPct(t.qo, t.q), rd(t.qc), t.k || '', t.ko || '', esPct(t.ko, t.k) == null ? '' : esPct(t.ko, t.k), rd(t.kc),
+        t.ord ? t.cy : '', t.ord ? t.cn : '', t.t1n || 0, t.t2n || 0, t.t3n || 0, rd(t.t1t || 0), rd(t.t2t || 0), rd(t.t3t || 0), t.q || '', t.qo || '', esPct(t.qo, t.q) == null ? '' : esPct(t.qo, t.q), rd(t.qc), t.k || '', t.ko || '', esPct(t.ko, t.k) == null ? '' : esPct(t.ko, t.k), rd(t.kc),
         rd(t.cod), rd(t.codPaid), rd(t.pre), t.orN ? rd(t.orAvg / 2) : '', t.orN || '', t.cmColl > 0 ? rd(t.cmAmt) : '', t.cmColl > 0 ? rd(t.cmAmt / t.cmColl * 100) : '', '', ''];
     }
     // Rows of the panels asked for. filtered = follow the search / status / sort boxes above the sheet; otherwise everyone, in the chosen sort.
@@ -2709,7 +2832,7 @@
     window.__xl = { build };
   })();
 
-  esEl('esWhoX').addEventListener('click', () => { if (!ES_ALLOWED) listType = ''; esPick(''); });
+  esEl('esWhoX').addEventListener('click', () => { if (!ES_ALLOWED || TIME_SEGS.includes(listType)) listType = ''; esPick(''); });
 
   // Platform card: click Query order / Campaign order / Total order (or the collection) to see only those orders of that platform.
   document.getElementById('platCards').addEventListener('click', (ev) => {

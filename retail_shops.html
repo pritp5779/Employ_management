@@ -389,10 +389,19 @@
   .vp-due{font-weight:700; font-size:12.5px; white-space:nowrap; color:#c81e1e; background:#fee2e2; border-radius:999px; padding:3px 9px;}
   .vp-due.z{color:var(--muted); background:#f3f4f6; font-weight:500;}
   .vp-stamp{font-size:12.5px; color:#16945a; font-weight:600; margin-top:4px;}
+  /* visit approval: waiting (amber) / rejected (red) cards, photo thumb, approve / reject row */
+  .vp-shop.wait{background:#fffaf0; border-color:#fde68a;} .vp-shop.wait .vp-chk{background:#f59e0b; border-color:#f59e0b;} .vp-shop.rej{background:#fff5f5; border-color:#fecaca;} .vp-shop.rej .vp-chk{background:#ef4444; border-color:#ef4444;}
+  .vp-stamp.w{color:#b45309;} .vp-stamp.r{color:#b91c1c;}
+  .vp-thumb{width:56px; height:56px; border-radius:10px; object-fit:cover; flex:none; border:1px solid var(--line); cursor:zoom-in; background:#f3f4f6;}
+  .vp-apr{margin-top:10px; padding-top:10px; border-top:1px dashed #fde68a; display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12.5px; color:var(--muted);}
+  .vp-pill.ok{background:#16945a; color:#fff; border-color:#16945a;} .vp-pill.no{color:#b91c1c; border-color:#fecaca; background:#fff;}
+  .vp-tab.t-waiting.on{border-color:#f59e0b; background:#fffbeb; color:#b45309;} .vp-tab.t-waiting.on b{color:#b45309;}
   .vp-acts{display:flex; gap:8px; margin-top:12px; align-items:center; flex-wrap:wrap;}
   .vp-pill{border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:13px; font-weight:600; background:#fff; cursor:pointer; min-height:0; width:auto; text-decoration:none; color:var(--ink); display:inline-flex; align-items:center;}
   .vp-pill.go{color:#1d4ed8; border-color:#bfdbfe; background:#dbeafe;}
   .vp-pill.main{background:#16945a; color:#fff; border-color:#16945a; width:100%; justify-content:center; padding:11px;}
+  .vp-shop .vp-done{display:flex; width:100%; box-sizing:border-box; justify-content:center; align-items:center; gap:6px; margin:10px 0 0; background:#16945a; color:#fff; border:1px solid #16945a; border-radius:999px; padding:11px 12px; font-size:13.5px; font-weight:700; cursor:pointer; min-height:0; white-space:nowrap; line-height:1.2;}
+  .vp-shop .vp-done:active{transform:scale(.98);}
   .vp-pill.undo{margin-left:auto; color:var(--muted);}
   .vp-links{margin-left:auto; display:flex; gap:14px;}
   .vp-links button{background:none; border:none; font-size:12.5px; color:var(--muted); text-decoration:underline; text-underline-offset:2px; cursor:pointer; padding:0; min-height:0;}
@@ -1029,6 +1038,8 @@
     <div class="field"><label>Date</label><input type="date" id="dpDate"></div>
     <div class="field"><label>Display</label><input id="dpName" maxlength="120" placeholder="e.g. Krishna Novelty · 6 pc set" autocomplete="off"></div>
     <div class="field"><label>Amount (₹)</label><input type="number" id="dpTotal" min="0" step="any" inputmode="decimal" placeholder="0" style="font-size:18px; font-weight:700;"></div>
+    <div class="field"><label>Payment</label><select id="dpPay"><option value="pending">Pending</option><option value="paid">Paid</option></select></div>
+    <div class="field" id="dpPayModeW" style="display:none;"><label>Paid by</label><select id="dpPayMode"><option value="cash">Cash</option><option value="upi">UPI</option></select></div>
     <div class="actions"><button type="button" class="btn secondary" id="btnDpCancel">Cancel</button><button type="button" class="btn" id="btnDpSave">Save display</button></div>
   </div>
 </div>
@@ -1599,7 +1610,8 @@
     dpEl('dpBody').innerHTML = rows.map(e => {
       const paid = e.pay_status === 'paid'; tot += e.total; if (!paid) pend += e.total;
       return `<tr><td style="white-space:nowrap;">${cbDay(e.disp_date)}</td><td><span class="cb-party">${esc(e.shop_name)}</span><div class="cb-by">by ${esc(e.created_by_name || '—')}${e.updated_at ? ' · edited' : ''}</div>${e.note ? `<div class="cb-note">${esc(e.note)}</div>` : ''}</td><td class="r dp-amt">${inr(e.total)}</td><td style="white-space:nowrap;">${paid ? `<span class="dp-st paid">Paid · ${e.pay_mode === 'upi' ? 'UPI' : 'Cash'}</span>${e.paid_date ? `<div class="cb-by">${cbDay(e.paid_date)}</div>` : ''}` : `<span class="dp-st pend">Pending</span>${d.can_edit ? `<button type="button" class="dp-mk" data-dpp="${e.disp_id}">Mark paid</button>` : ''}`}</td><td style="white-space:nowrap; text-align:right;">${d.can_edit ? `<button type="button" class="ib" data-dpe="${e.disp_id}" title="Change">✎</button><button type="button" class="ib" data-dpd="${e.disp_id}" title="Delete">✕</button>` : ''}</td></tr>`;
-    }).join('') || `<tr><td colspan="5" class="sub" style="text-align:center; padding:18px;">No display in these dates. Tap + Add display.</td></tr>`;
+    }).join('') || `<tr><td colspan="5" class="sub" style="text-align:center; padding:18px;">${a.count > 0 && a.first_date ? `No display in these dates — your ${dpN(a.count, 'display')} ${a.count === 1 ? 'is' : 'are'} on ${cbDay(a.first_date)}${a.last_date && a.last_date !== a.first_date ? ' – ' + cbDay(a.last_date) : ''}. <button type="button" class="dp-mk" id="dpAllDates">Show all dates</button>` : 'No display in these dates. Tap + Add display.'}</td></tr>`;
+    const allBtn = dpEl('dpAllDates'); if (allBtn) allBtn.addEventListener('click', () => { dpEl('dpFrom').value = a.first_date; dpEl('dpTo').value = a.last_date > dpEl('dpTo').value ? a.last_date : dpEl('dpTo').value; dpEl('dpStatus').value = 'all'; dpLoad(); });
     dpEl('dpFoot').innerHTML = rows.length ? `<tr class="tot"><td colspan="2">Total · ${dpN(rows.length, 'display')}</td><td class="r">${inr(tot)}</td><td colspan="2" class="${pend ? 'dp-pend' : 'sub'}">${pend ? 'Pending ' + inr(pend) + (cp ? ` <span class="sub" style="font-weight:600;">· ${inr(cp)} paid via Cash box in these dates</span>` : '') : 'All paid'}</td></tr>` : '';
     dpEl('dpCnt').textContent = '';
     const ce = d.cash_entries || [];
@@ -1633,6 +1645,7 @@
     const today = new Date().toISOString().slice(0, 10);
     dpEl('dpDate').value = x ? x.disp_date : (view === 'display' && dpEl('dpTo').value ? dpEl('dpTo').value : today); dpEl('dpDate').max = today;
     dpEl('dpName').value = x ? x.shop_name : ''; dpEl('dpTotal').value = x ? x.total : '';
+    dpEl('dpPay').value = x && x.pay_status === 'paid' ? 'paid' : 'pending'; dpEl('dpPayMode').value = x && x.pay_mode === 'upi' ? 'upi' : 'cash'; dpPayToggle();
     dpEl('dpAlert').innerHTML = '';
     dpY = window.scrollY; dpModal.classList.add('open'); setTimeout(() => dpEl('dpName').focus(), 60);
   }
@@ -1641,6 +1654,8 @@
   dpModal.addEventListener('click', (e) => { if (e.target === dpModal) dpClose(); });
   dpEl('btnDpAdd').addEventListener('click', () => dpOpen(null));
   dpEl('dpTotal').addEventListener('keydown', (e) => { if (e.key === 'Enter') dpEl('btnDpSave').click(); });
+  const dpPayToggle = () => { dpEl('dpPayModeW').style.display = dpEl('dpPay').value === 'paid' ? '' : 'none'; };
+  dpEl('dpPay').addEventListener('change', dpPayToggle);
   dpEl('btnDpSave').addEventListener('click', async () => {
     const btn = dpEl('btnDpSave'); btn.disabled = true;
     try {
@@ -1648,7 +1663,8 @@
       if (!name) throw new Error('Type the display.');
       if (!(Number(dpEl('dpTotal').value) > 0)) throw new Error('Type the amount (more than 0).');
       const id = Number(dpEl('dpId').value) || 0, old = id && dp.data ? (dp.data.entries || []).find(r => r.disp_id == id) : null;
-      await api.post('retail.demo_save', { disp_id: id, date: dpEl('dpDate').value, display: name, total: dpEl('dpTotal').value, pay_status: old ? old.pay_status : 'pending', pay_mode: old ? old.pay_mode : '', paid_date: old ? old.paid_date : '', city: curCity });
+      const paid = dpEl('dpPay').value === 'paid', wasPaid = old && old.pay_status === 'paid';
+      await api.post('retail.demo_save', { disp_id: id, date: dpEl('dpDate').value, display: name, total: dpEl('dpTotal').value, pay_status: paid ? 'paid' : 'pending', pay_mode: paid ? dpEl('dpPayMode').value : '', paid_date: paid ? (wasPaid && old.paid_date ? old.paid_date : dpEl('dpDate').value) : '', city: curCity });
       dpClose(); showAlert('Saved.');
       if (view === 'display') dpLoad(); else dp.data = null;
       loadDisplayHome();
@@ -1676,33 +1692,40 @@
     vpEl('vpDate').value = vp.date; vpEl('vpDateTxt').textContent = vpDayName(vp.date);
     vpEl('vpToTday').style.display = vpIsToday() ? 'none' : '';
     vpEl('vpHero').innerHTML = c.total
-      ? `<div class="vp-ring" style="--p:${pct}"><i>${c.done}/${c.total}</i></div><div><div class="big">${c.total} shop${c.total === 1 ? '' : 's'} to visit ${esc(when)}</div><div class="sm">${c.done} done · ${c.pending} still pending${c.pending === 0 ? ' — all visited 🎉' : ''}</div></div>`
+      ? `<div class="vp-ring" style="--p:${pct}"><i>${c.done}/${c.total}</i></div><div><div class="big">${c.total} shop${c.total === 1 ? '' : 's'} to visit ${esc(when)}</div><div class="sm">${c.done} done${c.waiting ? ` (${c.waiting} waiting approval)` : ''} · ${c.pending} still pending${c.rejected ? ` (${c.rejected} rejected)` : ''}${c.pending === 0 ? ' — all visited 🎉' : ''}</div></div>`
       : `<div class="vp-ring"><i>0</i></div><div><div class="big">No shops planned ${esc(when)}</div><div class="sm">Tap “+ Add shops” and tick the shops you will visit.</div></div>`;
-    vpEl('vpSt').innerHTML = [['all', 'All', c.total], ['pending', 'Pending', c.pending], ['done', 'Done', c.done]]
+    vpEl('vpSt').innerHTML = [['all', 'All', c.total], ['pending', 'Pending', c.pending], ['waiting', 'Waiting approval', c.waiting || 0], ['done', 'Done', c.done]]
       .map(t => `<button type="button" class="vp-tab t-${t[0]}${vp.st === t[0] ? ' on' : ''}" data-st="${t[0]}"><b>${t[2]}</b>${t[1]}</button>`).join('');
     const due = d.rows.filter(r => r.status !== 'done').reduce((a, r) => a + (r.due || 0), 0);
     vpEl('vpDueTxt').textContent = c.pending && due > 0.5 ? `${inr(due)} to collect from the pending shops` : '';
     let rows = d.rows.slice();
-    if (vp.st === 'pending') rows = rows.filter(r => r.status !== 'done'); else if (vp.st === 'done') rows = rows.filter(r => r.status === 'done');
+    if (vp.st === 'pending') rows = rows.filter(r => r.status !== 'done'); else if (vp.st === 'done') rows = rows.filter(r => r.status === 'done'); else if (vp.st === 'waiting') rows = rows.filter(r => r.status === 'done' && r.approval === 'waiting');
     rows.sort((a, b) => (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0) || (vp.grp ? String(a.area).localeCompare(String(b.area)) : 0));
     const L = vpEl('vpList');
     if (!d.rows.length) L.innerHTML = `<div class="vp-empty"><b>Plan ${vpIsToday() ? "today's" : 'this'} route</b>Choose the shops you want to visit. You will see the count here and tick each one when it is done.<div style="margin-top:14px;"><button type="button" class="btn" data-vp="open" style="width:auto;">+ Add shops</button></div></div>`;
-    else if (!rows.length) L.innerHTML = `<div class="vp-empty"><b>${vp.st === 'pending' ? 'Nothing pending 🎉' : 'Nothing done yet'}</b>${vp.st === 'pending' ? 'Every planned shop is visited.' : 'Tap the circle on a shop when you finish the visit.'}</div>`;
+    else if (!rows.length) L.innerHTML = `<div class="vp-empty"><b>${vp.st === 'pending' ? 'Nothing pending 🎉' : vp.st === 'waiting' ? 'Nothing waiting for approval' : 'Nothing done yet'}</b>${vp.st === 'pending' ? 'Every planned shop is visited.' : vp.st === 'waiting' ? 'Visits done with a photo wait here till someone approves them.' : 'Tap “Mark visit done” on a shop and take a photo there.'}</div>`;
     else { let h = '', last = null; rows.forEach(r => { if (vp.grp && r.area !== last) { h += `<div class="vp-area">${esc(r.area || 'No area')}</div>`; last = r.area; } h += vpCard(r); }); L.innerHTML = h; }
     vpEl('vpMove').innerHTML = c.pending > 0
       ? `<div class="vp-move"><span>${c.done} done · ${c.pending} left</span><button type="button" class="btn secondary" data-vp="moveall">Move ${c.pending} pending to ${vp.date === vpAddDays(todayStr(), 0) ? 'tomorrow' : fmtDS(vpAddDays(vp.date, 1))}</button></div>`
       : (c.total ? `<div class="vp-move"><span>All ${c.total} shop${c.total === 1 ? '' : 's'} visited — well done.</span></div>` : '');
   }
   function vpCard(r) {
-    const done = r.status === 'done', dueB = r.due > 0.5 ? `<span class="vp-due">${inr(r.due)} due</span>` : '<span class="vp-due z">No dues</span>';
+    const done = r.status === 'done', wait = done && r.approval === 'waiting', appr = done && r.approval === 'approved', rej = !done && r.approval === 'rejected';
+    const dueB = r.due > 0.5 ? `<span class="vp-due">${inr(r.due)} due</span>` : '<span class="vp-due z">No dues</span>';
     const lv = r.last_visit ? (r.last_days >= 30 ? `<span style="color:#c81e1e; font-weight:600;">last visit ${r.last_days} days ago</span>` : (r.last_days === 0 ? 'last visit today' : `last visit ${r.last_days} day${r.last_days === 1 ? '' : 's'} ago`)) : 'not visited yet';
-    const pin = r.lat != null && r.lng != null;
-    return `<div class="vp-shop${done ? ' done' : ''}" data-pid="${r.plan_id}" data-sid="${r.shop_id}">
-      <div class="vp-tl"><button type="button" class="vp-chk" data-vp="toggle" aria-label="${done ? 'Mark pending' : 'Mark done'}">${done ? '✓' : ''}</button>
-        <div class="vp-info"><div class="nm" data-vp="shop">${esc(r.shop_name)}</div><div class="meta">${esc([r.area, r.owner_name].filter(Boolean).join(' · ') || '—')} · ${lv}</div>${done ? `<div class="vp-stamp">✓ Visited${r.done_at ? ' at ' + esc(vpTime(r.done_at)) : ''}${r.done_by ? ' · ' + esc(r.done_by) : ''}</div>` : ''}</div>${dueB}</div>
+    const pin = r.lat != null && r.lng != null, canApr = !!(vp.data && vp.data.can_approve);
+    const thumb = r.photo ? `<a href="${fileUrl(r.photo)}" data-iv="${esc(r.shop_name)}" data-ivs="${esc([r.done_at ? vpTime(r.done_at) : '', r.done_by].filter(Boolean).join(' · '))}" style="flex:none; line-height:0;"><img class="vp-thumb" src="${fileUrl(r.photo)}" alt="visit photo"></a>` : '';
+    const stamp = done
+      ? (wait ? `<div class="vp-stamp w">⏳ Waiting approval${r.done_at ? ' · ' + esc(vpTime(r.done_at)) : ''}${r.done_by ? ' · by ' + esc(r.done_by) : ''}</div>`
+        : `<div class="vp-stamp">✓ Visited${r.done_at ? ' at ' + esc(vpTime(r.done_at)) : ''}${r.done_by ? ' · ' + esc(r.done_by) : ''}${appr ? ` · Approved by ${esc(r.approved_by || '—')}${r.approved_at ? ' ' + esc(vpTime(r.approved_at)) : ''}` : ''}</div>`)
+      : (rej ? `<div class="vp-stamp r">✕ Rejected by ${esc(r.approved_by || '—')}${r.reject_note ? ' · “' + esc(r.reject_note) + '”' : ''} · visit again with a new photo</div>` : '');
+    return `<div class="vp-shop${done ? (wait ? ' done wait' : ' done') : (rej ? ' rej' : '')}" data-pid="${r.plan_id}" data-sid="${r.shop_id}">
+      <div class="vp-tl"><button type="button" class="vp-chk" data-vp="${done ? 'toggle' : 'done'}" aria-label="${done ? 'Mark pending' : 'Mark done'}">${done ? (wait ? '⏳' : '✓') : (rej ? '✕' : '')}</button>
+        <div class="vp-info"><div class="nm" data-vp="shop">${esc(r.shop_name)}</div><div class="meta">${esc([r.area, r.owner_name].filter(Boolean).join(' · ') || '—')} · ${lv}</div>${stamp}</div>${done || rej ? thumb : dueB}</div>
+      ${wait && canApr ? `<div class="vp-apr"><span>Approve this visit?</span><button type="button" class="vp-pill ok" data-vp="approve">✓ Approve</button><button type="button" class="vp-pill no" data-vp="reject">✕ Reject</button></div>` : ''}
       ${done ? `<div class="vp-after"><span>Add:</span><button type="button" class="vp-pill" data-vp="photo">📷 Photo</button><button type="button" class="vp-pill" data-vp="order">🧾 Order</button><button type="button" class="vp-pill" data-vp="pay">₹ Payment</button><button type="button" class="vp-pill undo" data-vp="toggle">Undo</button></div>`
         : `<div class="vp-acts">${r.mobile ? `<a class="vp-pill" href="tel:${esc(String(r.mobile).replace(/[^\d+]/g, ''))}">📞 Call</a>` : ''}${pin ? `<a class="vp-pill go" href="${dirUrl(r)}" target="_blank" rel="noopener">📍 Directions</a>` : ''}<div class="vp-links"><button type="button" data-vp="tmr">Tomorrow</button><button type="button" data-vp="rm">Remove</button></div></div>
-        <div class="vp-acts" style="margin-top:8px;"><button type="button" class="vp-pill main" data-vp="toggle">✓ Mark visit done</button></div>`}
+        <button type="button" class="vp-done" data-vp="done">📷 Mark visit done (new photo)</button>`}
     </div>`;
   }
   async function vpCall(action, body, okMsg) {
@@ -1717,7 +1740,10 @@
     const card = b.closest('.vp-shop'), act = b.dataset.vp, pid = card ? Number(card.dataset.pid) : 0, sid = card ? Number(card.dataset.sid) : 0;
     const row = vp.data && vp.data.rows.find(r => r.plan_id === pid);
     if (act === 'open') openVpModal();
-    else if (act === 'toggle' && row) { const done = row.status !== 'done'; await vpCall('retail.visit_plan_mark', { plan_id: pid, status: done ? 'done' : 'pending' }, done ? '✓ ' + row.shop_name + ' marked as visited.' : row.shop_name + ' is pending again.'); }
+    else if (act === 'done' && row) openPhotoModal(row.shop_id, { planId: pid, shopName: row.shop_name });      // a visit is completed only with a photo taken now
+    else if (act === 'toggle' && row) { if (row.status !== 'done') { openPhotoModal(row.shop_id, { planId: pid, shopName: row.shop_name }); return; } if (!confirm(row.shop_name + ' back to pending? (the photo stays in Display photos)')) return; await vpCall('retail.visit_plan_mark', { plan_id: pid, status: 'pending' }, row.shop_name + ' is pending again.'); }
+    else if (act === 'approve' && row) await vpCall('retail.visit_plan_approve', { plan_id: pid, decision: 'approved' }, '✓ ' + row.shop_name + ' visit approved.');
+    else if (act === 'reject' && row) { const why = prompt('Why is this visit rejected? (the salesman sees it)'); if (why === null) return; if (!why.trim()) { showAlert('Write why it is rejected.', 'error'); return; } await vpCall('retail.visit_plan_approve', { plan_id: pid, decision: 'rejected', note: why.trim() }, '✕ ' + row.shop_name + ' visit rejected — pending again.'); }
     else if (act === 'tmr' && row) await vpCall('retail.visit_plan_move', { date: vp.date, plan_ids: [pid], to_date: vpAddDays(vp.date, 1) }, row.shop_name + ' moved to ' + fmtDS(vpAddDays(vp.date, 1)) + '.');
     else if (act === 'rm' && row) { if (confirm('Remove ' + row.shop_name + ' from this day’s plan?')) await vpCall('retail.visit_plan_remove', { plan_id: pid }); }
     else if (act === 'moveall') { const ids = vp.data.rows.filter(r => r.status !== 'done').map(r => r.plan_id); if (ids.length && confirm('Move ' + ids.length + ' pending shop' + (ids.length === 1 ? '' : 's') + ' to ' + fmtDS(vpAddDays(vp.date, 1)) + '?')) await vpCall('retail.visit_plan_move', { date: vp.date, plan_ids: ids, to_date: vpAddDays(vp.date, 1) }); }
@@ -2980,11 +3006,15 @@
 
   // ---------- display photo (visit) ----------
   const photoModal = document.getElementById('photoModal');
-  let phBlob = null, phPos = null;
-  function openPhotoModal(shopId) {
+  let phBlob = null, phPos = null, phVisit = null;   // phVisit: { planId, shopName } when the photo completes a planned visit (camera only, no gallery)
+  function openPhotoModal(shopId, visit) {
     const s = (currentShop && currentShop.shop_id == shopId) ? currentShop : shops.find(x => x.shop_id == shopId);
+    phVisit = visit && visit.planId ? visit : null;
     document.getElementById('photoAlert').innerHTML = ''; document.getElementById('phShop').value = shopId;
-    document.getElementById('photoTitle').textContent = 'Display photo' + (s ? ' — ' + s.shop_name : '');
+    document.getElementById('photoTitle').textContent = phVisit ? 'Visit done — ' + (phVisit.shopName || (s ? s.shop_name : '')) : 'Display photo' + (s ? ' — ' + s.shop_name : '');
+    document.getElementById('photoSub').textContent = phVisit ? 'Take a photo at the shop now — the visit is saved with it and waits for approval' : 'Photo of our perfumes on display at this shop';
+    document.getElementById('phGallery').style.display = phVisit ? 'none' : '';
+    document.getElementById('btnPhotoSave').textContent = phVisit ? 'Save visit' : 'Save photo';
     document.getElementById('phFile').value = ''; document.getElementById('phCap').value = ''; document.getElementById('phNote').value = ''; document.getElementById('phInfo').textContent = '';
     const pv = document.getElementById('phPreview'); pv.style.display = 'none'; pv.src = '';
     document.getElementById('phPick').style.display = 'none'; document.getElementById('btnPhotoSave').disabled = true;
@@ -3041,9 +3071,9 @@
     phBlob = b; phStopCam();
     const pv = document.getElementById('phPreview'); pv.src = URL.createObjectURL(b); pv.style.display = 'block';
     document.getElementById('phPick').style.display = 'none'; document.getElementById('phMsg').textContent = '';
-    document.getElementById('phInfo').innerHTML = `${Math.round(b.size / 1024)} KB · <button type="button" class="link" id="phRetake">📷 Retake</button> · <button type="button" class="link" id="phRetakeG">🖼 Choose from gallery</button>`;
+    document.getElementById('phInfo').innerHTML = `${Math.round(b.size / 1024)} KB · <button type="button" class="link" id="phRetake">📷 Retake</button>${phVisit ? '' : ' · <button type="button" class="link" id="phRetakeG">🖼 Choose from gallery</button>'}`;
     document.getElementById('phRetake').addEventListener('click', () => phStartCam());
-    document.getElementById('phRetakeG').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
+    if (!phVisit) document.getElementById('phRetakeG').addEventListener('click', () => { document.getElementById('phFile').value = ''; document.getElementById('phFile').click(); });
     document.getElementById('btnPhotoSave').disabled = false;
   }
   document.getElementById('phShutter').addEventListener('click', () => {
@@ -3071,12 +3101,21 @@
       const fd = new FormData();
       fd.append('photo', phBlob, 'display.jpg'); fd.append('shop_id', document.getElementById('phShop').value); fd.append('note', document.getElementById('phNote').value.trim());
       if (phPos) { fd.append('lat', phPos.lat); fd.append('lng', phPos.lng); fd.append('accuracy_m', phPos.acc); }
+      if (phVisit) {
+        // a planned visit: the photo completes it (server marks it done + waiting approval)
+        fd.append('plan_id', phVisit.planId);
+        const d = await api.upload('retail.visit_plan_done', fd);
+        closePhotoModal(); showAlert(d.message + (d.distance_m !== null && d.distance_m !== undefined ? ` (${d.distance_m} m from the shop pin)` : ''));
+        if (d.date === vp.date) { vp.data = d; vpDraw(); } else await vpLoad();
+        vp.hist = null; loadShops();
+        return;
+      }
       const d = await api.upload('retail.visit_add', fd);
       closePhotoModal(); showAlert(d.message + (d.distance_m !== null && d.distance_m !== undefined ? ` (${d.distance_m} m from the shop pin)` : ''));
       const sid = Number(document.getElementById('phShop').value);
       await loadShops(); if (view === 'shop' && currentShop && currentShop.shop_id == sid) openShop(sid);
     } catch (err) { document.getElementById('photoAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
-    finally { btn.disabled = !phBlob; btn.textContent = 'Save photo'; }
+    finally { btn.disabled = !phBlob; btn.textContent = phVisit ? 'Save visit' : 'Save photo'; }
   });
 
   // ---------- delivery modal ----------

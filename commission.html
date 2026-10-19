@@ -289,7 +289,7 @@
   let CODE = { on: false, rules: [], shares: {}, ok: true };   // order-code rules (Commission Rules page) + shares set by hand
   let RAW = [];           // the orders as loaded, kept so a manual change can re-price without reloading
   let ORDBY = {};         // order key -> order record
-  let ROWS = [];          // one per employee and row: '' = TM Perfume House; 'tm4u', 'tmsg', 'tmh4' = TM4U, TM Shower Gel, TM House 4th — each counted on its own
+  let ROWS = [];          // one per employee and row: '' = TM Perfume House; 'tm4u', 'tmsg' = TM4U, TM Shower Gel — each counted on its own
   let READY = false, openKey = null, dScope = 'm';   // dScope: which table the open employee detail belongs to ('t' = Today, 'm' = Monthly)
   // Commission set by hand ("employee|row" -> { rate, amount, reason }): belongs to one month, so it applies only while the Monthly range is that whole month.
   let MAN = {}, DAYMAN = {};   // DAYMAN: the commissions set by hand for Today (Today table)
@@ -421,8 +421,8 @@
 
   // ---------- Build rows from the loaded data ----------
   const statusOf = (emp, d) => (emp.status || {})[d] || '';
-  const OWN_ROWS = ['tm4u', 'tmsg', 'tmh4'];                                   // panels that are their own commission row
-  const PLAB = { '': 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const OWN_ROWS = ['tm4u', 'tmsg'];                                   // panels that are their own commission row
+  const PLAB = { '': 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel' };
   const targetOf = (row, d) => Number(((row.emp.target || {})[row.rk] || {})[d] || 0);
   const isPre = (fs) => { fs = String(fs || '').toLowerCase(); return fs.indexOf('cod') === -1 && fs.indexOf('pending') === -1; };   // not COD / pending = prepaid, as on Targets
 
@@ -480,7 +480,7 @@
   }
 
   // NEW — fixed-by-count plans: the minimum is measured on the current calendar month (1st → today)
-  const monthStat = (empId) => { let n = 0, ach = 0; ORD.forEach((o) => { if (o.emp === empId && o.day >= MSTART && o.day <= TODAY) { n++; ach += o.amt; } }); return { n, ach }; };   // every panel of the person counts (TM Perfume House, TM4U, TM Shower Gel, TM House 4th)
+  const monthStat = (empId) => { let n = 0, ach = 0; ORD.forEach((o) => { if (o.emp === empId && o.day >= MSTART && o.day <= TODAY) { n++; ach += o.amt; } }); return { n, ach }; };   // every panel of the person counts (TM Perfume House, TM4U, TM Shower Gel)
   // A rule's dates: no From / To = all days. day is a business day 'YYYY-MM-DD'.
   const inWin = (r, day) => (!r.from || day >= r.from) && (!r.to || day <= r.to);
   const planReached = (p) => { if (!(Number(p.min) > 0)) return true; const s = monthStat(p.emp); return p.minType === 'amount' ? s.ach >= Number(p.min) : s.n >= Number(p.min); };   // no minimum (blank / 0) = never locked
@@ -557,7 +557,7 @@
       c.steps.push({ label: mixRule.label || 'Code rule', detail: `${Math.round(mixPct)}% of ${mixDated ? 'the orders in its dates' : 'orders'} have a code (rule: ${mixRule.op === 'lte' ? 'at most' : 'at least'} ${fmtN(mixRule.thr)}%) → ${payTxt(mode, v)}`, value: saved > 0.5 || saved < -0.5 ? (saved > 0 ? '+' : '−') + inr(Math.abs(saved)) : 'full' });
     }
     // NEW — fixed commission for selected people, once the minimum is reached: a % of sales, or ₹ per order
-    // A person's fixed commission is paid on EVERY panel row of that person (TM Perfume House, TM4U, TM Shower Gel, TM House 4th),
+    // A person's fixed commission is paid on EVERY panel row of that person (TM Perfume House, TM4U, TM Shower Gel),
     // and even when the slab gives no rate (no slab rule / no target): the fixed % of sales (or ₹ per order) is the whole commission then.
     const plan = n > 0 ? NEW.fixed.find((p) => p.emp === row.emp.employee_id && p.on && !p.from && !p.to && planReached(p)) : null;
     if (plan) {
@@ -908,7 +908,7 @@
     pop.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
     pop.style.top = (r.bottom + h + 10 > innerHeight ? Math.max(10, r.top - h - 8) : r.bottom + 8) + 'px';
   }
-  const PNAME = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  const PNAME = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel' };
   const TSRC = { manual: 'Set by hand', shared: 'Set on the Targets page', ladder: 'New Sales Executive ladder', rule: 'Automatic rule', profile: 'Profile / monthly target' };
   function showTgt(btn) {
     const t = TG[btn.dataset.tg]; if (!t) return;
@@ -923,7 +923,7 @@
       ${lines.length ? lines.map((l) => `<div class="ln"><span>${esc(PNAME[l.panel] || l.panel)}<span class="sub">${esc(l.src)}</span></span><b>${inr(l.amt)}</b></div>`).join('') : '<div class="ln"><span>No target detail for this period</span><b>—</b></div>'}
       <div class="ln tot"><span>Target used for commission</span><span>${inr(a.target)}</span></div>
       ${lines.length && Math.abs(sum - a.target) > 1 ? `<div class="note">Panel parts add up to ${inr(sum)}.</div>` : ''}
-      <div class="note">${a.row.rk ? esc(PLAB[a.row.rk]) + ' is counted on its own: its own target and its own commission.' : 'TM4U, TM Shower Gel and TM House 4th are separate rows.'} Days marked Absent or Leave count no target.</div>`;
+      <div class="note">${a.row.rk ? esc(PLAB[a.row.rk]) + ' is counted on its own: its own target and its own commission.' : 'TM4U and TM Shower Gel are separate rows.'} Days marked Absent or Leave count no target.</div>`;
     pop.hidden = false;
     pop.style.left = '0px'; pop.style.top = '0px';
     const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;

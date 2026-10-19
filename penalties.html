@@ -48,6 +48,11 @@
   .box.info{background:#eef6ff; border-color:#cfe2fb; color:#1e3a5f;} .box.warn{background:#fffaf0; border-color:#f1dfb3;} .box.ok{background:#f3fbf6; border-color:#cfe9da;}
   .notif{background:#f8fafc; border:1px solid var(--line); border-left:4px solid #dc2626; border-radius:10px; padding:9px 12px; font-size:13px; line-height:1.4;} .notif b{display:block; font-size:12.5px;}
   tr.click{cursor:pointer;} tr.click:hover td{background:#f8faff;} tr.sel td{background:#eef4ff;}
+  /* "Increases each time": the ladder of amounts in the rule editor */
+  .lsel{display:flex; gap:6px;} .lsel button{flex:1; border:1.5px solid var(--line); border-radius:9px; padding:8px; background:#fff; font-weight:800; font-size:12.5px; color:var(--ink); cursor:pointer; min-height:0; width:auto;} .lsel button.on{border-color:#ff7a2f; background:#fff4ec; color:#c2410c;}
+  .lad{border:1.5px solid #fdba74; background:#fffaf5; border-radius:10px; padding:10px 12px; margin-top:6px; display:grid; grid-template-columns:1fr 1fr; gap:10px;} .lad .n{font-weight:800; font-size:12px; color:var(--ink); display:block; margin-bottom:4px;} .lad input{width:100%;}
+  .lad.off{border:none; background:none; padding:0; margin-top:6px;} .lad .pv{grid-column:1/-1; font-size:12px; color:#c2410c; font-weight:700;}
+  .nth{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:800; margin-left:4px; white-space:nowrap;} .nth.n1{background:#eef3ff; color:#1d4ed8;} .nth.n2{background:#fff4ec; color:#c2410c;} .nth.n3{background:#fee2e2; color:#b91c1c;}
   .modal-bg{position:fixed; inset:0; background:rgba(17,24,39,.5); z-index:300; display:flex; align-items:center; justify-content:center; padding:16px;} .modal-bg[hidden]{display:none;}
   .modal{background:#fff; border-radius:14px; width:100%; max-width:420px; padding:18px; box-shadow:0 20px 50px rgba(0,0,0,.3);} .modal h3{margin:0 0 4px; font-size:16px;}
   .modal textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:14px; margin-top:10px; font-family:inherit; min-height:70px;}
@@ -100,7 +105,7 @@
               <label>Employee<select id="apEmp"></select></label>
               <label>Date<input type="date" id="apDate"></label>
               <label class="full">Penalty — write it<input id="apName" list="apList" placeholder="Type the penalty, e.g. Wrong item packed" autocomplete="off" maxlength="160"><datalist id="apList"></datalist><span class="hint">Type anything. If it matches a saved rule, the amount fills in by itself.</span></label>
-              <label>Amount (₹)<input type="number" id="apAmt" min="0" step="1" placeholder="0"></label>
+              <label>Amount (₹)<input type="number" id="apAmt" min="0" step="1" placeholder="0"><span class="hint" id="apStep"></span></label>
               <label class="full">Reason / note<textarea id="apNote" rows="2" maxlength="255" placeholder="Shown to the employee and kept in the history"></textarea></label>
               <label class="full" style="flex-direction:row; align-items:center; gap:8px; font-weight:600;"><input type="checkbox" id="apNotify" checked style="width:auto;"> Notify the employee now</label>
             </div>
@@ -181,12 +186,14 @@
   const TAGN = Object.assign({ manual: 'Written by hand' }, CATS);
   const ST = { applied: 'Applied', removed: 'Auto-removed', waived: 'Waived' };
   const MSG = 'A penalty of {amount} has been applied to you for {rule}.';
-  const notifText = (tpl, name, amt) => String(tpl || MSG).replace('{amount}', inr(amt)).replace('{rule}', name);
+  const notifText = (tpl, name, amt, time) => { let t = String(tpl || MSG); if (time && t.indexOf('{time}') === -1) t = t.trim() + ' ({time})'; return t.replace('{amount}', inr(amt)).replace('{rule}', name).replace('{time}', time || '').replace(' ()', ''); };
+  const ordN = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+  const nthTag = (n) => n ? `<span class="nth n${Math.min(3, n)}">${ordN(n)} time</span>` : '';
   const showErr = (m) => { $('alertBox').innerHTML = `<div class="alert error">${esc(m)}</div>`; window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => { $('alertBox').innerHTML = ''; }, 6000); };
   const showOk = (m) => { $('alertBox').innerHTML = `<div class="alert success">${esc(m)}</div>`; setTimeout(() => { $('alertBox').innerHTML = ''; }, 3500); };
   const month = () => $('monthPick').value || new Date().toISOString().slice(0, 7);
 
-  let RULES = [], DEPTS = [], EMPS = [], STATEMENT = null, statementMonth = '';
+  let RULES = [], DEPTS = [], EMPS = [], STATEMENT = null, statementMonth = '', STEP = null;   // STEP: the next step (Increases each time) for the Apply form
   let catSel = 'common', ruleSel = 0, draft = null;
 
   // ---------- tabs ----------
@@ -213,7 +220,7 @@
     $('ruleList').innerHTML = list.length ? list.map((r) => `<div class="rule ${r.rule_id === ruleSel ? 'sel' : ''}" data-r="${r.rule_id}">
         <button class="sw ${r.active ? 'on' : ''}" data-sw="${r.rule_id}" title="Switch on / off"></button>
         <div class="m"><b>${esc(r.name)}</b>${r.category === 'dept' ? ` <span class="tag c-dept">${esc(r.department)}</span>` : ''}<div>${trigLabel(r)}${r.trigger_type !== 'manual' ? ' · ' + (r.grace_min !== null ? r.grace_min + ' min grace' : 'late-alert grace') : ''}</div></div>
-        <div class="a">${inr(r.amount)}</div></div>`).join('') : '<div style="padding:16px;" class="muted">No rules in this category yet. Click “+ New rule”.</div>';
+        <div class="a">${r.ladder_on ? `${inr(r.amount)}<div class="small muted" style="font-weight:600;">+ ${inr(r.ladder_inc)} each time</div>` : inr(r.amount)}</div></div>`).join('') : '<div style="padding:16px;" class="muted">No rules in this category yet. Click “+ New rule”.</div>';
     renderEditor();
   }
   $('catTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (!b) return; catSel = b.dataset.c; draft = null; const f = RULES.find((r) => r.category === catSel); ruleSel = f ? f.rule_id : 0; renderRules(); });
@@ -239,13 +246,28 @@
       <label>Category<select id="fC">${Object.entries(CATS).map(([k, v]) => o(k, r.category, v)).join('')}</select></label>
       <label id="fDw" style="${r.category === 'dept' ? '' : 'display:none'}">Department<select id="fD">${DEPTS.map((d) => o(d, r.department, esc(d))).join('')}</select></label>
       <label>How it starts<select id="fT">${o('manual', r.trigger_type, 'Written by hand')}${o('late_punch', r.trigger_type, 'Automatic — late punch-in')}${o('short_hours', r.trigger_type, 'Automatic — short working hours')}</select></label>
-      <label>Amount (₹)<input type="number" id="fA" min="0" step="1" value="${r.amount}"></label>
+      <label class="full">Amount<div class="lsel" id="fLsel"><button type="button" data-l="0" class="${r.ladder_on ? '' : 'on'}">Same every time</button><button type="button" data-l="1" class="${r.ladder_on ? 'on' : ''}">Increases each time</button></div>
+        <div id="fLad" class="lad${r.ladder_on ? '' : ' off'}">
+          <div><span class="n" id="fAL">${r.ladder_on ? '1st time (₹)' : 'Amount (₹)'}</span><input type="number" id="fA" min="0" step="1" value="${r.amount}" placeholder="0"></div>
+          <div id="fIncW" style="${r.ladder_on ? '' : 'display:none;'}"><span class="n">Increase by, each time (₹)</span><input type="number" id="fInc" min="0" step="1" value="${r.ladder_inc || ''}" placeholder="e.g. 20"></div>
+          <div class="pv" id="fLadPv" style="${r.ladder_on ? '' : 'display:none;'}"></div>
+        </div></label>
+      <label id="fResetW" style="${r.ladder_on ? '' : 'display:none;'}">Count starts again<select id="fReset">${o('month', r.ladder_reset || 'month', 'Every month')}${o('never', r.ladder_reset || 'month', 'Never (counts all time)')}</select><span class="hint">How many times the rule was already given to that employee decides the step.</span></label>
       <label class="auto" style="${auto ? '' : 'display:none'}">Grace (minutes)<input type="number" id="fG" min="0" max="240" value="${r.grace_min === null ? '' : r.grace_min}" placeholder="Same as late alert"><span class="hint">No penalty inside the grace time. Empty = each employee's own late-alert time (15 by default).</span></label>
       <label class="auto late" style="${r.trigger_type === 'late_punch' ? '' : 'display:none'}">When required hours are completed<select id="fH">${o('remove', r.on_hours_done, 'Remove the penalty automatically')}${o('reduce_50', r.on_hours_done, 'Reduce it by half')}${o('keep', r.on_hours_done, 'Keep the penalty')}</select></label>
-      <label class="full">Notification text<input id="fM" value="${esc(r.notify_text)}" maxlength="255"><span class="hint">Use {amount} and {rule}. Preview: <b id="fMp"></b></span></label>
+      <label class="full">Notification text<input id="fM" value="${esc(r.notify_text)}" maxlength="255"><span class="hint">Use {amount}, {rule} and {time} (which time it was). Preview: <b id="fMp"></b></span></label>
       <div class="full small muted auto" style="${auto ? '' : 'display:none'}">Automatic rules apply to <b>every</b> fixed-hours employee — no need to pick people. Sales employees have no fixed hours and are skipped.</div>`;
-    const prev = () => { $('fMp').textContent = notifText($('fM').value, $('fN').value || 'this rule', +$('fA').value || 0); };
-    prev(); ['fM', 'fA', 'fN'].forEach((i) => $(i).addEventListener('input', prev));
+    // "Increases each time": 1st time = amount, every next time + increase
+    const ladOn = () => $('fLsel').querySelector('button.on').dataset.l === '1';
+    const ladAmt = (n) => Math.max(0, (+$('fA').value || 0) + (n - 1) * (+$('fInc').value || 0));
+    const drawPv = () => { $('fLadPv').textContent = ladOn() ? [1, 2, 3, 4].map((n) => ordN(n) + ' ' + inr(ladAmt(n))).join(' · ') + ' · …' : ''; };
+    $('fLsel').querySelectorAll('button').forEach((b) => b.addEventListener('click', (ev) => {
+      ev.preventDefault();   // (inside the Amount <label>: stop the label from "clicking" its first button)
+      $('fLsel').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+      const on = ladOn(); $('fLad').classList.toggle('off', !on); $('fIncW').style.display = on ? '' : 'none'; $('fLadPv').style.display = on ? '' : 'none'; $('fResetW').style.display = on ? '' : 'none'; $('fAL').textContent = on ? '1st time (₹)' : 'Amount (₹)'; prev();
+    }));
+    const prev = () => { const on = ladOn(); drawPv(); $('fMp').textContent = notifText($('fM').value, $('fN').value || 'this rule', on ? ladAmt(2) : (+$('fA').value || 0), on ? '2nd time' + ($('fReset').value === 'never' ? '' : ' this month') : null); };
+    prev(); ['fM', 'fA', 'fN', 'fInc'].forEach((i) => $(i).addEventListener('input', prev)); $('fReset').addEventListener('change', prev);
     $('fC').addEventListener('change', () => { $('fDw').style.display = $('fC').value === 'dept' ? '' : 'none'; });
     $('fT').addEventListener('change', () => {
       document.querySelectorAll('#edForm .auto').forEach((x) => { x.style.display = $('fT').value === 'manual' ? 'none' : ''; });
@@ -256,7 +278,9 @@
     const r = currentRule(); if (!r) return;
     const body = { rule_id: r.rule_id || 0, name: $('fN').value.trim(), category: $('fC').value, department: $('fC').value === 'dept' ? $('fD').value : '', trigger_type: $('fT').value,
       amount: +$('fA').value || 0, grace_min: $('fT').value === 'manual' ? null : ($('fG').value === '' ? null : +$('fG').value), on_hours_done: $('fT').value === 'late_punch' ? $('fH').value : 'keep',
-      notify_text: $('fM').value.trim(), active: r.rule_id ? r.active : 1 };
+      notify_text: $('fM').value.trim(), active: r.rule_id ? r.active : 1,
+      ladder_on: $('fLsel').querySelector('button.on').dataset.l === '1' ? 1 : 0, ladder_inc: +$('fInc').value || 0, ladder_reset: $('fReset').value };
+    if (body.ladder_on && !(body.ladder_inc > 0)) { $('fInc').focus(); return showErr('Type how much it increases each time (more than ₹0).'); }
     try { const d = await api.post('penalties.rule_save', body); draft = null; ruleSel = d.rule_id; catSel = body.category; await loadRules(); showOk('Rule saved.'); } catch (err) { showErr(err.message); }
   });
   $('edReset').addEventListener('click', () => { if (draft) draft = null; renderRules(); });
@@ -285,7 +309,7 @@
   }
   function fillSuggestions() {
     const e = empOf($('apEmp').value); if (!e) { $('apList').innerHTML = ''; return; }
-    $('apList').innerHTML = applicableRules(e).map((r) => `<option value="${esc(r.name)}">${inr(r.amount)}</option>`).join('');
+    $('apList').innerHTML = applicableRules(e).map((r) => `<option value="${esc(r.name)}">${r.ladder_on ? inr(r.amount) + ' + ' + inr(r.ladder_inc) + ' each time' : inr(r.amount)}</option>`).join('');
   }
   async function loadStatement(force) {
     const m = $('apDate').value ? $('apDate').value.slice(0, 7) : month();
@@ -309,13 +333,30 @@
       $('apPreview').innerHTML = `<div class="box info small">This penalty will be taken from <b>${from}</b>.</div>`;
     }
     const r = RULES.find((x) => x.name.toLowerCase() === name.toLowerCase());
-    $('apNotif').innerHTML = `<b>Penalty applied</b>${esc(notifText(r && r.notify_text, name, amt))}${$('apNote').value.trim() ? esc(' Note: ' + $('apNote').value.trim()) : ''}`;
+    const st = STEP && r && STEP.rule_id === r.rule_id && STEP.employee_id === e.employee_id ? STEP.step : null;
+    $('apStep').innerHTML = st ? `<b>${ordN(st.nth)} time${st.reset === 'never' ? '' : ' this month'}</b> → ${inr(st.amount)} <span class="muted">(${inr(st.base)}${st.nth > 1 ? ' + ' + (st.nth - 1) + ' × ' + inr(st.inc) : ''})</span>. You can change it.` : '';
+    $('apNotif').innerHTML = `<b>Penalty applied</b>${esc(notifText(r && r.notify_text, name, amt, st ? st.label : null))}${$('apNote').value.trim() ? esc(' Note: ' + $('apNote').value.trim()) : ''}`;
   }
-  $('apEmp').addEventListener('change', () => { fillSuggestions(); loadStatement(false).then(renderApplyPreview); renderApplyPreview(); });
-  $('apDate').addEventListener('change', () => { loadStatement(false).then(renderApplyPreview); });
+  // "Increases each time": ask the server which time this would be for this employee, and fill the amount in
+  let stepReq = 0;
+  async function loadStep() {
+    const e = empOf($('apEmp').value), r = e && applicableRules(e).find((x) => x.name.toLowerCase() === $('apName').value.trim().toLowerCase());
+    if (!e || !r || !r.ladder_on) { STEP = null; renderApplyPreview(); return; }
+    const id = ++stepReq;
+    try {
+      const d = await api.get('penalties.next_step', { employee_id: e.employee_id, rule_id: r.rule_id, date: $('apDate').value });
+      if (id !== stepReq) return;
+      STEP = d.step ? { rule_id: r.rule_id, employee_id: e.employee_id, step: d.step } : null;
+      if (d.step) $('apAmt').value = d.step.amount;
+    } catch (err) { STEP = null; }
+    renderApplyPreview();
+  }
+  $('apEmp').addEventListener('change', () => { fillSuggestions(); loadStatement(false).then(renderApplyPreview); renderApplyPreview(); loadStep(); });
+  $('apDate').addEventListener('change', () => { loadStatement(false).then(renderApplyPreview); loadStep(); });
   $('apName').addEventListener('input', () => {
     const e = empOf($('apEmp').value), m = e && applicableRules(e).find((r) => r.name.toLowerCase() === $('apName').value.trim().toLowerCase());
-    if (m) $('apAmt').value = m.amount; renderApplyPreview();
+    if (m) $('apAmt').value = m.amount; STEP = null; renderApplyPreview();
+    if (m && m.ladder_on) loadStep();
   });
   ['apAmt', 'apNote'].forEach((i) => $(i).addEventListener('input', renderApplyPreview));
   $('apGo').addEventListener('click', async () => {
@@ -326,7 +367,7 @@
     $('apGo').disabled = true;
     try {
       const d = await api.post('penalties.apply', { employee_id: e.employee_id, title, amount: amt, date: $('apDate').value, note: $('apNote').value.trim(), notify: $('apNotify').checked ? 1 : 0 });
-      showOk(d.message); $('apName').value = ''; $('apAmt').value = ''; $('apNote').value = '';
+      showOk(d.message); $('apName').value = ''; $('apAmt').value = ''; $('apNote').value = ''; STEP = null;
       STATEMENT = null; await loadStatement(false); renderApplyPreview();
     } catch (err) { showErr(err.message); }
     $('apGo').disabled = false;
@@ -346,7 +387,7 @@
         const dead = p.status !== 'applied';
         const extra = p.resolve_note ? `<div>${esc(p.resolve_note)}</div>` : '';
         return `<tr><td>${fmtD(p.penalty_date)}</td><td><b>${esc(p.full_name)}</b><div class="small muted">${esc(p.department_name || '')}</div></td>
-          <td>${esc(p.title)}<div><span class="tag c-${esc(p.category)}">${esc(TAGN[p.category] || p.category)}</span></div></td>
+          <td>${esc(p.title)}${nthTag(p.nth)}<div><span class="tag c-${esc(p.category)}">${esc(TAGN[p.category] || p.category)}</span></div></td>
           <td><span class="tag ${p.source === 'auto' ? 't-auto' : 't-man'}">${p.source === 'auto' ? 'Auto' : 'Manual'}</span></td>
           <td class="amt ${dead ? 'struck' : 'neg'}">${inr(p.amount)}${p.orig_amount !== null && !dead ? `<div class="small muted" style="font-weight:400;">was ${inr(p.orig_amount)}</div>` : ''}</td>
           <td>${p.deducted_from === 'commission' ? 'Commission' : 'Salary'}</td><td><span class="tag s-${esc(p.status)}">${esc(ST[p.status] || p.status)}</span></td>
@@ -395,7 +436,7 @@
   function renderAuto() {
     const rs = RULES.filter((r) => r.trigger_type !== 'manual');
     $('autoRules').innerHTML = rs.map((r) => `<div class="box ${r.active ? 'ok' : 'warn'}" style="margin:0 0 8px;">
-      <b>${esc(r.name)}</b> <span class="tag ${r.active ? 's-removed' : 's-waived'}">${r.active ? 'On' : 'Off'}</span> — ${inr(r.amount)}
+      <b>${esc(r.name)}</b> <span class="tag ${r.active ? 's-removed' : 's-waived'}">${r.active ? 'On' : 'Off'}</span> — ${r.ladder_on ? inr(r.amount) + ' the 1st time, + ' + inr(r.ladder_inc) + ' each next time' + (r.ladder_reset === 'never' ? ' (counts all time)' : ' (starts again every month)') : inr(r.amount)}
       <div class="small muted" style="margin-top:3px;">${r.trigger_type === 'late_punch'
         ? `Charged when anyone punches in more than ${r.grace_min !== null ? r.grace_min + ' min' : 'their late-alert time'} after shift start. When required hours are completed: <b>${r.on_hours_done === 'remove' ? 'penalty removed automatically' : r.on_hours_done === 'reduce_50' ? 'penalty reduced by half' : 'penalty kept'}</b>.`
         : `Charged when someone punches out having worked less than their working time minus ${r.grace_min !== null ? r.grace_min : 15} min.`}</div></div>`).join('') || '<div class="muted">No automatic rules yet — add one on the Rules tab (How it starts → Automatic).</div>';

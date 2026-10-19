@@ -1878,9 +1878,10 @@
         if (data.is_valid) {
           step('footwear', 'done');
           shoeStamp(true, '✓ APPROVED' + (data.shoe_type_detected ? ' · ' + data.shoe_type_detected : ''));
-          shoeHint('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : '') + ' — saving your Punch In…', false); camShoeT.classList.add('ok');
-          setMsg('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : ''), 'var(--ok-fg)');
-          await sleep(1400);
+          const dirty = Number(data.cleanliness) > 0 && Number(data.cleanliness) <= 2;      // 1-2 stars: punch goes through, with a clear "clean your shoes" warning
+          shoeHint('Footwear approved ✓' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : '') + (data.cleanliness_note ? ' — “' + data.cleanliness_note + '”' : '') + (dirty ? ' ⚠ Please clean your shoes before tomorrow.' : '') + ' — saving your Punch In…', dirty); camShoeT.classList.add('ok');
+          setMsg((dirty ? '⚠ ' : '') + 'Footwear approved' + (data.cleanliness ? ' · ' + cleanTxt(data.cleanliness) : '') + (dirty ? ' — your shoes are dirty, please clean them before tomorrow.' : ' ✓'), dirty ? '#b45309' : 'var(--ok-fg)');
+          await sleep(dirty ? 3200 : 1400);
           return blob;
         }
         const noAi = data.reason === 'ai_unavailable' || res.status === 503;

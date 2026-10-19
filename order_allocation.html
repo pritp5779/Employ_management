@@ -33,6 +33,7 @@
   .rs-num{font-size:12px; color:var(--muted); min-width:18px; font-variant-numeric:tabular-nums;}
   .rs.off .rs-stars{cursor:not-allowed; opacity:.45;}
   .rs.ro .rs-stars{cursor:default;}
+  .rs-by{display:block; margin-top:3px;}   /* who gave the stars · when (same line as "by … · time" in the Panel column) */
   @media (max-width:820px){ .rs-star, .rs-star svg{width:24px; height:24px;} }
   /* Product colour counts (DG / LG / WH / Other) — small, plain text */
   .clr-totals{display:flex; flex-wrap:wrap; align-items:center; gap:2px 14px; font-size:12.5px; font-weight:600; color:#334155;}
@@ -82,7 +83,6 @@
   .house.tmph{background:#dbeafe; color:#1d4ed8;}
   .house.tm4u{background:#ede9fe; color:#6d28d9;}
   .house.tmsg{background:#dcfce7; color:#15803d;}
-  .house.tmh4{background:#ffe4e6; color:#be123c;}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; border:1px solid var(--line); font-size:12.5px; cursor:pointer; background:#fff; white-space:nowrap;}
   .pill.on{background:var(--navy-900); color:#fff; border-color:var(--navy-900);}
   .pill b{font-weight:700;}
@@ -323,7 +323,7 @@
   const fmtHM = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'PM' : 'AM'}`; };
   function todayStr() { return bizDayOf(new Date()); }
 
-  let HOUSES = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel', tmh4: 'TM House 4th' };
+  let HOUSES = { tmph: 'TM Perfume House', tm4u: 'TM4U', tmsg: 'TM Shower Gel' };
   let TYPES = { query: 'Query', campaign: 'Campaign' };
   let SOURCES = {};
   let EMPS = [];          // [{id, code, name, groups:[...]}]
@@ -392,12 +392,18 @@
       return `<span class="rs-star"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#D6D3DF">${STAR_PATH}</g></svg><svg class="rs-fill" viewBox="0 0 24 24" aria-hidden="true" style="clip-path:inset(0 ${100 - f * 50}% 0 0);"><g fill="#E8A21C">${STAR_PATH}</g></svg></span>`;
     }).join('');
   }
+  // Under the stars: who gave them and when (empty when not rated).
+  const ratingBy = (o) => o.ticket_rating != null && o.rating_by ? `<span class="sub rs-by">by ${esc(o.rating_by)}${o.rating_at ? ' · ' + fmtDT(o.rating_at) : ''}</span>` : '';
   function ratingCell(o, empSel, offMsg) {
     const v = o.ticket_rating == null ? 0 : Math.max(0, Math.min(10, Math.round(Number(o.ticket_rating))));
-    if (IS_EMP) return `<span class="rs ro" title="${v ? v / 2 + ' of 5' : 'Not rated'}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
+    if (IS_EMP) return `<span class="rs ro" title="${v ? v / 2 + ' of 5' : 'Not rated'}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>${ratingBy(o)}`;
     const off = !(empSel > 0);
     return `<span class="rs ${off ? 'off' : ''}" data-k="${key(o)}" data-val="${v}" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}"
-      title="${off ? (offMsg || 'Choose the employee first') : RATE_WORDS[v]}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>`;
+      title="${off ? (offMsg || 'Choose the employee first') : RATE_WORDS[v]}"><span class="rs-stars">${starCells(v)}</span><span class="rs-num">${v ? String(v / 2) : '—'}</span></span>${ratingBy(o)}`;
+  }
+  function paintRatingBy(rs, o) {
+    const old = rs.parentNode && rs.parentNode.querySelector('.rs-by'); if (old) old.remove();
+    const html = ratingBy(o); if (html && rs.parentNode) rs.insertAdjacentHTML('afterend', html);
   }
   function paintStars(rs, v, preview) {
     rs.querySelectorAll('.rs-star').forEach((st, i) => {
@@ -422,10 +428,12 @@
     const st = rs.querySelectorAll('.rs-star')[starIdx];
     if (st) { st.classList.remove('rs-pop'); void st.offsetWidth; st.classList.add('rs-pop'); }
     try {
-      await api.post('order_ratings.save', {
+      const r = await api.post('order_ratings.save', {
         order_key: o.order_key || (o.store_key + ':' + o.id), order_name: o.order_name, employee_id: emp,
         group_key: effHouse(o, p) || '', date: o.biz_date || (String(o.created_at || '').slice(0, 10)), field: 'ticket', value: v,
       });
+      o.rating_by = v === 0 ? '' : ((r && r.by) || (api.currentUser() || {}).username || ''); o.rating_at = v === 0 ? '' : ((r && r.at) || '');
+      paintRatingBy(rs, o);
     } catch (err) {
       o.ticket_rating = prev; rs.dataset.val = prev == null ? 0 : Math.round(prev); paintStars(rs, Number(rs.dataset.val), false);
       showAlert(err.message, 'error');
@@ -605,11 +613,13 @@
       ? (o.allocated ? `<span class="house ${o.allocated_house}">${esc(HOUSES[o.allocated_house] || o.allocated_house)}</span>
          <div class="sub">by ${esc(o.allocated_by || '—')}${o.allocated_at ? ' · ' + fmtDT(o.allocated_at) : ''}</div>` : (houseSel ? `<span class="house ${houseSel}">${esc(HOUSES[houseSel] || houseSel)}</span>` : '<span class="sub">—</span>'))
       : `<select class="sel ${p.house ? 'changed' : ''}" onchange="pickHouse('${k}', this.value)">${options(HOUSES, houseSel, '— Panel —')}</select>`;
-    const ready = !o.allocated && houseSel && (empSel > 0 || direct);
+    // Employee role: the Type (Query / Campaign) must be picked too before the ✓ works.
+    const needType = IS_EMP && !effType(o, p);
+    const ready = !o.allocated && houseSel && (empSel > 0 || direct) && !needType;
     const action = o.cancelled ? '' : o.allocated
       ? (IS_EMP ? '' : `<button type="button" class="undo-btn" onclick="undoAlloc('${k}', this)">Undo</button>`)
       : lock ? ''
-      : `<button type="button" class="ok-btn" title="${ready ? 'Confirm' : 'Choose employee (or Direct order) and panel first'}" ${ready ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>`;
+      : `<button type="button" class="ok-btn" title="${ready ? 'Confirm' : (needType && houseSel && (empSel > 0 || direct) ? 'Choose the Type (Query / Campaign) first' : 'Choose employee (or Direct order)' + (IS_EMP ? ', type' : '') + ' and panel first')}" ${ready ? '' : 'disabled'} onclick="confirmAlloc('${k}', this)">✓</button>`;
     // Cancel / Undo cancel (saved in HRMS only — the Shopify order is not changed). Not for the Employee role.
     const cx = IS_EMP ? '' : (o.cancelled
       ? `<button type="button" class="cx-btn undo" onclick="cancelOrder('${k}', false, this)">↶ Undo</button><div class="sub">cancelled${o.cancelled.by ? ' by ' + esc(o.cancelled.by) : ''}</div>`
@@ -1068,7 +1078,12 @@
     const o = orders.find(x => key(x) === k);
     if (!tr || !o) return;
     const p = pending[k] || {};
-    tr.querySelector('.ok-btn').disabled = !(effHouse(o, p) && effEmp(o, p));
+    const ok = tr.querySelector('.ok-btn');
+    if (ok) {
+      const needType = IS_EMP && !effType(o, p);      // Employee role: Type (Query / Campaign) is required too
+      ok.disabled = !(effHouse(o, p) && effEmp(o, p)) || needType;
+      ok.title = !ok.disabled ? 'Confirm' : (needType && effHouse(o, p) && effEmp(o, p) ? 'Choose the Type (Query / Campaign) first' : 'Choose employee (or Direct order)' + (IS_EMP ? ', type' : '') + ' and panel first');
+    }
     // Stars unlock as soon as an employee is chosen.
     const rs = tr.querySelector('.rs');
     if (rs) { const off = !(effEmp(o, p) > 0); rs.classList.toggle('off', off); rs.title = off ? noEmpMsg(o, p) : (RATE_WORDS[Number(rs.dataset.val)] || ''); }
@@ -1078,6 +1093,7 @@
     pend(k).type = t || '';
     const tr = document.querySelector(`tr[data-k="${k}"]`);
     if (tr) tr.querySelectorAll('select.sel')[0].classList.toggle('changed', !!t);
+    refreshOk(k);
   };
 
   window.pickHouse = function (k, house) {
@@ -1093,6 +1109,7 @@
     const p = pending[k] || {};
     const emp = effEmp(o, p), house = effHouse(o, p);
     if (!house || !emp) return;
+    if (IS_EMP && !effType(o, p)) { showAlert('Choose the Type (Query / Campaign) first.', 'error'); return; }
     btn.disabled = true;
     try {
       const type = effType(o, p);
