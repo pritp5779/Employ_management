@@ -137,7 +137,18 @@
   .es-tbl td.cmc{text-align:left; min-width:230px; white-space:normal;}
   .cmv{font-size:14px; font-weight:800;} .cmp{display:inline-block; font-size:11px; font-weight:800; background:#fff4db; color:#8a5a00; border-radius:8px; padding:1px 7px; margin-left:4px;}
   .cmt{display:inline-block; font-size:10.5px; font-weight:800; border-radius:8px; padding:1px 8px; margin:3px 4px 0 0; white-space:nowrap; background:#e0e7ff; color:#3730a3;}
-  .cmt.k-panel{background:#e7f7ee; color:#0f7a41;} .cmt.k-fixed{background:#dbeafe; color:#1d4ed8;} .cmt.k-star{background:#fde8e8; color:#b91c1c;} .cmt.k-code,.cmt.k-mix{background:#fff4db; color:#8a5a00;}
+  .cmt.k-panel{background:#e7f7ee; color:#0f7a41;} .cmt.k-fixed{background:#dbeafe; color:#1d4ed8;} .cmt.k-star{background:#fde8e8; color:#b91c1c;} .cmt.k-code,.cmt.k-mix{background:#fff4db; color:#8a5a00;} .cmt.k-slab{background:#ede9fe; color:#6d28d9;}
+  .mlx{display:inline-block; background:#fef3c7; color:#b45309; font-size:11px; font-weight:800; padding:1px 7px; border-radius:99px;}
+  .mlp{display:inline-block; font-size:11px; font-weight:800; padding:2px 7px; border-radius:99px; background:#ede9fe; color:#6d28d9; white-space:nowrap;} .mlp.lo{background:#fee2e2; color:#b91c1c;} .mlp.hi{background:#dcfce7; color:#15803d;}
+  .mle{display:inline-block; background:#fee2e2; color:#b91c1c; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:99px; white-space:nowrap;}
+  .mlz{display:inline-block; background:#dcfce7; color:#15803d; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:99px;}
+  .mlcw{font-weight:800; color:var(--ink); text-decoration:underline dotted; text-underline-offset:3px; cursor:pointer;} .mlcw.est{color:var(--muted); font-weight:600;}
+  .mls{font-size:10.5px; color:var(--muted); margin-top:2px; white-space:nowrap;}
+  .mlk{display:flex; gap:8px; flex-wrap:wrap; align-items:stretch;}
+  .mlk > div{flex:1 1 150px; background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:7px 10px;}
+  .mlk span{display:block; font-size:11px; color:var(--muted); font-weight:700;} .mlk b{font-size:16px;} .mlk b.red{color:#be123c;}
+  .mlbtn{width:auto; min-height:0; padding:6px 12px; border:1px solid var(--line); background:#fff; border-radius:10px; font-size:12.5px; font-weight:700; cursor:pointer; align-self:center; color:var(--ink);}
+  table.mlet{margin-top:8px; font-size:13px;} table.mlet th, table.mlet td{padding:7px 10px;}
   .cmlive{display:inline-flex; align-items:center; gap:5px; margin-left:8px; font-size:10px; font-weight:800; letter-spacing:.4px;} .cmlive i{width:7px; height:7px; border-radius:50%; background:#fff; display:inline-block; animation:cmpulse 1.6s infinite;}
   @keyframes cmpulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
   .cmclk{cursor:pointer; border-radius:10px; padding:4px 6px; margin:-4px -6px; transition:background .15s;} .cmclk:hover{background:#fff4ec; box-shadow:inset 0 0 0 1px #fdba74;}
@@ -535,6 +546,7 @@
             <div class="search-box"><input type="text" id="orderSearch" placeholder="Search order #, customer, store, payment..."></div>
           </div>
         </div>
+        <div id="mlTot" style="display:none; padding:0 4px 10px;"></div>
         <div class="tscroll">
         <table>
           <thead>
@@ -548,6 +560,11 @@
               <th class="th-sort" data-key="phone" style="cursor:pointer; user-select:none;">Mobile</th>
               <th class="th-sort" data-key="items" style="cursor:pointer; user-select:none;">Items</th>
               <th class="th-sort" data-key="total" style="cursor:pointer; user-select:none;">Total</th>
+              <th class="th-sort" data-key="ml" style="cursor:pointer; user-select:none;" title="Total ML of the order, free 10 ml pieces included">ML</th>
+              <th style="text-align:right;" title="Chart price of the order's size (first column of the ML price chart) and the price of 1 ml">Chart price</th>
+              <th class="th-sort" data-key="ml_extra" style="cursor:pointer; user-select:none; text-align:right;" title="Extra ML given by price: ML in the box − ML the customer paid for (price paid ÷ price of 1 ml)">Extra ML</th>
+              <th style="text-align:right;" title="Commission slab %: the % this order is paid (same as the Commission column). Underneath, the chart % before the no-code / target cuts. Click the commission to see every step.">Commission slab %</th>
+              <th style="text-align:right;" title="This order's commission — same as the Commission page">Commission</th>
               <th class="th-sort" data-key="financial_status" style="cursor:pointer; user-select:none;">Payment</th>
               <th class="th-sort" data-key="fulfillment_status" style="cursor:pointer; user-select:none;">Fulfillment</th>
               <th class="th-sort" data-key="ticket_rating" style="cursor:pointer; user-select:none;" title="Ticket size convincing — same rating as the Performance page">Rating</th>
@@ -578,6 +595,13 @@
   </main>
 </div>
 
+<div class="modal-overlay" id="comWhyModal">
+  <div class="modal" style="max-width:520px;">
+    <h3 id="comWhyTitle">How this commission was worked out</h3>
+    <div id="comWhyBody" style="max-height:65vh; overflow-y:auto; overscroll-behavior:contain;"></div>
+    <div class="actions"><button type="button" class="btn secondary" onclick="document.getElementById('comWhyModal').classList.remove('open')">Close</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="detailModal">
   <div class="modal wide">
     <h3 id="detailTitle">Order</h3>
@@ -688,6 +712,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/ml_slab.js?v=261021b"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
 <div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
 <div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
@@ -837,7 +862,7 @@
 
   const TH_LABELS = {
     order_name: 'Order', store: 'Store', salesman: 'Salesman', code: 'Code', created_at: 'Time', customer: 'Customer', phone: 'Mobile',
-    items: 'Items', total: 'Total', financial_status: 'Payment', fulfillment_status: 'Fulfillment', ticket_rating: 'Rating',
+    items: 'Items', total: 'Total', ml: 'ML', ml_extra: 'Extra ML', financial_status: 'Payment', fulfillment_status: 'Fulfillment', ticket_rating: 'Rating',
   };
 
   // Order code (the Order Codes page): shown on every order; Admin / HR can type or change it here.
@@ -1088,7 +1113,8 @@
     const dir = sortDir === 'asc' ? 1 : -1;
     filteredOrders.sort((a, b) => {
       let va = a[sortKey], vb = b[sortKey];
-      if (sortKey === 'items' || sortKey === 'total' || sortKey === 'ticket_rating') {
+      if (sortKey === 'ml_extra') return ((mlXOf(a) || 0) - (mlXOf(b) || 0)) * dir;
+      if (sortKey === 'items' || sortKey === 'total' || sortKey === 'ticket_rating' || sortKey === 'ml') {
         return (Number(va || 0) - Number(vb || 0)) * dir;
       }
       if (sortKey === 'order_name') {
@@ -1541,7 +1567,122 @@
     return bizDayOf(new Date(o.created_at));
   }
 
+  // ---------- ML columns (ML price slab) ----------
+  // ML = the order's total ML (free 10 ml pieces included), Extra ML = those free pieces, Slab % = the chart % for that size + price
+  // (before the daily-target cap / no-code cut), Commission = the order's commission from the Commission page (exact, once it has
+  // loaded), otherwise the slab estimate in grey. MySales orders have no product sizes: "—".
+  let ML_CHART = null;
+  api.get('ml_slab.get').then((d) => { ML_CHART = d && d.chart ? d.chart : null; if (allOrders.length) try { renderPage(); } catch (e) {} }).catch(() => {});
+  function mlInfo(o) {
+    const m = window.MLSLAB ? MLSLAB.parts(o) : null;
+    const key = (o.store_key || o.source || '') + ':' + o.id;
+    const ex = commValid() && COMM.res.ord ? COMM.res.ord[key] : null;      // [₹, note, rule kind] from the Commission page
+    const pre = MLSLAB.isPre(o.financial_status);
+    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, amt: Number(o.total || 0), pre, code: o.code || '' }, true) : null;
+    const x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
+    return { m, r, ex, x };
+  }
+  // The commission % paid on the order: Commission page figure ÷ amount when it is loaded, else the slab estimate. null = no slab / no figure.
+  function mlFinalPct(o, r, ex) {
+    const amt = Number(o.total || 0);
+    if (ex && amt > 0) return Math.round(ex[0] / amt * 10000) / 100;
+    return r ? Math.round(r.pct * 100) / 100 : null;
+  }
+  // Why the paid % is below the chart %: no code (½), target not complete (cap), below the lowest slab, or another rule.
+  function mlCutTxt(o, ex) {
+    const t = [], note = ex ? String(ex[1] || '') : '';
+    if (ex && ex[2] && ex[2] !== 'slab') return ' · ' + (CW_KIND[ex[2]] || 'other rule');
+    if (/target incomplete/i.test(note)) t.push('target cap');
+    if (!o.code) t.push('no code ½');
+    if (/below the lowest/i.test(note)) t.push('below 0.1%');
+    if (/% max/i.test(note)) return ' · discount over max';
+    return t.length ? ' · ' + t.join(', ') : '';
+  }
+  const mlXOf = (o) => { const i = mlInfo(o); return i.x ? i.x.extra : null; };
+  const mlPctCls = (p) => p < 2 ? 'lo' : p >= 6 ? 'hi' : '';
+  const ml1 = (v) => (Math.round(v * 10) / 10).toLocaleString('en-IN', { maximumFractionDigits: 1 });
+  const xTip = (m, x, o) => `Chart ${fmtMoney(x.chart, 'INR')} ÷ ${m.total} ml = ₹${x.per.toFixed(2)} per ml · ${fmtMoney(Math.round(x.look), 'INR')}${Math.abs(x.look - Number(o.total || 0)) > 0.5 ? ' (prepaid, before the discount)' : ''} pays for ${ml1(x.paid)} ml → ${ml1(x.extra)} ml extra`;
+  function mlCells(o) {
+    const { m, r, ex, x } = mlInfo(o);
+    const dash = '<span style="color:var(--muted);">—</span>';
+    const ml = m ? `<b>${m.total} ml</b>${m.extra ? ` <span class="mlx" title="Free 10 ml pieces in the box">+${m.extra} free</span>` : ''}` : dash;
+    const cp = x ? `<b>${fmtMoney(x.chart, 'INR')}</b><div class="mls">₹${x.per.toFixed(2)} / ml</div>` : (m && m.total ? '<span style="color:var(--muted); font-size:11px;" title="This size is not in the ML price chart">not in chart</span>' : dash);
+    const xm = x ? (x.extra > 0.05 ? `<span class="mle" title="${esEsc(xTip(m, x, o))}">${ml1(x.extra)} ml</span><div class="mls">paid for ${ml1(x.paid)} ml · ${fmtMoney(Math.round(x.value), 'INR')}</div>` : `<span class="mlz" title="${esEsc(xTip(m, x, o))}">0 ml</span>`) : dash;
+    // The % actually paid (same as the Commission column): the Commission page's figure when loaded, else the slab estimate
+    // (code as on the order, target taken as complete). The chart % before the cuts shows underneath when it differs.
+    const fp = mlFinalPct(o, r, ex);
+    if (!ex && r && r.overMax) return `<td style="white-space:nowrap;">${ml}</td><td style="text-align:right; white-space:nowrap;">${cp}</td><td style="text-align:right; white-space:nowrap;">${xm}</td><td style="text-align:right;"><span class="mlp lo" title="${esEsc(r.steps.join(' · '))}">0%</span><div class="mls">${r.disc}% off · over ${ML_CHART.maxdisc}% max</div></td><td style="text-align:right; white-space:nowrap;"><a href="#" class="mlcw est" onclick="comWhy(${o._i}); return false;">₹0</a></td>`;
+    const pc = fp != null ? `<span class="mlp ${mlPctCls(fp)}" title="${esEsc(r ? r.steps.join(' · ') : '')}">${fp}%</span>${r && Math.abs(r.base - fp) > 0.005 ? `<div class="mls">chart ${Math.round(r.base * 100) / 100}%${mlCutTxt(o, ex)}</div>` : ''}` : dash;
+    const cm = ex ? `<a href="#" class="mlcw" onclick="comWhy(${o._i}); return false;" title="Click to see how it was worked out">${fmtMoney(ex[0], 'INR')}</a>` : (r ? `<a href="#" class="mlcw est" onclick="comWhy(${o._i}); return false;" title="Estimate — click to see how it was worked out">≈ ${fmtMoney(Math.round(r.v), 'INR')}</a>` : dash);
+    return `<td style="white-space:nowrap;">${ml}</td><td style="text-align:right; white-space:nowrap;">${cp}</td><td style="text-align:right; white-space:nowrap;">${xm}</td><td style="text-align:right;">${pc}</td><td style="text-align:right; white-space:nowrap;">${cm}</td>`;
+  }
+  function mlCard(o) {
+    const { m, r, ex, x } = mlInfo(o);
+    if (!m || !m.total) return '';
+    return `<div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:6px; font-size:12px;"><b>${m.total} ml</b>${m.extra ? `<span class="mlx">+${m.extra} free</span>` : ''}${x && x.extra > 0.05 ? `<span class="mle">${ml1(x.extra)} ml extra · ${fmtMoney(Math.round(x.value), 'INR')}</span>` : ''}${r ? `<span class="mlp ${mlPctCls(mlFinalPct(o, r, ex))}">${mlFinalPct(o, r, ex)}%</span>` : '<span style="color:var(--muted);">not in chart</span>'}${ex ? `<a href="#" class="mlcw" style="margin-left:auto;" onclick="event.stopPropagation(); comWhy(${o._i}); return false;">${fmtMoney(ex[0], 'INR')}</a>` : (r ? `<a href="#" class="mlcw est" style="margin-left:auto;" onclick="event.stopPropagation(); comWhy(${o._i}); return false;">≈ ${fmtMoney(Math.round(r.v), 'INR')}</a>` : '')}</div>`;
+  }
+  // Click on an order's commission: every step, from the ML price chart to the ₹ paid.
+  const CW_KIND = { slab: 'ML price slab', panel: 'Panel rule', fixed: 'Fixed commission', mix: 'Order-code mix rule', star: 'Rating rule', code: 'Order-code rule' };
+  window.comWhy = (i) => {
+    const o = allOrders[i]; if (!o) return;
+    const { m, r, ex, x } = mlInfo(o);
+    const amt = Number(o.total || 0), pre = MLSLAB.isPre(o.financial_status);
+    const line = (n, t) => `<div style="display:flex; gap:10px; padding:7px 0; border-bottom:1px solid #f1f3f6; font-size:13.5px; line-height:1.5;"><b style="flex:none; width:22px; height:22px; border-radius:50%; background:#6d28d9; color:#fff; font-size:11.5px; display:flex; align-items:center; justify-content:center; margin-top:1px;">${n}</b><div>${t}</div></div>`;
+    let h = `<div style="font-size:13px; color:var(--muted); margin-bottom:8px;">${esEsc(o.order_name)} · ${esEsc(o.salesman || '—')} · ${fmtMoney(amt, 'INR')} · ${esEsc(o.financial_status || '—')}${o.code ? ' · code ' + esEsc(o.code) : ' · <b style="color:#b91c1c;">no code</b>'}</div>`;
+    let n = 1;
+    if (m && m.total) h += line(n++, `Total ML = <b>${m.total} ml</b>${m.extra ? ` (${m.base} ml + ${m.extra} ml free)` : ''}`);
+    if (r) {
+      const look = r.look, row = MLSLAB.rowFor(ML_CHART, m.total);
+      h += line(n++, pre && Math.abs(look - amt) > 0.5 ? `Payment is <b>${esEsc(o.financial_status)}</b> → counted as prepaid, so the price is taken before the ${ML_CHART.prepaid}% prepaid discount: ${fmtMoney(amt, 'INR')} ÷ ${(1 - ML_CHART.prepaid / 100).toFixed(2)} = <b>${fmtMoney(Math.round(look), 'INR')}</b>` : `Price = <b>${fmtMoney(amt, 'INR')}</b> (${esEsc(o.financial_status || 'COD')} — no prepaid change)`);
+      h += line(n++, `${m.total} ml row of the chart (${esEsc(row.how)}): ${esEsc(r.steps[0].split(' → ').slice(1).join(' → '))}<br><b>Chart % = ${Math.round(r.base * 100) / 100}%</b> <span style="color:var(--muted);">(shown small under the Commission slab % column)</span>`);
+    } else if (m && m.total) h += line(n++, `${m.total} ml is not in the ML price chart → the normal commission rules decide.`);
+    else h += line(n++, 'No product sizes on this order (MySales) → the normal commission rules decide.');
+    if (ex) {
+      const pct = amt > 0 ? ex[0] / amt * 100 : 0, note = String(ex[1] || '');
+      const why = [];
+      if (/target incomplete/i.test(note)) why.push(`the daily target was <b>not complete</b> that day → at most ${ML_CHART ? ML_CHART.cap : 5}%`);
+      if (/no code/i.test(note)) why.push(`the order has <b>no code</b> → ${ML_CHART ? ML_CHART.nocode : 50}% of it`);
+      if (/below the lowest/i.test(note)) why.push('below the lowest slab → 0%');
+      if (/% max/i.test(note)) why.splice(0, why.length, `<b>${esEsc(note.replace(/^.*\(discount/, 'discount').replace(/\).*$/, ''))}</b> → <b>no commission</b>`);
+      if (why.length) h += line(n++, why.join('<br>'));
+      h += line(n++, `Rule used on the Commission page: <b>${esEsc(CW_KIND[ex[2]] || 'Normal slab rate (target / ticket size / prepaid)')}</b>${note ? `<div style="color:var(--muted); font-size:12.5px;">${esEsc(note)}</div>` : ''}`);
+      h += line(n++, `<b>${fmtMoney(amt, 'INR')} × ${Math.round(pct * 100) / 100}% = ${fmtMoney(ex[0], 'INR')}</b> commission`);
+      if (ex[2] !== 'slab' && r && ML_CHART && !MLSLAB.on(ML_CHART)) h += `<div style="margin-top:10px; font-size:12.5px; background:#fff7ed; border-radius:10px; padding:8px 10px; color:#9a3412;">The ML price slab is <b>OFF</b> (Commission Rules → ML price slab), so this order is paid by the normal commission rules. The Slab % column only shows what it would earn once the slab is ON.</div>`;
+    } else if (r) {
+      if (r.steps.length > 1) h += line(n++, r.steps.slice(1).map((t) => esEsc(t).replace(/^no code/, 'the order has <b>no code</b>')).join('<br>') + ` → <b>${Math.round(r.pct * 100) / 100}%</b>`);
+      h += line(n++, `<b>${fmtMoney(amt, 'INR')} × ${Math.round(r.pct * 100) / 100}% ≈ ${fmtMoney(Math.round(r.v), 'INR')}</b> — estimate (assumes the day's target is complete); the exact figure appears once the Commission page has loaded for these dates.`);
+    }
+    if (x && x.extra > 0.05) h += `<div style="margin-top:10px; font-size:12.5px; background:#fff1f2; border-radius:10px; padding:8px 10px; color:#9f1239;">Extra ML: chart ${fmtMoney(x.chart, 'INR')} ÷ ${m.total} ml = ₹${x.per.toFixed(2)} per ml → ${fmtMoney(Math.round(x.look), 'INR')} pays for ${ml1(x.paid)} ml → <b>${ml1(x.extra)} ml (${fmtMoney(Math.round(x.value), 'INR')}) given extra</b>.</div>`;
+    document.getElementById('comWhyTitle').textContent = 'Commission · ' + o.order_name;
+    document.getElementById('comWhyBody').innerHTML = h;
+    document.getElementById('comWhyModal').classList.add('open');
+  };
+  // Above the list: ML sold, extra ML given by price (+ its ₹ value), free 10 ml pieces — and the same per employee (tap to open).
+  let mlEmpOpen = false;
+  function mlTotals(list) {
+    const el = document.getElementById('mlTot');
+    if (!el) return;
+    let ml = 0, xm = 0, xv = 0, fr = 0, any = false;
+    const by = {};
+    list.forEach((o) => {
+      const { m, x } = mlInfo(o);
+      if (!m || !m.total) return;
+      any = true; ml += m.total; fr += m.extra;
+      const nm = o.salesman || '—', e = by[nm] = by[nm] || { n: 0, ml: 0, xm: 0, xv: 0 };
+      e.n++; e.ml += m.total;
+      if (x) { xm += x.extra; xv += x.value; e.xm += x.extra; e.xv += x.value; }
+    });
+    el.style.display = any ? '' : 'none';
+    if (!any) { el.innerHTML = ''; return; }
+    const rows = Object.keys(by).map((k) => Object.assign({ nm: k }, by[k])).sort((a, b) => b.xm - a.xm);
+    el.innerHTML = `<div class="mlk"><div><span>ML sold</span><b>${ml.toLocaleString('en-IN')} ml</b></div><div><span>Extra ML given (by price)</span><b class="red">${ml1(xm)} ml</b></div><div><span>Extra ₹ value</span><b class="red">${fmtMoney(Math.round(xv), 'INR')}</b></div><div><span>Free 10 ml pieces</span><b>${fr.toLocaleString('en-IN')} ml</b></div>
+      <button type="button" class="mlbtn" onclick="mlEmpToggle()">${mlEmpOpen ? 'Hide' : 'By employee'} ▾</button></div>` +
+      (mlEmpOpen ? `<div style="overflow-x:auto;"><table class="no-stack mlet"><thead><tr><th>Employee</th><th style="text-align:right;">Orders</th><th style="text-align:right;">ML sold</th><th style="text-align:right;">Extra ML given</th><th style="text-align:right;">Extra ₹ value</th><th style="text-align:right;">Extra %</th></tr></thead><tbody>${rows.map((e) => `<tr><td><b>${esEsc(e.nm)}</b></td><td style="text-align:right;">${e.n}</td><td style="text-align:right;">${e.ml.toLocaleString('en-IN')} ml</td><td style="text-align:right;"><span class="mle">${ml1(e.xm)} ml</span></td><td style="text-align:right;">${fmtMoney(Math.round(e.xv), 'INR')}</td><td style="text-align:right;">${e.ml > 0 ? ml1(e.xm / e.ml * 100) : 0}%</td></tr>`).join('')}</tbody></table></div>` : '');
+  }
+  window.mlEmpToggle = () => { mlEmpOpen = !mlEmpOpen; mlTotals(filteredOrders); };
+
   function renderPage() {
+    mlTotals(filteredOrders);
     const body = document.getElementById('ordersBody');
     const pagerBar = document.getElementById('pagerBar');
     const scopeCount = listBase().length;
@@ -1558,7 +1699,7 @@
     });
 
     if (filteredOrders.length === 0) {
-      body.innerHTML = '<tr><td colspan="13" class="empty-state">No matching orders.</td></tr>';
+      body.innerHTML = '<tr><td colspan="18" class="empty-state">No matching orders.</td></tr>';
       document.getElementById('ordersCards').innerHTML = '<div class="empty-state">No matching orders.</div>';
       pagerBar.style.display = 'none';
       return;
@@ -1583,6 +1724,7 @@
           <td style="white-space:nowrap;">${o.phone || '—'}</td>
           <td>${o.items}</td>
           <td style="font-weight:600;">${fmtMoney(o.total, o.currency)}</td>
+          ${mlCells(o)}
           <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
           <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
           <td style="white-space:nowrap;">${rtCell(o)}</td>
@@ -1604,6 +1746,7 @@
             <span style="font-size:12px; color:var(--muted);">${o.store}</span>
             <span style="font-size:12px; color:var(--muted);">${new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · ${o.items} item${o.items === 1 ? '' : 's'}</span>
           </div>
+          ${mlCard(o)}
           <div style="margin-top:8px;">${rtCell(o)}</div>
           <div style="display:flex; gap:6px; margin-top:8px;">
             <span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span>
@@ -1638,7 +1781,7 @@
         const dt = dayTotals[day];
         return `
           <tr style="background:#f0f4ff;">
-            <td colspan="13" style="font-weight:700;">
+            <td colspan="18" style="font-weight:700;">
               ${dateLabel(day)}
               <span style="float:right; font-weight:600; color:var(--muted);">${dt.count} order${dt.count === 1 ? '' : 's'} · ${fmtMoney(dt.total, 'INR')}</span>
             </td>
@@ -1999,7 +2142,7 @@
       if (d.error) { if (key === COMM.want) commFail(d.error); return; }
       if (!d.emps) return;
       COMM.cache[key] = { key, emps: d.emps, ord: d.ord || {} };
-      if (key === COMM.want) { COMM.err = ''; COMM.res = COMM.cache[key]; clearTimeout(COMM.tOut); commDraw(); }
+      if (key === COMM.want) { COMM.err = ''; COMM.res = COMM.cache[key]; clearTimeout(COMM.tOut); commDraw(); if (allOrders.length) try { renderPage(); } catch (e) {} }
     }
   });
   const commWait = () => new Promise(res => { if (commValid() || COMM.err) res(); else COMM.waiters.push(res); });
@@ -2276,7 +2419,7 @@
     if (COMM.err) return `<span class="es-sl" title="${esEsc(COMM.err)}">—</span>`;
     if (!commValid()) return '<span class="es-sl">…</span>';
     const c = e.cm; if (!c) return dash;
-    const tags = c.tags || [], slabN = c.n - tags.filter(t => t.k === 'panel' || t.k === 'fixed' || (t.k === 'mix' && !/full commission/.test(t.l))).reduce((a, t) => a + t.n, 0);
+    const tags = c.tags || [], slabN = c.n - tags.filter(t => t.k === 'panel' || t.k === 'fixed' || t.k === 'slab' || (t.k === 'mix' && !/full commission/.test(t.l))).reduce((a, t) => a + t.n, 0);
     const chips = (c.rate > 0 && slabN > 0 ? `<span class="cmt k-rate" title="The slab rate worked out for this person for these dates">${esPf(c.rate)} slab</span>` : '') +
       tags.map(t => `<span class="cmt k-${t.k}" title="${esEsc(t.n + ' order' + (t.n === 1 ? '' : 's') + (t.d ? ' · ' + esDeltaTxt(t.d) + ' compared with the normal commission' : ''))}">${esEsc(t.l)} · ${t.n}${t.d ? ' · ' + esDeltaTxt(t.d) : ''}</span>`).join('');
     return `<div class="cmclk" data-cm="${e.id}|${e.b}" title="Click to see every rule applied"><span class="cmv">${esInr(c.amt)}</span><span class="cmp">${c.coll > 0 ? esPf(c.amt / c.coll * 100) : '—'}</span>${chips ? '<div>' + chips + '</div>' : ''}<span class="cmgo">View rules ›</span></div>`;

@@ -113,6 +113,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/ml_slab.js?v=261021a"></script>
 <script>
   guardPage();
   renderSidebar('my_sales');
@@ -144,7 +145,7 @@
   // ---------- Month figures and commission ----------
   // Worked out here from this employee's own orders and the commission rules — the same calculation as the Commission page
   // (slab rate by target / ticket size / prepaid share, then the order-code rules), so the numbers match what Admin sees.
-  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {} };
+  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {}, slab: null };
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph' };
   // ---------- Panels: a person on 2+ panels has a separate target (and sales) in each ----------
   const PN = { list: [], sel: '', tgt: {}, labels: {}, sales: {}, today: '', repaint: null };
@@ -250,7 +251,7 @@
       if (day < from || day > to) return;
       const rk = o.house === 'tm4u' ? 'tm4u' : '';
       const amt = Number(o.total || 0), pre = isPre(o.financial_status);
-      const x = { key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', code: o.code || '', amt, pre };
+      const x = { key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', code: o.code || '', amt, pre, ml: o.ml == null ? null : Number(o.ml), day, rk };
       const p = calcPrice(x); x.eff = p.eff; x.flat = p.flat;
       CM.ord.push(x);
       const cell = ((CM.idx[rk] = CM.idx[rk] || {})[day] = CM.idx[rk][day] || { ach: 0, n: 0, pre: 0, eff: 0, flat: 0, orders: [] });
@@ -258,6 +259,13 @@
       const pk = panelOfOrder(o);
       if (pk) { const pc = ((PN.sales[pk] = PN.sales[pk] || {})[day] = PN.sales[pk][day] || { ach: 0, n: 0 }); pc.ach += amt; pc.n++; }
     });
+  }
+  // ML price slab: his daily target of that day (that row) is complete? No target set = not capped.
+  function slabHit(o) {
+    const t = Number(((CM.target || {})[o.rk] || {})[o.day] || 0);
+    if (!(t > 0)) return true;
+    const cell = (CM.idx[o.rk] || {})[o.day];
+    return !!cell && cell.ach >= t;
   }
   // One row ('' = all panels, 'tm4u' = the TM4U row) over a set of days.
   function aggRow(rk, days, useManual) {
@@ -276,7 +284,19 @@
     }
     const man = useManual ? (CM.manual || {})[rk] : null;      // commission set by hand for him this month (Commission page) replaces the worked-out one
     if (man) return { ach, n, target, rate: man.rate, amount: man.amount, rated: true, manual: true };
-    return { ach, n, target, rate: c ? c.rate : 0, amount: c ? c.rate * eff / 100 + flat : 0, rated: !!c };
+    let amount = c ? c.rate * eff / 100 + flat : 0, slabN = 0;
+    // ML price slab (same as the Commission page): an order with a known total ML pays its slab % instead of the normal rate.
+    if (window.MLSLAB && MLSLAB.on(CM.slab)) {
+      const ctx = c && hasCond() ? { hit: c.hit, ticket: c.ticket } : undefined;
+      orders.forEach((o) => {
+        const s = MLSLAB.orderCom(CM.slab, o, slabHit(o));
+        if (!s) return;
+        const p = ctx ? calcPrice(o, ctx) : o;
+        amount += s.v - (c ? c.rate * p.eff / 100 + p.flat : 0); slabN++;
+      });
+    }
+    if (slabN && slabN === n) return { ach, n, target, rate: ach > 0 ? Math.round(amount / ach * 10000) / 100 : 0, amount, rated: true, slab: true };
+    return { ach, n, target, rate: c ? c.rate : 0, amount, rated: !!c || slabN > 0 };
   }
   function period(days, useManual) {
     const rows = ['', 'tm4u'].map((rk) => aggRow(rk, days, useManual));
@@ -314,7 +334,7 @@
       const dayStart = tm && Array.isArray(tm.start) && tm.start.length === 7 ? tm.start : ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
       CM.rules = cm.rules || [];
       CM.code = { on: !!(cm.code && cm.code.on), rules: (cm.code && cm.code.rules) || [], shares: (cm.shares && !Array.isArray(cm.shares)) ? cm.shares : {} };
-      CM.target = cm.target || {}; CM.status = cm.status || {}; CM.manual = (cm.manual && !Array.isArray(cm.manual)) ? cm.manual : {};
+      CM.target = cm.target || {}; CM.status = cm.status || {}; CM.manual = (cm.manual && !Array.isArray(cm.manual)) ? cm.manual : {}; CM.slab = cm.ml_slab || null;
       buildOrders(od.orders || [], from, to, dayStart);
       const days = []; for (let x = from; x <= to; ) { days.push(x); const t = new Date(x + 'T00:00:00'); t.setDate(t.getDate() + 1); x = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
       const m = period(days, true), t = period([to]);
