@@ -44,13 +44,43 @@
     .plat-card .li.p{background:#f1faf5; border-color:#cdeedb;} .plat-card .li.d{background:#fff8ec; border-color:#fbe4bd;}
     .plat-card .li.bfm{background:#fff8ec; border-color:#fbe4bd;} .plat-card .li.afm{background:#f3f2fe; border-color:#dcd9fb;} .plat-card .li.w2{grid-column:span 2;}
     .plat-card .li b small{display:block; margin-left:0;}
-    .stat-card .value.cl-tot{font-size:12px; gap:2px 8px;} .cl-tot span{gap:3px;} .cl-tot i{width:7px; height:7px;}
     .plat-card .li.t{margin:0; padding:6px 8px; background:#111827; border-color:#111827;} .plat-card .li.t span{color:#9ca3af;} .plat-card .li.t b{color:#fff;}
   }
   /* Stat cards carry a full and a short label/amount; only one shows at a
      time. Kept here as well as in style.css so the cards render correctly
      even when a browser or local server has an older stylesheet. */
+  .rule-switch{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--ink,#111827); margin:0 0 10px;}
+  .rule-switch input, .rule-check input, .rule-houses input{width:16px; height:16px; min-height:0; margin:0; flex:none;}
+  .tscroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  @media (max-width:820px){ .tscroll{overflow:visible;} }
+  #ruleModal .rule-body input[type=text], #ruleModal .rule-body input[type=number], #ruleModal .rule-body select{padding:7px 9px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff; color:var(--ink,#111827); min-height:0;}
+  .rule-body{max-height:62vh; overflow-y:auto; overscroll-behavior:contain; margin:0 -4px; padding:0 4px;}
+  .rule-card{border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--surface,#fff);}
+  .rule-card.bad{border-color:#c81e1e;}
+  .rule-card-head{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .rule-card-head input{flex:1; min-width:0; font-weight:600;}
+  .rule-del{background:none; border:none; color:#c81e1e; font-size:12.5px; cursor:pointer; padding:4px 6px; min-height:0; white-space:nowrap;}
+  .rule-days{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;}
+  .rule-day{border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:14px; padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; min-height:0;}
+  .rule-day.on{background:#eaf2ff; border-color:#2563eb; color:#1d4ed8;}
+  .rule-day.clash{border-color:#c81e1e; color:#c81e1e; background:#fdecec;}
+  .rule-fields{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
+  .rule-fields label{display:flex; flex-direction:column; gap:3px; font-size:11.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--muted); margin:0;}
+  .rule-fields input, .rule-fields select{width:100%; min-width:0;}
+  .rule-check{display:flex; align-items:center; gap:8px; margin:10px 0 0; font-size:12.5px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink,#111827);}
+  .rule-sentence{margin-top:10px; background:#f6f7fb; border-radius:8px; padding:8px 10px; font-size:12.5px; line-height:1.5;}
+  .rule-sentence b{color:var(--accent);}
+  .rule-add{width:100%; margin:2px 0 12px;}
+  .rule-houses-title{font-size:12px; font-weight:600; color:var(--muted); margin:4px 0 6px;}
+  .rule-houses{display:flex; flex-wrap:wrap; gap:8px 16px;}
+  .rule-houses label{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink,#111827); margin:0;}
+  .rule-note{font-size:11.5px; color:var(--muted); margin:6px 0 0;}
+  .modal.rule-off .rule-body, .modal.rule-off .rule-houses{opacity:.45; pointer-events:none;}
+  @media (max-width:820px){ .rule-fields input, .rule-fields select, .rule-card-head input{font-size:16px;} .rule-day{padding:6px 11px;} }
   .lbl-short, .amt-short{display:none;}
+  /* top boxes: "₹ amount / orders", both the same size (wraps the orders under the amount when the box is narrow) */
+  .stat-card .value.vline{display:flex; flex-wrap:wrap; align-items:baseline; gap:0 6px; font-size:22px; line-height:1.2;} .vline span{white-space:nowrap;}
+  @media (max-width:820px){ .stat-card .value.vline{font-size:15px; gap:0 4px;} }
   @media (max-width:820px){ .lbl-full, .amt-full{display:none;} .lbl-short{display:inline;} .amt-short{display:block;} .stat-card.ar{grid-column:span 2;} .pcm span{flex-direction:column; gap:0;} .pcm{gap:9px;} .stat-card.ar .pcm{gap:2px;} .stat-card.ar .pcm span{flex-direction:row; gap:6px;} }
   .topbar .tb-title{display:flex; align-items:center; gap:12px; min-width:0;}
   .topbar .tb-title h1{margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -87,25 +117,22 @@
   .g-emp{background:#111827 !important;} .g-tgt{background:#2563eb !important;} .g-ord{background:#0f7a41 !important;}
   .g-qry{background:#7c3aed !important;} .g-cmp{background:#b45309 !important;} .g-pay{background:#0e7490 !important;}
   .g-rat{background:#be185d !important;} .g-tk{background:#0369a1 !important;} .g-cm{background:#ea580c !important;} .g-cmu{background:#6d28d9 !important;}
-  /* Community (Yes / No per employee): click a number for those orders */
-  .es-cu{display:inline-flex; flex-direction:column; align-items:center; gap:1px; text-decoration:none; color:#6d28d9; line-height:1.1;} .es-cu b{font-size:17px; font-weight:900;} .es-cu small{font-size:10px; font-weight:700; color:#8b7fb0;}
-  .es-cu.n{color:#6b7280;} .es-cu.n small{color:#9ca3af;} .es-cu .pc{display:inline-block; margin-top:2px; background:#ede9fe; color:#6d28d9; font-size:10px; font-weight:800; padding:0 6px; border-radius:999px;}
-  a.es-cu:hover b{text-decoration:underline;} td.cuc{background:#f8f5ff;}
+  /* Community: one number per employee, typed by hand */
+  .es-cu{display:inline-flex; flex-direction:column; align-items:center; gap:1px; color:#6d28d9; line-height:1.1;} .es-cu b{font-size:17px; font-weight:900;}
+  td.cuc{background:#f8f5ff;}
   /* Order time (per employee): orders before punch-out / punch-out to 12 AM / 12 AM to day start — count, ₹ under it */
   .g-tm{background:#0f766e !important;} td.tmc{background:#f3faf8;}
   .es-tm{display:inline-flex; flex-direction:column; align-items:center; gap:1px; line-height:1.1; color:#0f766e;} .es-tm b{font-size:16px; font-weight:900;} .es-tm small{font-size:10px; font-weight:700; color:#6b7280;}
   .es-tm.z{color:#9ca3af;} .es-tm.z b{font-weight:700;} a.es-tm{text-decoration:none;} a.es-tm:hover b{text-decoration:underline;}
-  /* Community typed by hand: pencil under the numbers, Manual pill, small two-field editor */
+  /* Community typed by hand: pencil under the number, small one-field editor */
   .cu-wrap{display:inline-flex; flex-direction:column; align-items:center; gap:3px;}
   .cu-ed{min-height:0; width:auto; padding:1px 7px; border-radius:999px; font-size:11px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#6b7280; line-height:1.4;} .cu-ed:hover{border-color:var(--accent); color:var(--accent);}
   .cu-edit{display:inline-flex; flex-direction:column; gap:5px; align-items:stretch; text-align:left;}
-  .cu-edit label{display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11.5px; font-weight:700; color:#6b7280;}
-  .cu-edit input{width:64px; padding:3px 6px; border:1px solid var(--accent); border-radius:6px; font-size:13px; min-height:0; text-align:right;}
+  .cu-edit input{width:76px; padding:4px 6px; border:1px solid var(--accent); border-radius:6px; font-size:14px; min-height:0; text-align:center; align-self:center;}
+  @media (max-width:820px){ .cu-edit input{font-size:16px;} }
   .cu-edit .row{display:flex; gap:4px; justify-content:flex-end;}
   .cu-edit button{min-height:0; width:auto; padding:3px 8px; border-radius:6px; font-size:11.5px; cursor:pointer; border:1px solid var(--line); background:#fff;}
   .cu-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);} .cu-edit button.rv{color:#6b7280;}
-  .cmd .cutabs{display:flex; gap:6px; margin:0 0 12px;} .cmd .cutabs button{min-height:0; width:auto; padding:7px 14px; border-radius:999px; font-size:12.5px; font-weight:700; background:#f1f2f5; color:#4a4f5a; border:none; cursor:pointer;} .cmd .cutabs button.on{background:#6d28d9; color:#fff;} .cmd .cutabs button span{margin-left:6px; opacity:.8;}
-  .cmd .cupill{display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; background:#e7f7ee; color:#0f7a41;} .cmd .cupill.n{background:#f1f2f5; color:#6b7280;} .cmd a.cuord{color:var(--accent); font-weight:800; text-decoration:none;} .cmd td.cuy{color:#6d28d9; font-weight:800;}
   /* live commission column */
   .es-tbl td.cmc{text-align:left; min-width:230px; white-space:normal;}
   .cmv{font-size:14px; font-weight:800;} .cmp{display:inline-block; font-size:11px; font-weight:800; background:#fff4db; color:#8a5a00; border-radius:8px; padding:1px 7px; margin-left:4px;}
@@ -250,11 +277,23 @@
   .es-star{color:#f59e0b; letter-spacing:1px; font-size:12px;} .es-star .e{color:#e2e5ea;} .es-star small{color:var(--muted); letter-spacing:0; margin-left:4px; font-size:11px; font-weight:600;}
   .es-sl{color:#c3c8d0;} .es-pd{color:var(--ok-fg); font-weight:600;}
   .es-cl{font-size:11px; color:var(--muted); font-weight:600; margin-left:6px;}
-  .cl-tot .sum{margin-top:2px; padding-top:7px; border-top:1px dashed var(--line);}
-  .cl-tot{display:flex; flex-direction:column; gap:6px;} .cl-tot span{display:flex; align-items:center; gap:7px; white-space:nowrap;} .cl-tot span b{margin-left:auto; font-variant-numeric:tabular-nums;} .cl-tot i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1; flex:none;}
-  .stat-card .value.cl-tot{line-height:1.5;} @media (min-width:821px){ .stat-card .value.cl-tot{font-size:14px;} }
   /* All Orders box + panel boxes: prepaid ₹ and COD ₹ with their share of the revenue */
   .pcm{display:flex; flex-direction:column; gap:2px; margin-top:9px; font-weight:700; font-size:13px; line-height:1.35;}
+  .et-sub{display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-top:3px; font-size:11px; font-weight:700; color:var(--muted);} .et-sub .a{color:#0f7a41;} .et-sub .p{color:#b45f06;}
+  /* top boxes: Sales team Total / Present / Absent (click a tile for the names) */
+  .tm-box .tm-h{display:flex; justify-content:space-between; align-items:baseline; font-size:10.5px; font-weight:800; color:#1e40af; letter-spacing:.05em; text-transform:uppercase; margin-bottom:6px;} .tm-box .tm-h span{color:var(--muted); text-transform:none; letter-spacing:0; font-weight:600;}
+  .tm-chips{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
+  .tm-chips button{min-height:0; width:auto; border-radius:10px; padding:6px 2px; text-align:center; cursor:pointer; border:1px solid; font:inherit; line-height:1.15;}
+  .tm-chips button b{display:block; font-size:17px; font-weight:800;} .tm-chips button small{font-size:10px; font-weight:700;}
+  .tm-chips .t{background:#f4f8ff; border-color:#dbe7ff; color:#1d4ed8;} .tm-chips .p{background:#f1faf5; border-color:#cdeedb; color:#0f7a41;} .tm-chips .a{background:#fff4ec; border-color:#fed7aa; color:#ea580c;}
+  .tm-bar{display:flex; height:6px; border-radius:4px; overflow:hidden; margin-top:7px; background:#f3f4f6;} .tm-bar i{display:block;} .tm-bar .p{background:#1D9E75;} .tm-bar .a{background:#f97316;}
+  .tm-more{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.35;}
+  .tm-chips button small{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  @media (max-width:820px){ .tm-chips{gap:4px;} .tm-chips button{padding:5px 0;} .tm-chips button b{font-size:15px;} .tm-chips button small{font-size:9.5px;} .stat-card:not(.ar) .tm-chips{gap:3px;} .stat-card:not(.ar) .tm-chips button small{font-size:8px; letter-spacing:-.02em;} }
+  .cmd .tmtabs{display:flex; gap:6px; margin:0 0 12px; flex-wrap:wrap;} .cmd .tmtabs button{min-height:0; width:auto; padding:7px 14px; border-radius:999px; font-size:12.5px; font-weight:700; background:#f1f2f5; color:#4a4f5a; border:none; cursor:pointer;} .cmd .tmtabs button span{margin-left:6px; opacity:.8;}
+  .cmd .tmtabs button.on.t{background:#1d4ed8; color:#fff;} .cmd .tmtabs button.on.p{background:#0f7a41; color:#fff;} .cmd .tmtabs button.on.a{background:#ea580c; color:#fff;}
+  .tmtag{display:inline-block; font-size:10.5px; font-weight:700; padding:1px 8px; border-radius:9px; white-space:nowrap;} .tmtag.p{background:#e8f6ee; color:#0f7a41;} .tmtag.np{background:#fff4ec; color:#ea580c;} .tmtag.lv{background:#fff4e0; color:#b45f06;} .tmtag.o{background:#f1f2f5; color:#4a4f5a;}
+  .pt-box + .pcm{margin-top:10px; padding-top:9px; border-top:1px dashed var(--line);}     /* prepaid / COD now sits under the Target box */
   .pcm span{display:flex; align-items:baseline; gap:6px; white-space:nowrap;} .pcm small{font-size:11px; font-weight:700;}
   .pcm .p,.pcm .p small{color:#0f7a41;} .pcm .d,.pcm .d small{color:#b45f06;}
   .tkr{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-top:7px; padding-top:6px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--muted); white-space:nowrap;}
@@ -348,8 +387,9 @@
   .rm-edit button.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
   .rm-edit button.del{color:var(--bad-fg);}
   @media (max-width:820px){ .rm-edit textarea{font-size:16px;} }
-  /* Ad spend + ROAS box under the Target box (ROAS = total collection / ad spend typed by hand) */
+  /* Ad spend + ROAS box, with the DG / LG / WH / Other bottle colours under it (ROAS = total collection / ad spend typed by hand) */
   .rs-box{min-width:0;}
+  .rs-card .rs-box{margin-top:6px; padding-top:0; border-top:0;}       /* in its own box: no divider above it */
   .rs-box .pt-top b{display:inline-flex; align-items:center; gap:2px;}
   .rs-box .tgt-chip{max-width:100%;}
   .rs-tile{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:#f4f8ff; border:1px solid #dbe7ff; border-radius:14px; padding:9px 11px;}
@@ -359,6 +399,25 @@
   .rs-tx{min-width:0; line-height:1.25;}
   .rs-tx small{display:block; font-size:10.5px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:.05em;}
   .rs-f{margin-top:5px; font-size:11px; color:var(--muted); line-height:1.3;}
+  .rt-h{margin-top:12px; padding-top:9px; border-top:1px dashed var(--line); font-size:10.5px; font-weight:800; color:#1e40af; letter-spacing:.05em; text-transform:uppercase;}
+  .rt-h span{float:right; color:var(--muted); text-transform:none; letter-spacing:0; font-weight:600;}
+  .rt-cols{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; margin-top:8px;}
+  .rt-col{min-width:0; border:1px solid #eef0f4; border-radius:12px; padding:9px 9px 10px; background:#fafbfc;} .rt-col.hit{background:#f1faf5; border-color:#cdeedb;}
+  .rt-top{display:flex; align-items:center; gap:6px;} .rt-top .n{width:18px; height:18px; border-radius:50%; background:#e8eefc; color:#1e40af; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; flex:none;} .rt-top .m{font-weight:800; color:#1d4ed8; font-size:14px;}
+  .rt-tg{margin:6px 0 8px; line-height:1.2;} .rt-tg small{display:block; font-size:10.5px; font-weight:600; color:var(--muted);} .rt-tg b{font-size:14px; color:var(--ink);}
+  .rt-ring{flex-direction:column; align-items:flex-start; gap:7px;} .rt-ring .tx{width:100%; gap:4px;}
+  @media (max-width:820px){ .rt-cols{gap:5px;} .rt-col{padding:7px 6px 8px;} .rt-top .m{font-size:12.5px;} .rt-tg b{font-size:12.5px;} }
+  .cg-box .rt-h{margin-top:12px;} .cg-box.first .rt-h{margin-top:6px; padding-top:0; border-top:0;}
+  .cg{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; margin-top:8px;}
+  .cc{min-width:0; border:1px solid #eef0f4; border-radius:12px; padding:8px 8px; background:#fafbfc;}
+  .cc .t{display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; line-height:1.2; min-height:28px;}
+  .cc .t i{width:9px; height:9px; border-radius:50%; display:inline-block; border:1px solid #cbd5e1; flex:none;}
+  .cc b{display:block; font-size:18px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums;} .cc small{color:var(--muted); font-size:11px; font-weight:600;}
+  .cg-bar{display:flex; height:7px; border-radius:4px; overflow:hidden; margin-top:9px; background:#f3f4f6;} .cg-bar i{display:block;}
+  .cg-tot{display:flex; justify-content:space-between; margin-top:8px; font-size:13px; font-weight:800;}
+  @media (max-width:820px){ .cg{grid-template-columns:repeat(2, minmax(0, 1fr)); gap:6px;} .cc{padding:7px 8px;} .cc .t{min-height:0;} .cc b{font-size:16px;} }
+  @media (min-width:821px){ .stat-card.rs-card{grid-column:span 2;} }
+  @media (max-width:820px){ .stat-card.rs-card{grid-column:1 / -1;} }
   .rs-warn{margin-top:6px; font-size:10.5px; color:#b45f06; font-weight:600; line-height:1.3;}
   @media (max-width:520px){ .rs-big{font-size:21px;} }
   .stbox{display:flex; align-items:center; gap:5px; flex-wrap:nowrap;}
@@ -419,6 +478,7 @@
             </div>
             <button class="btn secondary" id="btnToday">Today</button>
             <button class="btn secondary" id="btnTiming" type="button" title="Set when each business day starts">Day timing</button>
+            <button class="btn secondary" id="btnRule" type="button" title="How daily targets are set automatically">Target rule</button>
             <span id="loadingHint" style="display:none; font-size:13px; color:var(--muted); align-self:center;">Loading...</span>
             <button class="btn" id="btnAddOrder">+ Add Order</button>
           </div>
@@ -528,7 +588,25 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="timingModal">
+<div class="modal-overlay" id="ruleModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>Target rules</h3>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target. A new Sales Executive follows a fixed ladder for the first four weeks instead (₹10,000 / 15,000 / 20,000 / 25,000 a day by week); a target set by hand can go above it, not below.</p>
+    <div id="ruleAlert"></div>
+    <label class="rule-switch"><input type="checkbox" id="ruleEnabled"> Set daily targets automatically</label>
+    <div class="rule-body">
+      <div id="ruleList"></div>
+      <button type="button" class="btn secondary rule-add" id="ruleAdd">+ Add rule</button>
+      <div class="rule-houses-title">Applies to employees in</div>
+      <div id="ruleHouses" class="rule-houses"></div>
+      <p class="rule-note">Houses added later are not included until you tick them here.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="ruleCancel">Cancel</button>
+      <button type="button" class="btn" id="ruleSave">Save rules</button>
+    </div>
+  </div>
+</div><div class="modal-overlay" id="timingModal">
   <div class="modal" style="max-width:440px;">
     <h3>Day timing</h3>
     <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">A business day runs from its start time until the next day's start time. Orders on this page are shown in that window — for example 10:00 AM to the next day 10:00 AM. Default is 10:00 AM every day.</p>
@@ -611,7 +689,7 @@
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
-<div class="cmo" id="cuOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cuTtl"><div class="hd"><div><h3 id="cuTtl"></h3><p id="cuSub"></p></div><button type="button" class="x" id="cuX" aria-label="Close">✕</button></div><div class="bd" id="cuBd"></div></div></div>
+<div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
 <div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -1197,6 +1275,60 @@
       : (can ? `<span class="tgt-chip empty" data-pt="edit" data-k="${k}" title="Set the target by hand">Set target ✎</span>` : '<b>—</b>');
     return `<div class="pt-box"><div class="pt-top"><span>Target ${pill}</span>${right}</div>${ring}</div>`;
   }
+  // ---- Sales team in the top boxes: how many sales people the panel has, how many punched in, how many did not.
+  // The day = the last day of the picked dates that has started (the server sends it in each sheet row as day_status).
+  const TM_MARK = { leave: 'Leave', half_leave: 'Half leave', wfh: 'Work from home', week_off: 'Week off', holiday: 'Holiday' };
+  function teamPeople(k) {
+    if (!teamData || !teamData.rows) return null;
+    return teamData.rows.filter(r => r.day_status && (k === 'all' ? true : !!((r.panels || {})[k] || {}).member)).map(r => {
+      const d = r.day_status, mark = d.mark || '';
+      const present = !!d.present || mark === 'wfh';
+      return { name: r.full_name, code: r.employee_code || '', present, punch: d.punch || '', mark, date: d.date };
+    });
+  }
+  function teamHtml(k) {
+    if (!k || !ES_ALLOWED || !teamData) return '';
+    if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';
+    const ppl = teamPeople(k); if (!ppl || !ppl.length) return '';
+    const tot = ppl.length, pr = ppl.filter(p => p.present).length, ab = tot - pr, day = ppl[0].date;
+    const today = day === bizDayOf(new Date());
+    const lv = ppl.filter(p => !p.present && p.mark && p.mark !== 'wfh').length, np = ab - lv;
+    const more = k === 'all' && ab ? `<div class="tm-more">Absent: ${np} not punched${lv ? ' · ' + lv + ' on leave / off' : ''}</div>` : '';
+    return `<div class="pt-box tm-box"><div class="tm-h">Sales team <span>${today ? 'today' : dateLabel(day)}</span></div>` +
+      `<div class="tm-chips"><button type="button" class="t" data-tm="t" data-k="${k}"><b>${tot}</b><small>Total</small></button><button type="button" class="p" data-tm="p" data-k="${k}"><b>${pr}</b><small>Present</small></button><button type="button" class="a" data-tm="a" data-k="${k}"><b>${ab}</b><small>Absent</small></button></div>` +
+      `<div class="tm-bar"><i class="p" style="width:${pr / tot * 100}%"></i><i class="a" style="width:${ab / tot * 100}%"></i></div>${more}</div>`;
+  }
+  let tmCur = null, tmY = 0;
+  function tmOpen(k, side) { tmCur = { k, side }; tmDraw(); tmY = window.scrollY; esEl('tmOv').hidden = false; esEl('tmBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, tmY); }
+  const tmClose = () => { esEl('tmOv').hidden = true; document.documentElement.classList.remove('cm-lock'); window.scrollTo(0, tmY); };
+  function tmDraw() {
+    const c = tmCur; if (!c) return;
+    const ppl = (teamPeople(c.k) || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const pres = ppl.filter(p => p.present), abs = ppl.filter(p => !p.present), rows = c.side === 'p' ? pres : (c.side === 'a' ? abs : ppl);
+    const day = ppl.length ? ppl[0].date : '';
+    esEl('tmTtl').textContent = 'Sales team · ' + (c.k === 'all' ? 'All panels' : (PANEL_NAME[c.k] || c.k));
+    esEl('tmSub').textContent = (day ? dateLabel(day) + ' · ' : '') + ppl.length + ' people · ' + pres.length + ' present · ' + abs.length + ' absent';
+    const tag = (p) => p.present ? `<span class="tmtag p">${p.mark === 'wfh' ? 'Work from home' : (p.punch ? 'In ' + fmtHM(p.punch) : 'Present')}</span>` : (p.mark && TM_MARK[p.mark] ? `<span class="tmtag ${p.mark === 'leave' || p.mark === 'half_leave' ? 'lv' : 'o'}">${TM_MARK[p.mark]}</span>` : '<span class="tmtag np">Not punched</span>');
+    esEl('tmBd').innerHTML = `<div class="tmtabs"><button type="button" class="t${c.side === 't' ? ' on' : ''}" data-tms="t">Total<span>${ppl.length}</span></button><button type="button" class="p${c.side === 'p' ? ' on' : ''}" data-tms="p">Present<span>${pres.length}</span></button><button type="button" class="a${c.side === 'a' ? ' on' : ''}" data-tms="a">Absent<span>${abs.length}</span></button></div>` +
+      (rows.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Employee</th><th>Status</th></tr></thead><tbody>${rows.map((p, i) => `<tr><td>${i + 1}</td><td>${esEsc(p.name)}${p.code ? ` <span style="color:var(--muted); font-size:11px;">${esEsc(p.code)}</span>` : ''}</td><td>${tag(p)}</td></tr>`).join('')}</tbody></table></div>`
+        : `<div class="rl"><span class="n">Nobody here.</span></div>`);
+  }
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => { const b = ev.target.closest('[data-tm]'); if (b) tmOpen(b.dataset.k, b.dataset.tm); });
+  document.getElementById('tmX').addEventListener('click', tmClose);
+  document.getElementById('tmOv').addEventListener('click', (ev) => { if (ev.target.id === 'tmOv') { tmClose(); return; } const t = ev.target.closest('[data-tms]'); if (t && tmCur) { tmCur.side = t.dataset.tms; tmDraw(); } });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !document.getElementById('tmOv').hidden) tmClose(); });
+  // "Employee target": the targets of the panel's sales employees added up (All Orders box = every panel's employees).
+  // Always automatic — it is shown above the Target, which can be set by hand.
+  function empTargetHtml(label, s, forceKey) {
+    const pn = forceKey ? [forceKey] : PANELS.find(p => p[1] === label && p[0] !== 'none');
+    if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_targets) return '';
+    if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';
+    const pt = teamData.panel_targets[pn[0]]; if (!pt) return '';
+    if (teamData.rulePending) return `<div class="pt-box et-box"><div class="pt-top"><span>Employee target</span><span class="pt-wait">…</span></div></div>`;
+    const tgt = Number(pt.emp !== undefined ? pt.emp : pt.auto) || 0, ach = Number(s.total) || 0, pc = tgt > 0 ? Math.round(ach / tgt * 100) : 0;
+    return `<div class="pt-box et-box"><div class="pt-top"><span>Employee target <span class="tgt-pill auto">Auto</span></span><b>${tgt > 0 ? ptInr(tgt) : '—'}</b></div>` +
+      (tgt > 0 ? `<div class="et-sub"><span class="a">Achieved ${pc}%${pc > 100 ? ' 🎯' : ''}</span><span class="p">Pending ${ptInr(Math.max(0, tgt - ach))}</span></div>` : '<div class="et-sub"><span>Sum of the sales employees\' targets</span></div>') + '</div>';
+  }
   // Redraw the top boxes when the sheet's targets arrive — only once the orders have been drawn (the boxes are hidden until then).
   const summaryRefresh = () => { if (allOrders.length || document.getElementById('summaryGrid').style.display !== 'none') renderSummary(); };
   async function ptSave(k, amount) {
@@ -1224,7 +1356,7 @@
     if (ev.key === 'Escape') { ptEdit = ''; renderSummary(); }
   });
 
-  // ---- Ad spend + ROAS, only in the All Orders & Revenue box. ROAS = total collection / ad spend. The ad spend is typed by hand
+  // ---- Ad spend + ROAS of the All Orders & Revenue figures, in one box with the DG / LG / WH / Other colours. ROAS = total collection / ad spend. The ad spend is typed by hand
   // (one amount per day, one-day view only). Several days = the sum of the days typed. Per-house spends typed on the Detailed
   // Report still add up here as "Auto" unless an amount is typed for the box itself.
   let rsEdit = '';        // panel being typed in
@@ -1248,8 +1380,23 @@
       ? `<div class="rs-warn">Ad spend entered for ${n} of ${days} days. ROAS is higher than real until all days are filled.</div>` : '';
     return `<div class="pt-box rs-box"><div class="pt-top"><span>Ad spend ${pill}</span>${right}</div>` +
       `<div class="rs-tile"><div class="rs-big${r === null ? ' none' : ''}">${r === null ? '—' : r.toFixed(2) + '<small>×</small>'}</div><div class="rs-tx"><small>ROAS</small></div></div>` +
-      `<div class="rs-f">${has ? ptInr(coll) + ' ÷ ' + ptInr(spend) : 'Collection ÷ Ad spend'}</div>${partial}</div>`;
+      `<div class="rs-f">${has ? ptInr(coll) + ' ÷ ' + ptInr(spend) : 'Collection ÷ Ad spend'}</div>${partial}${has ? roasTargetsHtml(spend, coll) : ''}</div>`;
   }
+  // Revenue needed to reach each ROAS: target = ad spend × ROAS, achieved = collection ÷ target, pending = target − collection.
+  const ROAS_GOALS = [2.95, 3.0, 3.1];
+  function roasTargetsHtml(spend, coll) {
+    const cols = ROAS_GOALS.map((m, n) => {
+      const tgt = Math.round(spend * m), pc = tgt > 0 ? Math.round(coll / tgt * 100) : 0, hit = coll >= tgt, mt = m.toFixed(Math.round(m * 100) % 10 ? 2 : 1);
+      const r = 24, c = 2 * Math.PI * r;
+      return `<div class="rt-col${hit ? ' hit' : ''}"><div class="rt-top"><span class="n">${n + 1}</span><span class="m">${mt}×</span></div>` +
+        `<div class="rt-tg"><small>Target</small><b>${ptInr(tgt)}</b></div>` +
+        `<div class="pt-ring rt-ring"><div class="rg"><svg viewBox="0 0 58 58"><circle cx="29" cy="29" r="${r}" fill="none" stroke="#fde9c7" stroke-width="7"/><circle cx="29" cy="29" r="${r}" fill="none" stroke="#1D9E75" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c * Math.min(100, pc) / 100} ${c}"/></svg><span${pc > 100 ? ' class="o"' : ''}>${pc}%</span></div>` +
+        `<div class="tx"><div class="it a"><small>Achieved ${pc}%${hit ? ' 🎯' : ''}</small><b>${ptInr(coll)}</b></div><div class="it p"><small>Pending ${tgt > 0 ? Math.max(0, 100 - pc) : 0}%</small><b>${ptInr(Math.max(0, tgt - coll))}</b></div></div></div></div>`;
+    }).join('');
+    return `<div class="rt-h">Revenue needed for ROAS <span>Ad spend × ROAS</span></div><div class="rt-cols">${cols}</div>`;
+  }
+
+
   async function rsSave(k, amount) {
     if (!teamData || !teamData.single) return;
     const from = teamData.from, to = teamData.to;
@@ -1319,38 +1466,40 @@
     grid.innerHTML = `
       <div class="stat-card ar">
         <div class="label"><span class="lbl-full">All Orders &amp; Revenue</span><span class="lbl-short">Orders &amp; Revenue</span></div>
-        <div class="value">${base.length}
-          <span class="amt-full" style="font-size:13px; font-weight:500; color:var(--muted);"> / ${fmtMoney(grandTotal, 'INR')}</span>
-          <span class="amt-short">${fmtMoney(grandTotal, 'INR')}</span>
-        </div>
+        <div class="value vline"><span>${fmtMoney(grandTotal, 'INR')}</span><span>/ ${base.length}</span></div>
         <div class="tkr"><span>Ticket size</span> <b>${ticket(grandTotal, base.length, 'INR')}</b></div>
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         <div class="tkr"><span>Campaign order</span> <b class="n">${cOrders}</b></div>
-        <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
+        ${teamHtml(allKey)}
+        ${empTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
         ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
-        ${roasHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
+        <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
         ${qhHtml(shownKeys, false, 'all')}
       </div>
       ${boxes.map(([label, s]) => `
         <div class="stat-card">
           <div class="label"><span class="lbl-full">${label}</span><span class="lbl-short">${label.replace(/^TM Perfume House$/i, 'TM Perfume')}</span></div>
-          <div class="value">${s.count}
-            <span class="amt-full" style="font-size:13px; font-weight:500; color:var(--muted);"> / ${fmtMoney(s.total, s.currency)}</span>
-            <span class="amt-short">${fmtMoney(s.total, s.currency)}</span>
-          </div>
+          <div class="value vline"><span>${fmtMoney(s.total, s.currency)}</span><span>/ ${s.count}</span></div>
           <div class="tkr"><span>Ticket size</span> <b>${ticket(s.total, s.count, s.currency)}</b></div>
           ${(() => { const pk = (PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0]; if (!pk) return ''; const x = pQC[pk] || { qo: 0, co: 0 };
             return `<div class="tkr"><span>Query order</span> <b class="n">${x.qo}</b></div>` +
               (EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(x.qo, (platformQueries[pk] || {}).query || 0)}</div>`) + `<div class="tkr"><span>Campaign order</span> <b class="n">${x.co}</b></div>`; })()}
-          <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
+          ${teamHtml((PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0])}
+          ${empTargetHtml(label, s)}
           ${panelTargetHtml(label, s)}
+          <div class="pcm"><span class="p"><b>${fmtMoney(s.pre, s.currency)}</b><small>${share(s.pre, s.total)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(s.cod, s.currency)}</b><small>${share(s.pre, s.total)[1]}% COD</small></span></div>
           ${(() => { const pk = (PANELS.find(p => p[1] === label) || [])[0]; return pk && HOUR_KEYS.includes(pk) ? qhHtml([pk], true, 'p-' + pk) : ''; })()}
         </div>`).join('')}
-      <div class="stat-card">
-        <div class="label"><span class="lbl-full">DG / LG / WH / OTHER</span><span class="lbl-short">DG/LG/WH/OTHER</span></div>
-        <div class="value cl-tot">${(() => { const cp = clrPct([clr.dg, clr.lg, clr.wh, clr.other]), cn = [clr.dg, clr.lg, clr.wh, clr.other]; const one = (i, cls, name) => `<span><i class="${cls}"></i>${name}<b>${cn[i]}<small style="font-weight:600; color:var(--muted); margin-left:3px;">(${cp[i]}%)</small></b></span>`; return one(0, 'c-dg', 'Dark green') + one(1, 'c-lg', 'Light green') + one(2, 'c-wh', 'White') + one(3, 'c-ot', 'Other'); })()}<span class="sum">Total<b>${clr.dg + clr.lg + clr.wh + clr.other}</b></span></div>
-      </div>
+      ${(() => {      // Ad spend & ROAS + the bottle colours (DG / LG / WH / Other) in one box
+        const r = roasHtml('All Orders & Revenue', { total: grandTotal }, allKey), cn = [clr.dg, clr.lg, clr.wh, clr.other], cp = clrPct(cn), tot = cn.reduce((a, v) => a + v, 0);
+        const CL = [['c-dg', 'Dark green', '#14532d'], ['c-lg', 'Light green', '#86efac'], ['c-wh', 'White', '#e5e7eb'], ['c-ot', 'Other', '#94a3b8']];
+        const colours = `<div class="cg-box${r ? '' : ' first'}"><div class="rt-h">DG / LG / WH / Other <span>bottle colours</span></div>` +
+          `<div class="cg">${CL.map(([cls, name], i) => `<div class="cc"><div class="t"><i class="${cls}"></i>${name}</div><b>${cn[i]}</b><small>${cp[i]}%</small></div>`).join('')}</div>` +
+          `<div class="cg-bar">${tot ? CL.map(([, , col], i) => `<i style="width:${cn[i] / tot * 100}%; background:${col};"></i>`).join('') : ''}</div>` +
+          `<div class="cg-tot"><span>Total</span><b>${tot}</b></div></div>`;
+        return `<div class="stat-card rs-card"><div class="label"><span class="lbl-full">${r ? 'Ad spend &amp; ROAS' : 'DG / LG / WH / Other'}</span><span class="lbl-short">${r ? 'Ad spend &amp; ROAS' : 'DG/LG/WH/Other'}</span></div>${r}${colours}</div>`;
+      })()}
     `;
     grid.style.display = 'grid';
     renderUnallocNote();
@@ -1787,7 +1936,7 @@
   const ES_COLS = {
     to: [['Target · Collection · Orders', 'to']],      // one box: Target, Collection, Orders, Total query, Ratio
     tk: [['Ticket size', 'tkt']],                       // collection ÷ orders per employee (Query / Campaign ticket under it)
-    cmu: [['Yes', 'cy'], ['No', 'cn']],                 // Community (Order Allocation page): how many of this person's orders are marked Yes / No
+    cmu: [['Community', 'cy']],                          // Community: one number per employee per day, typed by hand (✎ Write)
     tm: [['10 AM – punch out', 't1'], ['Punch out – 12 AM', 't2'], ['12 AM – 10 AM', 't3']],   // when the person's orders came in (count, ₹ under it)
     qry: [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']],
     cmp: [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']],
@@ -1871,24 +2020,18 @@
     return `<b>${esInr(e.coll / e.ord)}</b>${sub ? `<div class="es-tk">${sub}</div>` : ''}`;
   }
 
-  // Community (Order Allocation page, Yes / No per order): one person's count, click = that person's orders in the popup.
-  // Typed by hand (one-day view, ✎): the typed Yes / No replace the order count of that day; a range sums typed days + counted days.
+  // Community: one number per employee, typed by hand on a one-day view (✎ Write). A range adds up the typed days.
   let esCuEdit = '';         // "employee id|panel" being typed in
-  function esCu(e, side) {
+  function esCu(e) {
     const key = e.id + '|' + e.b, man = (e.cmd || 0) > 0, can = esCanEdit() && e.real && teamData && teamData.single, d = `data-id="${e.id}" data-b="${e.b}"`;
     if (can && esCuEdit === key) {
-      if (side === 'no') return '<span class="es-sl">—</span>';
       const cur = ((teamData.community_manual || {})[key] || {})[teamData.from] || null;
-      return `<div class="cu-edit"><label>Yes <input type="number" id="esCuY" min="0" max="9999" value="${cur ? cur.yes : ''}" placeholder="${e.cy}"></label><label>No <input type="number" id="esCuN" min="0" max="9999" value="${cur ? cur.no : ''}" placeholder="${e.cn}"></label>` +
-        `<div class="row">${cur ? `<button type="button" class="rv" data-cue="del" ${d} title="Back to the order count">↺ Auto</button>` : ''}<button type="button" data-cue="x">✕</button><button type="button" class="ok" data-cue="save" ${d}>✓ Save</button></div></div>`;
+      return `<div class="cu-edit"><input type="number" id="esCuY" min="0" max="9999" inputmode="numeric" value="${cur ? cur.yes : ''}" placeholder="0" aria-label="Community">` +
+        `<div class="row">${cur ? `<button type="button" class="rv" data-cue="del" ${d} title="Clear">↺ Clear</button>` : ''}<button type="button" data-cue="x">✕</button><button type="button" class="ok" data-cue="save" ${d}>✓ Save</button></div></div>`;
     }
-    const pen = can && side === 'yes' ? `<button type="button" class="cu-ed" data-cue="edit" ${d} title="Write Yes / No by hand">✎ Write</button>` : '';
-    if (!e.ord && !man) return pen ? `<span class="cu-wrap"><span class="es-sl">—</span>${pen}</span>` : '<span class="es-sl">—</span>';
-    const n = side === 'yes' ? e.cy : e.cn, base = man ? e.cy + e.cn : e.ord, pc = side === 'yes' && base ? `<span class="pc">${Math.round(e.cy / base * 100)}%</span>` : '';      // typed: Yes % of Yes + No
-    const inner = `<b>${n}</b><small>order${n === 1 ? '' : 's'}</small>${pc}`;
-    const num = n > 0 && !man ? `<a href="#" class="es-cu${side === 'no' ? ' n' : ''}" data-cu="${side}" data-n="${esEsc(e.n)}" data-b="${e.b}" data-real="${e.real ? 1 : 0}" title="Show these orders">${inner}</a>` : `<span class="es-cu${side === 'no' ? ' n' : ''}">${inner}</span>`;
-    const pill = man && side === 'yes' ? `<span class="tgt-pill man" title="${teamData && teamData.single ? 'Typed by hand' : e.cmd + ' day' + (e.cmd === 1 ? '' : 's') + ' typed by hand'}">Manual</span>` : '';
-    return pill || pen ? `<span class="cu-wrap">${num}${pill}${pen}</span>` : num;
+    const pen = can ? `<button type="button" class="cu-ed" data-cue="edit" ${d} title="Write the Community number">✎ Write</button>` : '';
+    const num = man ? `<span class="es-cu"><b>${e.cy}</b></span>` : '<span class="es-sl">—</span>';
+    return pen ? `<span class="cu-wrap">${num}${pen}</span>` : num;
   }
   // Order time cell: how many orders (₹ under it) came in that part of the day.
   function esTm(e, k) {
@@ -1897,11 +2040,10 @@
     const inner = `<b>${n}</b><small>${n ? esInr(v) : 'none'}</small>`;
     return e.real && n > 0 ? `<a href="#" class="es-tm" data-lk="${k}" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${inner}</a>` : `<span class="es-tm${n ? '' : ' z'}">${inner}</span>`;
   }
-  function esCuTot(t, side) {
-    const base = (t.cmd || 0) > 0 ? t.cy + t.cn : t.ord, n = side === 'yes' ? t.cy : t.cn, pc = side === 'yes' && base ? `<span class="pc">${Math.round(t.cy / base * 100)}%</span>` : '';
-    if (!t.ord && !(t.cmd || 0)) return '<span class="es-sl">—</span>';
-    return `<a href="#" class="es-cu${side === 'no' ? ' n' : ''}" data-cu="${side}" data-b="${t.b}" data-all="1" title="Every employee's Yes / No"><b>${n}</b><small>${side}</small>${pc}</a>`;
+  function esCuTot(t) {
+    return (t.cmd || 0) > 0 ? `<span class="es-cu"><b>${t.cy}</b></span>` : '<span class="es-sl">—</span>';
   }
+
 
   // One-line message inside the sheet box (loading / slow / error), so it is never an empty white box.
   const esMq = window.matchMedia('(max-width: 820px)');
@@ -1972,8 +2114,6 @@
       const a = by[key] = by[key] || slot();
       const amt = Number(o.total) || 0, t = orderTagType(o.tags);
       a.coll += amt; a.ord++;
-      const cmm = idOf[nm] !== undefined ? cman[idOf[nm] + '|' + panelOf(o)] : null;
-      if (!(cmm && cmm[bizDayOf(new Date(o.created_at))])) { if (o.community === 'yes') a.cy++; else a.cn++; }      // a day typed by hand replaces the count of that day
       if (t === 'query') { a.qo++; a.qc += amt; }
       if (t === 'campaign') { a.ko++; a.kc += amt; }
       const out = orderOutstanding(o, amt);
@@ -1996,7 +2136,7 @@
       const id = Number(key.slice(0, key.indexOf('|'))), b = key.slice(key.indexOf('|') + 1), nm = nameOf[id];
       if (nm === undefined) return;
       const a = by[nm + '|' + b] = by[nm + '|' + b] || slot();
-      Object.keys(cman[key] || {}).forEach(day => { const m = cman[key][day]; a.cy += Number(m.yes) || 0; a.cn += Number(m.no) || 0; a.cmd++; });
+      Object.keys(cman[key] || {}).forEach(day => { a.cy += Number(cman[key][day].yes) || 0; a.cmd++; });      // Community: the typed number of each day
     });
     return by;
   }
@@ -2030,7 +2170,7 @@
     Object.keys(by).forEach(key => {
       if (used.has(key)) return;
       const b = key.slice(key.lastIndexOf('|') + 1), o = other[b] = other[b] || slot0(), a = by[key];
-      ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => o[f] += a[f]);
+      ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => o[f] += a[f]);
       a.col.forEach((v, n) => o.col[n] += v);
     });
     Object.keys(other).forEach(b => {
@@ -2040,7 +2180,7 @@
     if (commValid()) out.forEach(e => { e.cm = e.real ? (((COMM.res.emps || {})[e.id] || {})[e.b] || null) : null; });
     return out;
   }
-  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, cy: 0, cn: 0, cmd: 0, t1n: 0, t1t: 0, t2n: 0, t2t: 0, t3n: 0, t3t: 0, col: [0, 0, 0, 0] }; }
+  function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, cy: 0, cmd: 0, t1n: 0, t1t: 0, t2n: 0, t2t: 0, t3n: 0, t3t: 0, col: [0, 0, 0, 0] }; }
 
   // The employees of one panel in the order picked in the Sort box. "My order" is the one set by drag and drop.
   function esSortRows(real, s, panel) {
@@ -2062,7 +2202,7 @@
   function esTotals(rows) {
     const t = Object.assign(slot0(), { tg: 0, q: 0, k: 0, tot: 0, orN: 0, orS: 0, cmAmt: 0, cmColl: 0 });
     rows.forEach(e => {
-      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cn', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => t[f] += e[f]);
+      ['tg', 'coll', 'q', 'qo', 'qc', 'k', 'ko', 'kc', 'ord', 'tot', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t'].forEach(f => t[f] += e[f]);
       e.col.forEach((v, i) => t.col[i] += v);
       if (e.or[1]) { t.orN += e.or[1]; t.orS += e.or[0] * e.or[1]; }
       if (e.cm) { t.cmAmt += e.cm.amt; t.cmColl += e.cm.coll; }
@@ -2154,8 +2294,7 @@
       case 'coll':  return `<td>${esCollCell(e)}</td>`;
       case 'tq':    return `<td class="gl">${e.real ? '<b>' + e.tot + '</b>' : dash}</td>`;
       case 'tkt':   return `<td class="gl">${esTk(e)}</td>`;
-      case 'cy':    return `<td class="gl cuc">${esCu(e, 'yes')}</td>`;
-      case 'cn':    return `<td class="cuc">${esCu(e, 'no')}</td>`;
+      case 'cy':    return `<td class="gl cuc">${esCu(e)}</td>`;
       case 't1': case 't2': case 't3': return `<td class="tmc${k === 't1' ? ' gl' : ''}">${esTm(e, k)}</td>`;
       case 'ord':   return `<td>${e.ord ? esLk(e, 'orders', e.ord, true) + esColSpan(e.col, e.b) : dash}</td>`;
       case 'ratio': return `<td>${e.real && e.tot ? esRt(esPct(e.ord, e.tot)) : dash}</td>`;
@@ -2178,8 +2317,8 @@
     if (k === 'to') return `<td class="gl to">${esBox(t, true)}</td>`;
     const m = { tg: t.tg ? esInr(t.tg) : '—', coll: esCollCell({ tg: t.tg, coll: t.coll, qc: t.qc, kc: t.kc }), tq: t.tot, ord: t.ord + esColSpan(t.col, t.b), ratio: esRt(esPct(t.ord, t.tot)), q: t.q, qo: t.qo, qr: esRt(esPct(t.qo, t.q)), qc: esInr(t.qc),
       k: t.k, ko: t.ko, kc: esInr(t.kc), kr: esRt(esPct(t.ko, t.k)), cod: `${esInr(t.cod)} <span class="es-sl">/</span> <span class="es-pd">${esInr(t.codPaid)}</span>`, pre: esInr(t.pre),
-      or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t), cy: esCuTot(t, 'yes'), cn: esCuTot(t, 'no'), t1: esTm(t, 't1'), t2: esTm(t, 't2'), t3: esTm(t, 't3') };
-    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm', 'cy', 't1'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : (k === 'cy' ? ' cuc' : (k === 't1' ? ' tmc' : ''))) + '"' : (k === 'cn' ? ' class="cuc"' : (k === 't2' || k === 't3' ? ' class="tmc"' : ''))}>${m[k]}</td>`;
+      or: esStars(t.orAvg), tkt: esTk(t), cm: esCmTot(t), cy: esCuTot(t), t1: esTm(t, 't1'), t2: esTm(t, 't2'), t3: esTm(t, 't3') };
+    return `<td${['tg', 'tq', 'tkt', 'q', 'k', 'cod', 'or', 'cm', 'cy', 't1'].includes(k) ? ' class="gl' + (k === 'cm' ? ' cmc' : (k === 'cy' ? ' cuc' : (k === 't1' ? ' tmc' : ''))) + '"' : (k === 't2' || k === 't3' ? ' class="tmc"' : '')}>${m[k]}</td>`;
   }
 
   // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
@@ -2216,10 +2355,10 @@
       renderTeamSheet();
     } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
   }
-  async function esCuSave(id, b, yes, no) {
+  async function esCuSave(id, b, n) {
     if (!teamData || !teamData.single) return;
     try {
-      const r = await api.post('panel_community.save', { date: teamData.from, employee_id: id, panel: b, yes, no });
+      const r = await api.post('panel_community.save', { date: teamData.from, employee_id: id, panel: b, yes: n, no: '' });
       if (!teamData.community_manual || Array.isArray(teamData.community_manual)) teamData.community_manual = {};
       const key = id + '|' + b;
       if (r && r.entry) { teamData.community_manual[key] = teamData.community_manual[key] || {}; teamData.community_manual[key][teamData.from] = r.entry; }
@@ -2264,7 +2403,7 @@
       ? `<div class="msec" style="--g:${color}"><div class="msh">${title}</div><div class="msg">${items.map(([l, k]) => `<div><span class="lb">${l}</span>${cv(k)}</div>`).join('')}</div></div>` : '';
     return `<div class="mc ${tot ? 'tot' : (abs ? 'abs' : (e.real ? '' : 'un'))}"${e.real && !tot ? ` data-id="${e.id}" data-b="${e.b}"` : ''}>${head}${box}` +
       sec('tk', 'Ticket size', '#0369a1', [['Ticket size', 'tkt']]) +
-      sec('cmu', 'Community', '#6d28d9', [['Yes', 'cy'], ['No', 'cn']]) +
+      sec('cmu', 'Community', '#6d28d9', [['Community', 'cy']]) +
       sec('tm', 'Order time', '#0f766e', [['10 AM – punch out', 't1'], ['Punch out – 12 AM', 't2'], ['12 AM – 10 AM', 't3']]) +
       sec('qry', 'Query', '#7c3aed', [['Query', 'q'], ['Q order', 'qo'], ['Q ratio', 'qr'], ['Q collection', 'qc']]) +
       sec('cmp', 'Campaign', '#b45309', [['Campaign', 'k'], ['C order', 'ko'], ['C collection', 'kc'], ['C ratio', 'kr']]) +
@@ -2462,7 +2601,7 @@
     document.addEventListener('click', (ev) => { if (esPop && !ev.target.closest('.stpop') && !ev.target.closest('[data-sx]')) esClosePop(); });
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') { esClosePop(); if (esEditTg) { esEditTg = ''; renderTeamSheet(); } if (esRemEdit) { esRemEdit = ''; renderTeamSheet(); } if (esCuEdit) { esCuEdit = ''; renderTeamSheet(); } }
-      if (ev.key === 'Enter' && (ev.target.id === 'esCuY' || ev.target.id === 'esCuN')) { const b = document.querySelector('[data-cue="save"]'); if (b) b.click(); }
+      if (ev.key === 'Enter' && ev.target.id === 'esCuY') { const b = document.querySelector('[data-cue="save"]'); if (b) b.click(); }
       if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey) && ev.target.id === 'esRemIn') { const b = document.querySelector('[data-rm="save"]'); if (b) b.click(); }
       if (ev.key === 'Enter' && ev.target.id === 'esTgIn') document.querySelector('[data-tg="save"]').click();
     });
@@ -2486,8 +2625,8 @@
         const id = Number(cue.dataset.id), pn = cue.dataset.b, act = cue.dataset.cue;
         if (act === 'edit') { esCuEdit = id + '|' + pn; renderTeamSheet(); const i = esEl('esCuY'); if (i) { i.focus(); i.select(); } }
         else if (act === 'x') { esCuEdit = ''; renderTeamSheet(); }
-        else if (act === 'save') { const y = (esEl('esCuY') || {}).value || '', n = (esEl('esCuN') || {}).value || ''; if (y === '' && n === '') { esCuEdit = ''; renderTeamSheet(); return; } esCuSave(id, pn, y, n); }
-        else if (act === 'del') esCuSave(id, pn, '', '');
+        else if (act === 'save') { const v = String((esEl('esCuY') || {}).value || '').trim(); if (v === '') { esCuEdit = ''; renderTeamSheet(); return; } esCuSave(id, pn, v); }
+        else if (act === 'del') esCuSave(id, pn, '');
         return;
       }
       const sx = ev.target.closest('[data-sx]');
@@ -2549,60 +2688,6 @@
 
   // ---------- Platform summary: click "Before 12 AM" / "After 12 AM" → prepaid & COD (₹ and %), total orders, order IDs, Excel ----------
   let mbCur = null;
-  // ---- Community popup: one employee's orders (Yes / No tabs), or every employee's Yes / No of a panel (from the Total row).
-  let cuCur = null, cuY = 0;
-  function cuOrdersOf(name, b, real) {
-    const nm = String(name || '').trim().toLowerCase();
-    return scopedOrders().filter(o => panelOf(o) === b && (real ? String(o.salesman || '').trim().toLowerCase() === nm : !esNames().has(String(o.salesman || '').trim().toLowerCase())));
-  }
-  function esNames() { const st = new Set(); if (teamData) teamData.rows.forEach(r => st.add(String(r.full_name || '').trim().toLowerCase())); return st; }
-  const cuDates = () => { const f = esEl('dateFrom').value, t = esEl('dateTo').value; return f === t ? dateLabel(f) : dateLabel(f) + ' – ' + dateLabel(t); };
-  function cuShow() { cuY = window.scrollY; esEl('cuOv').hidden = false; esEl('cuBd').scrollTop = 0; document.documentElement.classList.add('cm-lock'); window.scrollTo(0, cuY); }
-  const cuClose = () => { esEl('cuOv').hidden = true; document.documentElement.classList.remove('cm-lock'); window.scrollTo(0, cuY); };
-  function cuOpenEmp(name, b, side, real) {
-    const list = cuOrdersOf(name, b, real).sort((x, y) => String(x.created_at) < String(y.created_at) ? 1 : -1);
-    cuCur = { name, b, side, list };
-    esEl('cuTtl').textContent = 'Community · ' + name;
-    esEl('cuSub').textContent = cuDates() + ' · ' + (PANEL_NAME[b] || b) + ' · ' + list.length + ' order' + (list.length === 1 ? '' : 's');
-    cuDraw(); cuShow();
-  }
-  function cuDraw() {
-    const c = cuCur; if (!c) return;
-    const yes = c.list.filter(o => o.community === 'yes'), no = c.list.filter(o => o.community !== 'yes'), rows = c.side === 'yes' ? yes : no;
-    const inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-    const body = rows.map(o => {
-      const d = new Date(o.created_at), t = isNaN(d) ? '' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      const ty = orderTagType(o.tags), i = allOrders.indexOf(o);
-      return `<tr><td><a href="#" class="cuord" data-oi="${i}" title="Open order details">${esEsc(o.order_name || '')}</a><div class="hm" style="font-size:10.5px; color:var(--muted);">${esEsc(t)}</div></td><td>${esEsc(o.customer || 'Guest')}<div class="hm" style="font-size:10.5px; color:var(--muted);">${esEsc(o.phone || '')}</div></td><td class="r">${inr(Number(o.total) || 0)}</td><td class="hm">${ty === 'query' ? 'Query' : (ty === 'campaign' ? 'Campaign' : '—')}</td><td><span class="cupill${o.community === 'yes' ? '' : ' n'}">${o.community === 'yes' ? 'Yes' : 'No'}</span></td></tr>`;
-    }).join('');
-    const tot = rows.reduce((a, o) => a + (Number(o.total) || 0), 0);
-    esEl('cuBd').innerHTML = `<div class="cutabs"><button type="button" data-cus="yes" class="${c.side === 'yes' ? 'on' : ''}">Yes<span>${yes.length}</span></button><button type="button" data-cus="no" class="${c.side === 'no' ? 'on' : ''}">No<span>${no.length}</span></button></div>` +
-      (rows.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Order</th><th>Customer</th><th class="r">Total</th><th class="hm">Type</th><th>Community</th></tr></thead><tbody>${body}<tr class="tt"><td>Total · ${rows.length}</td><td></td><td class="r">${inr(tot)}</td><td class="hm"></td><td></td></tr></tbody></table></div>` : `<div class="rl"><span class="n">No ${c.side === 'yes' ? 'Yes' : 'No'} orders.</span></div>`);
-  }
-  function cuOpenPanel(b) {
-    const rows = esVisible(esRows().filter(e => e.b === b)), inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-    const t = esTotals(rows);
-    cuCur = null;
-    esEl('cuTtl').textContent = 'Community · ' + (PANEL_NAME[b] || b);
-    esEl('cuSub').textContent = cuDates() + ' · ' + t.cy + ' Yes · ' + t.cn + ' No';
-    const line = (e) => `<tr><td>${e.real ? `<a href="#" class="cuord" data-cue="${esEsc(e.n)}" data-b="${b}" data-real="1" style="color:var(--ink);">${esEsc(e.n)}</a>` : esEsc(e.n)}</td><td class="r">${e.ord}</td><td class="r cuy">${e.ord ? e.cy : '—'}</td><td class="r">${e.ord ? e.cn : '—'}</td><td class="r">${e.ord ? Math.round(e.cy / e.ord * 100) + '%' : '—'}</td></tr>`;
-    esEl('cuBd').innerHTML = `<div class="big"><div><span>Orders</span><b>${t.ord}</b></div><div><span>Community Yes</span><b style="color:#6d28d9;">${t.cy}${t.ord ? `<small>${Math.round(t.cy / t.ord * 100)}%</small>` : ''}</b></div><div><span>Community No</span><b>${t.cn}</b></div></div>` +
-      `<h4>Employee wise</h4><div style="overflow-x:auto;"><table><thead><tr><th>Employee</th><th class="r">Orders</th><th class="r">Yes</th><th class="r">No</th><th class="r">Yes %</th></tr></thead><tbody>${rows.map(line).join('')}<tr class="tt"><td>Total</td><td class="r">${t.ord}</td><td class="r cuy">${t.cy}</td><td class="r">${t.cn}</td><td class="r">${t.ord ? Math.round(t.cy / t.ord * 100) + '%' : '—'}</td></tr></tbody></table></div><p style="font-size:11.5px; color:var(--muted); margin:8px 0 0;">Click a name for that person's orders.</p>`;
-    cuShow();
-  }
-  esEl('cuX').addEventListener('click', cuClose);
-  esEl('cuOv').addEventListener('click', (ev) => { if (ev.target.id === 'cuOv') cuClose(); });
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !esEl('cuOv').hidden) cuClose(); });
-  esEl('cuBd').addEventListener('click', (ev) => {
-    const tb = ev.target.closest('button[data-cus]'); if (tb && cuCur) { cuCur.side = tb.dataset.cus; cuDraw(); return; }
-    const en = ev.target.closest('a[data-cue]'); if (en) { ev.preventDefault(); cuOpenEmp(en.dataset.cue, en.dataset.b, 'yes', true); return; }
-    const od = ev.target.closest('a[data-oi]'); if (od) { ev.preventDefault(); const i = Number(od.dataset.oi); if (i >= 0) { cuClose(); openDetail(i); } }
-  });
-  ['esTbl', 'esCards'].forEach(id => esEl(id).addEventListener('click', (ev) => {
-    const a = ev.target.closest('a[data-cu]'); if (!a) return;
-    ev.preventDefault();
-    if (a.dataset.all) cuOpenPanel(a.dataset.b); else cuOpenEmp(a.dataset.n, a.dataset.b, a.dataset.cu, a.dataset.real === '1');
-  }));
 
   function mbOpen(h, side) {
     if (side === 'ml') return mlOpen(h);
@@ -2703,7 +2788,7 @@
     const commText = (c) => c ? [c.rate > 0 ? 'Slab ' + rd(c.rate) + '%' : ''].filter(Boolean).concat((c.tags || []).map(t => t.l + ' · ' + t.n + ' order' + (t.n === 1 ? '' : 's') + (t.d ? ' · ' + (t.d < 0 ? '-' : '+') + '₹' + Math.abs(Math.round(t.d)) : ''))).join('; ') : '';
 
     // ---- employee rows (one panel, or all panels in one sheet)
-    const EMP_HEAD = ['Panel', 'Employee', 'Code', 'Status', 'Target', 'Collection', 'Achieved %', 'Orders', 'Total query', 'Order ratio %', 'Ticket size', 'Community Yes', 'Community No', '10 AM – punch out', 'Punch out – 12 AM', '12 AM – 10 AM', '10 AM – punch out ₹', 'Punch out – 12 AM ₹', '12 AM – 10 AM ₹', 'Query', 'Q orders', 'Q ratio %', 'Q collection',
+    const EMP_HEAD = ['Panel', 'Employee', 'Code', 'Status', 'Target', 'Collection', 'Achieved %', 'Orders', 'Total query', 'Order ratio %', 'Ticket size', 'Community', '10 AM – punch out', 'Punch out – 12 AM', '12 AM – 10 AM', '10 AM – punch out ₹', 'Punch out – 12 AM ₹', '12 AM – 10 AM ₹', 'Query', 'Q orders', 'Q ratio %', 'Q collection',
       'Campaign', 'C orders', 'C ratio %', 'C collection', 'COD', 'COD paid', 'Prepaid', 'Rating avg (of 5)', 'Rated orders', 'Commission ₹', 'Commission %', 'Slab %', 'Rules applied'];
     const EMP_FMT = [0, 0, 0, 0, money, money, 0, 0, 0, 0, money, 0, 0, 0, 0, 0, money, money, money, 0, 0, 0, money, 0, 0, 0, money, money, money, money, stars, 0, money, pct1, pct1, 0];
     const EMP_W = [18, 24, 10, 16, 11, 12, 11, 8, 11, 11, 11, 13, 13, 8, 9, 10, 12, 10, 9, 10, 12, 11, 11, 11, 12, 11, 13, 12, 9, 70];
@@ -2715,12 +2800,12 @@
     function empLine(e, label) {
       const c = e.cm;
       return [label, e.n, e.c, statusOf(e), e.tg || '', rd(e.coll), e.tg ? Math.round(e.coll / e.tg * 100) : '', e.ord, e.tot || '', esPct(e.ord, e.tot) == null ? '' : esPct(e.ord, e.tot), e.ord ? rd(e.coll / e.ord) : '',
-        e.ord ? e.cy : '', e.ord ? e.cn : '', e.t1n || 0, e.t2n || 0, e.t3n || 0, rd(e.t1t || 0), rd(e.t2t || 0), rd(e.t3t || 0), e.q || '', e.qo || '', esPct(e.qo, e.q) == null ? '' : esPct(e.qo, e.q), rd(e.qc), e.k || '', e.ko || '', esPct(e.ko, e.k) == null ? '' : esPct(e.ko, e.k), rd(e.kc),
+        e.cmd ? e.cy : '', e.t1n || 0, e.t2n || 0, e.t3n || 0, rd(e.t1t || 0), rd(e.t2t || 0), rd(e.t3t || 0), e.q || '', e.qo || '', esPct(e.qo, e.q) == null ? '' : esPct(e.qo, e.q), rd(e.qc), e.k || '', e.ko || '', esPct(e.ko, e.k) == null ? '' : esPct(e.ko, e.k), rd(e.kc),
         rd(e.cod), rd(e.codPaid), rd(e.pre), e.or[1] ? rd(e.or[0] / 2) : '', e.or[1] || '', c ? c.amt : '', c && c.coll > 0 ? rd(c.amt / c.coll * 100) : '', c && c.rate ? rd(c.rate) : '', commText(c)];
     }
     function totLine(t, label, who) {
       return [label, who, '', '', t.tg || '', rd(t.coll), t.tg ? Math.round(t.coll / t.tg * 100) : '', t.ord, t.tot || '', esPct(t.ord, t.tot) == null ? '' : esPct(t.ord, t.tot), t.ord ? rd(t.coll / t.ord) : '',
-        t.ord ? t.cy : '', t.ord ? t.cn : '', t.t1n || 0, t.t2n || 0, t.t3n || 0, rd(t.t1t || 0), rd(t.t2t || 0), rd(t.t3t || 0), t.q || '', t.qo || '', esPct(t.qo, t.q) == null ? '' : esPct(t.qo, t.q), rd(t.qc), t.k || '', t.ko || '', esPct(t.ko, t.k) == null ? '' : esPct(t.ko, t.k), rd(t.kc),
+        t.cmd ? t.cy : '', t.t1n || 0, t.t2n || 0, t.t3n || 0, rd(t.t1t || 0), rd(t.t2t || 0), rd(t.t3t || 0), t.q || '', t.qo || '', esPct(t.qo, t.q) == null ? '' : esPct(t.qo, t.q), rd(t.qc), t.k || '', t.ko || '', esPct(t.ko, t.k) == null ? '' : esPct(t.ko, t.k), rd(t.kc),
         rd(t.cod), rd(t.codPaid), rd(t.pre), t.orN ? rd(t.orAvg / 2) : '', t.orN || '', t.cmColl > 0 ? rd(t.cmAmt) : '', t.cmColl > 0 ? rd(t.cmAmt / t.cmColl * 100) : '', '', ''];
     }
     // Rows of the panels asked for. filtered = follow the search / status / sort boxes above the sheet; otherwise everyone, in the chosen sort.
@@ -2882,6 +2967,167 @@
       applyFilters();
     }
   });
+  // ---------- Target rules (same window as on the Targets page; Admin / HR only, the server checks the same) ----------
+  {
+  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const inr = (v) => '₹' + Math.round(Number(v) || 0).toLocaleString('en-IN');
+  let ruleSet = { enabled: 0, groups: [], rules: [] };
+  let ruleHouses = {};
+  async function loadTargetRule() {
+    try { const d = await api.get('target_rule.get'); if (d.rule) ruleSet = d.rule; if (d.houses) ruleHouses = d.houses; } catch (err) { /* keep what we have */ }
+  }
+  if (!['Admin', 'HR'].includes((api.currentUser() || {}).role)) document.getElementById('btnRule').style.display = 'none';
+  const ruleModal = document.getElementById('ruleModal');
+  const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];                 // show Mon → Sun
+  const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let draft = [];                                          // rules being edited
+
+  function readDraftFromDom() {
+    document.querySelectorAll('#ruleList .rule-card').forEach((card, i) => {
+      const r = draft[i];
+      r.name = card.querySelector('.rule-name').value.trim();
+      r.basis = card.querySelector('.rule-basis').value;
+      r.lookback = Number(card.querySelector('.rule-lookback').value);
+      r.pct = Number(card.querySelector('.rule-pct').value || 0);
+      r.min_target = Number(card.querySelector('.rule-min').value || 0);
+      r.skip_zero = card.querySelector('.rule-skip').checked ? 1 : 0;
+    });
+  }
+
+  function lookbackOptions(basis, current) {
+    const max = basis === 'weekday' ? 8 : 14;
+    const unit = basis === 'weekday' ? 'week' : 'day';
+    const opts = [];
+    for (let n = 1; n <= max; n++) opts.push(`<option value="${n}" ${n === Number(current) ? 'selected' : ''}>${n} ${unit}${n === 1 ? '' : 's'}</option>`);
+    return opts.join('');
+  }
+
+  function ruleSentence(r) {
+    if (!r.weekdays.length) return 'Pick the days this rule covers.';
+    const days = DAY_ORDER.filter(d => r.weekdays.includes(d));
+    const dayText = days.length === 7 ? 'Every day' : days.map(d => WEEKDAYS[d]).join(', ');
+    const basis = r.basis === 'weekday'
+      ? `the same weekday over the last <b>${r.lookback} week${r.lookback === 1 ? '' : 's'}</b>`
+      : `the last <b>${r.lookback} day${r.lookback === 1 ? '' : 's'}</b>`;
+    return `${dayText}: average of ${basis}${r.skip_zero ? ' (days with sales)' : ''} <b>${r.pct >= 0 ? '+' : '−'} ${Math.abs(r.pct)}%</b>${r.min_target > 0 ? `, never below <b>${inr(r.min_target)}</b>` : ''}.`;
+  }
+
+  // Days used by more than one rule, so they can be flagged before saving.
+  function clashes() {
+    const seen = {}, bad = new Set();
+    draft.forEach(r => r.weekdays.forEach(d => { if (seen[d] !== undefined) bad.add(d); seen[d] = true; }));
+    return bad;
+  }
+
+  function renderRules() {
+    const bad = clashes();
+    document.getElementById('ruleList').innerHTML = draft.map((r, i) => `
+      <div class="rule-card ${r.weekdays.some(d => bad.has(d)) ? 'bad' : ''}">
+        <div class="rule-card-head">
+          <input type="text" class="rule-name" maxlength="60" placeholder="Rule ${i + 1}" value="${(r.name || '').replace(/"/g, '&quot;')}" aria-label="Rule name">
+          ${draft.length > 1 ? `<button type="button" class="rule-del" data-del="${i}">Delete</button>` : ''}
+        </div>
+        <div class="rule-days" role="group" aria-label="Days this rule covers">
+          ${DAY_ORDER.map(d => `<button type="button" class="rule-day ${r.weekdays.includes(d) ? 'on' : ''} ${r.weekdays.includes(d) && bad.has(d) ? 'clash' : ''}"
+             data-rule="${i}" data-day="${d}" aria-pressed="${r.weekdays.includes(d)}">${DAY_SHORT[d]}</button>`).join('')}
+        </div>
+        <div class="rule-fields">
+          <label>Average of
+            <select class="rule-basis"><option value="days" ${r.basis === 'days' ? 'selected' : ''}>Last few days</option><option value="weekday" ${r.basis === 'weekday' ? 'selected' : ''}>Same weekday, past weeks</option></select></label>
+          <label>How many
+            <select class="rule-lookback">${lookbackOptions(r.basis, r.lookback)}</select></label>
+          <label>Add on top (%)
+            <input type="number" class="rule-pct" step="1" min="-90" max="500" value="${r.pct}"></label>
+          <label>Minimum target (₹)
+            <input type="number" class="rule-min" step="100" min="0" placeholder="0 = none" value="${Number(r.min_target) > 0 ? r.min_target : ''}"></label>
+        </div>
+        <label class="rule-check"><input type="checkbox" class="rule-skip" ${r.skip_zero ? 'checked' : ''}> Skip days with no sales (leave / absent)</label>
+        <div class="rule-sentence">${ruleSentence(r)}</div>
+      </div>`).join('');
+    ruleModal.querySelector('.modal').classList.toggle('rule-off', !document.getElementById('ruleEnabled').checked);
+  }
+
+  function openRule() {
+    document.getElementById('ruleAlert').innerHTML = '';
+    document.getElementById('ruleEnabled').checked = !!ruleSet.enabled;
+    draft = (ruleSet.rules || []).map(r => ({ ...r, weekdays: [...(r.weekdays || [])] }));
+    if (!draft.length) draft = [{ name: 'Every day', weekdays: [0, 1, 2, 3, 4, 5, 6], basis: 'days', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 }];
+    document.getElementById('ruleHouses').innerHTML = Object.entries(ruleHouses).map(([k, label]) =>
+      `<label><input type="checkbox" value="${k}" ${(ruleSet.groups || []).includes(k) ? 'checked' : ''}> ${label}</label>`).join('');
+    renderRules();
+    ruleModal.classList.add('open');
+  }
+  const closeRule = () => ruleModal.classList.remove('open');
+
+  document.getElementById('btnRule').addEventListener('click', async () => { await loadTargetRule(); openRule(); });
+  document.getElementById('ruleCancel').addEventListener('click', closeRule);
+  ruleModal.addEventListener('click', (e) => {
+    if (e.target === ruleModal) { closeRule(); return; }
+    const dayBtn = e.target.closest('.rule-day');
+    if (dayBtn) {
+      readDraftFromDom();
+      const r = draft[Number(dayBtn.dataset.rule)], d = Number(dayBtn.dataset.day);
+      r.weekdays = r.weekdays.includes(d) ? r.weekdays.filter(x => x !== d) : [...r.weekdays, d];
+      renderRules();
+      return;
+    }
+    const del = e.target.closest('[data-del]');
+    if (del) { readDraftFromDom(); draft.splice(Number(del.dataset.del), 1); renderRules(); }
+  });
+  document.getElementById('ruleAdd').addEventListener('click', () => {
+    readDraftFromDom();
+    // New rule starts with whichever days no rule covers yet.
+    const used = new Set(draft.flatMap(r => r.weekdays));
+    draft.push({ name: '', weekdays: [0, 1, 2, 3, 4, 5, 6].filter(d => !used.has(d)), basis: 'weekday', lookback: 3, pct: 10, min_target: 0, skip_zero: 1 });
+    renderRules();
+    const cards = document.querySelectorAll('#ruleList .rule-card');
+    cards[cards.length - 1].scrollIntoView({ block: 'nearest' });
+  });
+  // Typing updates the sentence; changing "Average of" also re-labels "How many".
+  ruleModal.addEventListener('input', (e) => {
+    if (!e.target.closest('.rule-card')) return;
+    readDraftFromDom();
+    const card = e.target.closest('.rule-card');
+    card.querySelector('.rule-sentence').innerHTML = ruleSentence(draft[[...card.parentNode.children].indexOf(card)]);
+  });
+  ruleModal.addEventListener('change', (e) => {
+    if (e.target.id === 'ruleEnabled') { ruleModal.querySelector('.modal').classList.toggle('rule-off', !e.target.checked); return; }
+    if (e.target.classList.contains('rule-basis')) {
+      readDraftFromDom();
+      const i = [...document.querySelectorAll('#ruleList .rule-card')].indexOf(e.target.closest('.rule-card'));
+      draft[i].lookback = Math.min(draft[i].lookback, draft[i].basis === 'weekday' ? 8 : 14);
+      renderRules();
+    }
+  });
+
+  document.getElementById('ruleSave').addEventListener('click', async () => {
+    readDraftFromDom();
+    const alertEl = document.getElementById('ruleAlert');
+    const enabled = document.getElementById('ruleEnabled').checked ? 1 : 0;
+    const groups = [...document.querySelectorAll('#ruleHouses input:checked')].map(i => i.value);
+    if (enabled) {
+      const empty = draft.findIndex(r => !r.weekdays.length);
+      if (empty >= 0) { alertEl.innerHTML = `<div class="alert error">${draft[empty].name || 'Rule ' + (empty + 1)}: pick at least one day.</div>`; return; }
+      if (clashes().size) { alertEl.innerHTML = '<div class="alert error">A day is in more than one rule (shown in red). Each day can only be in one rule.</div>'; return; }
+      if (!groups.length) { alertEl.innerHTML = '<div class="alert error">Tick at least one house, or turn automatic targets off.</div>'; return; }
+    }
+    const btn = document.getElementById('ruleSave');
+    btn.disabled = true;
+    try {
+      const d = await api.post('target_rule.save', { enabled, groups, rules: draft });
+      ruleSet = d.rule || { enabled, groups, rules: draft };
+      closeRule();
+      showAlert(d.message || 'Target rules saved.');
+      if (typeof esReload === 'function') esReload();     // fresh targets in the boxes and the Employee sheet
+    } catch (err) {
+      alertEl.innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+
+  }
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

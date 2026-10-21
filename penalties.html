@@ -126,7 +126,9 @@
         <div class="card">
           <div class="card-head"><h2>Penalty history</h2><span class="small muted" id="hiSub">every penalty, who applied it and what happened to it</span></div>
           <div class="filters">
-            <input type="text" id="hiQ" placeholder="Search employee or penalty…" style="min-width:200px;">
+            <input type="search" id="hiEmp" list="hiEmpList" placeholder="🔍 Search employee…" autocomplete="off" style="min-width:210px;" aria-label="Employee"><datalist id="hiEmpList"></datalist>
+            <select id="hiAll" title="Which months to show for the picked employee"><option value="">This month</option><option value="1">All months</option></select>
+            <input type="text" id="hiQ" placeholder="Search penalty…" style="min-width:160px;">
             <select id="hiCat"><option value="">All categories</option><option value="common">Common</option><option value="customer_care">Customer Care</option><option value="sales">Sales</option><option value="dept">Department</option><option value="manual">Written by hand</option></select>
             <select id="hiSt"><option value="">All statuses</option><option value="applied">Applied</option><option value="removed">Auto-removed</option><option value="waived">Waived</option></select>
             <select id="hiSrc"><option value="">Auto + manual</option><option value="auto">Automatic</option><option value="manual">Manual</option></select>
@@ -300,6 +302,7 @@
   async function loadEmployees() {
     const d = await api.get('penalties.employees');
     EMPS = d.employees;
+    fillHiEmps();
     $('apEmp').innerHTML = EMPS.map((e) => `<option value="${e.employee_id}">${esc(e.full_name)} · ${esc(e.department_name || 'No department')} · ${e.pays_from === 'commission' ? 'Sales (commission)' : 'Salary'}</option>`).join('');
     fillSuggestions();
   }
@@ -378,9 +381,10 @@
   async function loadHistory() {
     $('hiBody').innerHTML = '<tr><td colspan="9" class="loading">Loading...</td></tr>';
     try {
-      const d = await api.get('penalties.list', { month: month(), q: $('hiQ').value.trim(), category: $('hiCat').value, status: $('hiSt').value, source: $('hiSrc').value });
+      const emp = hiEmpPicked(), allM = !!(emp && $('hiAll').value);
+      const d = await api.get('penalties.list', { month: month(), q: $('hiQ').value.trim(), category: $('hiCat').value, status: $('hiSt').value, source: $('hiSrc').value, employee_id: emp ? emp.employee_id : '', all: allM ? 1 : '' });
       HIST = d.rows; const s = d.stats;
-      $('hiSub').textContent = new Date(month() + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) + ' · every penalty, who applied it and what happened to it';
+      $('hiSub').textContent = (emp ? emp.full_name + ' · ' : '') + (allM ? 'all months' : new Date(month() + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })) + ' · every penalty, who applied it and what happened to it';
       $('hiStats').innerHTML = [['Penalties applied', s.applied, ''], ['Total deducted', inr(s.total), 'neg'], ['From salary', inr(s.salary), ''], ['From commission', inr(s.commission), ''], ['Auto-removed', s.removed, ''], ['Waived', s.waived, '']]
         .map(([l, v, c]) => `<div class="stat"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`).join('');
       $('hiBody').innerHTML = d.rows.map((p) => {
@@ -396,6 +400,22 @@
       }).join('') || '<tr><td colspan="9" class="muted" style="text-align:center; padding:20px;">Nothing matches.</td></tr>';
     } catch (err) { $('hiBody').innerHTML = `<tr><td colspan="9"><div class="alert error">${esc(err.message)}</div></td></tr>`; }
   }
+  // Employee search: type a name or code, pick from the list → only that person's penalties (This month / All months).
+  const hiEmpLabel = (e) => e.full_name + (e.employee_code ? ' · ' + e.employee_code : '');
+  function hiEmpPicked() {
+    const v = $('hiEmp').value.trim().toLowerCase();
+    if (!v) return null;
+    return EMPS.find((e) => hiEmpLabel(e).toLowerCase() === v) || EMPS.find((e) => String(e.full_name).toLowerCase() === v) || EMPS.find((e) => String(e.employee_code || '').toLowerCase() === v) || null;
+  }
+  function fillHiEmps() { $('hiEmpList').innerHTML = EMPS.map((e) => `<option value="${esc(hiEmpLabel(e))}">${esc(e.department_name || '')}</option>`).join(''); }
+  let hiEmpKey = '';
+  $('hiEmp').addEventListener('input', () => {      // reload only when the picked person changes (or the box is cleared)
+    const e = hiEmpPicked(), k = e ? String(e.employee_id) : ($('hiEmp').value.trim() ? hiEmpKey : '');
+    $('hiAll').disabled = !e;
+    if (k !== hiEmpKey) { hiEmpKey = k; loadHistory(); }
+  });
+  $('hiAll').addEventListener('change', loadHistory);
+  $('hiAll').disabled = true;
   let hiT = null;
   ['hiQ'].forEach((i) => $(i).addEventListener('input', () => { clearTimeout(hiT); hiT = setTimeout(loadHistory, 300); }));
   ['hiCat', 'hiSt', 'hiSrc'].forEach((i) => $(i).addEventListener('change', loadHistory));

@@ -50,6 +50,11 @@
   .seg button{background:#fff; color:var(--ink); border:1px solid var(--line); padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; width:auto; min-height:0;}
   .seg button b{margin-left:4px; font-size:12px; color:var(--muted);} .seg button.on{background:var(--navy-900); border-color:var(--navy-900); color:#fff;} .seg button.on b{color:#cbd0d8;}
   .seg button.hot b{background:#e02424; color:#fff; border-radius:9px; padding:0 7px;}
+  .lsearch{display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:0 22px 12px;}
+  .lsearch input{flex:1; min-width:200px; max-width:360px; padding:9px 14px; border:1px solid var(--line); border-radius:999px; font-size:13px; background:#fff;}
+  .lsearch .clr{background:none; border:0; color:var(--muted); font-size:12.5px; font-weight:600; cursor:pointer; width:auto; min-height:0; padding:4px 6px;}
+  .lsearch .hint{font-size:12px; color:var(--muted);}
+  @media (max-width:560px){ .lsearch{padding:0 16px 12px;} .lsearch input{font-size:16px; max-width:none;} }
   .acard{padding:16px 22px; border-top:1px solid var(--line);} .acard:first-child{border-top:0;}
   .ahead{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
   .av{width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#ff9a5a,#ff7a2f); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none;}
@@ -85,6 +90,7 @@
         <div class="card-head"><h2>Requests</h2>
           <div class="seg" id="seg"><button type="button" data-s="pending" class="on">Pending<b id="cP">0</b></button><button type="button" data-s="approved">Approved<b id="cA">0</b></button><button type="button" data-s="rejected">Rejected<b id="cR">0</b></button></div>
         </div>
+        <div class="lsearch"><input type="search" id="empQ" list="empList" placeholder="🔍 Search employee — name, code or department" autocomplete="off" aria-label="Search employee"><datalist id="empList"></datalist><button type="button" class="clr" id="empClr" hidden>✕ Clear</button><span class="hint" id="empHint"></span></div>
         <div id="admList"><div class="empty">Loading...</div></div>
       </div>
     </div>
@@ -136,14 +142,37 @@
           <div><div class="k">Dates</div><div class="vv">${range(r)}</div></div>
           <div><div class="k">Days</div><div class="vv">${dstr(r.days)}</div></div></div>
         <div class="reason">“${esc(r.reason)}”</div>${tail}</div>`;
-    }).join('') : `<div class="empty">No ${seg} requests.</div>`;
+    }).join('') : `<div class="empty">No ${seg} requests${$('empQ').value.trim() ? ' for “' + esc($('empQ').value.trim()) + '”' : ''}.</div>`;
   }
   const fmtN = (n) => (n % 1 ? Number(n).toFixed(1) : String(n));
 
   async function load() {
-    try { data = await api.get('leave_admin.list', { status: seg }); $('alertBox').innerHTML = ''; paint(); }
+    const v = $('empQ').value.trim(), e = empPicked();
+    $('empClr').hidden = !v;
+    $('empHint').textContent = e ? 'All leave requests of ' + e.full_name : '';
+    const req = ++loadSeq;
+    try {
+      const d = await api.get('leave_admin.list', e ? { status: seg, employee_id: e.employee_id } : { status: seg, q: v });
+      if (req !== loadSeq) return;           // a newer search was typed meanwhile
+      data = d; $('alertBox').innerHTML = ''; paint();
+    }
     catch (err) { $('admList').innerHTML = ''; $('alertBox').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
   }
+  // ---- Employee search: pick a name from the list (that person only), or type part of a name / code / department.
+  let EMPS = [], loadSeq = 0, qT = null;
+  const empLabel = (e) => e.full_name + (e.employee_code ? ' · ' + e.employee_code : '');
+  function empPicked() {
+    const v = $('empQ').value.trim().toLowerCase();
+    return v ? (EMPS.find((e) => empLabel(e).toLowerCase() === v) || null) : null;
+  }
+  api.get('employees.list').then((d) => {
+    EMPS = (d.employees || []).map((e) => ({ employee_id: Number(e.employee_id), full_name: e.full_name || '', employee_code: e.employee_code || '', department_name: e.department_name || '' }))
+      .sort((a, b) => a.full_name.localeCompare(b.full_name));
+    $('empList').innerHTML = EMPS.map((e) => `<option value="${esc(empLabel(e))}">${esc(e.department_name)}</option>`).join('');
+  }).catch(() => {});
+  $('empQ').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(load, empPicked() ? 0 : 300); });
+  $('empClr').addEventListener('click', () => { $('empQ').value = ''; load(); $('empQ').focus(); });
+
   $('admList').addEventListener('click', async (e) => {
     const a = e.target.dataset.a; if (!a) return;
     const card = e.target.closest('.acard'), id = Number(card.dataset.id);

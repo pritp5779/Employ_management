@@ -58,6 +58,8 @@
   .bd-kp{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;} .bd-kp div{flex:1; min-width:120px; background:#f8f9fb; border-radius:12px; padding:8px 11px; font-size:11.5px; color:#6b7280;} .bd-kp b{display:block; font-size:17px; color:#141618;}
   .bd-tbl{width:100%; border-collapse:collapse; font-size:12.5px;} .bd-tbl th{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:#6b7280; text-align:left; padding:7px 8px; border-bottom:1px solid #eef0f3; position:sticky; top:0; background:#fff;}
   .bd-tbl td{padding:7px 8px; border-bottom:1px solid #f3f4f6; vertical-align:top;} .bd-tbl td.r, .bd-tbl th.r{text-align:right; white-space:nowrap;} .bd-tbl tr.tot td{font-weight:800; background:#f8f9fb;}
+  #btnBack.ret{background:#ff7a2f; color:#fff; border-radius:999px; padding:7px 14px; font-weight:800; text-decoration:none;} #btnBack.ret:hover{background:#ea6a1f;}
+  .bd-tbl tr.bd-hl td{background:#fff4ec; transition:background 1.2s;}
   a.bd-shop{font-weight:800; color:#141618; text-decoration:none; border-bottom:1px dashed #9ca3af;} a.bd-shop:hover{color:#ff7a2f; border-color:#ff7a2f;} a.bd-shop.sm{font-weight:600; color:#374151;}
   .bd-ord{font-size:11.5px; color:#6b7280; margin-top:2px;} .bd-ord b{color:#374151; font-weight:700;}
   .bd-h{font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; margin:14px 0 6px;} .bd-h.g{color:#16945a;} .bd-h.r{color:#d9423b;} .bd-h.b{color:#1d4ed8;}
@@ -583,7 +585,7 @@
 
       <!-- ===== SHOP ===== -->
       <div id="viewShop" style="display:none;">
-        <div style="margin-bottom:12px;"><button class="link" id="btnBack">← All shops</button></div>
+        <div style="margin-bottom:12px; display:flex; align-items:center; gap:12px;"><button class="link" id="btnBack">← All shops</button><button class="link" id="btnAllShops" style="display:none; color:var(--muted);">All shops</button></div>
         <div class="card out-card" id="shOut"></div>
         <div class="grid2">
           <div class="card" style="margin-bottom:0;">
@@ -1488,8 +1490,8 @@
     const m = e.target.closest('[data-cbm]');
     bdOpen(card.dataset.cbk, m ? m.dataset.cbm : '');
   });
-  async function bdOpen(what, mode) {
-    bd = { what, mode: mode || '', data: null };
+  async function bdOpen(what, mode, restore) {
+    bd = { what, mode: mode || '', data: null, restore: restore || null };
     document.querySelectorAll('#bdTabs button').forEach(b => b.classList.toggle('on', b.dataset.m === bd.mode));
     const d0 = cb.data || {};
     cbEl('bdTitle').textContent = BD_NAME[what] + (what === 'hand' ? ' till ' + cbDay(d0.to || '') : '');
@@ -1528,6 +1530,12 @@
       h += d.used.length ? bdUseTbl(d.used, t.used, md) : '<div class="sub" style="padding:8px 0;">Nothing used.</div>';
     }
     cbEl('bdBody').innerHTML = h;
+    const rs = bd.restore; bd.restore = null;
+    if (rs) {      // came back from a shop: same scroll, that shop's rows highlighted
+      cbEl('bdBody').scrollTop = rs.scroll || 0;
+      cbEl('bdBody').querySelectorAll(`a[data-bds="${rs.shopId}"]`).forEach(x => { const tr = x.closest('tr'); if (tr) tr.classList.add('bd-hl'); });
+      setTimeout(() => cbEl('bdBody').querySelectorAll('tr.bd-hl').forEach(tr => tr.classList.remove('bd-hl')), 2500);
+    }
   }
   function bdUseTbl(rows, tot, md) {
     return `<table class="bd-tbl"><thead><tr><th>Date</th><th>Party / for</th><th>Note</th><th>Mode</th><th class="r">Amount</th></tr></thead><tbody>` +
@@ -1540,7 +1548,17 @@
   bdModal.addEventListener('click', (e) => {
     if (e.target === bdModal) { bdClose(); return; }
     const a = e.target.closest('a[data-bds]');
-    if (a) { e.preventDefault(); bdModal.classList.remove('open'); openShop(Number(a.dataset.bds)); window.scrollTo(0, 0); }   // the shop's own page: details, orders, ledger
+    if (a) {
+      e.preventDefault();
+      const sid = Number(a.dataset.bds), lbl = cbEl('bdTitle').textContent, ret = { what: bd.what, mode: bd.mode, scroll: cbEl('bdBody').scrollTop, shopId: sid, label: lbl };
+      bdModal.classList.remove('open');
+      // Closing the popup makes the page layer drop its own Back-button history entry (a moment later): open the shop after that,
+      // so the shop's "1 step back" entry is not the one removed.
+      let done = false;
+      const go = () => { if (done) return; done = true; window.removeEventListener('popstate', go); setTimeout(() => { openShop(sid, ret); window.scrollTo(0, 0); }, 0); };
+      window.addEventListener('popstate', go);
+      setTimeout(go, 400);
+    }
   });
   cbEl('cbParty').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-cbp]'); if (!tr) return; cb.party = cb.party === tr.dataset.cbp ? '' : tr.dataset.cbp; cbRender(); });
   cbEl('cbBody').addEventListener('click', async (e) => {
@@ -1654,7 +1672,19 @@
     } catch (err) { cbEl('cbAlert').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     btn.disabled = false;
   });
-  document.getElementById('btnBack').addEventListener('click', () => showView('list'));
+  function shopGoBack() {
+    const r = shopReturn; shopReturn = null;
+    if (!r) { showView('list'); return; }
+    history.replaceState(null, '', location.pathname);
+    showView('cash'); if (!cb.data) cbLoad();
+    bdOpen(r.what, r.mode, r);
+  }
+  document.getElementById('btnBack').addEventListener('click', () => {
+    if (shopReturn && history.state && history.state.shopBack) history.back();   // popstate does the rest, so Back and the button behave the same
+    else shopGoBack();
+  });
+  document.getElementById('btnAllShops').addEventListener('click', () => { shopReturn = null; history.replaceState(null, '', location.pathname); showView('list'); });
+  window.addEventListener('popstate', () => { if (view === 'shop' && shopReturn) shopGoBack(); });
 
   // ---------- Display: perfume demo displays — date, display, amount; pending till marked paid ----------
   const dp = { data: null, req: 0 };
@@ -2202,9 +2232,18 @@
 
   // ---------- shop page ----------
   let shopMap = null, shopMarker = null;
-  async function openShop(id) {
+  // ret = {what, mode, scroll, label} when the shop was opened from the cash box popup: the top button then goes back to that popup.
+  let shopReturn = null;
+  async function openShop(id, ret) {
+    if (ret || !(shopReturn && Number(shopReturn.shopId) === Number(id))) shopReturn = ret || null;   // a reload of the same shop (after an edit / payment) keeps its way back
+    const bb = document.getElementById('btnBack');
+    bb.textContent = shopReturn ? '← Back to ' + shopReturn.label : '← All shops';
+    bb.classList.toggle('ret', !!shopReturn);
+    document.getElementById('btnAllShops').style.display = shopReturn ? '' : 'none';
     showView('shop');
-    history.replaceState(null, '', location.pathname + '?shop=' + id);
+    if (ret) history.pushState({ shopBack: 1 }, '', location.pathname + '?shop=' + id);      // phone / browser Back = 1 step back to the popup
+    else if (shopReturn) { /* same shop reloaded: history already has the step */ }
+    else history.replaceState(null, '', location.pathname + '?shop=' + id);
     document.getElementById('shName').textContent = 'Loading…';
     document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8"><div class="loading sm">Loading...</div></td></tr>';
     try {
