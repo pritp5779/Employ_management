@@ -428,6 +428,28 @@
   .cg-tot{display:flex; justify-content:space-between; margin-top:8px; font-size:13px; font-weight:800;}
   @media (max-width:820px){ .cg{grid-template-columns:repeat(2, minmax(0, 1fr)); gap:6px;} .cc{padding:7px 8px;} .cc .t{min-height:0;} .cc b{font-size:16px;} }
   @media (min-width:821px){ .stat-card.rs-card{grid-column:span 2;} }
+  a.xmlk{font-weight:800; color:#be123c; text-decoration:underline dotted; text-underline-offset:3px;}
+  /* Queries by hour: tap an hour / number → who got them */
+  a.qhw{text-decoration:underline dotted; text-underline-offset:3px; cursor:pointer;} .qh .r a.q, .qh .r a.c{font-weight:800; text-align:center; font-size:13px;} .qh .r a.q{color:#0ea5e9;} .qh .r a.c{color:#d97706;} .qh .r span a.qhw{color:inherit;}
+  /* Orders by hour box */
+  .oh-card{display:flex; flex-direction:column; container-type:inline-size;}
+  .oh-card .oht{font-size:13px; margin:2px 0 8px;} .oh-card .oht b{font-size:17px;}
+  .oh-card .ohp{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;}
+  .oh-card .ohp button{width:auto; min-height:0; padding:3px 9px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer;}
+  .oh-card .ohp button.on{background:#111827; color:#fff; border-color:#111827;}
+  .ohr{display:grid; grid-template-columns:84px minmax(16px, 1fr) 26px 64px; gap:6px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
+  .ohr.hd{font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase;} .ohr.hd span:nth-child(3){text-align:right;}
+  .ohr.now{background:#fff7ed;} .ohr.pk{background:#ffedd5;} .ohr.fu{opacity:.45;} .ohr.nt{background:#eef2ff; margin-top:4px;}
+  .ohl{white-space:nowrap;} .ohl small{display:block; font-size:10px; color:var(--muted); font-weight:600;}
+  .ohb{height:7px; background:#f1f5f9; border-radius:9px; overflow:hidden;} .ohb i{display:block; height:100%; background:linear-gradient(90deg,#fb923c,#f97316); border-radius:9px;}
+  .ohr.nt .ohb i{background:#6366f1;}
+  .ohn{font-weight:800; text-align:right; color:#1d4ed8; text-decoration:underline dotted; text-underline-offset:3px;} .ohz{text-align:right; color:#cbd5e1;}
+  .oha{text-align:right; font-weight:600; white-space:nowrap;}
+  .ohf{display:flex; justify-content:space-between; gap:6px; font-size:11px; border-top:1px solid var(--line); margin-top:auto; padding-top:7px; color:var(--muted);} .ohf b{color:var(--ink);}
+  .ohtab{width:100%; border-collapse:collapse; font-size:13px;} .ohtab th{font-size:11px; color:var(--muted); text-align:left; padding:6px; border-bottom:1px solid var(--line);} .ohtab td{padding:7px 6px; border-bottom:1px solid #f1f5f9;}
+  .ocd{display:inline-block; background:#eef2ff; color:#3730a3; font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px;} .ocd.no{background:#fee2e2; color:#b91c1c;}
+  @media (max-width:820px){ .stat-card.oh-card{grid-column:1 / -1;} }
+  @container (max-width:250px){ .ohr{grid-template-columns:80px 1fr 62px; gap:4px; font-size:11.5px;} .ohr.hd span:nth-child(2){display:none;} .ohb{display:none;} .ohf{flex-direction:column;} }
   @media (max-width:820px){ .stat-card.rs-card{grid-column:1 / -1;} }
   .rs-warn{margin-top:6px; font-size:10.5px; color:#b45f06; font-weight:600; line-height:1.3;}
   @media (max-width:520px){ .rs-big{font-size:21px;} }
@@ -595,6 +617,14 @@
   </main>
 </div>
 
+<div class="modal-overlay" id="ohModal">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="ohTitle">Orders</h3>
+    <div id="ohSub" style="font-size:12.5px; color:var(--muted); margin:-4px 0 10px;"></div>
+    <div id="ohBody" style="max-height:62vh; overflow-y:auto; overscroll-behavior:contain;"></div>
+    <div class="actions"><button type="button" class="btn secondary" onclick="document.getElementById('ohModal').classList.remove('open')">Close</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="comWhyModal">
   <div class="modal" style="max-width:520px;">
     <h3 id="comWhyTitle">How this commission was worked out</h3>
@@ -1190,9 +1220,10 @@
     const eq = ds.reduce((a, d) => a + ((d.earlier || {}).scout || 0), 0), ec = ds.reduce((a, d) => a + ((d.earlier || {}).champion || 0), 0);
     const tq = ds.reduce((a, d) => a + ((d.total || {}).scout || 0), 0), tc = ds.reduce((a, d) => a + ((d.total || {}).champion || 0), 0);
     const k = keys[0], can = edit && ES_ALLOWED && keys.length === 1;
-    const list = rows.filter(r => !r.future).reverse().map(r => `<div class="r ${r.now ? 'now' : ''}"><span>${hrLabel(r.hour)}${r.now ? ' ●' : ''}</span>${can
+    const kk = keys.join(',');
+    const list = rows.filter(r => !r.future).reverse().map(r => `<div class="r ${r.now ? 'now' : ''}"><span><a href="#" class="qhw" data-qhw="${r.hour}" data-qhk="${kk}" title="Which employees got the queries of this hour">${hrLabel(r.hour)}</a>${r.now ? ' ●' : ''}</span>${can
       ? `<input class="q" type="number" min="0" max="9999" value="${r.q}" data-qh="${k}" data-h="${r.hour}" data-f="scout" aria-label="${hrLabel(r.hour)} Query"><input class="c" type="number" min="0" max="9999" value="${r.c}" data-qh="${k}" data-h="${r.hour}" data-f="champion" aria-label="${hrLabel(r.hour)} Campaign">`
-      : `<b class="q">${r.q}</b><b class="c">${r.c}</b>`}</div>`).join('');
+      : `${r.q ? `<a href="#" class="q qhw" data-qhw="${r.hour}" data-qhk="${kk}" title="Which employees got these queries">${r.q}</a>` : `<b class="q">${r.q}</b>`}${r.c ? `<a href="#" class="c qhw" data-qhw="${r.hour}" data-qhk="${kk}">${r.c}</a>` : `<b class="c">${r.c}</b>`}`}</div>`).join('');
     return `<div class="qh"><details data-qid="${id}" ${qhOpen.has(id) ? 'open' : ''}><summary>Queries by hour<span>Day ${tq} / ${tc} ▾</span></summary>
       <div class="hl"><div class="r hd"><span>Hour</span><span>Query</span><span>Camp.</span></div>${list}${eq || ec ? `<div class="r"><span>Earlier</span><b class="q">${eq}</b><b class="c">${ec}</b></div>` : ''}</div>
       ${can ? '' : '<div class="ro">Totals of the panels — type in a single panel box.</div>'}</details></div>`;
@@ -1345,7 +1376,7 @@
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !document.getElementById('tmOv').hidden) tmClose(); });
   // "Employee target": the targets of the panel's sales employees added up (All Orders box = every panel's employees).
   // Always automatic — it is shown above the Target, which can be set by hand.
-  function empTargetHtml(label, s, forceKey) {
+  function empTargetHtml(label, s, forceKey) {      // forceKey = the All Orders & Revenue box: Achieved shows the amount, then the %
     const pn = forceKey ? [forceKey] : PANELS.find(p => p[1] === label && p[0] !== 'none');
     if (!pn || !ES_ALLOWED || !teamData || !teamData.panel_targets) return '';
     if (teamData.from !== document.getElementById('dateFrom').value || teamData.to !== document.getElementById('dateTo').value) return '';
@@ -1353,7 +1384,7 @@
     if (teamData.rulePending) return `<div class="pt-box et-box"><div class="pt-top"><span>Employee target</span><span class="pt-wait">…</span></div></div>`;
     const tgt = Number(pt.emp !== undefined ? pt.emp : pt.auto) || 0, ach = Number(s.total) || 0, pc = tgt > 0 ? Math.round(ach / tgt * 100) : 0;
     return `<div class="pt-box et-box"><div class="pt-top"><span>Employee target <span class="tgt-pill auto">Auto</span></span><b>${tgt > 0 ? ptInr(tgt) : '—'}</b></div>` +
-      (tgt > 0 ? `<div class="et-sub"><span class="a">Achieved ${pc}%${pc > 100 ? ' 🎯' : ''}</span><span class="p">Pending ${ptInr(Math.max(0, tgt - ach))}</span></div>` : '<div class="et-sub"><span>Sum of the sales employees\' targets</span></div>') + '</div>';
+      (tgt > 0 ? `<div class="et-sub"><span class="a">Achieved ${forceKey ? ptInr(ach) + ' · ' : ''}${pc}%${pc > 100 ? ' 🎯' : ''}</span><span class="p">Pending ${ptInr(Math.max(0, tgt - ach))}</span></div>` : '<div class="et-sub"><span>Sum of the sales employees\' targets</span></div>') + '</div>';
   }
   // Redraw the top boxes when the sheet's targets arrive — only once the orders have been drawn (the boxes are hidden until then).
   const summaryRefresh = () => { if (allOrders.length || document.getElementById('summaryGrid').style.display !== 'none') renderSummary(); };
@@ -1449,6 +1480,111 @@
   });
 
   const TOP_ORDER = ['tmph', 'tm4u', 'tmsg'];     // order of the panel boxes in the top boxes
+  // ---------- Extra ML row (All Orders & Revenue box) ----------
+  // Extra ML given by price (ML in the box − ML the customer paid for, see the Extra ML column), for the orders in the boxes.
+  // Tap it → the same per employee. Hidden until the ML price chart is loaded / when no order has product sizes.
+  function xmlStats(list) {
+    let ml = 0, xm = 0, any = false; const by = {};
+    list.forEach((o) => {
+      const { m, x } = mlInfo(o);
+      if (!m || !m.total || !x) return;
+      any = true; ml += m.total; xm += x.extra;
+      const nm = o.salesman || '—', e = by[nm] = by[nm] || { n: 0, ml: 0, xm: 0 };
+      e.n++; e.ml += m.total; e.xm += x.extra;
+    });
+    return { any, ml, xm, by };
+  }
+  function xmlRow(base) {
+    if (!ML_CHART) return '';
+    const st = xmlStats(base);
+    if (!st.any) return '';
+    return `<div class="tkr"><span>Extra ML</span> <a href="#" class="xmlk" data-xml="1" title="Extra ML given by price — tap for each employee">${ml1(st.xm)} ml</a></div>`;
+  }
+  function xmlOpen() {
+    const st = xmlStats(scopedOrders());
+    const rows = Object.keys(st.by).map((k) => Object.assign({ nm: k }, st.by[k])).sort((a, b) => b.xm - a.xm);
+    const df = document.getElementById('dateFrom').value, dt = document.getElementById('dateTo').value, today = bizDayOf(new Date());
+    document.getElementById('ohTitle').textContent = 'Extra ML · ' + (df === today && dt === today ? 'today' : (df === dt ? df : df + ' → ' + dt));
+    document.getElementById('ohSub').textContent = `${ml1(st.xm)} ml given extra`;
+    document.getElementById('ohBody').innerHTML = `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th style="text-align:right;">Orders</th><th style="text-align:right;">ML sold</th><th style="text-align:right;">Extra ML</th><th style="text-align:right;">Extra %</th></tr></thead><tbody>${rows.map((e) => `<tr><td><b>${esEsc(e.nm)}</b></td><td style="text-align:right;">${e.n}</td><td style="text-align:right;">${e.ml.toLocaleString('en-IN')} ml</td><td style="text-align:right;"><span class="mle">${ml1(e.xm)} ml</span></td><td style="text-align:right;">${e.ml > 0 ? ml1(e.xm / e.ml * 100) : 0}%</td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('ohModal').classList.add('open');
+  }
+  document.addEventListener('click', (ev) => { const a = ev.target.closest('[data-xml]'); if (!a) return; ev.preventDefault(); xmlOpen(); });
+
+  // ---------- Queries by hour → who got them ----------
+  // Tap an hour (or its Query / Campaign number) in "Queries by hour": the employees those queries were assigned to (Assign Queries page).
+  function qhWho(hour, keys) {
+    const by = {};
+    keys.forEach(k => { const d = hourData[k]; ((d && d.by_emp && d.by_emp[String(hour)]) || []).forEach(x => {
+      const e = by[x.employee_id] = by[x.employee_id] || { name: x.name, q: 0, c: 0, panels: [] };
+      e.q += Number(x.scout) || 0; e.c += Number(x.champion) || 0; if (keys.length > 1) e.panels.push(OH_SHORT[k] || k);
+    }); });
+    const list = Object.values(by).filter(e => e.q || e.c).sort((a, b) => b.q - a.q || b.c - a.c || a.name.localeCompare(b.name));
+    const tq = list.reduce((a, e) => a + e.q, 0), tc = list.reduce((a, e) => a + e.c, 0);
+    document.getElementById('ohTitle').textContent = 'Queries · ' + hrLabel(hour) + ' – ' + hrLabel((hour + 1) % 24) + (keys.length === 1 ? ' · ' + (PANEL_NAME[keys[0]] || keys[0]) : '');
+    document.getElementById('ohSub').textContent = `${tq} quer${tq === 1 ? 'y' : 'ies'} · ${tc} campaign — which employee got them`;
+    document.getElementById('ohBody').innerHTML = list.length
+      ? `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th style="text-align:right;">Query</th><th style="text-align:right;">Campaign</th></tr></thead><tbody>${list.map(e => `<tr><td><b>${esEsc(e.name)}</b>${e.panels.length ? `<div style="font-size:10.5px; color:var(--muted);">${esEsc([...new Set(e.panels)].join(', '))}</div>` : ''}</td><td style="text-align:right; font-weight:800; color:#2563eb;">${e.q}</td><td style="text-align:right; font-weight:800; color:#c2410c;">${e.c}</td></tr>`).join('')}<tr><td><b>Total</b></td><td style="text-align:right;"><b>${tq}</b></td><td style="text-align:right;"><b>${tc}</b></td></tr></tbody></table></div>`
+      : '<p class="muted" style="padding:6px 0;">No employee is recorded for this hour (counts typed in the box are not linked to an employee).</p>';
+    document.getElementById('ohModal').classList.add('open');
+  }
+  document.addEventListener('click', (ev) => {
+    const a = ev.target.closest('.qhw'); if (!a) return;
+    ev.preventDefault(); qhWho(Number(a.dataset.qhw), String(a.dataset.qhk || '').split(',').filter(Boolean));
+  });
+
+  // ---------- Orders by hour (its own box, after Ad spend & ROAS) ----------
+  // 10 AM – 12 AM hour by hour, then "Overnight" = 12 AM – 10 AM. Same orders as the boxes (allocated, not cancelled, the panel picked).
+  // Panel buttons narrow it to one panel. Tap a number → that hour's orders; tap an order number → its details.
+  let ohPanel = '';                       // '' = all panels
+  const OH_SHORT = { tmph: 'TMPH', tm4u: 'TM4U', tmsg: 'TMSG', none: 'Other' };
+  const OH_ROWS = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 'night'];
+  const ohHr = (h) => { const f = (x) => ((x % 12) || 12), ap = (x) => (x % 24) < 12 ? 'AM' : 'PM'; return f(h) + (ap(h) === ap(h + 1) ? '' : ' ' + ap(h)) + '–' + f(h + 1) + ' ' + ap(h + 1); };
+  const ohSlot = (o) => { const h = new Date(o.created_at).getHours(); return h >= 10 ? h : 'night'; };
+  function ohOrders(base) { return ohPanel ? base.filter(o => panelOf(o) === ohPanel) : base; }
+  function ohCardHtml(base) {
+    const panels = panelPick ? [] : PANELS.filter(p => panelAllowed(p[0]) && base.some(o => panelOf(o) === p[0]));
+    if (ohPanel && !panels.some(p => p[0] === ohPanel)) ohPanel = '';
+    const list = ohOrders(base), by = {};
+    OH_ROWS.forEach(k => { by[k] = { n: 0, amt: 0 }; });
+    list.forEach(o => { const b = by[ohSlot(o)]; b.n++; b.amt += Number(o.total) || 0; });
+    const max = Math.max(1, ...OH_ROWS.map(k => by[k].n));
+    const df = document.getElementById('dateFrom').value, dt = document.getElementById('dateTo').value;
+    const today = bizDayOf(new Date()), onlyToday = df === today && dt === today, nowH = new Date().getHours();
+    const peak = OH_ROWS.filter(k => k !== 'night').reduce((a, k) => by[k].n > (a ? by[a].n : 0) ? k : a, null);
+    const tot = list.reduce((a, o) => a + (Number(o.total) || 0), 0);
+    const rows = OH_ROWS.map(k => {
+      const b = by[k], night = k === 'night', future = onlyToday && !night && nowH >= 10 && k > nowH, now = onlyToday && !night && k === nowH;
+      const lab = night ? '🌙 Overnight<small>12 AM – 10 AM</small>' : ohHr(k) + (now ? ' ●' : '');
+      const num = b.n ? `<a href="#" class="ohn" data-oh="${k}">${b.n}</a>` : `<span class="ohz">${future ? '—' : 0}</span>`;
+      return `<div class="ohr${future ? ' fu' : ''}${now ? ' now' : ''}${k === peak && b.n ? ' pk' : ''}${night ? ' nt' : ''}"><span class="ohl">${lab}</span><div class="ohb"><i style="width:${b.n / max * 100}%"></i></div>${num}<span class="oha">${b.n ? fmtMoney(b.amt, 'INR') : (future ? '—' : '')}</span></div>`;
+    }).join('');
+    return `<div class="stat-card oh-card"><div class="label"><span class="lbl-full">Orders by hour</span><span class="lbl-short">Orders by hour</span></div>
+      <div class="oht"><b>${list.length} orders</b> · ${fmtMoney(tot, 'INR')}</div>
+      ${panels.length > 1 ? `<div class="ohp"><button type="button" data-ohp="" class="${ohPanel ? '' : 'on'}">All</button>${panels.map(p => `<button type="button" data-ohp="${p[0]}" class="${ohPanel === p[0] ? 'on' : ''}">${OH_SHORT[p[0]] || esEsc(p[1])}</button>`).join('')}</div>` : ''}
+      <div class="ohr hd"><span class="ohl">Time</span><span></span><span>Ord</span><span class="oha">Amount</span></div>${rows}
+      <div class="ohf"><span>Tap a number → those orders</span>${peak && by[peak].n ? `<b>Peak ${hrLabel(peak)} · ${by[peak].n}</b>` : ''}</div></div>`;
+  }
+  function ohOpen(k) {
+    const base = ohOrders(scopedOrders()).filter(o => String(ohSlot(o)) === String(k)).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+    const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ohTitle').textContent = (k === 'night' ? 'Overnight · 12 AM – 10 AM' : ohHr(Number(k))) + (ohPanel ? ' · ' + (PANEL_NAME[ohPanel] || ohPanel) : '');
+    document.getElementById('ohSub').textContent = base.length + ' order' + (base.length === 1 ? '' : 's') + ' · ' + fmtMoney(base.reduce((a, o) => a + (Number(o.total) || 0), 0), 'INR') + ' · tap an order number to open it';
+    document.getElementById('ohBody').innerHTML = base.length ? `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Order</th><th>Time</th><th>Salesman</th><th>Code</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${base.map(o => `<tr><td><a href="#" data-ohi="${o._i}" style="font-weight:800;">${esEsc(o.order_name)}</a>${ohPanel ? '' : `<div style="font-size:10.5px; color:var(--muted);">${esEsc(PANEL_NAME[panelOf(o)] || '')}</div>`}</td><td style="white-space:nowrap;">${tm(o.created_at)}</td><td>${esEsc(o.salesman || '—')}</td><td>${o.code ? `<span class="ocd">${esEsc(o.code)}</span>` : '<span class="ocd no">no code</span>'}</td><td style="text-align:right; font-weight:700; white-space:nowrap;">${fmtMoney(o.total, o.currency)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No orders.</p>';
+    document.getElementById('ohModal').classList.add('open');
+  }
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => {
+    const p = ev.target.closest('[data-ohp]');
+    if (p) { ohPanel = p.dataset.ohp; renderSummary(); return; }
+    const n = ev.target.closest('[data-oh]');
+    if (n) { ev.preventDefault(); ohOpen(n.dataset.oh); }
+  });
+  document.getElementById('ohModal').addEventListener('click', (ev) => {
+    const a = ev.target.closest('[data-ohi]');
+    if (a) { ev.preventDefault(); document.getElementById('ohModal').classList.remove('open'); openDetail(Number(a.dataset.ohi)); return; }
+    if (ev.target.id === 'ohModal') document.getElementById('ohModal').classList.remove('open');
+  });
+
   function renderSummary() {
     const base = scopedOrders();
     const byStore = {};
@@ -1497,9 +1633,9 @@
         <div class="tkr"><span>Query order</span> <b class="n">${qOrders}</b></div>
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         <div class="tkr"><span>Campaign order</span> <b class="n">${cOrders}</b></div>
+        ${xmlRow(base)}
         ${teamHtml(allKey)}
         ${empTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
-        ${panelTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
         <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
         ${qhHtml(shownKeys, false, 'all')}
       </div>
@@ -1526,6 +1662,7 @@
           `<div class="cg-tot"><span>Total</span><b>${tot}</b></div></div>`;
         return `<div class="stat-card rs-card"><div class="label"><span class="lbl-full">${r ? 'Ad spend &amp; ROAS' : 'DG / LG / WH / Other'}</span><span class="lbl-short">${r ? 'Ad spend &amp; ROAS' : 'DG/LG/WH/Other'}</span></div>${r}${colours}</div>`;
       })()}
+      ${ohCardHtml(base)}
     `;
     grid.style.display = 'grid';
     renderUnallocNote();
@@ -1572,13 +1709,13 @@
   // (before the daily-target cap / no-code cut), Commission = the order's commission from the Commission page (exact, once it has
   // loaded), otherwise the slab estimate in grey. MySales orders have no product sizes: "—".
   let ML_CHART = null;
-  api.get('ml_slab.get').then((d) => { ML_CHART = d && d.chart ? d.chart : null; if (allOrders.length) try { renderPage(); } catch (e) {} }).catch(() => {});
+  api.get('ml_slab.get').then((d) => { ML_CHART = d && d.chart ? d.chart : null; if (allOrders.length) try { renderPage(); summaryRefresh(); } catch (e) {} }).catch(() => {});
   function mlInfo(o) {
     const m = window.MLSLAB ? MLSLAB.parts(o) : null;
     const key = (o.store_key || o.source || '') + ':' + o.id;
     const ex = commValid() && COMM.res.ord ? COMM.res.ord[key] : null;      // [₹, note, rule kind] from the Commission page
     const pre = MLSLAB.isPre(o.financial_status);
-    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, amt: Number(o.total || 0), pre, code: o.code || '' }, true) : null;
+    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre, code: o.code || '' }, true) : null;
     const x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
     return { m, r, ex, x };
   }
@@ -1606,7 +1743,7 @@
     const { m, r, ex, x } = mlInfo(o);
     const dash = '<span style="color:var(--muted);">—</span>';
     const ml = m ? `<b>${m.total} ml</b>${m.extra ? ` <span class="mlx" title="Free 10 ml pieces in the box">+${m.extra} free</span>` : ''}` : dash;
-    const cp = x ? `<b>${fmtMoney(x.chart, 'INR')}</b><div class="mls">₹${x.per.toFixed(2)} / ml</div>` : (m && m.total ? '<span style="color:var(--muted); font-size:11px;" title="This size is not in the ML price chart">not in chart</span>' : dash);
+    const cp = x ? `<b>${fmtMoney(x.chart, 'INR')}</b><div class="mls">₹${x.per.toFixed(2)} / ml</div>` : (m && m.total ? (ML_CHART && !MLSLAB.activeOn(ML_CHART, o.biz_date) ? `<span style="color:var(--muted); font-size:11px;" title="The ML price slab applies ${esEsc(MLSLAB.datesTxt(ML_CHART))}">slab not active</span>` : '<span style="color:var(--muted); font-size:11px;" title="This size is not in the ML price chart">not in chart</span>') : dash);
     const xm = x ? (x.extra > 0.05 ? `<span class="mle" title="${esEsc(xTip(m, x, o))}">${ml1(x.extra)} ml</span><div class="mls">paid for ${ml1(x.paid)} ml · ${fmtMoney(Math.round(x.value), 'INR')}</div>` : `<span class="mlz" title="${esEsc(xTip(m, x, o))}">0 ml</span>`) : dash;
     // The % actually paid (same as the Commission column): the Commission page's figure when loaded, else the slab estimate
     // (code as on the order, target taken as complete). The chart % before the cuts shows underneath when it differs.

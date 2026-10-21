@@ -35,6 +35,9 @@
   .mp .ext{background:#fff1f2; border:2px solid #fecdd3; border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.55; margin-bottom:14px;}
   .mp .ext .big{font-size:20px; font-weight:900; color:#be123c;}
   .mp .ext.ok{background:#f0fdf4; border-color:#bbf7d0;} .mp .ext.ok .big{color:#15803d;}
+  .mp .wn{display:flex; gap:10px; align-items:flex-start; background:#fef2f2; border:2px solid #fca5a5; border-radius:14px; padding:11px 13px; margin-bottom:12px;}
+  .mp .wn .i{font-size:20px; line-height:1.2;} .mp .wn b{display:block; font-size:14.5px; color:#991b1b; line-height:1.5;}
+  .mp .wn small{display:block; font-size:12px; color:#b91c1c; margin-top:3px;}
   .mp .off{background:#f1f5f9; border-radius:12px; padding:9px 12px; font-size:12.5px; color:#475569; margin-bottom:12px;}
   .mp table{width:100%; min-width:0 !important; border-collapse:collapse; font-size:13.5px;}
   .mp th{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); background:#fafbfc;}
@@ -69,6 +72,7 @@
 
   const inr = (v) => '₹' + Math.round(Number(v || 0)).toLocaleString('en-IN');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const todayYmd = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const fmtP = (v) => String(Math.round(Number(v) * 100) / 100) + '%';
   const root = document.getElementById('mp');
   let CH = null;
@@ -76,6 +80,16 @@
   const S = { ml: 250, price: '', free: false, code: true, pre: false, hit: true };
   try { Object.assign(S, JSON.parse(localStorage.getItem('hrms_mlprice') || '{}')); } catch (e) { /* defaults */ }
   const keep = () => { try { localStorage.setItem('hrms_mlprice', JSON.stringify(S)); } catch (e) { /* not kept */ } };
+
+  // Warning line (Gujarati): the max-discount rule from Commission Rules → ML price slab. Follows the % and "for" setting; hidden when off.
+  function maxWarn() {
+    const m = Number(CH.maxdisc) || 0;
+    if (!(m > 0)) return '';
+    const all = CH.maxdisc_for === 'all', r0 = CH.rows.find((r) => r.ml === 100) || CH.rows[0];
+    const cut = Math.ceil(Number(r0.p[0]) * (1 - m / 100));
+    const msg = all ? `જો ${m}% થી વધારે discount આપશો, તો એ order નું commission 0 થઈ જશે.` : `જો code નહીં હોય અને ${m}% થી વધારે discount આપશો, તો એ order નું commission 0 થઈ જશે.`;
+    return `<div class="wn"><span class="i">⚠️</span><div><b>${msg}</b><small>Example: ${r0.ml} ml chart ${inr(r0.p[0])} → ${inr(cut)} થી ઓછું = commission ₹0</small></div></div>`;
+  }
 
   async function load() {
     try {
@@ -90,7 +104,9 @@
   function draw() {
     const sizes = CH.rows.map((r) => r.ml).filter((m) => m % 50 === 0);
     root.innerHTML = `
+      ${maxWarn()}
       ${MLSLAB.on(CH) ? '' : '<div class="off">The ML price slab is not switched on yet — the figures below show how it will pay once Admin switches it on.</div>'}
+      ${(CH.from || CH.to) ? `<div class="off">These rules apply to orders <b>${esc(MLSLAB.datesTxt(CH))}</b>${MLSLAB.activeOn(CH, todayYmd()) ? '' : ' — <b>not today</b>'}.</div>` : ''}
       <div class="in2">
         <div class="box"><label for="iMl">Total ML (bottles × size)</label><input id="iMl" type="number" inputmode="numeric" min="1" value="${esc(S.ml)}"></div>
         <div class="box"><label for="iPr">Customer price ₹</label><input id="iPr" type="number" inputmode="numeric" min="0" placeholder="e.g. 2700" value="${esc(S.price)}"></div>
@@ -141,8 +157,9 @@
         ? `<div class="ext"><div class="big">${r1(x.extra)} ml extra</div>Chart ${inr(x.chart)} ÷ ${ml} ml = <b>₹${x.per.toFixed(2)} per ml</b>.<br>${inr(x.look)}${S.pre ? ' (before the prepaid discount)' : ''} pays for <b>${r1(x.paid)} ml</b> → you give <b>${r1(x.extra)} ml (${inr(x.value)})</b> extra.</div>`
         : `<div class="ext ok"><div class="big">0 ml extra</div>${inr(x.look)} is the chart price (${inr(x.chart)}) or more — nothing given extra.</div>`;
       // Max discount: more than chart.maxdisc % off the chart price = no commission. The lowest price that still earns.
-      const maxd = Number(CH.maxdisc) || 0;
-      if (maxd > 0) {
+      const maxd = Number(CH.maxdisc) || 0, maxAll = CH.maxdisc_for === 'all';
+      if (maxd > 0 && S.code && !maxAll) html += `<div class="off">With a code there is no discount limit (${r.disc}% off). Without a code, more than ${maxd}% off pays nothing.</div>`;
+      else if (maxd > 0) {
         const minPay = Math.ceil(row.p[0] * (1 - maxd / 100));      // chart price − max % (e.g. ₹1,810 − 10% = ₹1,629), prepaid or not
         if (r.overMax) html += `<div class="warn" style="background:#fef2f2; border-color:#fecaca; color:#991b1b;">⛔ ${inr(price)} is <b>${r.disc}% off</b> the ${ml} ml chart price (${inr(row.p[0])}) — more than the ${maxd}% max, so <b>no commission</b>. Lowest price that still earns: <b>${inr(minPay)}</b>.</div>`;
         else html += `<div class="off">${r.disc}% off the chart price · max allowed ${maxd}% (lowest price ${inr(minPay)})</div>`;
@@ -165,7 +182,7 @@
     if (lookPrice != null) { meAt = lines.findIndex((x) => lookPrice >= x.p - 0.5); if (meAt === -1) meAt = lines.length; }
     const rowsHtml = [];
     // Max discount line: chart price − max % (₹1,810 − 10% = ₹1,629). Every price below it pays ₹0.
-    const maxd = Number(CH.maxdisc) || 0, cut = maxd > 0 ? Math.ceil(row.p[0] * (1 - maxd / 100)) : 0;
+    const maxd = Number(CH.maxdisc) || 0, cut = maxd > 0 && (CH.maxdisc_for === 'all' || !S.code) ? Math.ceil(row.p[0] * (1 - maxd / 100)) : 0;
     let cutDone = !cut;
     const cutRow = () => { cutDone = true; const r = com(ml, cut); return `<tr class="pick" data-p="${cut}" style="outline:2px solid #fecaca; outline-offset:-2px;"><td><b>${inr(cut)}</b><span class="nm" style="color:#b91c1c;">lowest · ${maxd}% off</span></td><td class="r">${fmtP(r.pct)}</td><td class="r"><b>${inr(r.v)}</b></td></tr><tr class="zero"><td colspan="3" style="color:#b91c1c; font-weight:700;">Below ${inr(cut)} (more than ${maxd}% off) → no commission</td></tr>`; };
     lines.forEach((x, i) => {

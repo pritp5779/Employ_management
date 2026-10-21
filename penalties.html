@@ -209,7 +209,7 @@
   }));
 
   // ---------- RULES ----------
-  const trigLabel = (r) => r.trigger_type === 'late_punch' ? 'Automatic · late punch-in · all fixed-hours staff' : r.trigger_type === 'short_hours' ? 'Automatic · short hours · all fixed-hours staff' : 'Written by hand';
+  const trigLabel = (r) => r.trigger_type === 'late_punch' ? 'Automatic · late punch-in · all fixed-hours staff' : r.trigger_type === 'short_hours' ? 'Automatic · short hours · all fixed-hours staff' : r.trigger_type === 'no_punch_out' ? 'Automatic · no punch-out · all fixed-hours staff' : 'Written by hand';
   async function loadRules() {
     const d = await api.get('penalties.rules');
     RULES = d.rules; DEPTS = d.departments || [];
@@ -221,7 +221,7 @@
     const list = RULES.filter((r) => r.category === catSel);
     $('ruleList').innerHTML = list.length ? list.map((r) => `<div class="rule ${r.rule_id === ruleSel ? 'sel' : ''}" data-r="${r.rule_id}">
         <button class="sw ${r.active ? 'on' : ''}" data-sw="${r.rule_id}" title="Switch on / off"></button>
-        <div class="m"><b>${esc(r.name)}</b>${r.category === 'dept' ? ` <span class="tag c-dept">${esc(r.department)}</span>` : ''}<div>${trigLabel(r)}${r.trigger_type !== 'manual' ? ' · ' + (r.grace_min !== null ? r.grace_min + ' min grace' : 'late-alert grace') : ''}</div></div>
+        <div class="m"><b>${esc(r.name)}</b>${r.category === 'dept' ? ` <span class="tag c-dept">${esc(r.department)}</span>` : ''}<div>${trigLabel(r)}${r.trigger_type !== 'manual' && r.trigger_type !== 'no_punch_out' ? ' · ' + (r.grace_min !== null ? r.grace_min + ' min grace' : 'late-alert grace') : ''}</div></div>
         <div class="a">${r.ladder_on ? `${inr(r.amount)}<div class="small muted" style="font-weight:600;">+ ${inr(r.ladder_inc)} each time</div>` : inr(r.amount)}</div></div>`).join('') : '<div style="padding:16px;" class="muted">No rules in this category yet. Click “+ New rule”.</div>';
     renderEditor();
   }
@@ -247,7 +247,7 @@
       <label class="full">Penalty name<input id="fN" value="${esc(r.name)}" maxlength="120"></label>
       <label>Category<select id="fC">${Object.entries(CATS).map(([k, v]) => o(k, r.category, v)).join('')}</select></label>
       <label id="fDw" style="${r.category === 'dept' ? '' : 'display:none'}">Department<select id="fD">${DEPTS.map((d) => o(d, r.department, esc(d))).join('')}</select></label>
-      <label>How it starts<select id="fT">${o('manual', r.trigger_type, 'Written by hand')}${o('late_punch', r.trigger_type, 'Automatic — late punch-in')}${o('short_hours', r.trigger_type, 'Automatic — short working hours')}</select></label>
+      <label>How it starts<select id="fT">${o('manual', r.trigger_type, 'Written by hand')}${o('late_punch', r.trigger_type, 'Automatic — late punch-in')}${o('short_hours', r.trigger_type, 'Automatic — short working hours')}${o('no_punch_out', r.trigger_type, 'Automatic — no punch-out')}</select></label>
       <label class="full">Amount<div class="lsel" id="fLsel"><button type="button" data-l="0" class="${r.ladder_on ? '' : 'on'}">Same every time</button><button type="button" data-l="1" class="${r.ladder_on ? 'on' : ''}">Increases each time</button></div>
         <div id="fLad" class="lad${r.ladder_on ? '' : ' off'}">
           <div><span class="n" id="fAL">${r.ladder_on ? '1st time (₹)' : 'Amount (₹)'}</span><input type="number" id="fA" min="0" step="1" value="${r.amount}" placeholder="0"></div>
@@ -255,8 +255,9 @@
           <div class="pv" id="fLadPv" style="${r.ladder_on ? '' : 'display:none;'}"></div>
         </div></label>
       <label id="fResetW" style="${r.ladder_on ? '' : 'display:none;'}">Count starts again<select id="fReset">${o('month', r.ladder_reset || 'month', 'Every month')}${o('never', r.ladder_reset || 'month', 'Never (counts all time)')}</select><span class="hint">How many times the rule was already given to that employee decides the step.</span></label>
-      <label class="auto" style="${auto ? '' : 'display:none'}">Grace (minutes)<input type="number" id="fG" min="0" max="240" value="${r.grace_min === null ? '' : r.grace_min}" placeholder="Same as late alert"><span class="hint">No penalty inside the grace time. Empty = each employee's own late-alert time (15 by default).</span></label>
+      <label class="auto gr" style="${auto && r.trigger_type !== 'no_punch_out' ? '' : 'display:none'}">Grace (minutes)<input type="number" id="fG" min="0" max="240" value="${r.grace_min === null ? '' : r.grace_min}" placeholder="Same as late alert"><span class="hint">No penalty inside the grace time. Empty = each employee's own late-alert time (15 by default).</span></label>
       <label class="auto late" style="${r.trigger_type === 'late_punch' ? '' : 'display:none'}">When required hours are completed<select id="fH">${o('remove', r.on_hours_done, 'Remove the penalty automatically')}${o('reduce_50', r.on_hours_done, 'Reduce it by half')}${o('keep', r.on_hours_done, 'Keep the penalty')}</select></label>
+      <label class="auto noout" style="${r.trigger_type === 'no_punch_out' ? '' : 'display:none'}">If the punch-out is added later<select id="fO">${o('remove', r.on_hours_done, 'Remove the penalty automatically')}${o('keep', r.on_hours_done === 'remove' ? 'remove' : 'keep', 'Keep the penalty')}</select><span class="hint">Checked the next day, after the business day is over: punched in but no punch-out → penalty.</span></label>
       <label class="full">Notification text<input id="fM" value="${esc(r.notify_text)}" maxlength="255"><span class="hint">Use {amount}, {rule} and {time} (which time it was). Preview: <b id="fMp"></b></span></label>
       <div class="full small muted auto" style="${auto ? '' : 'display:none'}">Automatic rules apply to <b>every</b> fixed-hours employee — no need to pick people. Sales employees have no fixed hours and are skipped.</div>`;
     // "Increases each time": 1st time = amount, every next time + increase
@@ -274,12 +275,14 @@
     $('fT').addEventListener('change', () => {
       document.querySelectorAll('#edForm .auto').forEach((x) => { x.style.display = $('fT').value === 'manual' ? 'none' : ''; });
       document.querySelectorAll('#edForm .late').forEach((x) => { x.style.display = $('fT').value === 'late_punch' ? '' : 'none'; });
+      document.querySelectorAll('#edForm .noout').forEach((x) => { x.style.display = $('fT').value === 'no_punch_out' ? '' : 'none'; });
+      document.querySelectorAll('#edForm .gr').forEach((x) => { x.style.display = $('fT').value === 'manual' || $('fT').value === 'no_punch_out' ? 'none' : ''; });
     });
   }
   $('edSave').addEventListener('click', async () => {
     const r = currentRule(); if (!r) return;
     const body = { rule_id: r.rule_id || 0, name: $('fN').value.trim(), category: $('fC').value, department: $('fC').value === 'dept' ? $('fD').value : '', trigger_type: $('fT').value,
-      amount: +$('fA').value || 0, grace_min: $('fT').value === 'manual' ? null : ($('fG').value === '' ? null : +$('fG').value), on_hours_done: $('fT').value === 'late_punch' ? $('fH').value : 'keep',
+      amount: +$('fA').value || 0, grace_min: $('fT').value === 'manual' || $('fT').value === 'no_punch_out' ? null : ($('fG').value === '' ? null : +$('fG').value), on_hours_done: $('fT').value === 'late_punch' ? $('fH').value : $('fT').value === 'no_punch_out' ? $('fO').value : 'keep',
       notify_text: $('fM').value.trim(), active: r.rule_id ? r.active : 1,
       ladder_on: $('fLsel').querySelector('button.on').dataset.l === '1' ? 1 : 0, ladder_inc: +$('fInc').value || 0, ladder_reset: $('fReset').value };
     if (body.ladder_on && !(body.ladder_inc > 0)) { $('fInc').focus(); return showErr('Type how much it increases each time (more than ₹0).'); }
@@ -459,13 +462,14 @@
       <b>${esc(r.name)}</b> <span class="tag ${r.active ? 's-removed' : 's-waived'}">${r.active ? 'On' : 'Off'}</span> — ${r.ladder_on ? inr(r.amount) + ' the 1st time, + ' + inr(r.ladder_inc) + ' each next time' + (r.ladder_reset === 'never' ? ' (counts all time)' : ' (starts again every month)') : inr(r.amount)}
       <div class="small muted" style="margin-top:3px;">${r.trigger_type === 'late_punch'
         ? `Charged when anyone punches in more than ${r.grace_min !== null ? r.grace_min + ' min' : 'their late-alert time'} after shift start. When required hours are completed: <b>${r.on_hours_done === 'remove' ? 'penalty removed automatically' : r.on_hours_done === 'reduce_50' ? 'penalty reduced by half' : 'penalty kept'}</b>.`
+        : r.trigger_type === 'no_punch_out' ? `Charged the next day when someone punched in but never punched out. If the punch-out is added later: <b>${r.on_hours_done === 'remove' ? 'penalty removed automatically' : 'penalty kept'}</b>.`
         : `Charged when someone punches out having worked less than their working time minus ${r.grace_min !== null ? r.grace_min : 15} min.`}</div></div>`).join('') || '<div class="muted">No automatic rules yet — add one on the Rules tab (How it starts → Automatic).</div>';
   }
   $('btnRun').addEventListener('click', async () => {
     $('btnRun').disabled = true;
     try {
       const r = (await api.post('penalties.run', {})).result;
-      $('runResult').innerHTML = `<div class="alert success">Checked ${r.checked} punched-in employee(s): ${r.late} late penalt${r.late === 1 ? 'y' : 'ies'} applied, ${r.short} short-hours, ${r.removed} removed, ${r.reduced} reduced.</div>`;
+      $('runResult').innerHTML = `<div class="alert success">Checked ${r.checked} punched-in employee(s): ${r.late} late penalt${r.late === 1 ? 'y' : 'ies'} applied, ${r.short} short-hours, ${r.noout || 0} no punch-out, ${r.removed} removed, ${r.reduced} reduced.</div>`;
       STATEMENT = null;
     } catch (err) { $('runResult').innerHTML = `<div class="alert error">${esc(err.message)}</div>`; }
     $('btnRun').disabled = false;

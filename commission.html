@@ -624,7 +624,7 @@
         c.amount += dS;
         c.slab = { n: nS, all: nS === n, v: vS, amt: aS, pct: aS > 0 ? vS / aS * 100 : 0, capN, ncN };
         if (nS === n) { c.slabBadge = fmtN(Math.round(c.slab.pct * 100) / 100) + '% ML'; c.held = 0; c.adj = false; }
-        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
+        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart / outside the slab dates) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
       }
     }
     // NEW — an order whose commission was set by hand pays exactly that (₹ amount, or a rate on the order), whatever it would have earned above

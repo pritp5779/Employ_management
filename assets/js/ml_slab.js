@@ -56,8 +56,18 @@
    * Returns null when the slab does not apply (switched off, no ML known, size outside the chart),
    * else { v: ₹, pct: final %, base: slab %, steps: [text], ml, look: price looked up }.
    */
+  // The chart's dates (business days 'YYYY-MM-DD'): no From = from the start, no To = keeps going. No day given = applies.
+  function activeOn(chart, day) {
+    if (!chart || !day) return true;
+    if (chart.from && day < chart.from) return false;
+    if (chart.to && day > chart.to) return false;
+    return true;
+  }
+  const datesTxt = (c) => !c || (!c.from && !c.to) ? 'all days' : (c.from ? 'from ' + c.from : 'until') + (c.to ? (c.from ? ' to ' : ' ') + c.to : ' onwards');
+
   function orderCom(chart, o, hit) {
     if (!chart || !Number(chart.on) || o.ml == null || !(Number(o.ml) > 0)) return null;
+    if (o.day && !activeOn(chart, o.day)) return null;     // order outside the chart's dates: normal commission
     const amt = Number(o.amt) || 0;
     const look = o.pre && Number(chart.prepaid) > 0 ? amt / (1 - Number(chart.prepaid) / 100) : amt;
     const s = pctOf(chart, o.ml, look);
@@ -67,8 +77,10 @@
     // Discount = how far the price the customer actually paid is below the size's chart price (first column); free ML is already
     // in the size. The prepaid 2% is NOT added back here: 100 ml chart ₹1,810, 10% max → anything below ₹1,629 pays nothing.
     const cp = Number(s.row.p[0]), disc = cp > 0 ? Math.max(0, (cp - amt) / cp * 100) : 0, maxd = Number(chart.maxdisc) || 0;
-    if (maxd > 0 && disc > maxd + 1e-9) {
-      steps.push('discount ' + r2(disc) + '% is more than the ' + maxd + '% max → no commission');
+    // The limit is for orders WITHOUT a code (maxdisc_for = 'nocode', default); 'all' limits every order. With a code, any discount is allowed.
+    const maxOn = maxd > 0 && (chart.maxdisc_for === 'all' || !o.code);
+    if (maxOn && disc > maxd + 1e-9) {
+      steps.push('discount ' + r2(disc) + '% is more than the ' + maxd + '% max' + (chart.maxdisc_for === 'all' ? '' : ' for orders without code') + ' → no commission');
       return { v: 0, pct: 0, base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: true };
     }
     if (!hit && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%'); }
@@ -107,5 +119,5 @@
     return { chart: cp, per, look, paid, extra: Math.round(extra * 10) / 10, value: Math.max(0, cp - look) };
   }
 
-  window.MLSLAB = { rowFor, pctOf, orderCom, parts, preview, isPre, extraByPrice, on: (c) => !!(c && Number(c.on)) };
+  window.MLSLAB = { rowFor, pctOf, orderCom, parts, preview, isPre, extraByPrice, activeOn, datesTxt, on: (c) => !!(c && Number(c.on)) };
 })();

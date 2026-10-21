@@ -92,10 +92,15 @@
         <label class="tgl" style="margin-left:auto;"><input type="checkbox" id="mlsOn" ${on ? 'checked' : ''}><i></i><span id="mlsOnTxt">${on ? 'Switched on' : 'Switched off'}</span></label></h3>
       <p class="rsub">Each allocated order is paid by its <b>total ML</b> (free ML included) and the <b>price</b> the customer paid: find the size's row, find the price — that column's % is the commission. A price between two columns earns a % in between (₹1,730 between ₹1,700 = 6% and ₹1,760 = 6.5% → 6.25%). Below the last column = 0%. Orders with no ML (MySales orders, very old orders) or a size outside the chart keep the normal commission. A panel rule, a fixed commission or a commission set by hand still wins.</p>
       <div id="mlsMsg" class="msg"></div>
+      <div class="fld" style="margin-bottom:12px; border-color:#c7d2fe; background:#f5f7ff;"><label>Dates this chart applies (order business day)</label>
+        <div class="in" style="flex-wrap:wrap;">From <input type="date" id="mlsFrom" style="width:150px;" value="${esc(C.from || '')}"> To <input type="date" id="mlsTo" style="width:150px;" value="${esc(C.to || '')}"> <button type="button" class="x" id="mlsToClr" title="No end date" style="width:auto; padding:0 10px; border-radius:8px; height:30px;">No end</button></div>
+        <small>From empty = from the start. <b>To empty = keeps going</b> (no end). Orders outside these dates keep the normal commission. Now: <b id="mlsDates">${esc(MLSLAB.datesTxt(C))}</b></small></div>
       <div class="row3">
         <div class="fld"><label>Daily target incomplete</label><div class="in">at most <input type="number" id="mlsCap" min="0" max="100" step="0.1" value="${esc(C.cap)}"> %</div><small>Every order of a day whose target is not complete pays this % at most. No target set that day = no cap.</small></div>
         <div class="fld"><label>Order without code</label><div class="in">pays <input type="number" id="mlsNc" min="0" max="100" step="1" value="${esc(C.nocode)}"> % of it</div><small>50 = half. (While this slab is on, it replaces the order-code rules for these orders.)</small></div>
-        <div class="fld" style="border-color:#fecaca; background:#fff5f5;"><label>Max discount</label><div class="in">more than <input type="number" id="mlsMax" min="0" max="100" step="0.5" value="${esc(Number(C.maxdisc) || '')}" placeholder="off"> % off → ₹0</div><small>Discount = how far the price paid is below the size's chart price (first column), free ML included. Example: ₹1,810 − 10% = ₹1,629 → below ₹1,629 pays ₹0. Empty = no limit.</small></div>
+        <div class="fld" style="border-color:#fecaca; background:#fff5f5;"><label>Max discount</label><div class="in">more than <input type="number" id="mlsMax" min="0" max="100" step="0.5" value="${esc(Number(C.maxdisc) || '')}" placeholder="off"> % off → ₹0</div>
+          <div class="in" style="margin-top:6px;">for <select id="mlsMaxFor" style="width:auto; padding:5px 8px; min-height:0;"><option value="nocode" ${C.maxdisc_for === 'all' ? '' : 'selected'}>orders WITHOUT code only</option><option value="all" ${C.maxdisc_for === 'all' ? 'selected' : ''}>all orders</option></select></div>
+          <small>With a code, any discount is allowed (the chart % still applies). Discount = how far the price paid is below the size's chart price (first column), free ML included. Example: ₹1,810 − 10% = ₹1,629 → below ₹1,629 pays ₹0. Empty = no limit.</small></div>
         <div class="fld"><label>Prepaid discount</label><div class="in"><input type="number" id="mlsPre" min="0" max="20" step="0.5" value="${esc(C.prepaid)}"> % borne by the company</div><small>A prepaid order is looked up at its price before this discount, so it is not pushed into a lower column.</small></div>
       </div>
       <div class="tester"><b class="t">Try it — what does one order earn?</b>
@@ -134,6 +139,10 @@
     $('mlsNc').oninput = (e) => { C.nocode = Number(e.target.value); markDirty(); test(); };
     $('mlsPre').oninput = (e) => { C.prepaid = Number(e.target.value); markDirty(); test(); };
     $('mlsMax').oninput = (e) => { C.maxdisc = Number(e.target.value) || 0; markDirty(); test(); };
+    $('mlsMaxFor').onchange = (e) => { C.maxdisc_for = e.target.value === 'all' ? 'all' : 'nocode'; markDirty(); test(); };
+    const dates = () => { C.from = $('mlsFrom').value || ''; C.to = $('mlsTo').value || ''; $('mlsDates').textContent = MLSLAB.datesTxt(C); markDirty(); };
+    $('mlsFrom').onchange = dates; $('mlsTo').onchange = dates;
+    $('mlsToClr').onclick = () => { $('mlsTo').value = ''; dates(); };
     ['tMl', 'tPr', 'tPre', 'tCode', 'tHit'].forEach((id) => { $(id).oninput = test; $(id).onchange = test; });
     root.querySelector('table').addEventListener('input', (e) => {
       const t = e.target;
@@ -197,7 +206,7 @@
   async function save() {
     const b = $('mlsSave'); b.disabled = true; b.textContent = 'Saving…';
     try {
-      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: C.cap, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, cols: C.cols, names: C.names, rows: C.rows } });
+      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: C.cap, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
       if (d.error) throw new Error(d.error);
       C = JSON.parse(JSON.stringify(d.chart)); dirty = false;
       render(); flash(esc(d.message || 'Saved.'), 'success');

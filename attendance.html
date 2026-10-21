@@ -496,6 +496,8 @@
   let stream = null;             // the live camera, only while a punch runs
   let cancelled = false;         // ✕ tapped, or the app was left mid-punch
   let todayRow = null;
+  let fwAny = false;        // any footwear accepted (female employees, from attendance.today)
+  const placeTxt = () => fwAny ? 'Place your footwear in the frame (any footwear is fine), then tap the round button' : 'Place your shoes in the frame, then tap the round button';
   let fwRequired = false;   // footwear photo needed at Punch In (from attendance.today; admin switch FOOTWEAR_CHECK)
 
   let alertTimer = null;
@@ -605,6 +607,9 @@
       const a = data.attendance;
       todayRow = a;
       fwRequired = !!data.footwear_required;
+      fwAny = !!data.any_footwear;            // female employee: any footwear (Crocs, slippers, heels …) is accepted
+      { const ck = document.querySelector('#camCheck small'); if (ck) ck.textContent = fwAny ? 'Any footwear is fine' : 'Is this proper shoes?';
+        const fr = document.querySelector('#camShoeFrame span'); if (fr) fr.textContent = fwAny ? 'Keep your footwear inside' : 'Keep both shoes inside'; }
       const fmt = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
       // The employee's own working time, when one has been given to them.
       const sh = data.shift || {};
@@ -1312,7 +1317,7 @@
       panel.classList.add('shoe'); camShoe.hidden = false; shoeUnfreeze();
       for (let tries = 0; tries < 12; tries++) {
         setMsg('Take a photo of your footwear…', 'var(--accent)');
-        shoeHint('Place your shoes in the frame, then tap the round button', false);
+        shoeHint(placeTxt(), false);
         btnShoe.disabled = false;
         if (!(await shoeWaitSnap())) return;                 // ✕ tapped
         btnShoe.disabled = true;
@@ -1865,7 +1870,7 @@
     try {
       for (let tries = 0; tries < 12; tries++) {
         step('footwear', 'on');
-        shoeHint('Place your shoes in the frame, then tap the round button', false); camShoeT.classList.remove('ok');
+        shoeHint(placeTxt(), false); camShoeT.classList.remove('ok');
         setMsg('Take a photo of your footwear…', 'var(--accent)');
         btnShoe.disabled = false;
         if (!(await shoeWaitSnap())) throw new Error('cancelled');

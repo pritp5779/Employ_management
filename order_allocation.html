@@ -862,8 +862,8 @@
     if (!m) return '<span class="sub">—</span>';
     const top = `<span class="mlv">${m.base} ml${m.extra ? ` <span class="mlx">+${m.extra} ml free</span> <span class="mlt">= ${m.total} ml</span>` : ''}</span>`;
     if (!ML_CHART || !m.total) return top;
-    const r = MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, amt: Number(o.total || 0), pre: MLSLAB.isPre(o.financial_status), code: o.code || '' }, true);
-    if (!r) return top + `<div class="mln">${m.total} ml not in chart · normal commission</div>`;
+    const r = MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre: MLSLAB.isPre(o.financial_status), code: o.code || '' }, true);
+    if (!r) return top + `<div class="mln">${!MLSLAB.activeOn(ML_CHART, o.biz_date) ? 'ML slab not active on this date' : m.total + ' ml not in chart'} · normal commission</div>`;
     const tip = r.steps.join(' · ') + (MLSLAB.on(ML_CHART) ? '' : ' · (ML price slab is OFF — preview only)') + ' · a day with the target not complete pays at most ' + ML_CHART.cap + '%';
     // Extra ML by price: chart price ÷ ML = price of 1 ml; price paid ÷ that = ML paid for; the rest of the box was given extra.
     const pre = MLSLAB.isPre(o.financial_status), x = MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre);
