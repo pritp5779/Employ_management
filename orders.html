@@ -437,8 +437,11 @@
   .oh-card .ohp{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;}
   .oh-card .ohp button{width:auto; min-height:0; padding:3px 9px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer;}
   .oh-card .ohp button.on{background:#111827; color:#fff; border-color:#111827;}
-  .ohr{display:grid; grid-template-columns:84px minmax(16px, 1fr) 26px 64px; gap:6px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
-  .ohr.hd{font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase;} .ohr.hd span:nth-child(3){text-align:right;}
+  .ohr{display:grid; grid-template-columns:84px minmax(12px, 1fr) 26px 26px 28px 62px; gap:5px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
+  .ohr.hd{font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase;} .ohr.hd .r{text-align:right;} .ohr.hd .q{color:#2563eb;} .ohr.hd i{font-style:normal;} .ohr.hd .hs{display:none;} .ohr.hd .c{color:#c2410c;}
+  .ohn.q{color:#2563eb;} .ohn.c{color:#c2410c;} .ohn.t{color:var(--ink);}
+  .ohk{display:flex; gap:6px; margin-bottom:8px;} .ohk div{flex:1; border-radius:9px; padding:5px 8px; font-size:10.5px; color:var(--muted); line-height:1.3;} .ohk b{display:block; font-size:14px; color:var(--ink);}
+  .ohk .q{background:#eff6ff;} .ohk .c{background:#fff7ed;}
   .ohr.now{background:#fff7ed;} .ohr.pk{background:#ffedd5;} .ohr.fu{opacity:.45;} .ohr.nt{background:#eef2ff; margin-top:4px;}
   .ohl{white-space:nowrap;} .ohl small{display:block; font-size:10px; color:var(--muted); font-weight:600;}
   .ohb{height:7px; background:#f1f5f9; border-radius:9px; overflow:hidden;} .ohb i{display:block; height:100%; background:linear-gradient(90deg,#fb923c,#f97316); border-radius:9px;}
@@ -449,7 +452,8 @@
   .ohtab{width:100%; border-collapse:collapse; font-size:13px;} .ohtab th{font-size:11px; color:var(--muted); text-align:left; padding:6px; border-bottom:1px solid var(--line);} .ohtab td{padding:7px 6px; border-bottom:1px solid #f1f5f9;}
   .ocd{display:inline-block; background:#eef2ff; color:#3730a3; font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px;} .ocd.no{background:#fee2e2; color:#b91c1c;}
   @media (max-width:820px){ .stat-card.oh-card{grid-column:1 / -1;} }
-  @container (max-width:250px){ .ohr{grid-template-columns:80px 1fr 62px; gap:4px; font-size:11.5px;} .ohr.hd span:nth-child(2){display:none;} .ohb{display:none;} .ohf{flex-direction:column;} }
+  @container (max-width:320px){ .ohr{grid-template-columns:minmax(70px, 1fr) 24px 24px 26px 60px; gap:4px; font-size:11.5px;} .ohr .ohb, .ohr.hd .ohbh{display:none;} .ohf{flex-direction:column;} }
+  @container (max-width:270px){ .ohr{grid-template-columns:minmax(60px, 1fr) 16px 18px 20px 54px; gap:3px; padding:3px 2px; font-size:11px;} .ohr.hd{font-size:9px;} .ohr.hd .oha{font-size:9px;} .ohr.hd .hl{display:none;} .ohr.hd .hs{display:inline;} .ohk div{padding:4px 6px;} .ohk b{font-size:13px;} .oha{font-size:10.5px;} }
   @media (max-width:820px){ .stat-card.rs-card{grid-column:1 / -1;} }
   .rs-warn{margin-top:6px; font-size:10.5px; color:#b45f06; font-weight:600; line-height:1.3;}
   @media (max-width:520px){ .rs-big{font-size:21px;} }
@@ -1546,8 +1550,13 @@
     const panels = panelPick ? [] : PANELS.filter(p => panelAllowed(p[0]) && base.some(o => panelOf(o) === p[0]));
     if (ohPanel && !panels.some(p => p[0] === ohPanel)) ohPanel = '';
     const list = ohOrders(base), by = {};
-    OH_ROWS.forEach(k => { by[k] = { n: 0, amt: 0 }; });
-    list.forEach(o => { const b = by[ohSlot(o)]; b.n++; b.amt += Number(o.total) || 0; });
+    OH_ROWS.forEach(k => { by[k] = { n: 0, amt: 0, q: 0, c: 0 }; });
+    const kq = { n: 0, amt: 0 }, kc = { n: 0, amt: 0 };      // Query / Campaign (Type from Order Allocation, on the order's tags)
+    list.forEach(o => {
+      const b = by[ohSlot(o)], amt = Number(o.total) || 0, t = orderTagType(o.tags);
+      b.n++; b.amt += amt;
+      if (t === 'query') { b.q++; kq.n++; kq.amt += amt; } else if (t === 'campaign') { b.c++; kc.n++; kc.amt += amt; }
+    });
     const max = Math.max(1, ...OH_ROWS.map(k => by[k].n));
     const df = document.getElementById('dateFrom').value, dt = document.getElementById('dateTo').value;
     const today = bizDayOf(new Date()), onlyToday = df === today && dt === today, nowH = new Date().getHours();
@@ -1556,19 +1565,20 @@
     const rows = OH_ROWS.map(k => {
       const b = by[k], night = k === 'night', future = onlyToday && !night && nowH >= 10 && k > nowH, now = onlyToday && !night && k === nowH;
       const lab = night ? '🌙 Overnight<small>12 AM – 10 AM</small>' : ohHr(k) + (now ? ' ●' : '');
-      const num = b.n ? `<a href="#" class="ohn" data-oh="${k}">${b.n}</a>` : `<span class="ohz">${future ? '—' : 0}</span>`;
-      return `<div class="ohr${future ? ' fu' : ''}${now ? ' now' : ''}${k === peak && b.n ? ' pk' : ''}${night ? ' nt' : ''}"><span class="ohl">${lab}</span><div class="ohb"><i style="width:${b.n / max * 100}%"></i></div>${num}<span class="oha">${b.n ? fmtMoney(b.amt, 'INR') : (future ? '—' : '')}</span></div>`;
+      const cell = (v, t, cls) => v ? `<a href="#" class="ohn ${cls}" data-oh="${k}" data-oht="${t}">${v}</a>` : `<span class="ohz">${future ? '—' : 0}</span>`;
+      return `<div class="ohr${future ? ' fu' : ''}${now ? ' now' : ''}${k === peak && b.n ? ' pk' : ''}${night ? ' nt' : ''}"><span class="ohl">${lab}</span><div class="ohb"><i style="width:${b.n / max * 100}%"></i></div>${cell(b.q, 'query', 'q')}${cell(b.c, 'campaign', 'c')}${cell(b.n, '', 't')}<span class="oha">${b.n ? fmtMoney(b.amt, 'INR') : (future ? '—' : '')}</span></div>`;
     }).join('');
     return `<div class="stat-card oh-card"><div class="label"><span class="lbl-full">Orders by hour</span><span class="lbl-short">Orders by hour</span></div>
       <div class="oht"><b>${list.length} orders</b> · ${fmtMoney(tot, 'INR')}</div>
       ${panels.length > 1 ? `<div class="ohp"><button type="button" data-ohp="" class="${ohPanel ? '' : 'on'}">All</button>${panels.map(p => `<button type="button" data-ohp="${p[0]}" class="${ohPanel === p[0] ? 'on' : ''}">${OH_SHORT[p[0]] || esEsc(p[1])}</button>`).join('')}</div>` : ''}
-      <div class="ohr hd"><span class="ohl">Time</span><span></span><span>Ord</span><span class="oha">Amount</span></div>${rows}
+      <div class="ohk"><div class="q">Query<b>${kq.n}</b>${fmtMoney(kq.amt, 'INR')}</div><div class="c">Campaign<b>${kc.n}</b>${fmtMoney(kc.amt, 'INR')}</div></div>
+      <div class="ohr hd"><span class="ohl">Time</span><span class="ohbh"></span><span class="r q" title="Query orders"><i class="hl">Qry</i><i class="hs">Q</i></span><span class="r c" title="Campaign orders"><i class="hl">Cmp</i><i class="hs">C</i></span><span class="r" title="All orders"><i class="hl">Tot</i><i class="hs">All</i></span><span class="oha">Amount</span></div>${rows}
       <div class="ohf"><span>Tap a number → those orders</span>${peak && by[peak].n ? `<b>Peak ${hrLabel(peak)} · ${by[peak].n}</b>` : ''}</div></div>`;
   }
-  function ohOpen(k) {
-    const base = ohOrders(scopedOrders()).filter(o => String(ohSlot(o)) === String(k)).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+  function ohOpen(k, t) {
+    const base = ohOrders(scopedOrders()).filter(o => String(ohSlot(o)) === String(k) && (!t || orderTagType(o.tags) === t)).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
     const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('ohTitle').textContent = (k === 'night' ? 'Overnight · 12 AM – 10 AM' : ohHr(Number(k))) + (ohPanel ? ' · ' + (PANEL_NAME[ohPanel] || ohPanel) : '');
+    document.getElementById('ohTitle').textContent = (k === 'night' ? 'Overnight · 12 AM – 10 AM' : ohHr(Number(k))) + (t === 'query' ? ' · Query' : t === 'campaign' ? ' · Campaign' : '') + (ohPanel ? ' · ' + (PANEL_NAME[ohPanel] || ohPanel) : '');
     document.getElementById('ohSub').textContent = base.length + ' order' + (base.length === 1 ? '' : 's') + ' · ' + fmtMoney(base.reduce((a, o) => a + (Number(o.total) || 0), 0), 'INR') + ' · tap an order number to open it';
     document.getElementById('ohBody').innerHTML = base.length ? `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Order</th><th>Time</th><th>Salesman</th><th>Code</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${base.map(o => `<tr><td><a href="#" data-ohi="${o._i}" style="font-weight:800;">${esEsc(o.order_name)}</a>${ohPanel ? '' : `<div style="font-size:10.5px; color:var(--muted);">${esEsc(PANEL_NAME[panelOf(o)] || '')}</div>`}</td><td style="white-space:nowrap;">${tm(o.created_at)}</td><td>${esEsc(o.salesman || '—')}</td><td>${o.code ? `<span class="ocd">${esEsc(o.code)}</span>` : '<span class="ocd no">no code</span>'}</td><td style="text-align:right; font-weight:700; white-space:nowrap;">${fmtMoney(o.total, o.currency)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No orders.</p>';
     document.getElementById('ohModal').classList.add('open');
@@ -1577,7 +1587,7 @@
     const p = ev.target.closest('[data-ohp]');
     if (p) { ohPanel = p.dataset.ohp; renderSummary(); return; }
     const n = ev.target.closest('[data-oh]');
-    if (n) { ev.preventDefault(); ohOpen(n.dataset.oh); }
+    if (n) { ev.preventDefault(); ohOpen(n.dataset.oh, n.dataset.oht || ''); }
   });
   document.getElementById('ohModal').addEventListener('click', (ev) => {
     const a = ev.target.closest('[data-ohi]');
@@ -1716,7 +1726,9 @@
     const ex = commValid() && COMM.res.ord ? COMM.res.ord[key] : null;      // [₹, note, rule kind] from the Commission page
     const pre = MLSLAB.isPre(o.financial_status);
     const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre, code: o.code || '' }, true) : null;
-    const x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
+    let x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
+    // Campaign orders (Type = Campaign on Order Allocation): the campaign price is the set price → no extra ML counted.
+    if (x && orderTagType(o.tags) === 'campaign') x = Object.assign({}, x, { extra: 0, value: 0, campaign: true });
     return { m, r, ex, x };
   }
   // The commission % paid on the order: Commission page figure ÷ amount when it is loaded, else the slab estimate. null = no slab / no figure.
@@ -1738,13 +1750,13 @@
   const mlXOf = (o) => { const i = mlInfo(o); return i.x ? i.x.extra : null; };
   const mlPctCls = (p) => p < 2 ? 'lo' : p >= 6 ? 'hi' : '';
   const ml1 = (v) => (Math.round(v * 10) / 10).toLocaleString('en-IN', { maximumFractionDigits: 1 });
-  const xTip = (m, x, o) => `Chart ${fmtMoney(x.chart, 'INR')} ÷ ${m.total} ml = ₹${x.per.toFixed(2)} per ml · ${fmtMoney(Math.round(x.look), 'INR')}${Math.abs(x.look - Number(o.total || 0)) > 0.5 ? ' (prepaid, before the discount)' : ''} pays for ${ml1(x.paid)} ml → ${ml1(x.extra)} ml extra`;
+  const xTip = (m, x, o) => x.campaign ? 'Campaign order — campaign price, extra ML not counted' : `Chart ${fmtMoney(x.chart, 'INR')} ÷ ${m.total} ml = ₹${x.per.toFixed(2)} per ml · ${fmtMoney(Math.round(x.look), 'INR')}${Math.abs(x.look - Number(o.total || 0)) > 0.5 ? ' (prepaid, before the discount)' : ''} pays for ${ml1(x.paid)} ml → ${ml1(x.extra)} ml extra`;
   function mlCells(o) {
     const { m, r, ex, x } = mlInfo(o);
     const dash = '<span style="color:var(--muted);">—</span>';
     const ml = m ? `<b>${m.total} ml</b>${m.extra ? ` <span class="mlx" title="Free 10 ml pieces in the box">+${m.extra} free</span>` : ''}` : dash;
     const cp = x ? `<b>${fmtMoney(x.chart, 'INR')}</b><div class="mls">₹${x.per.toFixed(2)} / ml</div>` : (m && m.total ? (ML_CHART && !MLSLAB.activeOn(ML_CHART, o.biz_date) ? `<span style="color:var(--muted); font-size:11px;" title="The ML price slab applies ${esEsc(MLSLAB.datesTxt(ML_CHART))}">slab not active</span>` : '<span style="color:var(--muted); font-size:11px;" title="This size is not in the ML price chart">not in chart</span>') : dash);
-    const xm = x ? (x.extra > 0.05 ? `<span class="mle" title="${esEsc(xTip(m, x, o))}">${ml1(x.extra)} ml</span><div class="mls">paid for ${ml1(x.paid)} ml · ${fmtMoney(Math.round(x.value), 'INR')}</div>` : `<span class="mlz" title="${esEsc(xTip(m, x, o))}">0 ml</span>`) : dash;
+    const xm = x ? (x.extra > 0.05 ? `<span class="mle" title="${esEsc(xTip(m, x, o))}">${ml1(x.extra)} ml</span><div class="mls">paid for ${ml1(x.paid)} ml · ${fmtMoney(Math.round(x.value), 'INR')}</div>` : `<span class="mlz" title="${esEsc(xTip(m, x, o))}">0 ml</span>${x.campaign ? '<div class="mls">Campaign order — not counted</div>' : ''}`) : dash;
     // The % actually paid (same as the Commission column): the Commission page's figure when loaded, else the slab estimate
     // (code as on the order, target taken as complete). The chart % before the cuts shows underneath when it differs.
     const fp = mlFinalPct(o, r, ex);

@@ -865,13 +865,20 @@
     const r = MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre: MLSLAB.isPre(o.financial_status), code: o.code || '' }, true);
     if (!r) return top + `<div class="mln">${!MLSLAB.activeOn(ML_CHART, o.biz_date) ? 'ML slab not active on this date' : m.total + ' ml not in chart'} · normal commission</div>`;
     const tip = r.steps.join(' · ') + (MLSLAB.on(ML_CHART) ? '' : ' · (ML price slab is OFF — preview only)') + ' · a day with the target not complete pays at most ' + ML_CHART.cap + '%';
-    // Extra ML by price: chart price ÷ ML = price of 1 ml; price paid ÷ that = ML paid for; the rest of the box was given extra.
+    return top + `<div><span class="mlp ${r.pct < 2 ? 'lo' : r.pct >= 6 ? 'hi' : ''}" title="${esc(tip)}">${Math.round(r.pct * 100) / 100}% · ${inr(Math.round(r.v))}</span></div>` + mlXLine(o);
+  }
+  // Extra ML by price: chart price ÷ ML = price of 1 ml; price paid ÷ that = ML paid for; the rest of the box was given extra.
+  // Type = Campaign (picked or saved): the campaign price is the set price → 0, not counted. Re-drawn when the Type changes.
+  function mlXLine(o) {
+    const m = window.MLSLAB ? MLSLAB.parts(o) : null;
+    if (!m || !m.total || !ML_CHART) return '';
     const pre = MLSLAB.isPre(o.financial_status), x = MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre);
+    if (!x) return '';
+    if (effType(o, pending[key(o)] || {}) === 'campaign') return '<div class="mlz mlxl" title="Campaign price is the set price — extra ML not counted">0 ml extra · campaign</div>';
     const r1 = (v) => Math.round(v * 10) / 10;
-    const xl = x ? (x.extra > 0.05
-      ? `<div class="mle" title="${esc('Chart ' + inr(x.chart) + ' ÷ ' + m.total + ' ml = ₹' + x.per.toFixed(2) + ' per ml · ' + inr(Math.round(x.look)) + (pre ? ' (prepaid, before the discount)' : '') + ' pays for ' + r1(x.paid) + ' ml')}">${r1(x.extra)} ml extra · ${inr(Math.round(x.value))}</div>`
-      : '<div class="mlz">0 ml extra</div>') : '';
-    return top + `<div><span class="mlp ${r.pct < 2 ? 'lo' : r.pct >= 6 ? 'hi' : ''}" title="${esc(tip)}">${Math.round(r.pct * 100) / 100}% · ${inr(Math.round(r.v))}</span></div>` + xl;
+    return x.extra > 0.05
+      ? `<div class="mle mlxl" title="${esc('Chart ' + inr(x.chart) + ' ÷ ' + m.total + ' ml = ₹' + x.per.toFixed(2) + ' per ml · ' + inr(Math.round(x.look)) + (pre ? ' (prepaid, before the discount)' : '') + ' pays for ' + r1(x.paid) + ' ml')}">${r1(x.extra)} ml extra · ${inr(Math.round(x.value))}</div>`
+      : '<div class="mlz mlxl">0 ml extra</div>';
   }
   function totalCell(o) {
     const ad = addonSum(o);
@@ -1207,6 +1214,8 @@
     pend(k).type = t || '';
     const tr = document.querySelector(`tr[data-k="${k}"]`);
     if (tr) tr.querySelectorAll('select.sel')[0].classList.toggle('changed', !!t);
+    const o = orders.find(x => key(x) === k);
+    if (o) document.querySelectorAll(`tr[data-k="${k}"] .mlxl`).forEach(el => { el.outerHTML = mlXLine(o) || '<span></span>'; });
     refreshOk(k);
   };
 
