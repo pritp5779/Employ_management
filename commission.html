@@ -239,7 +239,7 @@
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
-<script src="assets/js/ml_slab.js?v=261022a"></script>
+<script src="assets/js/ml_slab.js?v=261022c"></script>
 <script>
   // Embed mode: the Orders page opens this page in a hidden frame (commission.html?embed=1&from=..&to=..) and reads the finished numbers,
   // so both pages always show exactly the same commission.
@@ -611,20 +611,21 @@
       if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
       if (!c.steps) c.steps = [];
       const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm, gates };
-      let dS = 0, nS = 0, vS = 0, aS = 0, capN = 0, ncN = 0;
+      let dS = 0, nS = 0, vS = 0, aS = 0, capN = 0, ncN = 0, bnN = 0;
       orders.forEach((o) => {
         if (panelRuleFor(o, gateOk) || fixedFor(o, gateOk)) return;
         const r = comOfAuto(o, tmp, gateOk);
         if (!r.slab) return;
         dS += r.v - comOfAuto(o, tmp, gateOk, true).v; nS++; vS += r.v; aS += o.amt;
-        if (r.slab.steps.some((t) => t.indexOf('target') > -1)) capN++;
+        if (r.slab.steps.some((t) => t.indexOf('target incomplete') > -1)) capN++;
+        if (r.slab.bonus) bnN++;
         if (!o.code) ncN++;
       });
       if (nS) {
         c.amount += dS;
         c.slab = { n: nS, all: nS === n, v: vS, amt: aS, pct: aS > 0 ? vS / aS * 100 : 0, capN, ncN };
         if (nS === n) { c.slabBadge = fmtN(Math.round(c.slab.pct * 100) / 100) + '% ML'; c.held = 0; c.adj = false; }
-        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart / outside the slab dates) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
+        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${bnN ? ` · ${bnN} with +${fmtN(SLAB.bonus)}% bonus (target achieved)` : ''}${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart / outside the slab dates) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
       }
     }
     // NEW — an order whose commission was set by hand pays exactly that (₹ amount, or a rate on the order), whatever it would have earned above
@@ -788,11 +789,11 @@
   // the bundle condition of the employee this order belongs to (worked out in agg())
   const gateFn = (o, aggs) => { const A = aggs && aggs[o.emp + '|' + o.rk]; return (g) => !g || !A || !A.gates || A.gates[g] !== false; };
   // NEW — ML price slab: the order's total ML + its price give its commission % (Commission Rules → ML price slab).
-  // The daily target is checked per day (the order's own business day, its panel row). No target set that day = not capped.
+  // The daily target is checked per day (the order's own business day, its panel row): true = achieved (+ bonus), false = not, null = no target that day.
   function slabHit(o) {
     const e = EMPS.find((x) => x.employee_id === o.emp);
     const t = Number(((((e || {}).target || {})[o.rk]) || {})[o.day] || 0);
-    if (!(t > 0)) return true;
+    if (!(t > 0)) return null;
     const cell = (IDX[o.emp + '|' + o.rk] || {})[o.day];
     return !!cell && cell.ach >= t;
   }
@@ -826,8 +827,9 @@
       const why = [];
       if (sl.overMax) why.push('discount ' + fmtN(sl.disc) + '% more than ' + fmtN(SLAB.maxdisc) + '% max');
       else {
-        if (sl.pct < sl.base && !slabHit(o)) why.push('target incomplete');
+        if (sl.pct < sl.base && slabHit(o) === false) why.push('target incomplete');
         if (!o.code && Number(SLAB.nocode) !== 100) why.push('no code');
+        if (sl.bonus) why.push('target achieved +' + fmtN(SLAB.bonus) + '%');
       }
       return { v, note: 'ML slab · ' + sl.ml + ' ml · ' + fmtN(sl.base) + '%' + (why.length ? ' → ' + fmtN(sl.pct) + '% (' + why.join(', ') + ')' : '') + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: v < 0.005 ? 'z' : 'sl', slab: sl };
     }

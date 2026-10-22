@@ -113,7 +113,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261022a"></script>
+<script src="assets/js/ml_slab.js?v=261022c"></script>
 <script>
   guardPage();
   renderSidebar('my_sales');
@@ -263,7 +263,7 @@
   // ML price slab: his daily target of that day (that row) is complete? No target set = not capped.
   function slabHit(o) {
     const t = Number(((CM.target || {})[o.rk] || {})[o.day] || 0);
-    if (!(t > 0)) return true;
+    if (!(t > 0)) return null;      // no target that day: no bonus, no cut
     const cell = (CM.idx[o.rk] || {})[o.day];
     return !!cell && cell.ach >= t;
   }

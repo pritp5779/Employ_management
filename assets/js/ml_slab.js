@@ -9,7 +9,8 @@
  *  3. %: price at or above the first column → the first column's % (the most). Exactly a column's price → that %.
  *     Between two columns: chart.mode 'step' (the chart's rule) → the LOWER column's % (₹1,690 between ₹1,700 = 6% and ₹1,670 = 4% → 4%);
  *     'between' → a % in between, in proportion. Below the last column → chart.floor % (2.8%, never less; no code → half = 1.4%).
- *  4. Daily target incomplete → at most chart.cap %.   5. No order code → chart.nocode % of it (50 = half).
+ *  4. Daily target: hit === true (achieved) → + chart.bonus % on top (20 → 100 becomes 120); hit === false (not achieved) → at most
+ *     chart.cap % (0 / empty = no cut); hit === null (no target that day / not known) → nothing.   5. No order code → chart.nocode % of it (50 = half).
  *  0. More than chart.maxdisc % off the size's chart price → no commission at all (0 / empty = no limit).
  */
 (function () {
@@ -86,13 +87,16 @@
       steps.push('discount ' + r2(disc) + '% is more than the ' + maxd + '% max' + (chart.maxdisc_for === 'all' ? '' : ' for orders without code') + ' → no commission');
       return { v: 0, pct: 0, base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: true };
     }
-    if (!hit && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%'); }
+    if (hit === false && Number(chart.cap) > 0 && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%'); }
     if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it'); }
     // Below the lowest slab % (the last column, 0.1%) = nothing: e.g. 0.1% without code = 0.05% → 0%.
     // (Not with a lowest % set: 2.8% without code = 1.4% is paid.)
     const minPct = Number(chart.floor) > 0 ? 0 : Number(chart.cols[chart.cols.length - 1]) || 0;
     if (pct > 0 && pct < minPct - 1e-9) { steps.push(r2(pct) + '% is below the lowest slab (' + minPct + '%) → 0%'); pct = 0; }
-    return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false };
+    // Daily target achieved → bonus on top of the commission (20% → ₹100 becomes ₹120). Not achieved → no cut, no bonus.
+    const bonus = Number(chart.bonus) || 0;
+    if (hit === true && bonus > 0 && pct > 0) { pct = pct * (1 + bonus / 100); steps.push('daily target achieved → +' + bonus + '% bonus'); }
+    return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false, bonus: hit === true && bonus > 0 };
   }
 
   // An order's ML in parts: total (free ML included), extra = the free 10 ml pieces, base = what was bought. null = no ML known.

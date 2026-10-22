@@ -65,7 +65,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261022a"></script>
+<script src="assets/js/ml_slab.js?v=261022c"></script>
 <script>
   guardPage();
   renderSidebar('ml_price');
@@ -77,7 +77,7 @@
   const root = document.getElementById('mp');
   let CH = null;
   // What the salesperson picked (kept for this browser only).
-  const S = { ml: 250, price: '', free: false, code: true, pre: false, hit: true };
+  const S = { ml: 250, price: '', free: false, code: true, pre: false, hit: false };      // hit = today's target achieved → + bonus %
   try { Object.assign(S, JSON.parse(localStorage.getItem('hrms_mlprice') || '{}')); } catch (e) { /* defaults */ }
   const keep = () => { try { localStorage.setItem('hrms_mlprice', JSON.stringify(S)); } catch (e) { /* not kept */ } };
 
@@ -116,7 +116,7 @@
         <label class="chip ${S.free ? 'on' : ''}"><input type="checkbox" id="cFree" ${S.free ? 'checked' : ''}>+ 10 ml free</label>
         <label class="chip ${S.code ? 'on' : ''}"><input type="checkbox" id="cCode" ${S.code ? 'checked' : ''}>Code</label>
         <label class="chip ${S.pre ? 'on' : ''}"><input type="checkbox" id="cPre" ${S.pre ? 'checked' : ''}>Prepaid</label>
-        <label class="chip ${S.hit ? 'on' : ''}"><input type="checkbox" id="cHit" ${S.hit ? 'checked' : ''}>Today's target complete</label>
+        <label class="chip ${S.hit ? 'on' : ''}"><input type="checkbox" id="cHit" ${S.hit ? 'checked' : ''}>Today's target achieved${CH && Number(CH.bonus) > 0 ? ' (+' + Number(CH.bonus) + '%)' : ''}</label>
       </div>
       <div id="out"></div>`;
     const set = (k, v) => { S[k] = v; keep(); calc(); };
@@ -196,7 +196,7 @@
     if (meAt === lines.length && lookPrice != null) rowsHtml.push(meRow(price, ml));
     { const lp = lines[lines.length - 1].pay, lr = Number(CH.floor) > 0 ? com(ml, lp - 1) : null;      // lowest % (2.8%): every price below the last column
       rowsHtml.push(lr && lr.pct > 0 ? `<tr class="zero" style="color:#166534;"><td>below ${inr(lp)} <span class="nm">lowest · any price</span></td><td class="r">${fmtP(lr.pct)}</td><td class="r">${fmtP(lr.pct)} of the price</td></tr>` : `<tr class="zero"><td>below ${inr(lp)}</td><td class="r">0%</td><td class="r">₹0</td></tr>`); }
-    html += `<div class="card" style="padding:0; overflow:hidden;"><div class="card-head" style="padding:12px 14px;"><h2 style="font-size:15px;">${ml} ml prices${row.how.indexOf('between') === 0 ? ' <span style="font-weight:500; font-size:12px; color:var(--muted);">(' + esc(row.how) + ')</span>' : ''}</h2><span style="font-size:12px; color:var(--muted);">${S.code ? 'with code' : 'no code'}${S.hit ? '' : ' · target not complete'}${S.pre ? ' · prepaid' : ''}</span></div>
+    html += `<div class="card" style="padding:0; overflow:hidden;"><div class="card-head" style="padding:12px 14px;"><h2 style="font-size:15px;">${ml} ml prices${row.how.indexOf('between') === 0 ? ' <span style="font-weight:500; font-size:12px; color:var(--muted);">(' + esc(row.how) + ')</span>' : ''}</h2><span style="font-size:12px; color:var(--muted);">${S.code ? 'with code' : 'no code'}${S.hit ? ' · target achieved' : ''}${S.pre ? ' · prepaid' : ''}</span></div>
       <div style="overflow-x:auto;"><table class="no-stack"><thead><tr><th>Price</th><th class="r">%</th><th class="r">You earn</th></tr></thead><tbody>${rowsHtml.join('')}</tbody></table></div></div>`;
     out.innerHTML = html;
     out.querySelectorAll('tr.pick').forEach((tr) => { tr.onclick = () => { const v = tr.dataset.p; root.querySelector('#iPr').value = v; S.price = v; keep(); calc(); window.scrollTo({ top: 0, behavior: 'smooth' }); }; });

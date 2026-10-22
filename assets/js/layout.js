@@ -386,6 +386,7 @@ function renderSidebarCore(active) {
       ['order_targets.html', 'Order Targets', 'order_targets'],
       ['performance.html', 'Performance', 'performance'],
       ['detailed_report.html', 'Detailed Report', 'detailed_report'],
+      ...(isAdmin ? [['store_analytics.html', 'Store Analytics', 'store_analytics']] : []),   // the store report (fourpirates.space/analytics) inside HRMS — Admin only
       ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
       ['commission.html', 'Commission', 'commission'],
@@ -514,7 +515,7 @@ const RAIL_ICONS = {
 const RAIL_ICON_FOR = {
   dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
   attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
-  performance: 'chart', detailed_report: 'sheet', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
+  performance: 'chart', detailed_report: 'sheet', store_analytics: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
   commission_rules: 'sliders', ml_price: 'percent', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
   departments: 'building', employees: 'users', documents: 'folder', whatsapp_groups: 'chat', excel_files: 'sheet',
   ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart', leave: 'calendar', leave_requests: 'calendar',
@@ -676,10 +677,10 @@ function renderSidebar(active) {
     document.body.appendChild(sm);
     // The ML price slab chart (order size + price → commission %): its own card, under the other rules.
     const sl = document.createElement('script');
-    sl.id = 'mlSlabJs'; sl.src = 'assets/js/ml_slab.js?v=261022a'; sl.async = false;
+    sl.id = 'mlSlabJs'; sl.src = 'assets/js/ml_slab.js?v=261022c'; sl.async = false;
     document.body.appendChild(sl);
     const se = document.createElement('script');
-    se.id = 'mlSlabRulesJs'; se.src = 'assets/js/ml_slab_rules.js?v=261022b'; se.async = false;
+    se.id = 'mlSlabRulesJs'; se.src = 'assets/js/ml_slab_rules.js?v=261022c'; se.async = false;
     document.body.appendChild(se);
   }
 }

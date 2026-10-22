@@ -746,7 +746,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261022a"></script>
+<script src="assets/js/ml_slab.js?v=261022c"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
 <div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
 <div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
@@ -1725,7 +1725,7 @@
     const key = (o.store_key || o.source || '') + ':' + o.id;
     const ex = commValid() && COMM.res.ord ? COMM.res.ord[key] : null;      // [₹, note, rule kind] from the Commission page
     const pre = MLSLAB.isPre(o.financial_status);
-    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre, code: o.code || '' }, true) : null;
+    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre, code: o.code || '' }, null) : null;   // daily target not known here: no bonus / cut (the Commission page has it)
     let x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
     // Campaign orders (Type = Campaign on Order Allocation): the campaign price is the set price → no extra ML counted.
     if (x && orderTagType(o.tags) === 'campaign') x = Object.assign({}, x, { extra: 0, value: 0, campaign: true });
@@ -1790,6 +1790,7 @@
       const pct = amt > 0 ? ex[0] / amt * 100 : 0, note = String(ex[1] || '');
       const why = [];
       if (/target incomplete/i.test(note)) why.push(`the daily target was <b>not complete</b> that day → at most ${ML_CHART ? ML_CHART.cap : 5}%`);
+      if (/target achieved/i.test(note)) why.push(`the daily target was <b>achieved</b> that day → <b>+${ML_CHART ? ML_CHART.bonus : 20}% bonus</b> on the commission`);
       if (/no code/i.test(note)) why.push(`the order has <b>no code</b> → ${ML_CHART ? ML_CHART.nocode : 50}% of it`);
       if (/below the lowest/i.test(note)) why.push('below the lowest slab → 0%');
       if (/% max/i.test(note)) why.splice(0, why.length, `<b>${esEsc(note.replace(/^.*\(discount/, 'discount').replace(/\).*$/, ''))}</b> → <b>no commission</b>`);

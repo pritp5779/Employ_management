@@ -72,7 +72,7 @@
   const root = document.createElement('div'); root.id = 'mls';
   root.innerHTML = '<div class="muted" style="font-size:13px;">Loading the ML price slab…</div>';
   mount.appendChild(root);
-  if (!window.MLSLAB) { const sc = document.createElement('script'); sc.src = 'assets/js/ml_slab.js?v=261022a'; sc.onload = () => tryRender(); document.body.appendChild(sc); }
+  if (!window.MLSLAB) { const sc = document.createElement('script'); sc.src = 'assets/js/ml_slab.js?v=261022c'; sc.onload = () => tryRender(); document.body.appendChild(sc); }
 
   let C = null, dirty = false;
   const $ = (id) => root.querySelector('#' + id);
@@ -98,7 +98,8 @@
         <div class="in" style="flex-wrap:wrap;">From <input type="date" id="mlsFrom" style="width:150px;" value="${esc(C.from || '')}"> To <input type="date" id="mlsTo" style="width:150px;" value="${esc(C.to || '')}"> <button type="button" class="x" id="mlsToClr" title="No end date" style="width:auto; padding:0 10px; border-radius:8px; height:30px;">No end</button></div>
         <small>From empty = from the start. <b>To empty = keeps going</b> (no end). Orders outside these dates keep the normal commission. Now: <b id="mlsDates">${esc(MLSLAB.datesTxt(C))}</b></small></div>
       <div class="row3">
-        <div class="fld"><label>Daily target incomplete</label><div class="in">at most <input type="number" id="mlsCap" min="0" max="100" step="0.1" value="${esc(C.cap)}"> %</div><small>Every order of a day whose target is not complete pays this % at most. No target set that day = no cap.</small></div>
+        <div class="fld" style="border-color:#bbf7d0; background:#f0fdf4;"><label>Daily target achieved</label><div class="in">bonus + <input type="number" id="mlsBonus" min="0" max="500" step="1" value="${esc(Number(C.bonus) || '')}" placeholder="0"> % on top</div><small>Commission ₹100 + 20% = ₹120, for every order of a day whose target is achieved. No target set that day = no bonus.</small></div>
+        <div class="fld"><label>Daily target not achieved</label><div class="in">at most <input type="number" id="mlsCap" min="0" max="100" step="0.1" value="${esc(Number(C.cap) || '')}" placeholder="no cut"> %</div><small>Empty = <b>no cut</b> (the order keeps its chart %).</small></div>
         <div class="fld"><label>Order without code</label><div class="in">pays <input type="number" id="mlsNc" min="0" max="100" step="1" value="${esc(C.nocode)}"> % of it</div><small>50 = half. (While this slab is on, it replaces the order-code rules for these orders.)</small></div>
         <div class="fld" style="border-color:#fecaca; background:#fff5f5;"><label>Max discount</label><div class="in">more than <input type="number" id="mlsMax" min="0" max="100" step="0.5" value="${esc(Number(C.maxdisc) || '')}" placeholder="off"> % off → ₹0</div>
           <div class="in" style="margin-top:6px;">for <select id="mlsMaxFor" style="width:auto; padding:5px 8px; min-height:0;"><option value="nocode" ${C.maxdisc_for === 'all' ? '' : 'selected'}>orders WITHOUT code only</option><option value="all" ${C.maxdisc_for === 'all' ? 'selected' : ''}>all orders</option></select></div>
@@ -113,7 +114,7 @@
           <label>Price ₹ <input type="number" id="tPr" value="1730" min="0"></label>
           <label><input type="checkbox" id="tPre"> Prepaid</label>
           <label><input type="checkbox" id="tCode" checked> Has code</label>
-          <label><input type="checkbox" id="tHit" checked> Target complete</label>
+          <label><input type="checkbox" id="tHit" checked> Target achieved</label>
         </div>
         <div class="tout" id="tOut"></div>
       </div>
@@ -141,7 +142,8 @@
 
   function wire() {
     $('mlsOn').onchange = (e) => { C.on = e.target.checked ? 1 : 0; $('mlsOnTxt').textContent = C.on ? 'Switched on — Save to apply' : 'Switched off — Save to apply'; markDirty(); test(); };
-    $('mlsCap').oninput = (e) => { C.cap = Number(e.target.value); markDirty(); test(); };
+    $('mlsCap').oninput = (e) => { C.cap = Number(e.target.value) || 0; markDirty(); test(); };
+    $('mlsBonus').oninput = (e) => { C.bonus = Number(e.target.value) || 0; markDirty(); test(); };
     $('mlsNc').oninput = (e) => { C.nocode = Number(e.target.value); markDirty(); test(); };
     $('mlsPre').oninput = (e) => { C.prepaid = Number(e.target.value); markDirty(); test(); };
     $('mlsMax').oninput = (e) => { C.maxdisc = Number(e.target.value) || 0; markDirty(); test(); };
@@ -215,7 +217,7 @@
   async function save() {
     const b = $('mlsSave'); b.disabled = true; b.textContent = 'Saving…';
     try {
-      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: C.cap, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', floor: Number(C.floor) || 0, mode: C.mode === 'between' ? 'between' : 'step', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
+      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: Number(C.cap) || 0, bonus: Number(C.bonus) || 0, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', floor: Number(C.floor) || 0, mode: C.mode === 'between' ? 'between' : 'step', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
       if (d.error) throw new Error(d.error);
       C = JSON.parse(JSON.stringify(d.chart)); dirty = false;
       render(); flash(esc(d.message || 'Saved.'), 'success');
