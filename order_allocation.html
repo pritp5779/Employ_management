@@ -1234,6 +1234,7 @@
     if (!house || !emp) return;
     if (IS_EMP && !effType(o, p)) { showAlert('Choose the Type (Query / Campaign) first.', 'error'); return; }
     btn.disabled = true;
+    const wasMine = !!o.allocated && !o.allocated_direct && Number(o.employee_id) === MY_EMP;     // re-saving my own order = no celebration again
     try {
       const type = effType(o, p);
       const dir = emp === DIRECT;
@@ -1247,6 +1248,8 @@
       delete pending[k];
       showAlert(d.message);
       render();
+      // Sales employee allocating to themselves: 🎯 arrow + ₹ coin rain with today's target (see allocCelebrate below).
+      if (IS_EMP && !dir && MY_EMP && Number(emp) === MY_EMP && !wasMine && window.allocCelebrate) window.allocCelebrate(o);
     } catch (err) {
       btn.disabled = false;
       showAlert(err.message, 'error');
@@ -1420,6 +1423,158 @@
     document.getElementById('dateTo').value = todayStr();
     load();
   });
+</script>
+<script>
+/* ---------- Sales employee: after allocating an order to themselves — 🎯 one arrow per order today + ₹ coin rain ----------
+   my.alloc_pulse gives today's target / sales / orders and the team ranking (names + % only). The order that completes the target
+   gets the big "Target complete" celebration; after that only a small toast. No target today / an order of another day: small toast. */
+(function () {
+  const css = `
+.apz{position:fixed; inset:0; z-index:9999; display:flex; align-items:flex-start; justify-content:center; padding:24px 14px; background:rgba(15,23,42,.55); opacity:0; transition:opacity .2s; overflow:auto;}
+.apz.on{opacity:1}
+.apz .cd{position:relative; width:100%; max-width:360px; margin-top:2vh; border-radius:22px; padding:10px 14px 14px; text-align:center; background:linear-gradient(160deg,#fff7ed,#ffedd5); box-shadow:0 24px 60px rgba(0,0,0,.4); transform:scale(.6); opacity:0; color:#111827; font-family:inherit;}
+.apz.on .cd{animation:apzPop .5s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes apzPop{to{transform:scale(1); opacity:1}}
+.apz .cd.win{background:linear-gradient(160deg,#ecfdf5,#bbf7d0)}
+.apz svg{display:block; margin:0 auto; overflow:visible; max-width:100%}
+.apz .shk{animation:apzShk .45s ease}
+@keyframes apzShk{20%{transform:translate(3px,-2px) rotate(1.5deg)}45%{transform:translate(-3px,1px) rotate(-1.2deg)}70%{transform:translate(2px,0)}100%{transform:none}}
+.apz .cnt{display:inline-block; background:#111827; color:#fff; border-radius:999px; font-size:12px; font-weight:800; padding:3px 11px}
+.apz .cnt b{color:#fdba74}
+.apz .t1{font-size:19px; font-weight:900; margin-top:6px}
+.apz .lab{font-size:10.5px; font-weight:800; letter-spacing:.3px; color:#9a3412; margin-top:6px}
+.apz .big{font-size:32px; font-weight:900; color:#ea580c; line-height:1.1}
+.apz .bar{height:8px; background:#fed7aa; border-radius:8px; overflow:hidden; margin:6px 0 3px}
+.apz .bar i{display:block; height:100%; background:#ea580c; border-radius:8px; transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.apz .sm{display:flex; justify-content:space-between; font-size:11.5px; color:#7c2d12}
+.apz .rk{background:#fff; border-radius:12px; padding:3px 8px; margin-top:9px; text-align:left; font-size:13px}
+.apz .rk div{display:flex; justify-content:space-between; padding:5px 6px}
+.apz .rk .me{background:#fef3c7; border-radius:8px; font-weight:800}
+.apz .rk .gap{justify-content:center; color:#94a3b8; padding:0}
+.apz .gu{font-size:12.5px; line-height:1.45; margin-top:6px; color:#7c2d12}
+.apz .win .gu{color:#166534}
+.apz .go{display:block; width:100%; border:0; color:#fff; border-radius:12px; padding:11px; font-weight:800; font-size:14px; margin-top:10px; background:#ea580c; cursor:pointer; min-height:0}
+.apz .win .go{background:#16a34a}
+.apz .wt{font-size:23px; font-weight:900; color:#14532d; margin-top:4px}
+.apz .bonus{background:#fff; border-radius:12px; padding:10px; margin-top:9px}
+.apz .bonus b{display:block; font-size:22px; color:#15803d}
+.apz canvas{position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:2}
+.aptst{position:fixed; left:50%; bottom:22px; transform:translate(-50%,20px); z-index:9999; background:#111827; color:#fff; border-radius:14px; padding:10px 16px; font-size:13.5px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.35); opacity:0; transition:.25s; max-width:calc(100vw - 28px); text-align:center}
+.aptst.on{opacity:1; transform:translate(-50%,0)}
+.aptst b{color:#fdba74}`;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  const money = (v) => '₹' + Math.round(Number(v) || 0).toLocaleString('en-IN');
+  const pctTxt = (v) => (Math.round(Number(v) * 10) / 10) + '%';
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function toast(html) {
+    const t = document.createElement('div'); t.className = 'aptst'; t.innerHTML = html; document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('on'));
+    setTimeout(() => { t.classList.remove('on'); setTimeout(() => t.remove(), 300); }, 3200);
+  }
+
+  // Target board: arrows already in (n − 1) + the new one (flies in). Each hit point: [x, y from the centre, tilt].
+  const HITS = [[-34,-30,22],[20,-40,10],[-28,26,-14],[30,22,-6],[2,-2,16],[-6,-50,30],[44,-6,4],[-42,2,8],[10,40,-20],[-18,-10,12],[24,4,-10],[-4,24,-4]];
+  const arrow = (x, y, a, id) => (id ? `<g id="${id}">` : '') + `<g transform="translate(${x} ${y}) rotate(${a})"><line x1="-78" y1="0" x2="-3" y2="0" stroke="#7c4a1f" stroke-width="3.2" stroke-linecap="round"/><path d="M0 0 L-9 -4.5 L-9 4.5 Z" fill="#475569"/><path d="M-78 0 L-90 -7 L-72 -7 Z M-78 0 L-90 7 L-72 7 Z" fill="#ef4444"/><path d="M-70 0 L-82 -6 L-66 -6 Z M-70 0 L-82 6 L-66 6 Z" fill="#f97316"/></g>` + (id ? '</g>' : '');      // the new arrow sits in an outer group, so its flight does not replace its position
+  function board(n) {
+    const cx = 150, cy = 82, R = [64, 51, 38, 25, 12], C = ['#fff', '#ef4444', '#fff', '#ef4444', '#facc15'];
+    let s = `<svg width="260" height="160" viewBox="10 0 250 165"><g class="bd"><ellipse cx="${cx}" cy="${cy + 70}" rx="46" ry="6" fill="rgba(0,0,0,.12)"/>`;
+    R.forEach((r, i) => { s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${C[i]}" stroke="#991b1b" stroke-width="${i ? 1 : 2.5}"/>`; });
+    s += `<circle class="fl" cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#fde047" stroke-width="5" opacity="0"/>`;
+    const old = Math.min(n - 1, 11);
+    for (let i = 0; i < old; i++) { const h = HITS[i]; s += arrow(cx + h[0], cy + h[1], h[2]); }
+    const h = HITS[Math.min(n - 1, 11)];
+    return s + `</g>${arrow(cx + h[0], cy + h[1], h[2], 'apzNew')}</svg>`;
+  }
+
+  // ₹ coin rain (and confetti cannons for "target complete").
+  function particles(cv) {
+    const ctx = cv.getContext('2d'); let P = [], raf = 0;
+    const d = window.devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    const COL = ['#f97316', '#22c55e', '#3b82f6', '#ec4899', '#facc15', '#a855f7'];
+    const R = (a, b) => a + Math.random() * (b - a);
+    function loop() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      P = P.filter((p) => p.life > 0 && p.y < innerHeight + 40);
+      for (const p of P) {
+        p.vy += p.g; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.life--; p.t++;
+        ctx.save(); ctx.globalAlpha = Math.min(1, p.life / 30); ctx.translate(p.x, p.y);
+        if (p.k === 'coin') {
+          ctx.scale(Math.cos(p.t * .15 + p.ph), 1);
+          ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(0, 0, p.s, 0, 7); ctx.fill();
+          ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, 0, p.s * .72, 0, 7); ctx.fill();
+          ctx.fillStyle = '#b45309'; ctx.font = `bold ${p.s * 1.1}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('₹', 0, 1);
+        } else { ctx.rotate(p.t * p.vr); ctx.scale(1, Math.cos(p.t * .2 + p.ph)); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); }
+        ctx.restore();
+      }
+      raf = P.length ? requestAnimationFrame(loop) : 0;
+    }
+    const add = (o) => { P.push(Object.assign({ x: 0, y: 0, vx: 0, vy: 0, g: .12, life: 300, t: 0, ph: R(0, 6), s: 10, k: 'coin', vr: R(-.2, .2), c: COL[Math.floor(Math.random() * COL.length)] }, o)); if (!raf) raf = requestAnimationFrame(loop); };
+    return {
+      coins(n) { for (let i = 0; i < n; i++) setTimeout(() => add({ x: R(10, innerWidth - 10), y: -20, vy: R(2, 4), vx: R(-.5, .5), s: R(9, 14) }), i * 32); },
+      cannons() { [0, 1].forEach((side) => { for (let i = 0; i < 80; i++) add({ k: 'conf', x: side ? innerWidth : 0, y: innerHeight - 10, vx: (side ? -1 : 1) * R(3, 9), vy: R(-18, -10), g: .3, s: R(7, 11), life: 260 }); }); },
+      stop() { P = []; },
+    };
+  }
+
+  function show(o, d) {
+    const amt = Number(o.total) || 0, target = Number(d.target) || 0, sales = Number(d.sales) || 0;
+    const today = (o.biz_date || '') === d.business_day;
+    const before = today ? sales - amt : sales;
+    if (!today || !(target > 0) || !(d.orders > 0)) { toast(`✓ ${esc(o.order_name)} allocated · <b>+${money(amt)}</b>`); return; }
+    if (before >= target) { toast(`✓ <b>+${money(amt)}</b> added · ${pctTxt(sales / target * 100)} of today's target 🏆`); return; }
+    const win = sales >= target, pend = Math.max(0, target - sales), pendBefore = Math.max(0, target - before);
+    const p0 = Math.min(100, before / target * 100), p1 = Math.min(100, sales / target * 100);
+    const me = (d.rank || []).find((r) => r.me), top = (d.rank || [])[0];
+    let rk = '';
+    (d.rank || []).forEach((r, i) => {
+      if (i && r.pos - d.rank[i - 1].pos > 1) rk += '<div class="gap">⋯</div>';
+      const md = ['🥇', '🥈', '🥉'][r.pos - 1] || ('#' + r.pos);
+      rk += `<div class="${r.me ? 'me' : ''}"><span>${md} ${esc(r.name)}</span><b>${r.pct == null ? '—' : pctTxt(r.pct)}</b></div>`;
+    });
+    const gap = me && top && !top.me && top.pct != null && me.pct != null ? Math.max(0, Math.ceil(top.pct - me.pct)) : null;
+    const line = me && me.pos === 1 ? 'શાબાશ! તમે આજે 1st છો 🥇' : (gap != null ? `શાબાશ! 1st આવવા ${gap}% બાકી 💪` : `હજુ ${money(pend)} બાકી — ચાલો કરી દઈએ! 💪`);
+    const bonus = Number(d.bonus) || 0;
+    const body = win
+      ? `<div class="cnt">Arrow <b>${d.orders}</b> · target hit!</div><div class="wt">🏆 Target complete!</div>
+         <div style="font-size:13px; color:#166534">${money(sales)} / ${money(target)} · ${pctTxt(sales / target * 100)}</div>
+         ${bonus > 0 ? `<div class="bonus"><span class="lab" style="color:#64748b">TODAY'S BONUS</span><b>+${bonus}% unlocked ✅</b><span style="font-size:12px; color:#166534">on every order of today</span></div>` : ''}
+         <div class="gu">અભિનંદન! ${bonus > 0 ? 'હવે આજના દરેક order પર extra commission' : 'આજનો target પૂરો 🎉'}</div><button type="button" class="go">Super! →</button>`
+      : `<div class="cnt">Arrow <b>${d.orders}</b> · order #${d.orders} today</div><div class="t1">+${money(amt)} added!</div>
+         <div class="lab">TARGET PENDING</div><div class="big">${money(pendBefore)}</div>
+         <div class="bar"><i style="width:${p0}%"></i></div><div class="sm"><span class="dn">${money(before)} done</span><span>${pctTxt(p1)} of ${money(target)}</span></div>
+         ${rk ? `<div class="rk">${rk}</div>` : ''}<div class="gu">${line}</div><button type="button" class="go">Next order →</button>`;
+    const ov = document.createElement('div'); ov.className = 'apz';
+    ov.innerHTML = `<canvas></canvas><div class="cd ${win ? 'win' : ''}">${board(d.orders)}${body}</div>`;
+    document.body.appendChild(ov);
+    const fx = calm ? null : particles(ov.querySelector('canvas'));
+    const close = () => { if (fx) fx.stop(); ov.classList.remove('on'); document.removeEventListener('keydown', onKey); setTimeout(() => ov.remove(), 220); };
+    const onKey = (e) => { if (e.key === 'Escape' || e.key === 'Enter') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('.go')) close(); });
+    requestAnimationFrame(() => ov.classList.add('on'));
+    const na = ov.querySelector('#apzNew');
+    if (!calm && na.animate) na.animate([{ transform: 'translate(-190px,-60px)' }, { transform: 'translate(0,0)' }], { duration: 520, delay: 450, easing: 'cubic-bezier(.3,.1,.2,1)', fill: 'backwards' });
+    setTimeout(() => {      // the arrow hits
+      const bd = ov.querySelector('.bd'); bd.classList.add('shk');
+      const fl = ov.querySelector('.fl'); if (fl.animate && !calm) fl.animate([{ opacity: 1, r: 12 }, { opacity: 0, r: 70 }], { duration: 600, easing: 'ease-out' });
+      if (fx) { fx.coins(win ? 70 : 45); if (win) fx.cannons(); }
+      const big = ov.querySelector('.big'), bar = ov.querySelector('.bar i'), dn = ov.querySelector('.dn');
+      if (bar) bar.style.width = p1 + '%';
+      if (dn) dn.textContent = money(sales) + ' done';
+      if (big) { const t0 = performance.now(); const step = (tm) => { const k = Math.min(1, (tm - t0) / 900), v = pendBefore + (pend - pendBefore) * k * (2 - k); big.textContent = money(v); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+    }, calm ? 0 : 970);
+  }
+
+  window.allocCelebrate = async function (o) {
+    try {
+      const d = await Promise.race([api.get('my.alloc_pulse'), new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 8000))]);
+      if (d && !d.error) show(o, d);
+    } catch (e) { /* no popup — the allocation itself is saved */ }
+  };
+})();
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

@@ -435,8 +435,8 @@
   .oh-card{display:flex; flex-direction:column; container-type:inline-size;}
   .oh-card .oht{font-size:13px; margin:2px 0 8px;} .oh-card .oht b{font-size:17px;}
   .oh-card .ohp{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;}
-  .oh-card .ohp button{width:auto; min-height:0; padding:3px 9px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer;}
-  .oh-card .ohp button.on{background:#111827; color:#fff; border-color:#111827;}
+  .oh-card .ohp button, .dti-card .ohp button{width:auto; min-height:0; padding:3px 9px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer;}
+  .oh-card .ohp button.on, .dti-card .ohp button.on{background:#111827; color:#fff; border-color:#111827;}
   .ohr{display:grid; grid-template-columns:84px minmax(12px, 1fr) 26px 26px 28px 62px; gap:5px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
   .ohr.hd{font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase;} .ohr.hd .r{text-align:right;} .ohr.hd .q{color:#2563eb;} .ohr.hd i{font-style:normal;} .ohr.hd .hs{display:none;} .ohr.hd .c{color:#c2410c;}
   .ohn.q{color:#2563eb;} .ohn.c{color:#c2410c;} .ohn.t{color:var(--ink);}
@@ -451,7 +451,24 @@
   .ohf{display:flex; justify-content:space-between; gap:6px; font-size:11px; border-top:1px solid var(--line); margin-top:auto; padding-top:7px; color:var(--muted);} .ohf b{color:var(--ink);}
   .ohtab{width:100%; border-collapse:collapse; font-size:13px;} .ohtab th{font-size:11px; color:var(--muted); text-align:left; padding:6px; border-bottom:1px solid var(--line);} .ohtab td{padding:7px 6px; border-bottom:1px solid #f1f5f9;}
   .ocd{display:inline-block; background:#eef2ff; color:#3730a3; font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px;} .ocd.no{background:#fee2e2; color:#b91c1c;}
-  @media (max-width:820px){ .stat-card.oh-card{grid-column:1 / -1;} }
+  @media (max-width:820px){ .stat-card.oh-card, .stat-card.dti-card{grid-column:1 / -1;} }
+  /* Dress to Impress box */
+  .dti-card{display:flex; flex-direction:column; container-type:inline-size;}
+  .dti-card .dtt{font-size:13px; margin:2px 0 8px;} .dti-card .dtt b{font-size:19px;}
+  .dti-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+  .dti-t{border-radius:12px; padding:8px 4px; text-align:center;}
+  .dti-t .k{font-size:10.5px; font-weight:800;} .dti-t .n{display:block; font-size:24px; font-weight:900; line-height:1.15; color:inherit; text-decoration:underline dotted; text-underline-offset:4px;} .dti-t .n.z{text-decoration:none; opacity:.45;}
+  .dti-t .w{font-size:10px; color:var(--muted); margin-top:2px; line-height:1.25;}
+  .dti-t.s3{background:#fff7ed; color:#c2410c;} .dti-t.s2{background:#eff6ff; color:#1d4ed8;} .dti-t.s1{background:#f0fdf4; color:#15803d;}
+  .dti-pr{display:grid; grid-template-columns:1fr auto; column-gap:7px; row-gap:4px; align-items:center; font-size:12px; padding:4px 0;}
+  .dti-pr .dti-bar{grid-column:1 / -1;}
+  .dti-pr a{color:var(--ink); font-weight:700; text-decoration:none;} .dti-pr b{text-align:right;}
+  .dti-bar{height:9px; background:#f1f5f9; border-radius:9px; overflow:hidden; display:flex;} .dti-bar i{display:block; height:100%;}
+  .dti-leg{display:flex; gap:10px; flex-wrap:wrap; font-size:10.5px; color:var(--muted); margin-top:4px;} .dti-leg i{display:inline-block; width:8px; height:8px; border-radius:3px; margin-right:3px; vertical-align:-1px;}
+  .dti-c{display:inline-block; font-size:10px; font-weight:800; border-radius:99px; padding:2px 7px; margin-right:3px;}
+  .dti-c.ds{background:#1f2937; color:#fff;} .dti-c.cg{background:#fce7f3; color:#9d174d;} .dti-c.cc{background:#fef3c7; color:#92400e;}
+  .dti-top{display:block; margin-top:9px; background:#fef3c7; border-radius:10px; padding:7px 9px; font-size:12px; color:#78350f; text-decoration:none;} .dti-top b{color:#111827;} .dti-top span{display:block; font-size:10.5px; color:#92400e; margin-top:1px; text-decoration:underline dotted;}
+  .dti-fill{margin-top:8px; font-size:11.5px; color:#92400e; background:#fffbeb; border-radius:9px; padding:6px 8px;} .dti-fill button{width:auto; min-height:0; padding:3px 9px; font-size:11px; margin-left:4px; border-radius:99px; border:1px solid #f59e0b; background:#fff; color:#92400e; font-weight:700; cursor:pointer;}
   @container (max-width:320px){ .ohr{grid-template-columns:minmax(70px, 1fr) 24px 24px 26px 60px; gap:4px; font-size:11.5px;} .ohr .ohb, .ohr.hd .ohbh{display:none;} .ohf{flex-direction:column;} }
   @container (max-width:270px){ .ohr{grid-template-columns:minmax(60px, 1fr) 16px 18px 20px 54px; gap:3px; padding:3px 2px; font-size:11px;} .ohr.hd{font-size:9px;} .ohr.hd .oha{font-size:9px;} .ohr.hd .hl{display:none;} .ohr.hd .hs{display:inline;} .ohk div{padding:4px 6px;} .ohk b{font-size:13px;} .oha{font-size:10.5px;} }
   @media (max-width:820px){ .stat-card.rs-card{grid-column:1 / -1;} }
@@ -649,7 +666,7 @@
 <div class="modal-overlay" id="ruleModal">
   <div class="modal" style="max-width:520px;">
     <h3>Target rules</h3>
-    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target. A new Sales Executive follows a fixed ladder for the first four weeks instead (₹10,000 / 15,000 / 20,000 / 25,000 a day by week); a target set by hand can go above it, not below.</p>
+    <p style="font-size:12.5px; color:var(--muted); margin:-6px 0 12px;">Each rule sets the daily target on the days it covers. A target set by hand always wins. Days in no rule use the employee's profile / monthly target. A new Sales Executive follows a fixed ladder for the first four weeks instead (₹10,000 / 15,000 / 20,000 / 25,000 a day by week); a target set by hand replaces it — higher or lower.</p>
     <div id="ruleAlert"></div>
     <label class="rule-switch"><input type="checkbox" id="ruleEnabled"> Set daily targets automatically</label>
     <div class="rule-body">
@@ -1590,9 +1607,126 @@
     if (n) { ev.preventDefault(); ohOpen(n.dataset.oh, n.dataset.oht || ''); }
   });
   document.getElementById('ohModal').addEventListener('click', (ev) => {
+    const de = ev.target.closest('[data-dtiemp]');          // Dress to Impress: one seller's orders
+    if (de) { ev.preventDefault(); dtiOpen(de.dataset.dtik || 'emp', de.dataset.dtiemp); document.getElementById('ohBody').scrollTop = 0; return; }
+    const db = ev.target.closest('[data-dtiback]');
+    if (db) { ev.preventDefault(); dtiOpen(db.dataset.dtiback); return; }
     const a = ev.target.closest('[data-ohi]');
     if (a) { ev.preventDefault(); document.getElementById('ohModal').classList.remove('open'); openDetail(Number(a.dataset.ohi)); return; }
     if (ev.target.id === 'ohModal') document.getElementById('ohModal').classList.remove('open');
+  });
+
+  // ---------- Dress to Impress box (after Orders by hour) ----------
+  // Every order (allocated or not, cancelled left out) with Dress to Impress bottles in it: all 3 perfumes = a set of 3, any 2 = a set of 2,
+  // one = single; quantity 2 of each = 2 sets. Each perfume counts every bottle. o.dti = {ds, cg, cc, o (other items), on}; 0 = none; null = not checked yet.
+  const DTI = [['ds', 'Dark Side', 'DS'], ['cg', 'Compliment Getter', 'CG'], ['cc', 'Caffeine Club', 'CC']];
+  let dtiPanel = '';
+  function dtiSplit(d) {          // → { s3, s2, s1, pcs: {ds:{s3,s2,s1}…}, total }
+    const q = { ds: Number(d.ds) || 0, cg: Number(d.cg) || 0, cc: Number(d.cc) || 0 }, pcs = {};
+    DTI.forEach(([k]) => { pcs[k] = { s3: 0, s2: 0, s1: 0 }; });
+    const s3 = Math.min(q.ds, q.cg, q.cc); DTI.forEach(([k]) => { q[k] -= s3; pcs[k].s3 = s3; });
+    let s2 = 0;
+    for (;;) {          // pair the two with the most left
+      const has = DTI.map(([k]) => k).filter(k => q[k] > 0).sort((a, b) => q[b] - q[a]);
+      if (has.length < 2) break;
+      q[has[0]]--; q[has[1]]--; pcs[has[0]].s2++; pcs[has[1]].s2++; s2++;
+    }
+    let s1 = 0; DTI.forEach(([k]) => { pcs[k].s1 = q[k]; s1 += q[k]; });
+    return { s3, s2, s1, pcs, total: (Number(d.ds) || 0) + (Number(d.cg) || 0) + (Number(d.cc) || 0) };
+  }
+  const dtiBase = () => scopedAll().filter(o => !o.cancelled && (!dtiPanel || panelOf(o) === dtiPanel));
+  function dtiStats() {
+    const st = { orders: [], s3: 0, s2: 0, s1: 0, w3: 0, w2: 0, w1: 0, bottles: 0, unchecked: 0, per: {}, emp: {} };
+    DTI.forEach(([k]) => { st.per[k] = { s3: 0, s2: 0, s1: 0, n: 0 }; });
+    dtiBase().forEach(o => {
+      if (o.dti == null) { if (STORE_HOUSE_MAP[o.store_key] || o.store_key === 'tmperfumehouse') st.unchecked++; return; }
+      if (!o.dti) return;
+      const x = dtiSplit(o.dti), oth = Number(o.dti.o) > 0;
+      st.orders.push({ o, x });
+      const nm = String(o.salesman || '').trim() || 'Not allocated', e = st.emp[nm] = st.emp[nm] || { nm, s3: 0, s2: 0, s1: 0, b: 0, n: 0, ds: 0, cg: 0, cc: 0 };
+      e.s3 += x.s3; e.s2 += x.s2; e.s1 += x.s1; e.b += x.total; e.n++; DTI.forEach(([k]) => { e[k] += Number(o.dti[k]) || 0; });
+      st.s3 += x.s3; st.s2 += x.s2; st.s1 += x.s1; st.bottles += x.total;
+      if (oth) { if (x.s3) st.w3 += x.s3; if (x.s2) st.w2 += x.s2; if (x.s1) st.w1 += x.s1; }
+      DTI.forEach(([k]) => { const p = st.per[k]; p.s3 += x.pcs[k].s3; p.s2 += x.pcs[k].s2; p.s1 += x.pcs[k].s1; p.n += Number(o.dti[k]) || 0; });
+    });
+    return st;
+  }
+  function dtiCardHtml() {
+    const panels = panelPick ? [] : PANELS.filter(p => panelAllowed(p[0]) && scopedAll().some(o => !o.cancelled && o.dti && panelOf(o) === p[0]));
+    if (dtiPanel && !panels.some(p => p[0] === dtiPanel)) dtiPanel = '';
+    const st = dtiStats();
+    if (!st.orders.length && !st.unchecked) return `<div class="stat-card dti-card"><div class="label"><span class="lbl-full">Dress to Impress</span><span class="lbl-short">Dress to Impress</span></div>
+      <div class="dtt"><b>0 bottles</b></div><div style="font-size:12.5px; color:var(--muted);">No Dress to Impress orders for these dates${dtiPanel ? ' in this panel' : ''}.</div></div>`;      // always shown, next to Orders by hour
+    const max = Math.max(1, ...DTI.map(([k]) => st.per[k].n));
+    const tile = (cls, k, n, w, key) => `<div class="dti-t ${cls}"><div class="k">${k}</div>${n ? `<a href="#" class="n" data-dti="${key}">${n}</a>` : '<span class="n z">0</span>'}<div class="w">${n ? (w ? w + ' with other products' : 'only Dress to Impress') : '—'}</div></div>`;
+    const top = DTI.slice().sort((a, b) => st.per[b[0]].n - st.per[a[0]].n)[0];
+    return `<div class="stat-card dti-card"><div class="label"><span class="lbl-full">Dress to Impress</span><span class="lbl-short">Dress to Impress</span></div>
+      <div class="dtt"><b>${st.bottles} bottle${st.bottles === 1 ? '' : 's'}</b> · in ${st.orders.length} order${st.orders.length === 1 ? '' : 's'}</div>
+      ${panels.length > 1 ? `<div class="ohp" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;"><button type="button" data-dtip="" class="${dtiPanel ? '' : 'on'}">All</button>${panels.map(p => `<button type="button" data-dtip="${p[0]}" class="${dtiPanel === p[0] ? 'on' : ''}">${OH_SHORT[p[0]] || esEsc(p[1])}</button>`).join('')}</div>` : ''}
+      <div class="dti-tiles">${tile('s3', 'SET OF 3', st.s3, st.w3, 's3')}${tile('s2', 'SET OF 2', st.s2, st.w2, 's2')}${tile('s1', 'SINGLE', st.s1, st.w1, 's1')}</div>
+      <div style="font-size:10.5px; font-weight:700; color:var(--muted); margin:10px 0 2px; text-transform:uppercase;">Each perfume · bottles</div>
+      ${DTI.map(([k, nm, sh]) => { const p = st.per[k]; return `<div class="dti-pr"><a href="#" data-dti="p:${k}"><span class="dti-c ${k}">${sh}</span>${nm}</a><b>${p.n}</b><div class="dti-bar"><i style="width:${p.s3 / max * 100}%; background:#f97316"></i><i style="width:${p.s2 / max * 100}%; background:#3b82f6"></i><i style="width:${p.s1 / max * 100}%; background:#22c55e"></i></div></div>`; }).join('')}
+      <div class="dti-leg"><span><i style="background:#f97316"></i>set of 3</span><span><i style="background:#3b82f6"></i>set of 2</span><span><i style="background:#22c55e"></i>single</span></div>
+      ${st.unchecked ? `<div class="dti-fill">${st.unchecked} older order${st.unchecked === 1 ? '' : 's'} not checked yet<button type="button" data-dtifill="1">Check now</button></div>` : ''}
+      ${(() => { const ts = dtiTopSeller(st); return ts ? `<a href="#" class="dti-top" data-dti="emp">🏆 Top seller: <b>${esEsc(ts.nm)}</b> · ${ts.b} bottle${ts.b === 1 ? '' : 's'}<span>All sellers →</span></a>` : ''; })()}
+      <div class="ohf"><span>Tap a number → those orders</span>${st.bottles ? `<b>Top: ${top[1]}</b>` : ''}</div></div>`;
+  }
+  // Sellers ranked by Dress to Impress bottles (then sets of 3); "Not allocated" never counts as the top seller.
+  const dtiSellers = (st, pick) => Object.values(st.emp).map((e) => pick ? Object.assign({}, e, { b: e[pick] }) : e).filter((e) => e.b > 0).sort((a, b) => b.b - a.b || b.s3 - a.s3 || a.nm.localeCompare(b.nm));
+  const dtiTopSeller = (st) => dtiSellers(st).filter((e) => e.nm !== 'Not allocated')[0] || null;
+  function dtiSellersHtml(st, key) {
+    const pk = key && key.indexOf('p:') === 0 ? key.slice(2) : '', col = pk || (key === 'emp' ? '' : key);
+    const list = dtiSellers(st, col || null);
+    if (!list.length) return '';
+    const unit = !col ? 'Bottles' : (pk ? 'Bottles' : (col === 's1' ? 'Single' : 'Sets'));
+    const topNm = (list.find((e) => e.nm !== 'Not allocated') || {}).nm;
+    return `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin:2px 0 4px;">Who sold${col ? '' : ' · most first'}</div>
+      <div style="overflow-x:auto; margin-bottom:12px;"><table class="no-stack ohtab"><thead><tr><th>Employee</th>${col ? '' : '<th style="text-align:right;">Set of 3</th><th style="text-align:right;">Set of 2</th><th style="text-align:right;">Single</th>'}<th style="text-align:right;">${unit}</th></tr></thead><tbody>${list.map((e) => { const r = e.nm === 'Not allocated' ? -1 : list.filter((x) => x.nm !== 'Not allocated').indexOf(e); return `<tr${e.nm === topNm ? ' style="background:#fef3c7;"' : ''}><td><b>${e.nm === topNm ? '🏆 ' : (r > 0 && r < 3 ? ['🥇', '🥈', '🥉'][r] + ' ' : '')}<a href="#" data-dtiemp="${esEsc(e.nm)}" data-dtik="${esEsc(key || 'emp')}" title="Show only ${esEsc(e.nm)}'s orders">${esEsc(e.nm)}</a></b><div style="font-size:10.5px; color:var(--muted);">${e.n} order${e.n === 1 ? '' : 's'} · DS ${e.ds} · CG ${e.cg} · CC ${e.cc}</div></td>${col ? '' : `<td style="text-align:right;">${e.s3}</td><td style="text-align:right;">${e.s2}</td><td style="text-align:right;">${e.s1}</td>`}<td style="text-align:right; font-weight:800;">${e.b}</td></tr>`; }).join('')}</tbody></table></div>`;
+  }
+  // emp = one seller's name (tapped in "Who sold"): only that person's orders; '' = everyone.
+  const dtiEmpOf = (o) => String(o.salesman || '').trim() || 'Not allocated';
+  function dtiOpen(key, emp) {
+    const st = dtiStats();
+    emp = emp || '';
+    const pk = key.indexOf('p:') === 0 ? key.slice(2) : '', all = key === 'emp';
+    const list = st.orders.filter(({ o, x }) => (all ? true : pk ? Number(o.dti[pk]) > 0 : x[key] > 0) && (!emp || dtiEmpOf(o) === emp)).sort((a, b) => String(b.o.created_at).localeCompare(String(a.o.created_at)));
+    const df = document.getElementById('dateFrom').value, dt = document.getElementById('dateTo').value;
+    const title = all ? 'Sellers' : pk ? (DTI.find(d => d[0] === pk) || [])[1] : ({ s3: 'Set of 3', s2: 'Set of 2', s1: 'Single' })[key];
+    const units = emp ? list.reduce((t, { o, x }) => t + (all ? x.total : pk ? Number(o.dti[pk]) || 0 : x[key]), 0) : (all ? st.bottles : pk ? st.per[pk].n : st[key]);
+    document.getElementById('ohTitle').textContent = 'Dress to Impress · ' + title + (emp ? ' · ' + emp : '');
+    document.getElementById('ohSub').textContent = `${units} ${pk || all ? 'bottle' : (key === 's1' ? 'bottle' : 'set')}${units === 1 ? '' : 's'} · ${list.length} order${list.length === 1 ? '' : 's'} · ${df === dt ? df : df + ' → ' + dt}${dtiPanel ? ' · ' + (PANEL_NAME[dtiPanel] || dtiPanel) : ''} · tap an order to open it`;
+    // Sold by: per employee (sets / bottles), the top seller marked; per-employee row values follow what was tapped.
+    const sub = { emp: {} };
+    list.forEach(({ o, x }) => { const nm = String(o.salesman || '').trim() || 'Not allocated', e = sub.emp[nm] = sub.emp[nm] || { nm, s3: 0, s2: 0, s1: 0, b: 0, n: 0, ds: 0, cg: 0, cc: 0 }; e.s3 += x.s3; e.s2 += x.s2; e.s1 += x.s1; e.b += x.total; e.n++; DTI.forEach(([k]) => { e[k] += Number(o.dti[k]) || 0; }); });
+    const sellers = emp ? `<a href="#" data-dtiback="${esEsc(key)}" style="display:inline-block; font-size:12.5px; font-weight:700; margin-bottom:10px;">← All sellers</a>` : dtiSellersHtml(sub, key);
+    document.getElementById('ohBody').innerHTML = !list.length ? '<p class="muted">No orders.</p>' : sellers + `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin:0 0 4px;">Orders${emp ? ' · ' + esEsc(emp) + ' · ' + list.map(({ o }) => esEsc(o.order_name)).join(', ') : ''}</div><div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Order</th><th>Employee</th><th>Perfumes</th><th>Also in order</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${list.map(({ o }) => {
+      const d = o.dti, chips = DTI.filter(([k]) => Number(d[k]) > 0).map(([k, , sh]) => `<span class="dti-c ${k}">${sh}${Number(d[k]) > 1 ? ' ×' + d[k] : ''}</span>`).join('');
+      const oth = Number(d.o) > 0 ? (Number(d.o) === 1 ? esEsc(d.on || '1 product') : esEsc(d.on || 'product') + ` <span style="color:var(--muted);">+${Number(d.o) - 1} more</span>`) : '<span style="color:var(--muted);">—</span>';
+      const en = dtiEmpOf(o);
+      return `<tr><td><a href="#" data-ohi="${o._i}" style="font-weight:800;">${esEsc(o.order_name)}</a><div style="font-size:10.5px; color:var(--muted);">${esEsc(PANEL_NAME[panelOf(o)] || '')}</div></td><td>${en === 'Not allocated' ? '<span style="color:var(--muted);">Not allocated</span>' : `<a href="#" data-dtiemp="${esEsc(en)}" data-dtik="${esEsc(key)}" style="font-weight:700;">${esEsc(en)}</a>`}</td><td style="white-space:nowrap;">${chips}</td><td style="font-size:12px;">${oth}</td><td style="text-align:right; font-weight:700; white-space:nowrap;">${fmtMoney(o.total, o.currency)}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+    document.getElementById('ohModal').classList.add('open');
+  }
+  document.getElementById('summaryGrid').addEventListener('click', async (ev) => {
+    const p = ev.target.closest('[data-dtip]');
+    if (p) { dtiPanel = p.dataset.dtip; renderSummary(); return; }
+    const n = ev.target.closest('[data-dti]');
+    if (n) { ev.preventDefault(); dtiOpen(n.dataset.dti); return; }
+    const f = ev.target.closest('[data-dtifill]');
+    if (f) {          // older orders: read their products from Shopify once, a few days per call
+      f.disabled = true;
+      const from = document.getElementById('dateFrom').value, to = document.getElementById('dateTo').value;
+      try {
+        for (let i = 0; i < 40; i++) {
+          f.textContent = 'Checking…';
+          const r = await api.get('orders.dti_fill', { from, to });
+          if ((r.errors || []).length) throw new Error(r.errors[0]);
+          if (!r.left || !r.days_done) break;
+          f.textContent = r.left + ' left…';
+        }
+        if (typeof loadOrders === 'function') loadOrders(); else location.reload();
+      } catch (e) { f.disabled = false; f.textContent = 'Check now'; showAlert('Could not check the older orders: ' + e.message, 'error'); }
+    }
   });
 
   function renderSummary() {
@@ -1673,6 +1807,7 @@
         return `<div class="stat-card rs-card"><div class="label"><span class="lbl-full">${r ? 'Ad spend &amp; ROAS' : 'DG / LG / WH / Other'}</span><span class="lbl-short">${r ? 'Ad spend &amp; ROAS' : 'DG/LG/WH/Other'}</span></div>${r}${colours}</div>`;
       })()}
       ${ohCardHtml(base)}
+      ${dtiCardHtml()}
     `;
     grid.style.display = 'grid';
     renderUnallocNote();
@@ -2451,8 +2586,7 @@
         out.push(Object.assign({}, base, {
           b, q, k, tot: q + k, or: pp && pp.order_rating ? [Number(pp.order_rating.avg) || 0, Number(pp.order_rating.n) || 0] : [0, 0],
           tg: pp ? Number(pp.target) || 0 : 0, tsrc: pp ? pp.src || 'none' : 'none', how: pp ? pp.how || '' : '', shared: !!(pp && pp.shared),
-          ab: !!(pp && (pp.absent || pp.off)), abd: pp ? Number(pp.absent_days) || 0 : 0, lvd: pp ? Number(pp.leave_days) || 0 : 0,      // absent / on leave (every day / this many days of the range): that target is not counted
-          fl: pp ? Number(pp.floor) || 0 : 0      // a new Sales Executive's automatic target for the day: it can be raised by hand, not lowered
+          ab: !!(pp && (pp.absent || pp.off)), abd: pp ? Number(pp.absent_days) || 0 : 0, lvd: pp ? Number(pp.leave_days) || 0 : 0      // absent / on leave (every day / this many days of the range): that target is not counted
         }, a || slot0()));
       });
       // Not in any panel yet and no orders: still listed (under "No panel") so nobody disappears.
@@ -2521,7 +2655,7 @@
     if (!e.real || PANEL_GK[e.b] === undefined) return '<span class="es-sl">—</span>';     // "No panel" has no target
     const can = esCanEdit(), d = `data-id="${e.id}" data-b="${e.b}"`;
     if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">${esEsc(e.how || 'Absent — target not counted')}</div>`;
-    if (can && esEditTg === e.id + '|' + e.b) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="${e.fl || 0}" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="${e.fl ? '≥ ' + esInr(e.fl) : 'Daily target'}"${e.fl ? ` title="New Sales Executive: at least ${esInr(e.fl)} — you can raise it, not lower it"` : ''}><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span>`;
+    if (can && esEditTg === e.id + '|' + e.b) return `<span class="tgt-edit"><input type="number" id="esTgIn" min="0" step="100" value="${e.tsrc === 'manual' ? e.tg : ''}" placeholder="Daily target"><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span>`;
     const pill = e.tsrc === 'manual' ? '<span class="tgt-pill man">Manual</span>' : (e.tsrc === 'rule' || e.tsrc === 'ladder' ? '<span class="tgt-pill auto">Auto</span>' : '');
     const absNote = (e.abd > 0 ? `<div class="tgt-how">${e.abd} absent day${e.abd === 1 ? '' : 's'} not counted</div>` : '') + (e.lvd > 0 ? `<div class="tgt-how">${e.lvd} leave day${e.lvd === 1 ? '' : 's'} not counted</div>` : '');      // a range with some absent / leave days
     if (!can) return (e.tg > 0 ? `<span class="tgt-chip ro">${esInr(e.tg)}</span>` : '<span class="es-sl">—</span>') + absNote;
@@ -2865,7 +2999,6 @@
   async function esSaveTarget(id, b, amount) {
     const rw = teamData.rows.find(x => x.employee_id === id); if (!rw) return;
     const cur = esRows().find(x => x.id === id && x.b === b);
-    if (amount !== null && cur && cur.fl && amount < cur.fl) { alert('New Sales Executive: the target for this day is at least ' + esInr(cur.fl) + '. You can raise it, not lower it.'); return; }
     try {
       // The typed amount belongs to that panel only (TM Perfume House, TM4U …); the person's other panels keep their own targets.
       await api.post('targets.save_daily', { date: teamData.from, employee_id: id, group_key: PANEL_GK[b], amount });
