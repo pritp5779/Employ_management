@@ -676,10 +676,10 @@ function renderSidebar(active) {
     document.body.appendChild(sm);
     // The ML price slab chart (order size + price → commission %): its own card, under the other rules.
     const sl = document.createElement('script');
-    sl.id = 'mlSlabJs'; sl.src = 'assets/js/ml_slab.js?v=261021b'; sl.async = false;
+    sl.id = 'mlSlabJs'; sl.src = 'assets/js/ml_slab.js?v=261022a'; sl.async = false;
     document.body.appendChild(sl);
     const se = document.createElement('script');
-    se.id = 'mlSlabRulesJs'; se.src = 'assets/js/ml_slab_rules.js?v=261021a'; se.async = false;
+    se.id = 'mlSlabRulesJs'; se.src = 'assets/js/ml_slab_rules.js?v=261022b'; se.async = false;
     document.body.appendChild(se);
   }
 }

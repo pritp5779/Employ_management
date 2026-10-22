@@ -54,6 +54,8 @@
 #mls th input.pc{width:58px; text-align:center; font-weight:800; font-size:13px; color:#111827;}
 #mls td.c0 input{width:58px; font-weight:700; text-align:center;}
 #mls td.c1 input{color:#1d4ed8; font-weight:700;} #mls td.c3 input{background:#fff8e1;}
+#mls th.lw, #mls td.lw{background:#fff1f2; color:#9f1239;} #mls thead th.lw{background:#fee2e2; color:#9f1239;}
+#mls td.lw{font-size:12px; font-weight:700; padding:3px 8px;} #mls th.lw input.pc{color:#9f1239;}
 #mls .x{border:1px solid var(--line); background:#fff; border-radius:999px; width:22px; height:22px; cursor:pointer; font-size:11px; color:#9ca3af; padding:0; min-height:0; line-height:1;}
 #mls .x:hover{color:#b91c1c; border-color:#f1b4b4;}
 #mls tr.bad td{background:#fff1f1;}
@@ -70,7 +72,7 @@
   const root = document.createElement('div'); root.id = 'mls';
   root.innerHTML = '<div class="muted" style="font-size:13px;">Loading the ML price slab…</div>';
   mount.appendChild(root);
-  if (!window.MLSLAB) { const sc = document.createElement('script'); sc.src = 'assets/js/ml_slab.js?v=261021a'; sc.onload = () => tryRender(); document.body.appendChild(sc); }
+  if (!window.MLSLAB) { const sc = document.createElement('script'); sc.src = 'assets/js/ml_slab.js?v=261022a'; sc.onload = () => tryRender(); document.body.appendChild(sc); }
 
   let C = null, dirty = false;
   const $ = (id) => root.querySelector('#' + id);
@@ -90,7 +92,7 @@
     root.innerHTML = `
       <h3>ML price slab <span class="st ${on ? 'on' : 'off'}">${on ? 'ON' : 'OFF'}</span>
         <label class="tgl" style="margin-left:auto;"><input type="checkbox" id="mlsOn" ${on ? 'checked' : ''}><i></i><span id="mlsOnTxt">${on ? 'Switched on' : 'Switched off'}</span></label></h3>
-      <p class="rsub">Each allocated order is paid by its <b>total ML</b> (free ML included) and the <b>price</b> the customer paid: find the size's row, find the price — that column's % is the commission. A price between two columns earns a % in between (₹1,730 between ₹1,700 = 6% and ₹1,760 = 6.5% → 6.25%). Below the last column = 0%. Orders with no ML (MySales orders, very old orders) or a size outside the chart keep the normal commission. A panel rule, a fixed commission or a commission set by hand still wins.</p>
+      <p class="rsub">Each allocated order is paid by its <b>total ML</b> (free ML included) and the <b>price</b> the customer paid: find the size's row, find the price — that column's % is the commission. A price between two columns: see "Price between two columns" below. Below the last column = the lowest % (never less). Orders with no ML (MySales orders, very old orders) or a size outside the chart keep the normal commission. A panel rule, a fixed commission or a commission set by hand still wins.</p>
       <div id="mlsMsg" class="msg"></div>
       <div class="fld" style="margin-bottom:12px; border-color:#c7d2fe; background:#f5f7ff;"><label>Dates this chart applies (order business day)</label>
         <div class="in" style="flex-wrap:wrap;">From <input type="date" id="mlsFrom" style="width:150px;" value="${esc(C.from || '')}"> To <input type="date" id="mlsTo" style="width:150px;" value="${esc(C.to || '')}"> <button type="button" class="x" id="mlsToClr" title="No end date" style="width:auto; padding:0 10px; border-radius:8px; height:30px;">No end</button></div>
@@ -101,6 +103,8 @@
         <div class="fld" style="border-color:#fecaca; background:#fff5f5;"><label>Max discount</label><div class="in">more than <input type="number" id="mlsMax" min="0" max="100" step="0.5" value="${esc(Number(C.maxdisc) || '')}" placeholder="off"> % off → ₹0</div>
           <div class="in" style="margin-top:6px;">for <select id="mlsMaxFor" style="width:auto; padding:5px 8px; min-height:0;"><option value="nocode" ${C.maxdisc_for === 'all' ? '' : 'selected'}>orders WITHOUT code only</option><option value="all" ${C.maxdisc_for === 'all' ? 'selected' : ''}>all orders</option></select></div>
           <small>With a code, any discount is allowed (the chart % still applies). Discount = how far the price paid is below the size's chart price (first column), free ML included. Example: ₹1,810 − 10% = ₹1,629 → below ₹1,629 pays ₹0. Empty = no limit.</small></div>
+        <div class="fld" style="border-color:#bbf7d0; background:#f0fdf4;"><label>Lowest commission</label><div class="in">below the last column → <input type="number" id="mlsFloor" min="0" max="100" step="0.1" value="${esc(Number(C.floor) || '')}" placeholder="0"> %</div><small>However low the price, never less than this. No code still halves it (2.8% → 1.4%). Empty = 0%.</small></div>
+        <div class="fld"><label>Price between two columns</label><div class="in"><select id="mlsMode" style="width:auto; padding:5px 8px; min-height:0;"><option value="step" ${C.mode === 'between' ? '' : 'selected'}>the lower column's %</option><option value="between" ${C.mode === 'between' ? 'selected' : ''}>a % in between</option></select></div><small>Lower column: ₹1,690 (between ₹1,700 = 6% and ₹1,670 = 4%) → 4%.</small></div>
         <div class="fld"><label>Prepaid discount</label><div class="in"><input type="number" id="mlsPre" min="0" max="20" step="0.5" value="${esc(C.prepaid)}"> % borne by the company</div><small>A prepaid order is looked up at its price before this discount, so it is not pushed into a lower column.</small></div>
       </div>
       <div class="tester"><b class="t">Try it — what does one order earn?</b>
@@ -122,14 +126,16 @@
       <div class="paste" id="mlsPaste"><textarea id="mlsPasteTxt" placeholder="Copy the table from Excel / Google Sheets and paste it here: one size per line — size (ml), then one price per column. Example:&#10;100	1810	1760	1700	…&#10;110	1990	1940	1870	…"></textarea>
         <div class="tools" style="margin-top:6px;"><button type="button" class="btn" id="mlsPasteOk">Replace the prices</button><button type="button" class="btn secondary" id="mlsPasteNo">Cancel</button></div></div>
       <div class="wrap"><table><thead>
-        <tr><th class="c0" rowspan="2">Size<br>(ml)</th>${C.cols.map((c, j) => `<th><input class="nm" data-nm="${j}" value="${esc(C.names[j] || '')}" placeholder="name"></th>`).join('')}<th rowspan="2"></th></tr>
-        <tr>${C.cols.map((c, j) => `<th><input class="pc" type="number" step="0.1" data-pc="${j}" value="${esc(c)}">%${C.cols.length > 1 ? ` <button type="button" class="x" data-dc="${j}" title="Remove this column">✕</button>` : ''}</th>`).join('')}</tr>
+        <tr><th class="c0" rowspan="2">Size<br>(ml)</th>${C.cols.map((c, j) => `<th><input class="nm" data-nm="${j}" value="${esc(C.names[j] || '')}" placeholder="name"></th>`).join('')}<th class="lw" title="Every price below the last column pays this % (never less). No code = half.">Lowest</th><th rowspan="2"></th></tr>
+        <tr>${C.cols.map((c, j) => `<th><input class="pc" type="number" step="0.1" data-pc="${j}" value="${esc(c)}">%${C.cols.length > 1 ? ` <button type="button" class="x" data-dc="${j}" title="Remove this column">✕</button>` : ''}</th>`).join('')}<th class="lw"><input class="pc" type="number" step="0.1" min="0" id="mlsFloorCol" value="${esc(Number(C.floor) || 0)}">%</th></tr>
       </thead><tbody>${C.rows.map((r, i) => rowHtml(r, i)).join('')}</tbody></table></div>
       <div class="foot"><button type="button" class="btn" id="mlsSave">Save chart</button><span class="muted" id="mlsDirty">${C.updated_at ? 'Last saved ' + esc(C.updated_at) + (C.updated_by ? ' by ' + esc(C.updated_by) : '') : 'Not saved yet — this is the starting chart.'}</span></div>`;
     wire(); test();
   }
-  const rowHtml = (r, i) => `<tr data-r="${i}"><td class="c0"><input type="number" data-ml="${i}" value="${esc(r.ml)}"></td>${r.p.map((v, j) => `<td class="c${j + 1}"><input type="number" data-p="${i}|${j}" value="${esc(v)}"></td>`).join('')}<td><button type="button" class="x" data-dr="${i}" title="Remove this size">✕</button></td></tr>`;
+  const rowHtml = (r, i) => `<tr data-r="${i}"><td class="c0"><input type="number" data-ml="${i}" value="${esc(r.ml)}"></td>${r.p.map((v, j) => `<td class="c${j + 1}"><input type="number" data-p="${i}|${j}" value="${esc(v)}"></td>`).join('')}<td class="lw" data-lw="${i}">${lowTxt(r)}</td><td><button type="button" class="x" data-dr="${i}" title="Remove this size">✕</button></td></tr>`;
 
+  // "Lowest" column: every price below the row's last price pays the lowest % (auto, from the last column).
+  const lowTxt = (r) => 'Below ₹' + (Number(r.p[r.p.length - 1]) || 0).toLocaleString('en-IN');
   function markDirty() { dirty = true; const el = $('mlsDirty'); if (el) { el.textContent = 'Changes not saved yet'; el.style.color = '#b45309'; } }
   function flash(html, cls) { $('mlsMsg').innerHTML = `<div class="alert ${cls || 'success'}">${html}</div>`; }
 
@@ -139,6 +145,8 @@
     $('mlsNc').oninput = (e) => { C.nocode = Number(e.target.value); markDirty(); test(); };
     $('mlsPre').oninput = (e) => { C.prepaid = Number(e.target.value); markDirty(); test(); };
     $('mlsMax').oninput = (e) => { C.maxdisc = Number(e.target.value) || 0; markDirty(); test(); };
+    $('mlsFloor').oninput = (e) => { C.floor = Number(e.target.value) || 0; const fc = $('mlsFloorCol'); if (fc) fc.value = C.floor; markDirty(); test(); };
+    $('mlsMode').onchange = (e) => { C.mode = e.target.value === 'between' ? 'between' : 'step'; markDirty(); test(); };
     $('mlsMaxFor').onchange = (e) => { C.maxdisc_for = e.target.value === 'all' ? 'all' : 'nocode'; markDirty(); test(); };
     const dates = () => { C.from = $('mlsFrom').value || ''; C.to = $('mlsTo').value || ''; $('mlsDates').textContent = MLSLAB.datesTxt(C); markDirty(); };
     $('mlsFrom').onchange = dates; $('mlsTo').onchange = dates;
@@ -146,7 +154,8 @@
     ['tMl', 'tPr', 'tPre', 'tCode', 'tHit'].forEach((id) => { $(id).oninput = test; $(id).onchange = test; });
     root.querySelector('table').addEventListener('input', (e) => {
       const t = e.target;
-      if (t.dataset.p) { const [i, j] = t.dataset.p.split('|').map(Number); C.rows[i].p[j] = Number(t.value); }
+      if (t.id === 'mlsFloorCol') { C.floor = Number(t.value) || 0; const f = $('mlsFloor'); if (f) f.value = C.floor || ''; }
+      else if (t.dataset.p) { const [i, j] = t.dataset.p.split('|').map(Number); C.rows[i].p[j] = Number(t.value); if (j === C.rows[i].p.length - 1) { const c = root.querySelector(`td[data-lw="${i}"]`); if (c) c.textContent = lowTxt(C.rows[i]); } }
       else if (t.dataset.ml) C.rows[Number(t.dataset.ml)].ml = Number(t.value);
       else if (t.dataset.pc) C.cols[Number(t.dataset.pc)] = Number(t.value);
       else if (t.dataset.nm) C.names[Number(t.dataset.nm)] = t.value;
@@ -206,7 +215,7 @@
   async function save() {
     const b = $('mlsSave'); b.disabled = true; b.textContent = 'Saving…';
     try {
-      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: C.cap, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
+      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: C.cap, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', floor: Number(C.floor) || 0, mode: C.mode === 'between' ? 'between' : 'step', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
       if (d.error) throw new Error(d.error);
       C = JSON.parse(JSON.stringify(d.chart)); dirty = false;
       render(); flash(esc(d.message || 'Saved.'), 'success');

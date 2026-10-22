@@ -7,8 +7,8 @@
  *     A size outside the chart (below the first row / above the last) → no slab (the order keeps the normal commission).
  *  2. Price: prepaid orders are looked up at their price before the prepaid discount (chart.prepaid %, the company bears it).
  *  3. %: price at or above the first column → the first column's % (the most). Exactly a column's price → that %.
- *     Between two columns → a % in between, in proportion (₹1,730 between ₹1,700 = 6% and ₹1,760 = 6.5% → 6.25%).
- *     Below the last column → 0%.
+ *     Between two columns: chart.mode 'step' (the chart's rule) → the LOWER column's % (₹1,690 between ₹1,700 = 6% and ₹1,670 = 4% → 4%);
+ *     'between' → a % in between, in proportion. Below the last column → chart.floor % (2.8%, never less; no code → half = 1.4%).
  *  4. Daily target incomplete → at most chart.cap %.   5. No order code → chart.nocode % of it (50 = half).
  *  0. More than chart.maxdisc % off the size's chart price → no commission at all (0 / empty = no limit).
  */
@@ -44,10 +44,13 @@
     for (let j = 0; j < p.length - 1; j++) {
       if (price <= p[j] && price >= p[j + 1]) {
         if (price === p[j + 1] || p[j] === p[j + 1]) return { pct: cols[j + 1], col: j + 1, row, why: 'exactly a chart price' };
+        if (chart.mode !== 'between') return { pct: cols[j + 1], col: j + 1, row, why: 'below ₹' + Math.round(p[j]).toLocaleString('en-IN') + ' → the ₹' + Math.round(p[j + 1]).toLocaleString('en-IN') + ' column (' + cols[j + 1] + '%)' };
         const f = (price - p[j + 1]) / (p[j] - p[j + 1]);
         return { pct: cols[j + 1] + (cols[j] - cols[j + 1]) * f, col: j + 1, row, between: [j, j + 1], why: 'between ₹' + Math.round(p[j + 1]).toLocaleString('en-IN') + ' (' + cols[j + 1] + '%) and ₹' + Math.round(p[j]).toLocaleString('en-IN') + ' (' + cols[j] + '%)' };
       }
     }
+    const fl = Number(chart.floor) || 0;
+    if (fl > 0) return { pct: fl, col: -1, row, floor: true, why: 'below ₹' + Math.round(p[p.length - 1]).toLocaleString('en-IN') + ' → lowest ' + fl + '%' };
     return { pct: 0, col: -1, row, why: 'below the last price — more than ' + (chart.names && chart.names[chart.names.length - 1] ? chart.names[chart.names.length - 1].replace(/^Up to /i, '') : 'the last column') + ' off' };
   }
 
@@ -86,7 +89,8 @@
     if (!hit && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%'); }
     if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it'); }
     // Below the lowest slab % (the last column, 0.1%) = nothing: e.g. 0.1% without code = 0.05% → 0%.
-    const minPct = Number(chart.cols[chart.cols.length - 1]) || 0;
+    // (Not with a lowest % set: 2.8% without code = 1.4% is paid.)
+    const minPct = Number(chart.floor) > 0 ? 0 : Number(chart.cols[chart.cols.length - 1]) || 0;
     if (pct > 0 && pct < minPct - 1e-9) { steps.push(r2(pct) + '% is below the lowest slab (' + minPct + '%) → 0%'); pct = 0; }
     return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false };
   }

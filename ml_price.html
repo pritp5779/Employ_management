@@ -65,7 +65,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261021b"></script>
+<script src="assets/js/ml_slab.js?v=261022a"></script>
 <script>
   guardPage();
   renderSidebar('ml_price');
@@ -194,7 +194,8 @@
     });
     if (!cutDone) rowsHtml.push(cutRow());
     if (meAt === lines.length && lookPrice != null) rowsHtml.push(meRow(price, ml));
-    rowsHtml.push(`<tr class="zero"><td>below ${inr(lines[lines.length - 1].pay)}</td><td class="r">0%</td><td class="r">₹0</td></tr>`);
+    { const lp = lines[lines.length - 1].pay, lr = Number(CH.floor) > 0 ? com(ml, lp - 1) : null;      // lowest % (2.8%): every price below the last column
+      rowsHtml.push(lr && lr.pct > 0 ? `<tr class="zero" style="color:#166534;"><td>below ${inr(lp)} <span class="nm">lowest · any price</span></td><td class="r">${fmtP(lr.pct)}</td><td class="r">${fmtP(lr.pct)} of the price</td></tr>` : `<tr class="zero"><td>below ${inr(lp)}</td><td class="r">0%</td><td class="r">₹0</td></tr>`); }
     html += `<div class="card" style="padding:0; overflow:hidden;"><div class="card-head" style="padding:12px 14px;"><h2 style="font-size:15px;">${ml} ml prices${row.how.indexOf('between') === 0 ? ' <span style="font-weight:500; font-size:12px; color:var(--muted);">(' + esc(row.how) + ')</span>' : ''}</h2><span style="font-size:12px; color:var(--muted);">${S.code ? 'with code' : 'no code'}${S.hit ? '' : ' · target not complete'}${S.pre ? ' · prepaid' : ''}</span></div>
       <div style="overflow-x:auto;"><table class="no-stack"><thead><tr><th>Price</th><th class="r">%</th><th class="r">You earn</th></tr></thead><tbody>${rowsHtml.join('')}</tbody></table></div></div>`;
     out.innerHTML = html;
