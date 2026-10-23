@@ -463,6 +463,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
+<script src="assets/js/convo.js?v=261022b"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 <script>
   guardPage();
@@ -1935,6 +1936,14 @@
       pfApplyLock();
       pfCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
+    }
+    // Sales: before Punch Out, the call recordings of today's queries (see assets/js/convo.js → Convo.calls).
+    if (type === 'out' && !enrollMode && window.Convo) {
+      if (document.querySelector('.cvx')) return;
+      try {
+        const g = await api.get('convo.calls_today');
+        if (g.required > 0 && g.uploaded < g.required && !g.skip && !(await Convo.calls({ punch: true }))) return;
+      } catch (e) { /* no check when it cannot load — the server still checks */ }
     }
     busy = true;
     cancelled = false;

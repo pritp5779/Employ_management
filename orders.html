@@ -451,7 +451,7 @@
   .ohf{display:flex; justify-content:space-between; gap:6px; font-size:11px; border-top:1px solid var(--line); margin-top:auto; padding-top:7px; color:var(--muted);} .ohf b{color:var(--ink);}
   .ohtab{width:100%; border-collapse:collapse; font-size:13px;} .ohtab th{font-size:11px; color:var(--muted); text-align:left; padding:6px; border-bottom:1px solid var(--line);} .ohtab td{padding:7px 6px; border-bottom:1px solid #f1f5f9;}
   .ocd{display:inline-block; background:#eef2ff; color:#3730a3; font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px;} .ocd.no{background:#fee2e2; color:#b91c1c;}
-  @media (max-width:820px){ .stat-card.oh-card, .stat-card.dti-card, .stat-card.csl-card{grid-column:1 / -1;} }
+  @media (max-width:820px){ .stat-card.oh-card, .stat-card.dti-card, .stat-card.csl-card, .stat-card.tco-card, .stat-card.cq-card, .stat-card.rt-card, .stat-card.pm-card{grid-column:1 / -1;} }
   /* Dress to Impress box */
   .dti-card{display:flex; flex-direction:column; container-type:inline-size;}
   .dti-card .dtt{font-size:13px; margin:2px 0 8px;} .dti-card .dtt b{font-size:19px;}
@@ -468,6 +468,35 @@
   .dti-c{display:inline-block; font-size:10px; font-weight:800; border-radius:99px; padding:2px 7px; margin-right:3px;}
   .dti-c.ds{background:#1f2937; color:#fff;} .dti-c.cg{background:#fce7f3; color:#9d174d;} .dti-c.cc{background:#fef3c7; color:#92400e;}
   .dti-top{display:block; margin-top:9px; background:#fef3c7; border-radius:10px; padding:7px 9px; font-size:12px; color:#78350f; text-decoration:none;} .dti-top b{color:#111827;} .dti-top span{display:block; font-size:10.5px; color:#92400e; margin-top:1px; text-decoration:underline dotted;}
+  /* Team coach box */
+  .tco-card{display:flex; flex-direction:column; container-type:inline-size;}
+  .tco-card .dtt{font-size:12.5px; margin:2px 0 8px; color:var(--muted);}
+  .tco-tiles{display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:8px;}
+  .tco-tiles a{border-radius:11px; padding:7px 9px; font-size:10.5px; font-weight:700; text-decoration:none;} .tco-tiles b{display:block; font-size:20px; line-height:1.15;}
+  .tco-r{display:grid; grid-template-columns:1fr 64px; gap:6px; align-items:center; padding:5px 4px; border-radius:8px; font-size:12px; text-decoration:none; color:var(--ink);}
+  .tco-r:hover{background:#f8fafc;} .tco-r small{display:block; font-size:10px; color:var(--muted);}
+  .tco-mini{position:relative; height:8px; background:#f1f5f9; border-radius:6px; margin-top:3px;} .tco-mini i{position:absolute; left:0; top:0; bottom:0; border-radius:6px;} .tco-mini u{position:absolute; top:-3px; bottom:-3px; width:2px; background:#111827;}
+  .tco-f{display:inline-block; font-size:10px; font-weight:800; border-radius:99px; padding:2px 7px; margin:1px 3px 1px 0; white-space:nowrap;}
+  .tco-f.g{background:#dcfce7; color:#166534;} .tco-f.r{background:#fee2e2; color:#991b1b;} .tco-f.o{background:#ffedd5; color:#9a3412;} .tco-f.y{background:#fef3c7; color:#92400e;} .tco-f.p{background:#ede9fe; color:#5b21b6;} .tco-f.s{background:#f1f5f9; color:#334155;}
+  .tco-sort{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;} .tco-sort button{width:auto; min-height:0; padding:3px 10px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:99px; background:#fff; color:var(--ink); cursor:pointer;} .tco-sort button.on{background:#111827; color:#fff; border-color:#111827;}
+  .rt-card{display:flex; flex-direction:column;}
+  .rt-card .dtt{font-size:12px; margin:2px 0 6px; color:var(--muted);}
+  .rt-tabs{display:flex; gap:4px; flex-wrap:wrap; margin:2px 0 8px;} .rt-tabs button{width:auto; min-height:0; padding:3px 10px; font-size:11px; font-weight:800; border:1px solid var(--line); border-radius:99px; background:#fff; color:var(--ink); cursor:pointer;} .rt-tabs button.on{background:#111827; color:#fff; border-color:#111827;}
+  .rt-h{display:inline-block; min-width:30px; border-radius:6px; padding:3px 4px; font-weight:800; font-size:11.5px; text-align:center;}
+  .rt-h.rt9{background:#16a34a; color:#fff;} .rt-h.rt7{background:#86efac; color:#14532d;} .rt-h.rt6{background:#fde68a; color:#78350f;} .rt-h.rt4{background:#fdba74; color:#7c2d12;} .rt-h.rt0{background:#fca5a5; color:#7f1d1d;} .rt-h.rtna{color:#94a3b8;}
+  .rt-r{display:grid; grid-template-columns:1fr auto; gap:1px 8px; align-items:center; padding:5px 4px; border-radius:8px; font-size:12px; text-decoration:none; color:var(--ink);} .rt-r:hover{background:#f8fafc;} .rt-r small{grid-column:1/-1;}
+  .rt-tip{border-radius:11px; padding:7px 9px; margin-top:6px; font-size:12px; background:#fff7ed; border:1px solid #fed7aa;} .rt-tip.g{background:#ecfdf5; border-color:#bbf7d0;}
+  .rt-sp{display:flex; align-items:flex-end; gap:3px; height:38px; margin:6px 0 2px;} .rt-sp i{flex:1; border-radius:3px 3px 0 0; background:#86efac;} .rt-sp i.lo{background:#fdba74;} .rt-sp i.t{background:#16a34a;}
+  .cq-card{display:flex; flex-direction:column;}
+  .cq-card .dtt{font-size:12.5px; margin:2px 0 8px; color:var(--muted);}
+  .cq-big{display:flex; align-items:center; gap:10px; margin-bottom:6px;} .cq-big b{font-size:13px;} .cq-big small{display:block; font-size:11px; color:var(--muted);}
+  .cq-big .cvx-ring{width:52px; height:52px;} .cq-big .cvx-ring span{width:40px; height:40px; font-size:14px;}
+  .cq-r{display:grid; grid-template-columns:1fr auto; gap:2px 8px; align-items:center; padding:5px 4px; border-radius:8px; font-size:12px; text-decoration:none; color:var(--ink);}
+  .cq-r:hover{background:#f8fafc;} .cq-r small{grid-column:1/-1; font-size:10.5px; color:var(--muted);}
+  .cq-s{font-weight:900; font-size:12.5px; border-radius:99px; padding:2px 8px;} .cq-s.g{background:#dcfce7; color:#166534;} .cq-s.a{background:#ffedd5; color:#9a3412;} .cq-s.n{background:#f1f5f9; color:#64748b;}
+  .cq-best{display:block; border:1px dashed var(--line); border-radius:10px; padding:6px 8px; margin-top:5px; font-size:11.5px; text-decoration:none; color:var(--ink);} .cq-best b{font-size:12px;}
+  .cq-pr{border-radius:11px; padding:8px 10px; margin-top:6px; font-size:12.5px; background:#f0fdf4; border:1px solid #bbf7d0;} .cq-pr b{display:block;} .cq-pr i{display:block; color:#14532d; margin-top:3px;}
+  .tco-tp{display:flex; gap:8px; border-radius:11px; padding:7px 9px; margin-top:6px; font-size:12px; line-height:1.4; background:#fff; border:1px solid #fed7aa;} .tco-tp .e{font-size:17px;} .tco-tp b{display:block;} .tco-tp.push{background:#fefce8; border-color:#fde68a;} .tco-tp.win{background:#ecfdf5; border-color:#bbf7d0;} .tco-tp.focus{background:#fff7ed; border-color:#fdba74;} .tco-tp.learn{background:#eff6ff; border-color:#bfdbfe;}
   /* Commission slabs box */
   .csl-card{display:flex; flex-direction:column; container-type:inline-size;}
   .csl-card .dtt{font-size:13px; margin:2px 0 8px;} .csl-card .dtt b{font-size:19px;}
@@ -774,6 +803,7 @@
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
 <script src="assets/js/ml_slab.js?v=261022c"></script>
+<script src="assets/js/convo.js?v=261022b"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
 <div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
 <div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
@@ -1640,6 +1670,10 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && ohEl('ohModal').classList.contains('open')) ohBack(); });
   document.getElementById('ohModal').addEventListener('click', (ev) => {
     if (OHH.length) OHH[OHH.length - 1].y = ohEl('ohBody').scrollTop;      // where this view was scrolled, for ← Back
+    const ts = ev.target.closest('[data-tcosort]');          // Team coach: sort the list (same view, not a new step)
+    if (ts) { ev.preventDefault(); OHH.pop(); tcoOpen(ts.dataset.tcow, ts.dataset.tcosort); return; }
+    const te = ev.target.closest('[data-tcoemp]');
+    if (te) { ev.preventDefault(); tcoEmp(te.dataset.tcoemp); return; }
     const ce = ev.target.closest('[data-cslemp]');          // Commission slabs: one employee's orders in that slab
     if (ce) { ev.preventDefault(); cslOpen(ce.dataset.cslk, ce.dataset.cslemp); return; }
     const cb = ev.target.closest('[data-cslback]');
@@ -1817,6 +1851,361 @@
     if (r) { ev.preventDefault(); cslOpen(r.dataset.csl); }
   });
 
+  // ---------- Team coach box (after Commission slabs) — Admin / Orders-page users ----------
+  // Every Sales employee: pace (ahead / behind of time — where they should be by now from the store's real hourly pattern), target done,
+  // no order yet, ranks and coaching flags; tap a name → their tips (and how many times each was already shown to them today).
+  const TCO = { key: '', d: null, busy: false, sort: 'pace', t: 0 };
+  const tcoDay = () => { const df = document.getElementById('dateFrom').value, dt = document.getElementById('dateTo').value; return df === dt ? dt : ''; };
+  const TCO_ON = String((api.currentUser() || {}).role || '').trim().toLowerCase() !== 'employee';
+  async function tcoLoad(force) {
+    const day = tcoDay(); if (!TCO_ON || !day || TCO.busy) return;
+    if (!force && TCO.key === day && Date.now() - TCO.t < 60000) return;
+    TCO.busy = true;
+    try { const d = await api.get('coach.team', { date: day }); if (tcoDay() === day) { TCO.d = d; TCO.key = day; TCO.t = Date.now(); renderSummary(); } }
+    catch (e) { TCO.d = { error: e.message }; TCO.key = day; TCO.t = Date.now(); renderSummary(); }
+    finally { TCO.busy = false; }
+  }
+  setInterval(() => { if (!document.hidden && TCO.d && TCO.d.today) tcoLoad(true); }, 60000);
+  const tcoRs = (v) => '₹' + Math.round(Number(v) || 0).toLocaleString('en-IN');
+  function tcoState(m) {         // → {k, cls, txt}
+    if (!(m.target > 0)) return { k: 'none', cls: 's', txt: 'No target' };
+    if (m.sales >= m.target) return { k: 'done', cls: 'p', txt: 'Target done 🏆' };
+    if (!m.orders) return { k: 'zero', cls: 's', txt: 'No order yet' };
+    if (m.gap >= 0) return { k: 'ahead', cls: 'g', txt: 'Ahead +' + Math.round(m.pct - m.should_pct) + '%' };
+    if (m.gap > -0.05 * m.target) return { k: 'jb', cls: 'y', txt: 'Just behind ' + tcoRs(-m.gap) };
+    return { k: 'behind', cls: 'r', txt: 'Behind ' + tcoRs(-m.gap) };
+  }
+  function tcoFlags(m) {
+    const f = [], fl = TCO.d ? TCO.d.floor : 0;
+    if (m.idle_h >= 2) f.push(['r', Math.floor(m.idle_h) + ' h no order']);
+    if (m.nocode) f.push(['r', m.nocode + ' no code']);
+    if (m.floor) f.push(['r', m.floor + ' at ' + fl + '%']);
+    (m.tips || []).forEach((t) => { if (t.k === 'ticket') f.push(['o', 'Low ticket']); if (t.k === 'cod') f.push(['o', 'Mostly COD']); if (t.k === 'top_ticket') f.push(['g', 'Top ticket']); if (t.k === 'top_pct') f.push(['g', 'Top %']); if (t.k === 'top_orders') f.push(['g', 'Top orders']); if (t.k === 'streak') f.push(['g', m.streak + '-day streak']); if (t.k === 'improved') f.push(['g', 'Most improved']); if (t.k === 'best_day') f.push(['g', 'Personal best']); if (t.k === 'learn_10ml') f.push(['o', 'Few 10 ml adds']);
+      const ck = { chat_10ml: ['o', 'Chat: few 10 ml offers'], chat_combo: ['o', 'Chat: few combos'], chat_prepaid: ['o', 'Chat: no prepaid ask'], chat_ask: ['o', 'Chat: few questions'], chat_speed: ['o', 'Chat: slow reply'], chat_price: ['o', 'Chat: price objections'], call_listen: ['o', 'Call: interrupts'], call_talk: ['o', 'Call: talks too much'], chat_up: ['g', 'Chat improved'], chat_star: ['g', 'Chat star'] }[t.k];
+      if (ck) f.push(ck); });
+    if (m.chat && m.chat.avg != null) f.push([m.chat.avg >= 7 ? 'g' : 'o', '💬 ' + Number(m.chat.avg).toFixed(1) + ' (' + m.chat.n + ')']);
+    return f;
+  }
+  const tcoBar = (m) => { const st = tcoState(m), col = { g: '#16a34a', y: '#f59e0b', r: '#e11d48', p: '#7c3aed', s: '#94a3b8' }[st.cls]; return `<div class="tco-mini"><i style="width:${Math.min(100, m.pct || 0)}%; background:${col}"></i>${m.target > 0 && m.sales < m.target && m.should_pct != null ? `<u style="left:${Math.min(100, m.should_pct)}%"></u>` : ''}</div>`; };
+  function tcoSorted(sort) {
+    const rows = (TCO.d.rows || []).filter((m) => m.target > 0 || m.orders > 0);
+    const by = { pace: (a, b) => (a.gap == null) - (b.gap == null) || (a.gap / (a.target || 1)) - (b.gap / (b.target || 1)), ahead: (a, b) => (b.gap / (b.target || 1)) - (a.gap / (a.target || 1)), orders: (a, b) => b.orders - a.orders, ticket: (a, b) => b.ticket - a.ticket, pct: (a, b) => (b.avg_pct || 0) - (a.avg_pct || 0) }[sort];
+    return rows.slice().sort(by);
+  }
+  function tcoCardHtml() {
+    if (!TCO_ON) return '';
+    const day = tcoDay();
+    if (day && TCO.key !== day) tcoLoad();
+    const head = `<div class="label"><span class="lbl-full">Team coach</span><span class="lbl-short">Team coach</span></div>`;
+    if (!day) return `<div class="stat-card tco-card">${head}<div class="dtt">Pick one day (From = To) to see who is ahead / behind.</div></div>`;
+    if (!TCO.d || TCO.key !== day) return `<div class="stat-card tco-card">${head}<div class="dtt">Loading…</div></div>`;
+    if (TCO.d.error) return `<div class="stat-card tco-card">${head}<div class="dtt">Could not load: ${esEsc(TCO.d.error)}</div></div>`;
+    const T = TCO.d.team, rows = tcoSorted('pace');
+    const tile = (k, bg, fg, n, lab, sub) => `<a href="#" data-tco="${k}" style="background:${bg}; color:${fg};">${lab}<b>${n}</b>${sub}</a>`;
+    return `<div class="stat-card tco-card">${head}
+      <div class="dtt">${TCO.d.today ? 'Now · should be at ' + Math.round(T.should_pct) + '% of the target' : esEsc(TCO.d.date) + ' · final'}</div>
+      <div class="tco-tiles">${tile('ahead', '#dcfce7', '#166534', T.ahead, 'Ahead of time', 'of ' + T.people)}${tile('behind', '#fee2e2', '#991b1b', T.behind - T.no_order, 'Behind', 'with orders')}${tile('done', '#ede9fe', '#5b21b6', T.done, 'Target done', TCO.d.bonus > 0 ? '+' + TCO.d.bonus + '% unlocked' : '')}${tile('zero', '#f1f5f9', '#334155', T.no_order, 'No order yet', 'today')}</div>
+      <div style="font-size:10.5px; font-weight:800; color:var(--muted); text-transform:uppercase; margin:2px 0 2px;">Most behind first</div>
+      ${rows.slice(0, 6).map((m) => { const st = tcoState(m); return `<a href="#" class="tco-r" data-tcoemp="${m.id}"><div><b>${esEsc(m.name)}</b>${tcoBar(m)}</div><span class="tco-f ${st.cls}" style="justify-self:end;">${esEsc(st.txt.replace(/^(Behind|Just behind) /, '−'))}</span></a>`; }).join('')}
+      <div class="ohf"><a href="#" data-tco="all" style="font-weight:700;">All ${rows.length} employees →</a><b>${T.ahead} of ${T.people} ahead</b></div></div>`;
+  }
+  function tcoOpen(which, sort) {
+    if (!TCO.d || TCO.d.error) return;
+    TCO.sort = sort || (which === 'ahead' ? 'ahead' : 'pace');
+    const all = tcoSorted(TCO.sort).filter((m) => which === 'all' || tcoState(m).k === which || (which === 'behind' && tcoState(m).k === 'jb'));
+    const name = { all: 'All employees', ahead: 'Ahead of time', behind: 'Behind', done: 'Target done', zero: 'No order yet' }[which];
+    document.getElementById('ohTitle').textContent = 'Team coach · ' + name + ' · ' + all.length;
+    document.getElementById('ohSub').textContent = `${TCO.d.date}${TCO.d.today ? ' · should be at ' + Math.round(TCO.d.team.should_pct) + '% now' : ''} · team avg ticket ${tcoRs(TCO.d.team.avg_ticket)} · tap a name → their tips`;
+    const sb = (k, l) => `<button type="button" data-tcosort="${k}" data-tcow="${which}" class="${TCO.sort === k ? 'on' : ''}">${l}</button>`;
+    document.getElementById('ohBody').innerHTML = `<div class="tco-sort">${sb('pace', 'Most behind')}${sb('ahead', 'Most ahead')}${sb('orders', 'Orders')}${sb('ticket', 'Ticket size')}${sb('pct', 'Avg %')}</div>
+      <div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th>Pace</th><th>Status</th><th style="text-align:right;">Orders</th><th style="text-align:right;">Ticket</th><th style="text-align:right;">Avg %</th><th>Coach flags</th></tr></thead><tbody>${all.map((m) => { const st = tcoState(m); return `<tr><td><a href="#" data-tcoemp="${m.id}" style="font-weight:800;">${esEsc(m.name)}</a></td><td style="min-width:90px;">${m.pct != null ? m.pct + '%' : '—'}${tcoBar(m)}</td><td><span class="tco-f ${st.cls}">${esEsc(st.txt)}</span></td><td style="text-align:right;">${m.orders}${m.rank_orders && m.rank_orders <= 10 ? ` <small style="color:var(--muted);">#${m.rank_orders}</small>` : ''}</td><td style="text-align:right; white-space:nowrap;">${m.orders ? tcoRs(m.ticket) : '—'}</td><td style="text-align:right;">${m.avg_pct != null ? m.avg_pct + '%' : '—'}</td><td>${tcoFlags(m).map(([c, t]) => `<span class="tco-f ${c}">${esEsc(t)}</span>`).join('') || '<span style="color:var(--muted);">—</span>'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="muted">Nobody here.</td></tr>'}</tbody></table></div>`;
+    ohPush();
+  }
+  function tcoEmp(id) {
+    const m = (TCO.d.rows || []).find((x) => x.id === Number(id)); if (!m) return;
+    const st = tcoState(m);
+    document.getElementById('ohTitle').textContent = 'Coach · ' + m.name;
+    document.getElementById('ohSub').textContent = `${TCO.d.date} · ${st.txt}${m.target > 0 ? ' · ' + tcoRs(m.sales) + ' / ' + tcoRs(m.target) + ' (' + m.pct + '%)' : ''}`;
+    document.getElementById('ohBody').innerHTML = `${m.target > 0 ? `<div style="margin-bottom:6px;">${tcoBar(m)}<div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:3px;"><span>${m.pct}% done</span><span>${m.sales < m.target && m.should_pct != null ? 'should be ' + Math.round(m.should_pct) + '% now' : ''}</span></div></div>` : ''}
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:8px 0;">${[['Orders', m.orders + (m.rank_orders && m.rank_orders <= 10 ? ' · #' + m.rank_orders : '')], ['Ticket', m.orders ? tcoRs(m.ticket) : '—'], ['Avg %', m.avg_pct != null ? m.avg_pct + '%' : '—'], ['Streak', m.streak ? m.streak + ' days' : '—']].map(([k, v]) => `<div style="background:#f8fafc; border-radius:9px; padding:6px 8px; font-size:10.5px; color:var(--muted);">${k}<b style="display:block; font-size:14px; color:var(--ink);">${esEsc(v)}</b></div>`).join('')}</div>
+      <div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:6px;">Their coach tips today</div>
+      ${(m.tips || []).map((t) => `<div class="tco-tp ${t.kind}"><span class="e">${t.icon}</span><div style="flex:1;"><b>${esEsc(t.title)}</b>${esEsc(t.text)}</div><span style="font-size:10.5px; color:var(--muted); white-space:nowrap;">${t.shown ? 'shown ' + t.shown + '×' : 'not shown yet'}</span></div>`).join('') || '<p class="muted">No tips.</p>'}`;
+    ohPush();
+  }
+  // ---------- Conversation quality box (after Team coach) — the AI reviews of the salespeople's WhatsApp chats / calls ----------
+  // (uploaded on Order Allocation → 📎 Chat proof, and "Lost chats" on My Sales). Score per person, best / weakest skill, habits next to the
+  // top sellers, best chats of the week and the Winning playbook the AI writes from the numbers. See convo.* in api.php, assets/js/convo.js.
+  const CQ = { d: null, t: 0, busy: false, days: 7 };
+  async function cqLoad(force) {
+    if (!TCO_ON || !window.Convo || CQ.busy) return;
+    if (!force && CQ.d && Date.now() - CQ.t < 120000) return;
+    CQ.busy = true;
+    try {
+      const d = await api.get('convo.team', { days: CQ.days }); CQ.d = d; CQ.t = Date.now(); Convo.setCfg(d.cfg);
+      // the Winning playbook is rewritten once a week by itself (needs 10+ reviewed chats)
+      if (d.playbook_stale && (d.totals.chats || 0) >= 10) {
+        let last = ''; try { last = localStorage.getItem('hrms_cq_pb_try') || ''; } catch (e) {}
+        const today = new Date().toISOString().slice(0, 10);
+        if (last !== today) { try { localStorage.setItem('hrms_cq_pb_try', today); } catch (e) {} api.post('convo.playbook_build', {}).then(() => cqLoad(true)).catch(() => {}); }
+      }
+    } catch (e) { CQ.d = { error: e.message }; CQ.t = Date.now(); }
+    finally { CQ.busy = false; }
+    renderSummary();
+  }
+  const cqCls = (v) => v == null ? 'n' : v >= 7 ? 'g' : 'a';
+  const cqNum = (v) => v == null ? '—' : Number(v).toFixed(1);
+  const cqPct = (v) => v == null ? '—' : Math.round(v * 100) + '%';
+  const cqTrend = (r) => r.avg != null && r.prev != null ? (r.avg - r.prev >= 0.3 ? ' 📈' : r.avg - r.prev <= -0.3 ? ' ↘' : '') : '';
+  function cqCardHtml() {
+    if (!TCO_ON || !window.Convo) return '';
+    if (!CQ.d) cqLoad();
+    const head = `<div class="label"><span class="lbl-full">Conversation quality</span><span class="lbl-short">Chats</span></div>`;
+    if (!CQ.d) return `<div class="stat-card cq-card">${head}<div class="dtt">Loading…</div></div>`;
+    if (CQ.d.error) return `<div class="stat-card cq-card">${head}<div class="dtt">Could not load: ${esEsc(CQ.d.error)}</div></div>`;
+    const d = CQ.d, T = d.totals || {}, rows = (d.rows || []).filter((r) => r.n > 0);
+    if (!rows.length) return `<div class="stat-card cq-card">${head}<div class="dtt">No reviewed chats in the last ${d.days} days. Salespeople upload WhatsApp screenshots (and optionally the call) from <b>Order Allocation → 📎 Chat proof</b>; lost chats and call recordings from <b>My Sales</b> / Punch Out.</div><div class="ohf"><a href="#" data-cq="calls" style="font-weight:700;">📞 Recordings →</a>${d.playbook ? `<a href="#" data-cq="pb" style="font-weight:700;">🏆 Playbook →</a>` : ''}</div></div>`;
+    return `<div class="stat-card cq-card">${head}
+      <div class="cq-big">${Convo.ring(T.avg)}<div><b>Team chat score</b><small>Last ${d.days} days · ${T.chats} chat${T.chats === 1 ? '' : 's'} · ${T.calls} call${T.calls === 1 ? '' : 's'} · ${T.lost} lost</small></div></div>
+      ${rows.slice(0, 5).map((r) => `<a href="#" class="cq-r" data-cqemp="${r.id}"><b>${esEsc(r.name)}${r.top ? ' ⭐' : ''}</b><span class="cq-s ${cqCls(r.avg)}">${cqNum(r.avg)}${cqTrend(r)}</span><small>${r.n} chat${r.n === 1 ? '' : 's'}${r.weak ? ' · train on: ' + esEsc(r.weak) : ''}</small></a>`).join('')}
+      ${(d.best || []).slice(0, 2).map((b) => `<a href="#" class="cq-best" data-cqid="${b.id}">⭐ <b>${esEsc(b.kind === 'lost' ? 'Lost chat' : b.order_name)} · ${esEsc(b.employee)} · ${cqNum(b.score)}</b><br>${esEsc(b.summary || '')}</a>`).join('')}
+      <div class="ohf"><a href="#" data-cq="all" style="font-weight:700;">All ${rows.length} employees →</a><a href="#" data-cq="calls" style="font-weight:700;">📞 Recordings →</a><a href="#" data-cq="pb" style="font-weight:700;">🏆 Playbook →</a></div></div>`;
+  }
+  function cqOpen() {
+    const d = CQ.d; if (!d || d.error) return;
+    const sk = d.skill_names || {};
+    document.getElementById('ohTitle').textContent = 'Conversation quality · last ' + d.days + ' days';
+    document.getElementById('ohSub').textContent = `${d.totals.chats} reviewed chats · ${d.totals.calls} calls · ${d.totals.lost} lost chats · ⭐ = this month's top sellers · tap a name → their chats`;
+    const db = (n) => `<button type="button" data-cqdays="${n}" class="${d.days === n ? 'on' : ''}">${n} days</button>`;
+    const rows = d.rows || [];
+    document.getElementById('ohBody').innerHTML = `<div class="tco-sort">${db(7)}${db(30)}</div>
+      <div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th style="text-align:right;">Chat score</th><th style="text-align:right;">Chats</th><th style="text-align:right;">Calls</th><th>Best</th><th>Train on</th><th style="text-align:right;">10 ml offer</th><th style="text-align:right;">Prepaid ask</th><th style="text-align:right;">Questions</th><th style="text-align:right;">1st reply</th><th style="text-align:right;">No proof (7d)</th></tr></thead><tbody>${rows.map((r) => `<tr>
+        <td><a href="#" data-cqemp="${r.id}" style="font-weight:800;">${esEsc(r.name)}</a>${r.top ? ' ⭐' : ''}</td>
+        <td style="text-align:right;"><span class="cq-s ${cqCls(r.avg)}">${cqNum(r.avg)}${cqTrend(r)}</span>${r.prev != null ? `<small style="display:block; color:var(--muted);">before ${cqNum(r.prev)}</small>` : ''}</td>
+        <td style="text-align:right;">${r.n}${r.lost ? ` <small style="color:var(--muted);">(${r.lost} lost)</small>` : ''}</td>
+        <td style="text-align:right;">${r.calls ? r.calls + ' · ' + cqNum(r.call_avg) : '—'}</td>
+        <td>${r.best ? `<span class="tco-f g">${esEsc(r.best)}</span>` : '—'}</td><td>${r.weak ? `<span class="tco-f o">${esEsc(r.weak)}</span>` : '—'}</td>
+        <td style="text-align:right;">${cqPct((r.habits || {}).offered_10ml)}</td><td style="text-align:right;">${cqPct((r.habits || {}).asked_prepaid)}</td>
+        <td style="text-align:right;">${(r.habits || {}).questions != null ? Number(r.habits.questions).toFixed(1) : '—'}</td>
+        <td style="text-align:right;">${(r.habits || {}).reply_min != null ? Math.round(r.habits.reply_min) + ' min' : '—'}</td>
+        <td style="text-align:right;">${r.missing || 0}${r.open ? ` <small style="color:#9a3412;" title="uploads waiting / incomplete">· ${r.open} open</small>` : ''}</td></tr>`).join('')}</tbody></table></div>
+      ${(d.best || []).length ? `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:12px;">⭐ Best chats — share with the team</div>${d.best.map((b) => `<a href="#" class="cq-best" data-cqid="${b.id}">⭐ <b>${esEsc(b.kind === 'lost' ? 'Lost chat' : b.order_name)} · ${esEsc(b.employee)} · ${cqNum(b.score)}</b><br>${esEsc(b.summary || '')}${b.best_line ? `<br><i>"${esEsc(b.best_line)}"</i>` : ''}</a>`).join('')}` : ''}
+      ${Object.keys(d.lost_reasons || {}).length ? `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:12px;">💔 Why chats were lost</div><div style="margin-top:4px;">${Object.entries(d.lost_reasons).map(([k, n]) => `<span class="tco-f o">${esEsc(k)} · ${n}</span>`).join('')}</div>` : ''}`;
+    ohPush();
+  }
+  async function cqEmp(id) {
+    const r = ((CQ.d || {}).rows || []).find((x) => x.id === Number(id)); if (!r) return;
+    document.getElementById('ohTitle').textContent = 'Chats · ' + r.name;
+    document.getElementById('ohSub').textContent = `Last ${CQ.d.days} days · score ${cqNum(r.avg)}${r.prev != null ? ' (before ' + cqNum(r.prev) + ')' : ''} · tap a chat to see the screenshots, the AI notes and the call`;
+    document.getElementById('ohBody').innerHTML = '<p class="muted">Loading…</p>';
+    ohPush();
+    let L = [];
+    try { L = (await api.get('convo.list', { emp: r.id, days: CQ.days })).list || []; } catch (e) { document.getElementById('ohBody').innerHTML = `<p class="muted">${esEsc(e.message)}</p>`; return; }
+    const st = { done: '', need_more: 'needs more screenshots', saved: 'waiting for AI', analyzing: 'AI reviewing', incomplete: 'incomplete chat', error: 'review failed', waiting: 'waiting (AI setup / budget)' };
+    const html = `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>When</th><th>Chat</th><th style="text-align:right;">Score</th><th style="text-align:right;">Call</th><th>AI note</th></tr></thead><tbody>${L.map((u) => `<tr>
+      <td style="white-space:nowrap;">${esEsc(String(u.created_at).slice(5, 16))}</td>
+      <td><a href="#" data-cqid="${u.id}" style="font-weight:800;">${u.kind === 'lost' ? '💔 Lost chat' : esEsc(u.order_name || 'Order')}</a>${u.flag_wrong ? ' <span class="tco-f r">marked wrong</span>' : ''}${st[u.status] ? ` <span class="tco-f o">${st[u.status]}</span>` : ''}</td>
+      <td style="text-align:right;">${u.score != null ? `<span class="cq-s ${cqCls(u.score)}">${cqNum(u.score)}</span>` : '—'}</td>
+      <td style="text-align:right;">${u.call_score != null ? cqNum(u.call_score) : u.has_call ? '…' : '—'}</td>
+      <td style="font-size:12px;">${esEsc(u.summary || u.msg || '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No uploads.</td></tr>'}</tbody></table></div>`;
+    if (OHH.length && document.getElementById('ohTitle').textContent === 'Chats · ' + r.name) { document.getElementById('ohBody').innerHTML = html; OHH[OHH.length - 1].b = html; }
+  }
+  function cqPlaybook() {
+    const d = CQ.d || {}, pb = d.playbook;
+    document.getElementById('ohTitle').textContent = '🏆 Winning playbook';
+    document.getElementById('ohSub').textContent = pb ? `Written by the AI from ${pb.chats} reviewed chats${pb.calls ? ' and ' + pb.calls + ' calls' : ''} of the last 30 days · ${String(pb.built_at).slice(0, 16)} · salespeople see it on My Sales` : 'Not written yet — it needs at least 10 reviewed chats in the last 30 days.';
+    const f = (pb && pb.facts) || {}, tp = f.top_sellers || {}, ot = f.others || {}, wo = f.ordered_chats || {}, lo = f.lost_chats || {};
+    const row = (lab, k, pct) => `<tr><td>${lab}</td><td style="text-align:right;">${pct ? cqPct(tp[k]) : tp[k] != null ? Number(tp[k]).toFixed(1) : '—'}</td><td style="text-align:right;">${pct ? cqPct(ot[k]) : ot[k] != null ? Number(ot[k]).toFixed(1) : '—'}</td></tr>`;
+    document.getElementById('ohBody').innerHTML = (pb ? (pb.rules || []).map((r, i) => `<div class="cq-pr"><b>${i + 1}. ${esEsc(r.title)}</b><span style="color:var(--muted); font-size:12px;">${esEsc(r.why)}</span>${r.try_line ? `<i>💬 "${esEsc(r.try_line)}"</i>` : ''}</div>`).join('')
+        + ((pb.avoid || []).length ? `<div class="cq-pr" style="background:#fff7ed; border-color:#fed7aa;"><b>🚫 Seen in lost chats</b>${pb.avoid.map(esEsc).join(' · ')}</div>` : '')
+        + (tp.chats ? `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:12px;">The numbers behind it (30 days)</div><div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th></th><th style="text-align:right;">Top sellers</th><th style="text-align:right;">Others</th></tr></thead><tbody>
+          ${row('Chat score', 'overall')}${row('10 ml offered', 'offered_10ml', 1)}${row('Combo offered', 'offered_combo', 1)}${row('Prepaid asked', 'asked_prepaid', 1)}${row('Questions before suggesting', 'questions')}${row('First reply (min)', 'reply_min')}${row('Price objection handled', 'obj_handled', 1)}
+          <tr><td>Chats</td><td style="text-align:right;">${tp.chats || 0}</td><td style="text-align:right;">${ot.chats || 0}</td></tr></tbody></table></div>` : '')
+        + (wo.n && lo.n ? `<div style="font-size:12.5px; margin-top:8px;">Ordered chats vs lost chats: 10 ml offered ${cqPct(wo.offered_10ml)} vs ${cqPct(lo.offered_10ml)} · prepaid asked ${cqPct(wo.asked_prepaid)} vs ${cqPct(lo.asked_prepaid)} (${wo.n} vs ${lo.n} chats)</div>` : '')
+        + (f.avg_order_with_10ml_offer && f.avg_order_without_10ml_offer ? `<div style="font-size:12.5px; margin-top:4px;">Average order when 10 ml was offered ${tcoRs(f.avg_order_with_10ml_offer)} vs not offered ${tcoRs(f.avg_order_without_10ml_offer)}</div>` : '')
+      : '<p class="muted">Upload chats from Order Allocation → 📎 Chat proof. After 10 reviewed chats the playbook is written by itself once a week.</p>')
+      + `<button type="button" data-cqbuild="1" style="margin-top:12px; width:auto; padding:8px 16px; font-weight:800; border-radius:10px;">↻ Rewrite the playbook now</button><span id="cqBuildMsg" style="margin-left:8px; font-size:12px; color:var(--muted);"></span>`;
+    ohPush();
+  }
+  async function cqBuild(btn) {
+    const msg = document.getElementById('cqBuildMsg'); btn.disabled = true; if (msg) msg.textContent = 'The AI is writing it (~20 s)…';
+    try { await api.post('convo.playbook_build', {}); await cqLoad(true); OHH.pop(); cqPlaybook(); }
+    catch (e) { btn.disabled = false; if (msg) msg.textContent = e.message; }
+  }
+  // ---------- 📞 Call recordings of today's queries (Punch Out rule) ----------
+  async function cqCalls(day) {
+    document.getElementById('ohTitle').textContent = '📞 Call recordings · today';
+    document.getElementById('ohSub').textContent = 'Each salesperson uploads recordings for a share of the queries assigned to them (Assign Queries) before Punch Out. The AI files calls that became orders on the order; the rest are lost calls kept for study.';
+    document.getElementById('ohBody').innerHTML = '<p class="muted">Loading…</p>';
+    ohPush();
+    let d; try { d = await api.get('convo.calls_team', day ? { date: day } : {}); } catch (e) { document.getElementById('ohBody').innerHTML = `<p class="muted">${esEsc(e.message)}</p>`; return; }
+    const R = d.rule;
+    const html = `<div class="cq-pr" style="background:#f8fafc; border-color:var(--line);"><b>Rule</b>
+        Required = <input id="cqPct" type="number" min="0" max="100" value="${R.pct}" style="width:64px; display:inline-block; min-height:0; padding:3px 6px;"> % of the day's queries, at least
+        <input id="cqMin" type="number" min="0" max="100" value="${R.min}" style="width:64px; display:inline-block; min-height:0; padding:3px 6px;"> (never more than the queries) ·
+        <select id="cqMode" style="width:auto; display:inline-block; min-height:0; padding:3px 6px;"><option value="block" ${R.mode === 'block' ? 'selected' : ''}>Punch Out waits (or a written reason)</option><option value="warn" ${R.mode === 'warn' ? 'selected' : ''}>Only a reminder</option></select>
+        <button type="button" data-cqrule="1" style="width:auto; min-height:0; padding:4px 12px; margin-left:4px; font-weight:800; border-radius:8px;">Save</button> <span id="cqRuleMsg" style="font-size:12px; color:var(--muted);"></span></div>
+      <div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th style="text-align:right;">Queries</th><th style="text-align:right;">Required</th><th style="text-align:right;">Uploaded</th><th style="text-align:right;">→ Orders</th><th style="text-align:right;">→ No order</th><th>Punched out without</th></tr></thead><tbody>
+      ${d.rows.map((r) => `<tr><td><a href="#" data-cqemp="${r.id}" style="font-weight:800;">${esEsc(r.name)}</a></td><td style="text-align:right;">${r.queries}</td><td style="text-align:right;">${r.required}</td>
+        <td style="text-align:right;"><span class="cq-s ${r.uploaded >= r.required ? 'g' : 'a'}">${r.uploaded}</span>${r.waiting ? ` <small style="color:var(--muted);">${r.waiting} checking</small>` : ''}</td><td style="text-align:right;">${r.orders}</td><td style="text-align:right;">${r.lost}</td>
+        <td style="font-size:12px;">${r.skip ? '⚠️ ' + esEsc(r.skip.reason) : ''}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No queries assigned and no recordings for ' + esEsc(d.day) + '.</td></tr>'}</tbody></table></div>`;
+    document.getElementById('ohBody').innerHTML = html; if (OHH.length) OHH[OHH.length - 1].b = html;
+  }
+  async function cqRuleSave(btn) {
+    const m = document.getElementById('cqRuleMsg'); btn.disabled = true;
+    try { await api.post('convo.call_rule', { pct: Number(document.getElementById('cqPct').value), min: Number(document.getElementById('cqMin').value), mode: document.getElementById('cqMode').value }); m.textContent = 'Saved ✓'; OHH.pop(); cqCalls(); }
+    catch (e) { m.textContent = e.message; btn.disabled = false; }
+  }
+
+  // ---------- ✍️ Pre-messages: the team's ready-made messages, each rated from our own chats ----------
+  const PM = { d: null, t: 0, busy: false, days: 30, edit: null };
+  async function pmLoad(force) {
+    if (!TCO_ON || PM.busy) return;
+    if (!force && PM.d && Date.now() - PM.t < 300000) return;
+    PM.busy = true;
+    try { PM.d = await api.get('premsg.list', { days: PM.days }); } catch (e) { PM.d = { error: e.message }; }
+    PM.t = Date.now(); PM.busy = false; renderSummary();
+  }
+  const pmPct = (v) => v == null ? '—' : Math.round(v * 100) + '%';
+  const pmCls = (r) => r == null ? 'n' : r >= 7.5 ? 'g' : r >= 5.5 ? 'g' : 'a';
+  function pmCardHtml() {
+    if (!TCO_ON) return '';
+    if (!PM.d) pmLoad();
+    const head = `<div class="label"><span class="lbl-full">Pre-messages</span><span class="lbl-short">Pre-msgs</span></div>`;
+    if (!PM.d) return `<div class="stat-card pm-card">${head}<div class="dtt">Loading…</div></div>`;
+    if (PM.d.error) return `<div class="stat-card pm-card">${head}<div class="dtt">Could not load: ${esEsc(PM.d.error)}</div></div>`;
+    const rows = PM.d.rows || [], rated = rows.filter((x) => x.rating != null);
+    const best = rated.slice(0, 2), weak = rated.slice().reverse().filter((x) => x.rating < 5.5).slice(0, 2);
+    return `<div class="stat-card pm-card">${head}
+      <div class="dtt">${rows.length} message${rows.length === 1 ? '' : 's'} · rated from ${PM.d.base.chats} reviewed chats (last ${PM.d.days} days) · our order rate ${pmPct(PM.d.base.order_rate)}</div>
+      ${best.map((x) => `<a href="#" class="rt-r" data-pmopen="1"><b>✅ ${esEsc(x.title)}</b><span class="cq-s g">${Number(x.rating).toFixed(1)}</span><small>${x.uses} uses · reply ${pmPct(x.reply_rate)} · order ${pmPct(x.order_rate)}</small></a>`).join('')}
+      ${weak.map((x) => `<a href="#" class="rt-r" data-pmopen="1"><b>⚠️ ${esEsc(x.title)}</b><span class="cq-s a">${Number(x.rating).toFixed(1)}</span><small>${x.uses} uses · reply ${pmPct(x.reply_rate)} · order ${pmPct(x.order_rate)}</small></a>`).join('')}
+      ${!rated.length ? `<div class="dtt">${rows.length ? 'Ratings appear after a message is seen in 5 reviewed chats.' : 'Add the ready-made messages your team sends — the AI spots them in every reviewed chat and rates them from our own results.'}</div>` : ''}
+      ${(PM.d.found || []).length ? `<div class="rt-tip">🤖 AI found ${PM.d.found.length} ready-made message${PM.d.found.length === 1 ? '' : 's'} in chats that are not in the list yet.</div>` : ''}
+      <div class="ohf"><a href="#" data-pmopen="1" style="font-weight:700;">All pre-messages / add →</a></div></div>`;
+  }
+  function pmOpen() {
+    const d = PM.d; if (!d || d.error) return;
+    const e = PM.edit || { id: 0, kind: 'reply', title: '', body: '', active: true };
+    document.getElementById('ohTitle').textContent = '✍️ Pre-messages';
+    document.getElementById('ohSub').textContent = `Rated only from our own reviewed chats (last ${d.days} days): customer replied (40%), chat became an order vs our average ${pmPct(d.base.order_rate)} (40%), order value vs our average ${d.base.avg_order ? '₹' + d.base.avg_order.toLocaleString('en-IN') : '—'} (20%). Needs 5 uses.`;
+    const html = `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Message</th><th style="text-align:center;">Rating</th><th style="text-align:right;">Uses</th><th style="text-align:right;">Replied</th><th style="text-align:right;">Order</th><th style="text-align:right;">Avg ₹</th><th style="text-align:right;">Chat</th><th></th></tr></thead><tbody>
+      ${d.rows.map((x) => `<tr style="${x.active ? '' : 'opacity:.5;'}"><td style="min-width:220px; max-width:340px;"><b>${esEsc(x.title)}</b>${x.kind === 'broadcast' ? ' <span class="tco-f s">broadcast</span>' : ''}${x.source === 'ai' ? ' <span class="tco-f p">AI found</span>' : ''}<small style="display:block; color:var(--muted); white-space:normal;">${esEsc(x.body.slice(0, 140))}${x.body.length > 140 ? '…' : ''}</small></td>
+        <td style="text-align:center;">${x.rating != null ? `<span class="cq-s ${pmCls(x.rating)}">${Number(x.rating).toFixed(1)}</span><small style="display:block;">${esEsc(x.label)}</small>` : `<small>${esEsc(x.label)}</small>`}</td>
+        <td style="text-align:right;">${x.uses}</td><td style="text-align:right;">${pmPct(x.reply_rate)}</td><td style="text-align:right;">${pmPct(x.order_rate)}</td><td style="text-align:right;">${x.avg_order ? '₹' + x.avg_order.toLocaleString('en-IN') : '—'}</td><td style="text-align:right;">${x.chat_score != null ? x.chat_score : '—'}</td>
+        <td style="white-space:nowrap;"><a href="#" data-pmedit="${x.id}">Edit</a> · <a href="#" data-pmtoggle="${x.id}">${x.active ? 'Stop' : 'Use'}</a> · <a href="#" data-pmdel="${x.id}" style="color:#b91c1c;">Delete</a></td></tr>`).join('') || '<tr><td colspan="8" class="muted">No pre-messages yet — add the first one below.</td></tr>'}</tbody></table></div>
+      ${(d.found || []).length ? `<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:12px;">🤖 Found in chats (sent 3+ times, not in the list)</div>${d.found.map((f, i) => `<div class="cq-pr" style="background:#f5f3ff; border-color:#ddd6fe;">${esEsc(f.text)}<small style="display:block; color:var(--muted);">seen in ${f.n} chats</small><button type="button" data-pmadd="${i}" style="width:auto; min-height:0; padding:3px 10px; margin-top:4px; font-weight:800; border-radius:8px;">＋ Add to the list</button></div>`).join('')}` : ''}
+      <div class="cq-pr" style="background:#f8fafc; border-color:var(--line);"><b>${e.id ? 'Edit pre-message' : '＋ Add a pre-message'}</b>
+        <input id="pmTitle" placeholder="Short name (e.g. Greeting, Price list)" value="${esEsc(e.title)}" style="margin-top:6px;">
+        <select id="pmKind" style="margin-top:6px;"><option value="reply" ${e.kind === 'reply' ? 'selected' : ''}>Reply inside chats</option><option value="broadcast" ${e.kind === 'broadcast' ? 'selected' : ''}>Broadcast / campaign message</option></select>
+        <textarea id="pmBody" rows="4" placeholder="Paste the exact message text" style="margin-top:6px; width:100%;">${esEsc(e.body)}</textarea>
+        <button type="button" data-pmsave="1" style="width:auto; min-height:0; padding:6px 16px; margin-top:6px; font-weight:800; border-radius:10px;">${e.id ? 'Save changes' : 'Add'}</button>${e.id ? ' <a href="#" data-pmcancel="1">Cancel</a>' : ''} <span id="pmMsg" style="font-size:12px; color:var(--muted);"></span></div>`;
+    document.getElementById('ohBody').innerHTML = html;
+    if (OHH.length && /Pre-messages/.test(OHH[OHH.length - 1].t)) OHH[OHH.length - 1].b = html; else ohPush();
+  }
+  async function pmAct(fn) { try { await fn(); PM.edit = null; await pmLoad(true); pmOpen(); } catch (e) { const m = document.getElementById('pmMsg'); if (m) m.textContent = e.message; } }
+
+  document.getElementById('ohModal').addEventListener('click', (ev) => {
+    const t = ev.target;
+    const stop = () => { ev.preventDefault(); ev.stopPropagation(); };
+    if (t.closest('[data-cqrule]')) { stop(); cqRuleSave(t.closest('[data-cqrule]')); return; }
+    if (t.closest('[data-pmsave]')) { stop(); const id = PM.edit ? PM.edit.id : 0; pmAct(() => api.post('premsg.save', { id, title: document.getElementById('pmTitle').value, kind: document.getElementById('pmKind').value, body: document.getElementById('pmBody').value, active: PM.edit ? PM.edit.active : true })); return; }
+    const ed = t.closest('[data-pmedit]'); if (ed) { stop(); PM.edit = (PM.d.rows || []).find((x) => x.id === Number(ed.dataset.pmedit)) || null; pmOpen(); document.getElementById('pmBody').focus(); return; }
+    if (t.closest('[data-pmcancel]')) { stop(); PM.edit = null; pmOpen(); return; }
+    const tg = t.closest('[data-pmtoggle]'); if (tg) { stop(); const x = (PM.d.rows || []).find((y) => y.id === Number(tg.dataset.pmtoggle)); if (x) pmAct(() => api.post('premsg.save', { id: x.id, title: x.title, kind: x.kind, body: x.body, active: !x.active })); return; }
+    const dl = t.closest('[data-pmdel]'); if (dl) { stop(); if (confirm('Delete this pre-message? Its rating history goes with it.')) pmAct(() => api.post('premsg.delete', { id: Number(dl.dataset.pmdel) })); return; }
+    const ad = t.closest('[data-pmadd]'); if (ad) { stop(); const f = (PM.d.found || [])[Number(ad.dataset.pmadd)]; if (f) pmAct(() => api.post('premsg.save', { title: f.text.slice(0, 40), body: f.text, kind: 'reply', from_ai: 1 })); return; }
+  }, true);
+
+  document.getElementById('ohModal').addEventListener('click', (ev) => {
+    const a = ev.target.closest('[data-cqemp]'); if (a) { ev.preventDefault(); ev.stopPropagation(); cqEmp(a.dataset.cqemp); return; }
+    const c = ev.target.closest('[data-cqid]'); if (c) { ev.preventDefault(); ev.stopPropagation(); Convo.open({ id: Number(c.dataset.cqid), admin: true, onChange: () => cqLoad(true) }); return; }
+    const dd = ev.target.closest('[data-cqdays]'); if (dd) { ev.preventDefault(); ev.stopPropagation(); CQ.days = Number(dd.dataset.cqdays); OHH.pop(); CQ.d = null; cqLoad(true).then(() => cqOpen()); return; }
+    const b = ev.target.closest('[data-cqbuild]'); if (b) { ev.preventDefault(); ev.stopPropagation(); cqBuild(b); }
+  }, true);
+  // ---------- Team rating box — one mix rating out of 10 per salesperson (ten parts), today / this month / last month ----------
+  // Colour grid: who is weak where; the team weak spot (train this first); tap a name → their breakdown, what pulls them down, the fix.
+  const RTG = { view: 'today', d: {}, t: {}, busy: false };
+  async function rtLoad(force) {
+    const v = RTG.view; if (!TCO_ON || RTG.busy) return;
+    if (!force && RTG.d[v] && Date.now() - RTG.t[v] < 120000) return;
+    RTG.busy = true;
+    try { RTG.d[v] = await api.get('rating.team', { view: v }); } catch (e) { RTG.d[v] = { error: e.message }; }
+    RTG.t[v] = Date.now(); RTG.busy = false;
+    renderSummary();
+    if (document.getElementById('ohModal').classList.contains('open') && /^Team rating/.test(document.getElementById('ohTitle').textContent)) { OHH.pop(); rtGrid(); }
+  }
+  const rtFmt = (v) => v == null ? '—' : Number(v).toFixed(1);
+  const rtHc = (v) => v == null ? 'rtna' : v >= 8.5 ? 'rt9' : v >= 7 ? 'rt7' : v >= 5.5 ? 'rt6' : v >= 3 ? 'rt4' : 'rt0';
+  const rtTr = (r) => r.score != null && r.prev != null ? (r.score - r.prev >= 0.3 ? ' 📈' : r.score - r.prev <= -0.3 ? ' ↘' : '') : '';
+  const rtTabs = () => `<div class="rt-tabs">${[['today', 'Today'], ['month', 'This month'], ['last', 'Last month']].map(([k, l]) => `<button type="button" data-rtview="${k}" class="${RTG.view === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  function rtCardHtml() {
+    if (!TCO_ON) return '';
+    const d = RTG.d[RTG.view];
+    if (!d) rtLoad();
+    const head = `<div class="label"><span class="lbl-full">Team rating</span><span class="lbl-short">Rating</span></div>`;
+    if (!d) return `<div class="stat-card rt-card">${head}${rtTabs()}<div class="dtt">Loading… (the first time a month is worked out it can take a few seconds)</div></div>`;
+    if (d.error) return `<div class="stat-card rt-card">${head}${rtTabs()}<div class="dtt">Could not load: ${esEsc(d.error)}</div></div>`;
+    const P = d.parts, T = d.team, rows = d.rows.filter((r) => r.score != null);
+    if (!rows.length) return `<div class="stat-card rt-card">${head}${rtTabs()}<div class="dtt">No ratings yet for this period.</div></div>`;
+    return `<div class="stat-card rt-card">${head}${rtTabs()}
+      <div class="cq-big">${window.Convo ? Convo.ring(T.avg) : ''}<div><b>Team avg ${rtFmt(T.avg)}</b><small>🟢 ${T.strong} strong (7+) · 🎯 ${T.focus} need focus · ${T.people} people</small></div></div>
+      ${rows.slice(0, 6).map((r) => `<a href="#" class="rt-r" data-rtemp="${r.id}"><b>${esEsc(r.name)}</b><span class="rt-h ${rtHc(r.score)}">${rtFmt(r.score)}${rtTr(r)}</span><small>${(r.insight && r.insight.weak || []).slice(0, 2).map((k) => `<span class="tco-f o">${P[k].icon} ${esEsc(P[k].label)} ${rtFmt(r.parts[k])}</span>`).join('') || '<span class="tco-f g">no weak part</span>'}</small></a>`).join('')}
+      ${T.weak ? `<div class="rt-tip">🎯 <b>Team weak spot: ${esEsc(P[T.weak.k].label)}</b> (avg ${rtFmt(T.weak.avg)}) — ${T.weak.below6} of ${T.weak.of} below 6. Train this first.</div>` : ''}
+      <div class="ohf"><a href="#" data-rtgrid="1" style="font-weight:700;">Full grid · ${rows.length} people →</a><b>${esEsc(d.period)}</b></div></div>`;
+  }
+  function rtGrid() {
+    const d = RTG.d[RTG.view]; if (!d || d.error) return;
+    const P = d.parts, keys = Object.keys(P);
+    document.getElementById('ohTitle').textContent = 'Team rating · ' + ({ today: 'Today', month: 'This month', last: 'Last month' })[RTG.view] + ' · ' + d.period;
+    document.getElementById('ohSub').textContent = `Team avg ${rtFmt(d.team.avg)} · weights: ${keys.map((k) => P[k].label + ' ' + P[k].w + '%').join(' · ')} · — = no data (its weight goes to the other parts) · tap a name → breakdown`;
+    document.getElementById('ohBody').innerHTML = rtTabs() + `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Employee</th><th style="text-align:center;">Rating</th>${keys.map((k) => `<th style="text-align:center;" title="${esEsc(P[k].label)} · ${P[k].w}%">${P[k].icon}<br>${esEsc(P[k].label.split(' ')[0])}</th>`).join('')}</tr></thead><tbody>
+      ${d.rows.map((r) => `<tr><td><a href="#" data-rtemp="${r.id}" style="font-weight:800;">${esEsc(r.name)}</a>${r.prev != null ? `<small style="display:block; color:var(--muted);">${RTG.view === 'today' ? 'last day' : 'month before'} ${rtFmt(r.prev)}</small>` : ''}</td>
+        <td style="text-align:center;"><b>${rtFmt(r.score)}</b>${rtTr(r)}</td>${keys.map((k) => `<td style="text-align:center;"><span class="rt-h ${rtHc(r.parts[k])}" title="${esEsc((r.notes || {})[k] || '')}">${rtFmt(r.parts[k])}</span></td>`).join('')}</tr>`).join('')}
+      <tr><td><b>Team avg</b></td><td style="text-align:center;"><b>${rtFmt(d.team.avg)}</b></td>${keys.map((k) => `<td style="text-align:center;"><span class="rt-h ${rtHc(d.part_avg[k])}">${rtFmt(d.part_avg[k])}</span></td>`).join('')}</tr></tbody></table></div>
+      ${d.team.weak ? `<div class="rt-tip">🎯 <b>Team weak spot: ${esEsc(P[d.team.weak.k].label)}</b> (avg ${rtFmt(d.team.weak.avg)}) — ${d.team.weak.below6} of ${d.team.weak.of} people below 6. Train this first.</div>` : ''}`;
+    ohPush();
+  }
+  async function rtEmp(id) {
+    document.getElementById('ohTitle').textContent = 'Rating · …';
+    document.getElementById('ohSub').textContent = '';
+    document.getElementById('ohBody').innerHTML = '<p class="muted">Loading…</p>';
+    ohPush();
+    let x; try { x = await api.get('rating.emp', { id }); } catch (e) { document.getElementById('ohBody').innerHTML = `<p class="muted">${esEsc(e.message)}</p>`; return; }
+    const P = x.parts, keys = Object.keys(P), t = x.today, m = x.month, use = t || m;
+    const sp = (x.trend || []).length > 1 ? `<div class="rt-sp">${x.trend.map((r, i) => `<i class="${i === x.trend.length - 1 ? 't' : r.score < 6 ? 'lo' : ''}" style="height:${Math.max(6, r.score * 10)}%" title="${r.day}: ${rtFmt(r.score)}"></i>`).join('')}</div><div style="font-size:11px; color:var(--muted);">Last ${x.trend.length} days</div>` : '';
+    // what pulls them down + "fix these 2 → rating ~X"
+    const fixOf = (c) => { if (!c) return ''; const W = keys.reduce((a, k) => a + (c.parts[k] != null ? P[k].w : 0), 0);
+      const g = keys.filter((k) => c.parts[k] != null && c.parts[k] < 7).map((k) => ({ k, gain: P[k].w / W * (8 - c.parts[k]) })).sort((a, b) => b.gain - a.gain).slice(0, 2);
+      if (!g.length) return `<div class="rt-tip g">🌟 Every part is 7+ — keep them as an example for the team.</div>`;
+      return `<div class="rt-tip">⬇ <b>Pulling down:</b> ${g.map(({ k }) => `${esEsc(P[k].label)} ${rtFmt(c.parts[k])}${c.notes && c.notes[k] ? ' (' + esEsc(c.notes[k]) + ')' : ''}`).join(' · ')}</div>
+        <div class="rt-tip g">⬆ <b>Fix these ${g.length} → rating ~${rtFmt(Math.min(10, c.score + g.reduce((a, b) => a + b.gain, 0)))}</b> · the salesperson already sees the same tip in My Rating.</div>`; };
+    document.getElementById('ohTitle').textContent = 'Rating · ' + x.name;
+    document.getElementById('ohSub').textContent = `Today ${rtFmt(t && t.score)} · This month ${rtFmt(m && m.score)}${x.last_month != null ? ' · Last month ' + rtFmt(x.last_month) : ''}${x.best != null ? ' · Best day ' + rtFmt(x.best) + ' (' + x.best_day + ')' : ''}`;
+    const html = `<div class="cq-big">${window.Convo ? Convo.ring(t ? t.score : null) : ''}${window.Convo ? Convo.ring(m ? m.score : null) : ''}<div><b>${esEsc((use && use.label) || '')}</b><small>left = today · right = this month${m ? ' · target hit ' + m.hit + ' of ' + m.target_days + ' days' : ''}</small></div></div>${sp}
+      <div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Part</th><th style="text-align:center;">Today</th><th style="text-align:center;">Month</th><th>Why</th></tr></thead><tbody>${keys.map((k) => `<tr><td>${P[k].icon} ${esEsc(P[k].label)} <small style="color:var(--muted);">${P[k].w}%</small></td><td style="text-align:center;"><span class="rt-h ${rtHc(t && t.parts[k])}">${rtFmt(t && t.parts[k])}</span></td><td style="text-align:center;"><span class="rt-h ${rtHc(m && m.parts[k])}">${rtFmt(m && m.parts[k])}</span></td><td style="font-size:11.5px;">${esEsc((t && t.notes && t.notes[k]) || (m && m.notes && m.notes[k]) || '')}</td></tr>`).join('')}</tbody></table></div>
+      ${t ? '<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:10px;">Today</div>' + fixOf(t) : ''}
+      ${m ? '<div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-top:10px;">This month</div>' + fixOf(m) : ''}`;
+    document.getElementById('ohBody').innerHTML = html; if (OHH.length) OHH[OHH.length - 1].b = html;
+  }
+  document.getElementById('ohModal').addEventListener('click', (ev) => {
+    const a = ev.target.closest('[data-rtemp]'); if (a) { ev.preventDefault(); ev.stopPropagation(); rtEmp(Number(a.dataset.rtemp)); return; }
+    const v = ev.target.closest('[data-rtview]'); if (v) { ev.preventDefault(); ev.stopPropagation(); RTG.view = v.dataset.rtview; if (RTG.d[RTG.view] && !RTG.d[RTG.view].error) { OHH.pop(); rtGrid(); renderSummary(); } else rtLoad(true); }
+  }, true);
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => {
+    const rv = ev.target.closest('[data-rtview]'); if (rv) { ev.preventDefault(); RTG.view = rv.dataset.rtview; renderSummary(); return; }
+    const rg = ev.target.closest('[data-rtgrid]'); if (rg) { ev.preventDefault(); rtGrid(); return; }
+    const re = ev.target.closest('[data-rtemp]'); if (re) { ev.preventDefault(); rtEmp(Number(re.dataset.rtemp)); return; }
+    const q = ev.target.closest('[data-cq]'); if (q) { ev.preventDefault(); if (q.dataset.cq === 'pb') cqPlaybook(); else if (q.dataset.cq === 'calls') cqCalls(); else cqOpen(); return; }
+    const pmo = ev.target.closest('[data-pmopen]'); if (pmo) { ev.preventDefault(); pmOpen(); return; }
+    const qe = ev.target.closest('[data-cqemp]'); if (qe) { ev.preventDefault(); cqEmp(qe.dataset.cqemp); return; }
+    const qi = ev.target.closest('[data-cqid]'); if (qi) { ev.preventDefault(); Convo.open({ id: Number(qi.dataset.cqid), admin: true, onChange: () => cqLoad(true) }); return; }
+  });
+
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-tco]'); if (t) { ev.preventDefault(); tcoOpen(t.dataset.tco); return; }
+    const e = ev.target.closest('[data-tcoemp]'); if (e) { ev.preventDefault(); tcoEmp(e.dataset.tcoemp); }
+  });
+
   // emp = one seller's name (tapped in "Who sold"): only that person's orders; '' = everyone.
   const dtiEmpOf = (o) => String(o.salesman || '').trim() || 'Not allocated';
   function dtiOpen(key, emp) {
@@ -1943,6 +2332,10 @@
       ${ohCardHtml(base)}
       ${dtiCardHtml()}
       ${cslCardHtml()}
+      ${tcoCardHtml()}
+      ${cqCardHtml()}
+      ${rtCardHtml()}
+      ${pmCardHtml()}
     `;
     grid.style.display = 'grid';
     renderUnallocNote();

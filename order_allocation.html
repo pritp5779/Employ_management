@@ -327,6 +327,7 @@
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
 <script src="assets/js/ml_slab.js?v=261022c"></script>
+<script src="assets/js/convo.js?v=261022b"></script>
 <script>
   guardPage();
   renderSidebar('order_allocation');
@@ -676,7 +677,7 @@
       <td>${priceCell(o, CAN_ADDR && !o.cancelled)}</td>
       <td>${ratingCell(o, empSel, noEmpMsg(o, p))}</td>
       ${IS_EMP ? '' : `<td>${addonCell(o)}</td>`}
-      <td>${action}${cx}</td>
+      <td>${action}${cx}${cvEligible(o) ? `<div class="cv-slot" data-cvk="${k}">${window.Convo ? Convo.chip(CVMAP[k]) : ''}</div>` : ''}</td>
     </tr>`;
   }
 
@@ -1031,6 +1032,37 @@
     }
   });
 
+  // ---- Chat proof (WhatsApp screenshots / call recording, see assets/js/convo.js): a chip under the row's buttons ----
+  // Sales employee: on their own allocated orders. Admin / HR: on every allocated (non-direct) order, to open the review.
+  const CVMAP = {};
+  function cvEligible(o) { return !!window.Convo && o.allocated && !o.allocated_direct && !o.cancelled && (!IS_EMP || (MY_EMP && Number(o.employee_id) === MY_EMP)); }
+  let cvTimer = null;
+  function cvRefresh(only) {
+    clearTimeout(cvTimer);
+    cvTimer = setTimeout(async () => {
+      const keys = only || Array.from(document.querySelectorAll('#tbody .cv-slot')).map((x) => x.dataset.cvk);
+      if (!keys.length) return;
+      try {
+        const m = await Convo.forOrders(keys);
+        keys.forEach((k) => { if (m[k]) CVMAP[k] = m[k]; else delete CVMAP[k]; });
+        document.querySelectorAll('#tbody .cv-slot').forEach((x) => { if (keys.includes(x.dataset.cvk)) x.innerHTML = Convo.chip(CVMAP[x.dataset.cvk]); });
+      } catch (e) { /* chips stay as they are */ }
+    }, 250);
+  }
+  window.cvRefresh = cvRefresh;
+  function cvOpen(o) {
+    const k = key(o);
+    Convo.open({ kind: 'order', source: o.store_key, order_id: String(o.id), order_name: o.order_name, total: o.total, day: o.biz_date || String(o.created_at || '').slice(0, 10),
+      id: CVMAP[k] ? CVMAP[k].id : 0, admin: !IS_EMP, onChange: () => cvRefresh([k]) });
+  }
+  window.cvOpenOrder = cvOpen;
+  document.getElementById('tbody').addEventListener('click', (e) => {
+    const b = e.target.closest('.cv-slot [data-cv]'); if (!b) return;
+    e.preventDefault();
+    const o = orders.find((x) => key(x) === b.closest('.cv-slot').dataset.cvk);
+    if (o) cvOpen(o);
+  });
+
   function render() {
     renderMyCodes();
     const shown = orders.filter(matches);
@@ -1052,6 +1084,7 @@
       const n = Math.min(limit, shown.length);
       tbody.innerHTML = shown.slice(0, n).map(rowHtml).join('');
       tbody.querySelectorAll('.emp-pick').forEach(initEmpPick);
+      cvRefresh();
       document.getElementById('shownCount').textContent = `Showing ${n} of ${shown.length}`;
       document.getElementById('btnMore').style.display = n >= shown.length ? 'none' : 'inline-block';
     }
@@ -1444,8 +1477,6 @@
 .apz .t1{font-size:19px; font-weight:900; margin-top:6px}
 .apz .lab{font-size:10.5px; font-weight:800; letter-spacing:.3px; color:#9a3412; margin-top:6px}
 .apz .big{font-size:32px; font-weight:900; color:#ea580c; line-height:1.1}
-.apz .bar{height:8px; background:#fed7aa; border-radius:8px; overflow:hidden; margin:6px 0 3px}
-.apz .bar i{display:block; height:100%; background:#ea580c; border-radius:8px; transition:width 1s cubic-bezier(.2,.8,.2,1)}
 .apz .sm{display:flex; justify-content:space-between; font-size:11.5px; color:#7c2d12}
 .apz .rk{background:#fff; border-radius:12px; padding:3px 8px; margin-top:9px; text-align:left; font-size:13px}
 .apz .rk div{display:flex; justify-content:space-between; padding:5px 6px}
@@ -1455,10 +1486,32 @@
 .apz .win .gu{color:#166534}
 .apz .go{display:block; width:100%; border:0; color:#fff; border-radius:12px; padding:11px; font-weight:800; font-size:14px; margin-top:10px; background:#ea580c; cursor:pointer; min-height:0}
 .apz .win .go{background:#16a34a}
+.apz .rtp{display:block; margin:10px auto 0; width:fit-content; max-width:100%; background:#111827; color:#fff; border-radius:99px; padding:7px 14px; font-size:13px; font-weight:700; text-align:center;} .apz .rtp b{color:#fde68a;}
+.apz .cvp{display:block; width:100%; border:1px dashed #94a3b8; background:#fff; color:#0f172a; border-radius:12px; padding:10px; font-weight:800; font-size:13.5px; margin-top:10px; cursor:pointer; min-height:0}
+.apz .cvp small{display:block; font-weight:600; color:#64748b; font-size:11.5px}
 .apz .wt{font-size:23px; font-weight:900; color:#14532d; margin-top:4px}
 .apz .bonus{background:#fff; border-radius:12px; padding:10px; margin-top:9px}
 .apz .bonus b{display:block; font-size:22px; color:#15803d}
 .apz canvas{position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:2}
+.apz .pace{position:relative; height:12px; background:#fed7aa; border-radius:8px; margin:7px 0 3px;}
+.apz .pace i{position:absolute; left:0; top:0; bottom:0; border-radius:8px; background:#ea580c; transition:width 1s cubic-bezier(.2,.8,.2,1);}
+.apz .pace.ah i{background:#16a34a;} .apz .pace.jb i{background:#f59e0b;}
+.apz .pace u{position:absolute; top:-4px; bottom:-4px; width:3px; margin-left:-1px; background:#111827; border-radius:2px;}
+.apz .pb{display:inline-block; border-radius:99px; padding:3px 10px; font-size:11.5px; font-weight:800;}
+.apz .pb.ah{background:#dcfce7; color:#166534;} .apz .pb.jb{background:#ffedd5; color:#9a3412;}
+.apz .tm{background:#111827; color:#fff; border-radius:11px; padding:7px 10px; font-size:12px; margin-top:8px; text-align:left; line-height:1.4;} .apz .tm b{color:#86efac;}
+.apz .ck{font-size:10.5px; font-weight:800; color:#64748b; text-align:left; margin-top:9px; letter-spacing:.3px;}
+.apz .tp{display:flex; gap:8px; text-align:left; border-radius:11px; padding:7px 9px; margin-top:5px; font-size:12px; line-height:1.4; background:#fff; border:1px solid #fed7aa; color:#334155;}
+.apz .tp .e{font-size:18px; line-height:1.1;} .apz .tp b{display:block; font-size:12.5px; color:#111827;}
+.apz .tp.push{background:#fefce8; border-color:#fde68a;} .apz .tp.win{background:#ecfdf5; border-color:#bbf7d0;} .apz .tp.focus{background:#fff7ed; border-color:#fdba74;} .apz .tp.learn{background:#eff6ff; border-color:#bfdbfe;}
+.apz .tm.calm{background:#fff7ed; color:#7c2d12;} .apz .tm.calm b{color:#c2410c;}
+.apz .cm{margin-top:6px; background:#ecfdf5; border:1px solid #bbf7d0; color:#14532d; border-radius:11px; padding:6px 10px; font-size:12.5px;} .apz .cm b{font-size:15px;}
+.apz .bdg{display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:7px;}
+.apz .bdg span{background:linear-gradient(135deg,#fde68a,#fbbf24); color:#78350f; border-radius:99px; padding:4px 10px; font-size:12px; font-weight:800; box-shadow:0 3px 10px rgba(251,191,36,.45); opacity:0; transform:scale(.3);}
+.apz.on .bdg span{animation:apzBdg .55s cubic-bezier(.2,1.6,.4,1) forwards;}
+@keyframes apzBdg{to{opacity:1; transform:scale(1);}}
+.apz .cp{margin-top:6px; font-size:12px; color:#7c2d12;} .apz .cp.up{color:#166534;}
+.apz .nx{margin-top:9px; background:#111827; color:#fff; border-radius:99px; padding:6px 12px; font-size:12px; display:inline-block;} .apz .nx b{color:#fde68a;}
 .aptst{position:fixed; left:50%; bottom:22px; transform:translate(-50%,20px); z-index:9999; background:#111827; color:#fff; border-radius:14px; padding:10px 16px; font-size:13.5px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.35); opacity:0; transition:.25s; max-width:calc(100vw - 28px); text-align:center}
 .aptst.on{opacity:1; transform:translate(-50%,0)}
 .aptst b{color:#fdba74}`;
@@ -1523,10 +1576,26 @@
     const amt = Number(o.total) || 0, target = Number(d.target) || 0, sales = Number(d.sales) || 0;
     const today = (o.biz_date || '') === d.business_day;
     const before = today ? sales - amt : sales;
-    if (!today || !(target > 0) || !(d.orders > 0)) { toast(`✓ ${esc(o.order_name)} allocated · <b>+${money(amt)}</b>`); return; }
-    if (before >= target) { toast(`✓ <b>+${money(amt)}</b> added · ${pctTxt(sales / target * 100)} of today's target 🏆`); return; }
-    const win = sales >= target, pend = Math.max(0, target - sales), pendBefore = Math.max(0, target - before);
-    const p0 = Math.min(100, before / target * 100), p1 = Math.min(100, sales / target * 100);
+    if (!today || !(target > 0) || !(d.orders > 0)) { const oc = d.coach && d.coach.order_com != null ? ` · 💰 +${money(d.coach.order_com)} commission` : ''; toast(`✓ ${esc(o.order_name)} allocated · <b>+${money(amt)}</b>${today ? oc : ''}`); return; }
+    const win = sales >= target && before < target, done = before >= target;          // done = target was already complete before this order
+    const pend = Math.max(0, target - sales), pendBefore = Math.max(0, target - before);
+    const p1 = Math.min(100, sales / target * 100);
+    const bonus = Number(d.bonus) || 0, C = d.coach || {};
+    const G = C.goal || { mode: 'none' };
+    // Pace: where they should be by now (black line, from the store's real hourly pattern). Never red for the salesperson:
+    // ahead = green, behind = amber "Focus / Catch-up", target out of reach today = a new goal they can still win.
+    const should = C.should_pct != null ? Math.min(100, Number(C.should_pct)) : null;
+    const goalMode = G.mode === 'newgoal';
+    const barT = goalMode ? Number(G.goal) : target, b0 = Math.min(100, before / barT * 100), b1 = Math.min(100, sales / barT * 100);
+    const paceCls = G.mode === 'ahead' ? 'ah' : (G.mode === 'near' || G.mode === 'catchup' || goalMode ? 'jb' : '');
+    const badge = G.mode === 'ahead' ? `<span class="pb ah">🟢 Ahead of time${should != null ? ' by ' + Math.round(sales / target * 100 - should) + '%' : ''}</span>`
+      : G.mode === 'near' ? `<span class="pb jb">🎯 Focus: ${money(G.behind)} to get back on track</span>`
+      : G.mode === 'catchup' ? `<span class="pb jb">🎯 Catch-up mode · ${money(G.behind)} · ~${G.orders} order${G.orders == 1 ? '' : 's'}</span>`
+      : goalMode ? `<span class="pb jb">🎯 Today's goal: ${money(G.goal)}</span>` : '';
+    const leftShare = should != null ? Math.max(0, Math.round(100 - should)) : null;
+    const team = C.people > 1 ? (G.mode === 'ahead'
+      ? `<div class="tm">👥 Team: ફક્ત <b>${C.ahead} of ${C.people}</b> time કરતાં આગળ છે — તમે એમાંના એક છો! 🔥</div>`
+      : (leftShare != null && leftShare >= 15 ? `<div class="tm calm">⏳ આજના આશરે <b>${leftShare}%</b> orders હજુ આવવાના બાકી છે — ${G.mode === 'done' ? (bonus > 0 ? `દરેક પર +${bonus}% bonus 🎁` : 'દરેક order ગણાય છે 💪') : 'હજુ પૂરો સમય છે 💪'}</div>` : '')) : '';
     const me = (d.rank || []).find((r) => r.me), top = (d.rank || [])[0];
     let rk = '';
     (d.rank || []).forEach((r, i) => {
@@ -1534,18 +1603,35 @@
       const md = ['🥇', '🥈', '🥉'][r.pos - 1] || ('#' + r.pos);
       rk += `<div class="${r.me ? 'me' : ''}"><span>${md} ${esc(r.name)}</span><b>${r.pct == null ? '—' : pctTxt(r.pct)}</b></div>`;
     });
-    const gap = me && top && !top.me && top.pct != null && me.pct != null ? Math.max(0, Math.ceil(top.pct - me.pct)) : null;
-    const line = me && me.pos === 1 ? 'શાબાશ! તમે આજે 1st છો 🥇' : (gap != null ? `શાબાશ! 1st આવવા ${gap}% બાકી 💪` : `હજુ ${money(pend)} બાકી — ચાલો કરી દઈએ! 💪`);
-    const bonus = Number(d.bonus) || 0;
+    if (!me && d.to_top10 > 0) rk += `<div class="gap" style="color:#7c2d12; padding:4px 6px;">Top 10 માં આવવા બસ ${money(d.to_top10)} 💪</div>`;      // outside the top 10: no rank number, just the way up
+    if (!me && C.improved) rk += `<div class="gap" style="color:#166534; padding:4px 6px;">⚡ Today's most improved #${C.improved}</div>`;
+    const gp = me && top && !top.me && top.pct != null && me.pct != null ? Math.max(0, Math.ceil(top.pct - me.pct)) : null;
+    const line = me && me.pos === 1 ? 'શાબાશ! તમે આજે 1st છો 🥇' : (gp != null ? `શાબાશ! 1st આવવા ${gp}% બાકી 💪` : '');
+    // Money of this order (the dopamine: every order = visible ₹) + today's commission so far.
+    const com = C.order_com != null ? `<div class="cm">💰 <b class="oc" data-v="${C.order_com}">+${money(0)}</b> commission on this order${C.com_today ? ` · today <b>${money(C.com_today)}</b>` : ''}</div>` : '';
+    // Small wins (badges) unlocked by this order + the next step.
+    const bdg = (C.badges || []).length ? `<div class="bdg">${C.badges.map((x, i) => `<span style="animation-delay:${1.1 + i * .25}s">${x[0]} ${esc(x[1])}</span>`).join('')}</div>` : '';
+    const yd = Number(C.yest_same) || 0;
+    const cmp = yd > 0 ? (sales > yd ? `<div class="cp up">📈 ગઈકાલ આ સમય કરતાં <b>${money(sales - yd)}</b> આગળ</div>` : `<div class="cp">ગઈકાલે આ સમયે ${money(yd)} — બસ <b>${money(yd - sales)}</b> અને તમે આગળ 📈</div>`) : '';
+    const next = C.next ? `<div class="nx">⏭️ Next: <b>${esc(C.next)}</b></div>` : '';
+    const tips = (C.tips || []).length ? `<div class="ck">💡 YOUR COACH</div>` + C.tips.map((t) => `<div class="tp ${t.kind}"><span class="e">${t.icon}</span><div><b>${esc(t.title)}</b>${esc(t.text)}</div></div>`).join('') : '';
+    const paceBar = `<div class="pace ${paceCls}"><i style="width:${b0}%"></i>${should != null && !goalMode ? `<u style="left:${should}%" title="Where you should be by now"></u>` : ''}</div>
+         <div class="sm"><span class="dn">${money(before)} done</span><span>${goalMode ? 'goal ' + money(barT) : (should != null ? 'should be ' + Math.round(should) + '% now' : pctTxt(p1) + ' of ' + money(target))}</span></div>`;
     const body = win
       ? `<div class="cnt">Arrow <b>${d.orders}</b> · target hit!</div><div class="wt">🏆 Target complete!</div>
          <div style="font-size:13px; color:#166534">${money(sales)} / ${money(target)} · ${pctTxt(sales / target * 100)}</div>
          ${bonus > 0 ? `<div class="bonus"><span class="lab" style="color:#64748b">TODAY'S BONUS</span><b>+${bonus}% unlocked ✅</b><span style="font-size:12px; color:#166534">on every order of today</span></div>` : ''}
-         <div class="gu">અભિનંદન! ${bonus > 0 ? 'હવે આજના દરેક order પર extra commission' : 'આજનો target પૂરો 🎉'}</div><button type="button" class="go">Super! →</button>`
+         ${com}${bdg}<div class="gu">અભિનંદન! ${bonus > 0 ? 'હવે આજના દરેક order પર extra commission' : 'આજનો target પૂરો 🎉'}</div>${team}${tips}${next}<button type="button" class="go">Super! →</button>`
+      : done
+      ? `<div class="cnt">Arrow <b>${d.orders}</b> · order #${d.orders} today</div><div class="t1">+${money(amt)} added!</div>
+         <div style="font-size:13px; color:#166534; margin-top:2px;">🏆 Target done · ${pctTxt(sales / target * 100)} of ${money(target)}</div>
+         ${com}${bdg}${cmp}
+         ${rk ? `<div class="rk">${rk}</div>` : ''}${line ? `<div class="gu">${line}</div>` : ''}${tips}${next}<button type="button" class="go">Next order →</button>`
       : `<div class="cnt">Arrow <b>${d.orders}</b> · order #${d.orders} today</div><div class="t1">+${money(amt)} added!</div>
-         <div class="lab">TARGET PENDING</div><div class="big">${money(pendBefore)}</div>
-         <div class="bar"><i style="width:${p0}%"></i></div><div class="sm"><span class="dn">${money(before)} done</span><span>${pctTxt(p1)} of ${money(target)}</span></div>
-         ${rk ? `<div class="rk">${rk}</div>` : ''}<div class="gu">${line}</div><button type="button" class="go">Next order →</button>`;
+         ${com}${bdg}
+         <div class="lab">${goalMode ? "TODAY'S GOAL" : 'TARGET PENDING'}</div><div class="big">${money(goalMode ? Math.max(0, barT - before) : pendBefore)}</div>
+         ${paceBar}<div style="margin-top:5px;">${badge}</div>${cmp}
+         ${rk ? `<div class="rk">${rk}</div>` : ''}${line ? `<div class="gu">${line}</div>` : ''}${team}${tips}${next}<button type="button" class="go">Next order →</button>`;
     const ov = document.createElement('div'); ov.className = 'apz';
     ov.innerHTML = `<canvas></canvas><div class="cd ${win ? 'win' : ''}">${board(d.orders)}${body}</div>`;
     document.body.appendChild(ov);
@@ -1554,6 +1640,21 @@
     const onKey = (e) => { if (e.key === 'Escape' || e.key === 'Enter') close(); };
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('.go')) close(); });
+    // Today's rating (out of 10, with this order) next to the last worked day.
+    const go = ov.querySelector('.go');
+    if (go && d.rating && d.rating.today != null) {
+      const R = d.rating, up = R.prev != null ? Math.round((R.today - R.prev) * 10) / 10 : null;
+      const rc = document.createElement('div'); rc.className = 'rtp';
+      rc.innerHTML = `⭐ Rating today <b>${Number(R.today).toFixed(1)}</b>${up != null ? (up > 0 ? ` · ગઈકાલ કરતાં +${up} 📈` : up === 0 ? ' · ગઈકાલ જેટલું' : ` · ગઈકાલ ${Number(R.prev).toFixed(1)} — હજુ દિવસ બાકી છે 💪`) : ''}`;
+      go.before(rc);
+    }
+    // Chat proof right from the popup: the order's WhatsApp screenshots (+ call) → the AI coach reviews the conversation.
+    if (go && window.Convo && window.cvOpenOrder) {
+      const cb = document.createElement('button'); cb.type = 'button'; cb.className = 'cvp';
+      cb.innerHTML = '📎 આ order ની chat screenshots add કરો <small>→ AI coach tips</small>';
+      go.before(cb);
+      cb.addEventListener('click', () => { close(); window.cvOpenOrder(o); });
+    }
     requestAnimationFrame(() => ov.classList.add('on'));
     const na = ov.querySelector('#apzNew');
     if (!calm && na.animate) na.animate([{ transform: 'translate(-190px,-60px)' }, { transform: 'translate(0,0)' }], { duration: 520, delay: 450, easing: 'cubic-bezier(.3,.1,.2,1)', fill: 'backwards' });
@@ -1561,16 +1662,19 @@
       const bd = ov.querySelector('.bd'); bd.classList.add('shk');
       const fl = ov.querySelector('.fl'); if (fl.animate && !calm) fl.animate([{ opacity: 1, r: 12 }, { opacity: 0, r: 70 }], { duration: 600, easing: 'ease-out' });
       if (fx) { fx.coins(win ? 70 : 45); if (win) fx.cannons(); }
-      const big = ov.querySelector('.big'), bar = ov.querySelector('.bar i'), dn = ov.querySelector('.dn');
-      if (bar) bar.style.width = p1 + '%';
+      const big = ov.querySelector('.big'), bar = ov.querySelector('.pace i'), dn = ov.querySelector('.dn');
+      if (bar) bar.style.width = b1 + '%';
       if (dn) dn.textContent = money(sales) + ' done';
-      if (big) { const t0 = performance.now(); const step = (tm) => { const k = Math.min(1, (tm - t0) / 900), v = pendBefore + (pend - pendBefore) * k * (2 - k); big.textContent = money(v); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+      const fromV = goalMode ? Math.max(0, barT - before) : pendBefore, toV = goalMode ? Math.max(0, barT - sales) : pend;
+      if (big) { const t0 = performance.now(); const step = (tm) => { const k = Math.min(1, (tm - t0) / 900), v = fromV + (toV - fromV) * k * (2 - k); big.textContent = money(v); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+      const oc = ov.querySelector('.oc');          // this order's commission counts up
+      if (oc) { const to = Number(oc.dataset.v) || 0, t0 = performance.now(); const step = (tm) => { const k = Math.min(1, (tm - t0) / 800); oc.textContent = '+' + money(to * k * (2 - k)); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
     }, calm ? 0 : 970);
   }
 
   window.allocCelebrate = async function (o) {
     try {
-      const d = await Promise.race([api.get('my.alloc_pulse'), new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 8000))]);
+      const d = await Promise.race([api.get('my.alloc_pulse', { source: o.store_key, order_id: String(o.id), amount: Number(o.total) || 0 }), new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 8000))]);
       if (d && !d.error) show(o, d);
     } catch (e) { /* no popup — the allocation itself is saved */ }
   };
