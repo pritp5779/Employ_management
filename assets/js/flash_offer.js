@@ -1,0 +1,217 @@
+/**
+ * ⚡ Flash Offer — a short, time-boxed price promotion. Admin picks a few size+price combos and how many hours it runs
+ * (Commission Rules page, window.FO_ADMIN = true); any order of exactly that size at exactly that price, sold inside those
+ * hours, earns a flat commission % (api_alloc.php: flash_offer_pct_for(), used inside coach_day()). My Sales and Order
+ * Allocation (window.FO_ADMIN unset) show a live-countdown banner instead — big by default, or window.FO_SIZE = 'slim' for a
+ * one-line strip. Saved through flash_offer.start / flash_offer.stop, read through flash_offer.get.
+ */
+(function () {
+  if (window.__flashOfferLoaded) return;
+  window.__flashOfferLoaded = true;
+
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const inr = (v) => '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  const fmtN = (v) => String(Math.round(Number(v) * 100) / 100);
+  const pad2 = (n) => String(Math.max(0, n)).padStart(2, '0');
+
+  const css = `
+#foBanner{border-radius:16px; padding:16px 20px; margin-bottom:20px; background:linear-gradient(120deg,#f97316,#ea580c); color:#fff; box-shadow:0 10px 26px rgba(234,88,12,.25);}
+#foBanner.slim{padding:9px 14px; border-radius:12px; box-shadow:none;}
+#foBanner .foTop{display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap;}
+#foBanner .foTtl{font-size:17px; font-weight:900; display:flex; align-items:center; gap:8px;}
+#foBanner.slim .foTtl{font-size:13px;}
+#foBanner .foTimer{display:flex; gap:5px; align-items:baseline;}
+#foBanner .foTimer .u{background:rgba(0,0,0,.22); border-radius:10px; padding:5px 9px; text-align:center; min-width:34px;}
+#foBanner.slim .foTimer .u{padding:3px 7px; min-width:26px; border-radius:8px;}
+#foBanner .foTimer .u b{display:block; font-size:18px; font-weight:900; font-variant-numeric:tabular-nums;}
+#foBanner.slim .foTimer .u b{font-size:13px;}
+#foBanner .foTimer .u span{display:block; font-size:8.5px; font-weight:700; opacity:.85; letter-spacing:.04em;}
+#foBanner.slim .foTimer .u span{display:none;}
+#foBanner .foPills{display:flex; gap:9px; margin-top:12px; flex-wrap:wrap;}
+#foBanner.slim .foPills{margin-top:0; gap:6px;}
+#foBanner .foPill{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:11px; padding:7px 13px;}
+#foBanner.slim .foPill{padding:3px 9px; border-radius:8px; font-size:11.5px; font-weight:700;}
+#foBanner .foPill b{display:block; font-size:14.5px;}
+#foBanner.slim .foPill b{display:inline;}
+#foBanner .foPill span{font-size:10.5px; opacity:.9;}
+#foBanner.slim .foPill span{font-size:11.5px; opacity:1; margin-left:3px;}
+#foBanner .foFoot{margin-top:10px; font-size:12.5px; font-weight:700; background:rgba(0,0,0,.16); display:inline-block; padding:5px 12px; border-radius:99px;}
+#foBanner.slim .foFoot{display:none;}
+#fo{margin-bottom:20px; background:#fff; border:1px solid var(--line); border-radius:var(--radius,18px); padding:18px 22px 20px;}
+#fo h3{margin:0 0 4px; font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+#fo .rsub{font-size:12.5px; color:var(--muted); line-height:1.5; margin:0 0 14px; max-width:860px;}
+#fo .st{font-size:11px; font-weight:800; border-radius:999px; padding:3px 10px;}
+#fo .st.on{background:#ffedd5; color:#c2410c;} #fo .st.off{background:#f1f3f6; color:#6b7280;}
+#fo .run{border:2px solid #fed7aa; background:#fff7ed; border-radius:14px; padding:14px 16px; margin-bottom:16px; display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+#fo .run .foPills{display:flex; gap:8px; flex-wrap:wrap;}
+#fo .run .foPill{background:#fff; border:1px solid #fdba74; border-radius:10px; padding:5px 11px; font-size:12.5px; font-weight:700; color:#9a3412;}
+#fo .run .foTimer{display:flex; gap:5px;}
+#fo .run .foTimer .u{background:#1f2937; color:#fff; border-radius:9px; padding:5px 9px; text-align:center; min-width:34px;}
+#fo .run .foTimer .u b{display:block; font-size:16px; font-weight:900; font-variant-numeric:tabular-nums;}
+#fo .run .foTimer .u span{display:block; font-size:8px; font-weight:700; opacity:.8;}
+#fo .row3{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+#fo .fld{flex:1 1 200px; background:#fafbfc; border:1px solid #e6e9ee; border-radius:12px; padding:10px 12px;}
+#fo .fld label{display:block; font-size:12px; font-weight:700; margin-bottom:6px;}
+#fo .fld .in{display:flex; align-items:center; gap:6px; font-size:13px;}
+#fo .fld input{min-height:0;}
+#fo .items{margin-bottom:12px;}
+#fo .irow{display:flex; gap:8px; align-items:center; margin-bottom:7px; font-size:13px;}
+#fo .irow input{padding:7px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; min-height:0;}
+#fo .irow input.ml{width:90px;} #fo .irow input.price{width:120px;}
+#fo .irow .x{border:1px solid var(--line); background:#fff; border-radius:999px; width:26px; height:26px; cursor:pointer; padding:0; min-height:0; width:26px; font-size:12px; color:#9ca3af;}
+#fo .irow .x:hover{color:#b91c1c; border-color:#f1b4b4;}
+#fo .foot{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;}
+#fo .foot .btn{width:auto; padding:9px 20px; min-height:0;}
+#fo .msg{margin:0 0 12px;}
+#fo .hist{overflow:auto; margin-top:14px;}
+#fo table{width:100%; border-collapse:collapse; font-size:12.5px;}
+#fo th{text-align:left; font-size:11px; color:#64748b; padding:7px 8px; border-bottom:1px solid #e2e8f0; white-space:nowrap;}
+#fo td{padding:8px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top;}
+#fo .pill{display:inline-block; border-radius:99px; padding:2px 9px; font-size:11px; font-weight:800; margin:1px 3px 1px 0; white-space:nowrap;}
+#fo .p-on{background:#ffedd5; color:#c2410c;} #fo .p-stop{background:#f1f5f9; color:#64748b;} #fo .p-done{background:#eef0f4; color:#6b7280;}
+@media (max-width:640px){ #fo{padding:14px 12px;} #fo .fld{flex-basis:100%;} }
+`;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  const mount = document.querySelector('.content') || document.querySelector('.main') || document.body;
+
+  const ADMIN = !!window.FO_ADMIN;
+  const SIZE = window.FO_SIZE === 'slim' ? 'slim' : 'big';
+
+  let DATA = null;          // last flash_offer.get response
+  let F = newForm();        // the Start form, admin only
+
+  function newForm() { return { items: [{ ml: '', price: '' }, { ml: '', price: '' }, { ml: '', price: '' }], hours: 48, pct: 6, note: '' }; }
+
+  // ---------- Employee banner (My Sales, Order Allocation) ----------
+  let banner = null;
+  function ensureBanner() {
+    if (banner) return banner;
+    banner = document.createElement('div');
+    banner.id = 'foBanner'; banner.hidden = true;
+    if (SIZE === 'slim') banner.classList.add('slim');
+    mount.insertBefore(banner, mount.firstChild);
+    return banner;
+  }
+  function renderBanner() {
+    const b = ensureBanner();
+    const r = DATA && DATA.running;
+    if (!r) { b.hidden = true; b.innerHTML = ''; return; }
+    b.hidden = false;
+    const pills = (r.items || []).map((it) => `<div class="foPill"><b>${esc(it.ml)} ml</b><span>${esc(inr(it.price))}</span></div>`).join('');
+    b.innerHTML = `
+      <div class="foTop">
+        <div class="foTtl">🔥 Limited Time Offer</div>
+        <div class="foTimer" id="foTimerBox"></div>
+      </div>
+      <div class="foPills">${pills}</div>
+      <div class="foFoot">Sell these now → ${fmtN(r.pct)}% commission (flat)</div>`;
+  }
+
+  // ---------- Countdown ----------
+  function timerHtml(ms) {
+    const s = Math.max(0, Math.round(ms / 1000));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return `<div class="u"><b>${h}</b><span>HRS</span></div><div class="u"><b>${pad2(m)}</b><span>MIN</span></div><div class="u"><b>${pad2(sec)}</b><span>SEC</span></div>`;
+  }
+  function tick() {
+    const r = DATA && DATA.running;
+    if (!r) return;
+    const left = new Date(r.ends_at.replace(' ', 'T')).getTime() - Date.now();
+    if (left <= 0) { load(); return; }       // just ended — refresh everything once
+    const box1 = document.getElementById('foTimerBox'); if (box1) box1.innerHTML = timerHtml(left);
+    const box2 = document.getElementById('foRunTimer'); if (box2) box2.innerHTML = timerHtml(left);
+  }
+
+  // ---------- Admin card (Commission Rules page) ----------
+  let root = null, busy = false;
+  function ensureRoot() {
+    if (root) return root;
+    root = document.createElement('div'); root.id = 'fo';
+    mount.insertBefore(root, mount.firstChild);
+    return root;
+  }
+  const $ = (id) => root.querySelector('#' + id);
+  function flashMsg(html, cls) { const m = $('foMsg'); if (m) m.innerHTML = `<div class="alert ${cls || 'error'}">${html}</div>`; }
+
+  function renderAdmin() {
+    const r = ensureRoot();
+    const run = DATA && DATA.running;
+    const hist = ((DATA && DATA.history) || []).filter((x) => !run || x.id !== run.id).slice(0, 8);
+    r.innerHTML = `
+      <h3>⚡ Flash Offer <span class="st ${run ? 'on' : 'off'}">${run ? 'Running' : 'Not running'}</span></h3>
+      <p class="rsub">A short price promotion: pick a few size + price combos and how many hours it runs. Any order of exactly that size, sold at exactly that price, inside those hours, earns a flat commission % instead of the ML price slab. Shown with a live countdown on My Sales and Order Allocation. Orders sold inside the hours keep their flat % for good, even after it ends.</p>
+      <div id="foMsg" class="msg"></div>
+      ${run ? `
+      <div class="run">
+        <div><b style="font-size:13.5px;">Started ${esc(run.started_at)} by ${esc(run.by || '')}</b><div class="foPills" style="margin-top:7px;">${(run.items || []).map((it) => `<span class="foPill">${esc(it.ml)} ml → ${esc(inr(it.price))}</span>`).join('')}</div><div style="margin-top:7px; font-size:12.5px; color:#9a3412; font-weight:700;">${fmtN(run.pct)}% flat commission${run.note ? ' · ' + esc(run.note) : ''}</div></div>
+        <div style="display:flex; align-items:center; gap:14px;"><div class="foTimer" id="foRunTimer"></div><button type="button" class="btn secondary" id="foStop">■ Stop now</button></div>
+      </div>` : ''}
+      <div class="items">
+        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">SIZES &amp; OFFER PRICE</label>
+        ${F.items.map((it, i) => `<div class="irow"><input class="ml" type="number" min="1" placeholder="ml" data-fi="${i}" data-fk="ml" value="${esc(it.ml)}"> ml → ₹ <input class="price" type="number" min="1" placeholder="price" data-fi="${i}" data-fk="price" value="${esc(it.price)}"> <button type="button" class="x" data-fx="${i}" title="Remove">✕</button></div>`).join('')}
+        <button type="button" class="btn secondary" id="foAddRow" style="width:auto; padding:6px 14px; min-height:0; font-size:12.5px;">+ Add size</button>
+      </div>
+      <div class="row3">
+        <div class="fld"><label>RUNS FOR</label><div class="in"><input type="number" id="foHours" min="1" max="720" step="1" value="${esc(F.hours)}" style="width:70px;"> hours, from the moment you press Start</div></div>
+        <div class="fld"><label>FLAT COMMISSION</label><div class="in"><input type="number" id="foPct" min="0.1" max="100" step="0.1" value="${esc(F.pct)}" style="width:70px;"> % on these orders (replaces the normal rules while it runs)</div></div>
+        <div class="fld"><label>NOTE <span style="font-weight:400; text-transform:none;">(optional)</span></label><div class="in"><input type="text" id="foNote" maxlength="120" placeholder="e.g. Diwali 48h push" value="${esc(F.note)}" style="width:100%;"></div></div>
+      </div>
+      <div class="foot"><button type="button" class="btn" id="foStart">▶ ${run ? 'Start a new offer (stops the current one)' : 'Start the offer'}</button><span class="muted" style="font-size:12px;">New orders after the hours end go back to the normal commission by themselves — nothing to switch off.</span></div>
+      ${hist.length ? `<div class="hist"><table><thead><tr><th>STARTED</th><th>ITEMS</th><th>%</th><th>STATUS</th><th>BY</th></tr></thead><tbody>
+        ${hist.map((x) => `<tr><td style="white-space:nowrap;">${esc(x.started_at)}</td><td>${(x.items || []).map((it) => `<span class="pill p-done">${esc(it.ml)}ml ₹${esc(it.price)}</span>`).join('')}</td><td>${fmtN(x.pct)}%</td><td><span class="pill ${x.status === 'stopped' ? 'p-stop' : 'p-done'}">${x.status === 'stopped' ? 'Stopped' : 'Ended'}</span></td><td>${esc(x.by || '')}</td></tr>`).join('')}
+      </tbody></table></div>` : ''}`;
+    wireAdmin();
+    tick();
+  }
+
+  function wireAdmin() {
+    if (!root.__wired) {
+      root.__wired = true;
+      root.addEventListener('input', (e) => {
+        const t = e.target;
+        if (t.dataset.fi != null) { F.items[Number(t.dataset.fi)][t.dataset.fk] = t.value; }
+        else if (t.id === 'foHours') F.hours = t.value;
+        else if (t.id === 'foPct') F.pct = t.value;
+        else if (t.id === 'foNote') F.note = t.value;
+      });
+    }
+    root.querySelectorAll('[data-fx]').forEach((b) => b.onclick = () => { F.items.splice(Number(b.dataset.fx), 1); renderAdmin(); });
+    const addRow = $('foAddRow'); if (addRow) addRow.onclick = () => { F.items.push({ ml: '', price: '' }); renderAdmin(); };
+    const stopBtn = $('foStop'); if (stopBtn) stopBtn.onclick = () => doStop(DATA.running.id);
+    const startBtn = $('foStart'); if (startBtn) startBtn.onclick = doStart;
+  }
+
+  async function doStart() {
+    if (busy) return;
+    const items = F.items.filter((it) => it.ml !== '' && it.price !== '').map((it) => ({ ml: Number(it.ml), price: Number(it.price) }));
+    if (!items.length) return flashMsg('Add at least one size and its offer price.');
+    if (DATA && DATA.running && !confirm('A flash offer is already running — start a new one and stop the current one now?')) return;
+    busy = true; const b = $('foStart'); if (b) { b.disabled = true; b.textContent = 'Starting…'; }
+    try {
+      const d = await api.post('flash_offer.start', { items, hours: Number(F.hours) || 0, pct: Number(F.pct) || 0, note: F.note });
+      if (d.error) throw new Error(d.error);
+      F = newForm(); await load();
+      flashMsg(esc(d.message || 'Started.'), 'success');
+    } catch (e) { flashMsg(esc(e.message)); } finally { busy = false; }
+  }
+  async function doStop(id) {
+    if (busy || !confirm('Stop the flash offer now? Orders already sold inside it keep their flat %.')) return;
+    busy = true;
+    try {
+      const d = await api.post('flash_offer.stop', { id });
+      if (d.error) throw new Error(d.error);
+      await load();
+      flashMsg(esc(d.message || 'Stopped.'), 'success');
+    } catch (e) { flashMsg(esc(e.message)); } finally { busy = false; }
+  }
+
+  // ---------- Load + poll ----------
+  async function load() {
+    try { DATA = await api.get('flash_offer.get'); } catch (e) { DATA = DATA || null; }
+    if (ADMIN) renderAdmin(); else renderBanner();
+    tick();
+  }
+  load();
+  setInterval(tick, 1000);
+  setInterval(load, 30000);
+})();

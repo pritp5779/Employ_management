@@ -403,8 +403,12 @@
       </label>
     </div>
     <div class="field"><label>How is it taken</label>
-      <div class="pfa-seg" id="pfeCapture"><button type="button" data-v="upload">Upload a photo / screenshot</button><button type="button" data-v="faceid">📷 Live camera — face + ID card</button></div>
+      <div class="pfa-seg" id="pfeCapture"><button type="button" data-v="upload">Upload a photo / screenshot</button><button type="button" data-v="idcard">🪪 Live camera — ID card</button></div>
       <div style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45;" id="pfeCaptureNote"></div>
+      <label id="pfeDailyBox" style="text-transform:none; letter-spacing:normal; color:var(--text, #111827); display:none; align-items:flex-start; gap:10px; margin-top:8px; padding:10px 12px; border:1px solid #fde68a; border-radius:9px; background:#fffbeb; font-size:13px; font-weight:600; cursor:pointer;">
+        <span class="pfa-tg" style="margin-top:2px;"><input type="checkbox" id="pfeDaily"><i></i></span>
+        <span>Check the ID card every day before Punch In <span style="display:block; font-weight:400; font-size:11.5px; color:var(--muted); line-height:1.45;">After enrolling, every day the employee shows the card to the camera. The AI compares it with the enrolled card — someone else's card or no card = take it again. If the AI can't be reached, the photo is saved and marked "AI not checked".</span></span>
+      </label>
     </div>
     <div class="field"><label>Name</label><input type="text" id="pfeTitle" maxlength="120" placeholder="e.g. Google review screenshot"></div>
     <div class="field"><label>What the employee sees</label><textarea id="pfeText" rows="3" maxlength="500" placeholder="Tell them exactly what to do and what the screenshot must show"></textarea></div>
@@ -1138,10 +1142,10 @@
       const chips = all ? '<span class="pfa-chip all">Everyone</span>'
         : names.slice(0, 5).map(n => `<span class="pfa-chip ${n.c}">${attr(n.t)}</span>`).join('') + (names.length > 5 ? `<span class="pfa-chip more">+${names.length - 5} more</span>` : '');
       const kind = all ? 'All employees' : (r.department_ids.length && r.employee_ids.length ? 'Departments and employees' : (r.department_ids.length ? 'Departments' : 'Specific employees'));
-      const needs = r.capture === 'faceid' ? 'Live photo · face + ID card' : `${r.shots_required} screenshot${r.shots_required === 1 ? '' : 's'}${Number(r.link_required) ? ' + link' : ''}`;
+      const needs = r.capture === 'idcard' ? 'Live ID card photo' + (Number(r.daily_check) === 1 ? ' · enroll + daily check' : '') : `${r.shots_required} screenshot${r.shots_required === 1 ? '' : 's'}${Number(r.link_required) ? ' + link' : ''}`;
       return `<div class="pfa-rule${Number(r.active) ? '' : ' pfa-off'}">
         ${pfTile(r)}
-        <div class="nm"><b>${attr(r.title)}</b>${r.stage === 'enroll' ? ' <span class="pfa-chip dep" style="margin-left:6px;">Once · at Enroll</span>' : ''}${r.capture === 'faceid' ? ' <span class="pfa-chip" style="margin-left:4px;">📷 Face + ID</span>' : ''}${(r.except_ids || []).length ? ` <span class="pfa-chip more" style="margin-left:4px;" title="${attr(r.except_ids.map(pfEmpName).join(', '))}">Not for ${r.except_ids.length}</span>` : ''}<span>${attr(r.instruction || 'No wording set.')}</span>${r.target_url ? `<a class="pfa-rlink" href="${attr(r.target_url)}" target="_blank" rel="noopener noreferrer">🔗 ${attr(String(r.target_url).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))}</a>` : ''}</div>
+        <div class="nm"><b>${attr(r.title)}</b>${r.stage === 'enroll' ? ' <span class="pfa-chip dep" style="margin-left:6px;">Once · at Enroll</span>' : ''}${r.capture === 'idcard' ? ' <span class="pfa-chip" style="margin-left:4px;">🪪 Live ID card</span>' : ''}${Number(r.daily_check) === 1 ? ' <span class="pfa-chip" style="margin-left:4px; background:#fffbeb; color:#92400e;">Checked every day</span>' : ''}${(r.except_ids || []).length ? ` <span class="pfa-chip more" style="margin-left:4px;" title="${attr(r.except_ids.map(pfEmpName).join(', '))}">Not for ${r.except_ids.length}</span>` : ''}<span>${attr(r.instruction || 'No wording set.')}</span>${r.target_url ? `<a class="pfa-rlink" href="${attr(r.target_url)}" target="_blank" rel="noopener noreferrer">🔗 ${attr(String(r.target_url).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))}</a>` : ''}</div>
         <div class="sc"><div class="pfa-chips">${chips}</div><div class="pfa-cnt">${kind} · ${r.applies_count} employee${r.applies_count === 1 ? '' : 's'}</div></div>
         <div class="nd">${needs}</div>
         <div class="ac">
@@ -1155,7 +1159,7 @@
   function pfRulePayload(r, over) {
     return Object.assign({ rule_id: r.rule_id, kind: r.kind, title: r.title, instruction: r.instruction, hint_top: r.hint_top || '', hint_bottom: r.hint_bottom || '', shots_required: r.shots_required, link_required: r.link_required, target_url: r.target_url || '',
       scope_all: r.scope_all, department_ids: r.department_ids, employee_ids: r.employee_ids, active: r.active, stage: r.stage === 'enroll' ? 'enroll' : 'punch',
-      capture: r.capture === 'faceid' ? 'faceid' : 'upload', ask_enrolled: Number(r.ask_enrolled) === 0 ? 0 : 1, except_ids: r.except_ids || [] }, over || {});
+      capture: r.capture === 'idcard' ? 'idcard' : 'upload', daily_check: Number(r.daily_check) === 1 ? 1 : 0, ask_enrolled: Number(r.ask_enrolled) === 0 ? 0 : 1, except_ids: r.except_ids || [] }, over || {});
   }
   window.pfaToggle = async function (id, on, box) {
     const r = PF.rules.find(x => Number(x.rule_id) === Number(id));
@@ -1248,9 +1252,11 @@
     document.getElementById('pfeAskEnrBox').style.display = pfEd.stage === 'enroll' ? 'flex' : 'none';
     document.getElementById('pfeAskEnr').checked = !!pfEd.askEnr;
     pfeSeg('pfeCapture', pfEd.capture);
-    document.getElementById('pfeCaptureNote').textContent = pfEd.capture === 'faceid'
-      ? 'Front camera only (no gallery). The screen shows a green oval for the face and a yellow box for the ID card — one photo with both. The face must match the enrolled face. You check the card in the photo.'
+    document.getElementById('pfeCaptureNote').textContent = pfEd.capture === 'idcard'
+      ? 'Live camera only (no gallery): the employee holds the ID card inside the box on screen and takes one photo. No face check. The AI makes sure it is an ID card.'
       : 'The employee picks a photo or screenshot from the phone.';
+    document.getElementById('pfeDailyBox').style.display = (pfEd.stage === 'enroll' && pfEd.capture === 'idcard') ? 'flex' : 'none';
+    document.getElementById('pfeDaily').checked = !!pfEd.daily;
     pfeExcRender();
     pfeSeg('pfeScope', pfEd.all ? 1 : 0);
     document.getElementById('pfeSel').style.display = pfEd.all ? 'none' : '';
@@ -1265,8 +1271,8 @@
     const r = id ? PF.rules.find(x => Number(x.rule_id) === Number(id)) : null;
     pfEd = r
       ? { rule_id: Number(r.rule_id), kind: pfKindOf(r.kind), link: Number(r.link_required) ? 1 : 0, stage: r.stage === 'enroll' ? 'enroll' : 'punch', all: Number(r.scope_all) === 1, deps: new Set(r.department_ids.map(Number)), emps: new Set(r.employee_ids.map(Number)),
-          capture: r.capture === 'faceid' ? 'faceid' : 'upload', askEnr: Number(r.ask_enrolled) !== 0, except: new Set((r.except_ids || []).map(Number)) }
-      : { rule_id: 0, kind: 'custom', link: 0, stage: 'punch', all: true, deps: new Set(), emps: new Set(), capture: 'upload', askEnr: true, except: new Set() };
+          capture: r.capture === 'idcard' ? 'idcard' : 'upload', daily: Number(r.daily_check) === 1, askEnr: Number(r.ask_enrolled) !== 0, except: new Set((r.except_ids || []).map(Number)) }
+      : { rule_id: 0, kind: 'custom', link: 0, stage: 'punch', all: true, deps: new Set(), emps: new Set(), capture: 'upload', daily: false, askEnr: true, except: new Set() };
     document.getElementById('pfeExSearch').value = ''; document.getElementById('pfeExRes').style.display = 'none';
     pfEd.example = r ? (r.example || '') : ''; pfEd._file = null; pfEd._preview = ''; pfEd._rm = false;
     pfeExRender();
@@ -1335,7 +1341,8 @@
   }
   document.getElementById('pfeUrl').addEventListener('input', () => pfeUrlCheck(true));
   document.getElementById('pfeStage').addEventListener('click', (e) => { const b = e.target.closest('button[data-s]'); if (!b) return; pfEd.stage = b.dataset.s === 'enroll' ? 'enroll' : 'punch'; pfeRender(); });
-  document.getElementById('pfeCapture').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.capture = b.dataset.v === 'faceid' ? 'faceid' : 'upload'; pfeRender(); });
+  document.getElementById('pfeCapture').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; pfEd.capture = b.dataset.v === 'idcard' ? 'idcard' : 'upload'; if (pfEd.capture === 'idcard' && pfEd.stage === 'enroll' && !pfEd.rule_id) pfEd.daily = true; pfeRender(); });
+  document.getElementById('pfeDaily').addEventListener('change', (e) => { pfEd.daily = e.target.checked; });
   document.getElementById('pfeAskEnr').addEventListener('change', (e) => { pfEd.askEnr = e.target.checked; });
   // "Not required for": people who never get this proof.
   function pfeExcRender() {
@@ -1391,7 +1398,7 @@
         hint_top: document.getElementById('pfeHintTop').value.trim(), hint_bottom: document.getElementById('pfeHintBot').value.trim(),
         shots_required: Math.max(1, Math.min(10, Number(document.getElementById('pfeShots').value) || 1)), link_required: pfEd.link,
         stage: pfEd.stage, scope_all: pfEd.all ? 1 : 0, department_ids: pfEd.all ? [] : [...pfEd.deps], employee_ids: pfEd.all ? [] : [...pfEd.emps],
-        capture: pfEd.capture, ask_enrolled: pfEd.askEnr ? 1 : 0, except_ids: [...pfEd.except],
+        capture: pfEd.capture, daily_check: (pfEd.stage === 'enroll' && pfEd.capture === 'idcard' && pfEd.daily) ? 1 : 0, ask_enrolled: pfEd.askEnr ? 1 : 0, except_ids: [...pfEd.except],
         active: document.getElementById('pfeActive').checked ? 1 : 0,
       });
       let exErr = '';
@@ -1654,7 +1661,8 @@
     const cw = ['', 'Very dirty', 'Dirty', 'Average', 'Clean', 'Spotless'];
     const cleanLn = (last && last.clean_rating != null) ? `<br>Shoes cleanliness: <b style="color:${Number(last.clean_rating) >= 4 ? '#0f7a41' : (Number(last.clean_rating) <= 2 ? '#c81e1e' : '#b45309')}">${'★'.repeat(Number(last.clean_rating))}${'☆'.repeat(5 - Number(last.clean_rating))} ${Number(last.clean_rating)}/5 · ${cw[Number(last.clean_rating)] || ''}</b>${last.clean_note ? ` <small>(${attr(last.clean_note)})</small>` : ''}` : '';
     const fd = last && last.face_dist != null ? Number(last.face_dist) : null;
-    const faceLn = fd != null ? `<br>Face match: <b style="color:${fd <= 0.45 ? '#0f7a41' : '#b45309'}">${fd <= 0.45 ? '✓ same person' : '≈ close'} (${fd.toFixed(2)})</b> <small>— lower = closer · check the ID card in the photo</small>` : '';
+    const aiLn = last && last.ai_note ? `<br>ID card check: <b style="color:${/^✓/.test(last.ai_note) ? '#0f7a41' : '#b45309'}">${attr(last.ai_note)}</b>` : '';
+    const faceLn = aiLn + (fd != null ? `<br>Face match: <b style="color:${fd <= 0.45 ? '#0f7a41' : '#b45309'}">${fd <= 0.45 ? '✓ same person' : '≈ close'} (${fd.toFixed(2)})</b> <small>— lower = closer</small>` : '');
     const meta = (last ? `Uploaded <b>${fmtT(last.uploaded_at)}</b>${ok.length > 1 ? ` · ${ok.length} screenshots` : ''}` : '')
       + faceLn + cleanLn
       + (link ? `<br>Link: ${link}` : '') + givenHtml

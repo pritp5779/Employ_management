@@ -65,14 +65,12 @@
   .cam-shoe-frame{position:absolute; inset:38px 22px 112px; border:2px dashed rgba(255,255,255,.55); border-radius:14px; pointer-events:none; z-index:2;}
   .cam-shoe-frame span{position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); color:#fff; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap;}
   .cam-shoe-frame[hidden]{display:none;}
-  /* Face + ID card photo: green oval = face, yellow box = ID card, one photo with both (front camera). */
+  /* ID card photo (live camera): one yellow box, the card held inside it. */
   .cam-idf{display:none; position:absolute; inset:0; pointer-events:none; z-index:2;}
   .cam-panel.idc .cam-idf{display:block;} .cam-panel.idc.still .cam-idf{display:none;}
   .cam-panel.idc .cam-shoe-frame{display:none;}
-  .cam-idf .fo{position:absolute; left:8%; top:9%; width:44%; aspect-ratio:3/4; border:3px dashed #4ade80; border-radius:50%;}
-  .cam-idf .fc{position:absolute; right:6%; top:44%; width:42%; aspect-ratio:1.586; border:3px dashed #facc15; border-radius:10px;}
-  .cam-idf span{position:absolute; background:rgba(0,0,0,.6); color:#fff; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:6px; white-space:nowrap;}
-  .cam-idf .lf{left:12%; top:3%;} .cam-idf .lc{right:8%; top:38%;}
+  .cam-idf .fc{position:absolute; left:50%; top:40%; width:78%; aspect-ratio:1.586; transform:translate(-50%,-50%); border:3px dashed #facc15; border-radius:14px; box-shadow:0 0 0 999px rgba(0,0,0,.28);}
+  .cam-idf span{position:absolute; left:50%; transform:translateX(-50%); top:8%; background:rgba(0,0,0,.6); color:#fff; font-size:11px; font-weight:800; padding:3px 9px; border-radius:6px; white-space:nowrap;}
   .cam-still{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; background:#0b0b0f;} .cam-still[hidden]{display:none;}
   .cam-panel.still .cam-live b{background:#9ca3af; animation:none;}
   .cam-check{position:absolute; inset:0; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff; font-weight:700; font-size:14px; background:rgba(0,0,0,.42); text-align:center; padding:12px;}
@@ -376,7 +374,7 @@
             </div>
             <img id="camStill" class="cam-still" alt="The photo you took" hidden>
             <div id="camShoeFrame" class="cam-shoe-frame" aria-hidden="true" hidden><span>Keep both shoes inside</span></div>
-            <div class="cam-idf" aria-hidden="true"><i class="fo"></i><span class="lf">Your face here</span><i class="fc"></i><span class="lc">ID card here</span></div>
+            <div class="cam-idf" aria-hidden="true"><i class="fc"></i><span>🪪 Hold your ID card inside the box</span></div>
             <div id="camStamp" class="cam-stamp" hidden></div>
             <div id="camCheck" class="cam-check" hidden><i></i>Checking the photo…<small>Is this proper shoes?</small></div>
             <div id="camShoe" class="cam-shoe" hidden>
@@ -1071,7 +1069,7 @@
     if (lock) {
       btnIn.disabled = true; btnIn.title = PF_LOCK_MSG;
       const left = d ? Math.max(0, Number(d.total) - Number(d.done_count || 0)) : 0;
-      note.textContent = waiting ? '' : (d && d.once) ? '🔒 One-time photo first (below)' : `🔒 ${left || ''} proof${left === 1 ? '' : 's'} to upload first`.replace('  ', ' ');
+      note.textContent = waiting ? '' : (d && d.once) ? '🔒 Enroll your ID card first (below)' : `🔒 ${left || ''} proof${left === 1 ? '' : 's'} to upload first`.replace('  ', ' ');
       note.hidden = waiting;
     } else {
       note.hidden = true;
@@ -1127,7 +1125,7 @@
     if (done) {
       const last = proofs[proofs.length - 1];
       const dlk = pfLinkInfo(it);
-      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : it.capture === 'faceid' ? 'Face + ID card photo saved' : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (it.kind === 'custom' ? (need > 1 ? need + ' photos' : 'Photo uploaded') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded')));
+      const sub = it.link ? pfEsc(String(it.link).replace(/^https?:\/\//i, '')) : it.capture === 'idcard' ? (it.daily ? "Today's ID card checked ✓" : 'ID card enrolled ✓') : (Number(it.footwear) === 1 ? (need > 1 ? need + ' photos approved' : 'Footwear approved ✓') : (it.kind === 'custom' ? (need > 1 ? need + ' photos' : 'Photo uploaded') : (need > 1 ? need + ' screenshots' : 'Screenshot uploaded')));
       const rate = (Number(it.footwear) === 1 && last && last.clean_rating != null) ? `<br><span class="pf-clean c${Number(last.clean_rating)}">${pfEsc(cleanTxt(last.clean_rating))}</span>${last.clean_note ? ` <small>(${pfEsc(last.clean_note)})</small>` : ''}` : '';
       const subLk = (dlk ? `<br><a href="${pfEsc(dlk.url)}" target="_blank" rel="noopener noreferrer">${pfEsc(dlk.label)} ↗</a>` : '') + rate;
       return `<div class="pf-req">${tile}<div class="pf-body">
@@ -1157,9 +1155,9 @@
       ? `<input class="pf-in" id="pfLink${id}" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${ph}" value="${pfEsc(pfLinks[id] != null ? pfLinks[id] : (it.link || ''))}" oninput="pfLinks[${id}] = this.value" aria-label="Link for ${pfEsc(it.title)}">`
       : '';
     const shoe = Number(it.footwear) === 1;     // a shoes requirement WITH the AI check on (PROOF_SHOE_AI): live camera instead of an upload
-    const fid = it.capture === 'faceid';         // face + ID card in one live photo (front camera)
+    const fid = it.capture === 'idcard';         // ID card: live camera photo only (no gallery), checked by the AI
     const word = it.kind === 'custom' ? 'photo' : 'screenshot';   // a custom proof (shoes photo etc.) is a photo from the phone, not a screenshot
-    const label = fid ? (editing ? '📷 Take new photo' : '📷 Take photo — face + ID card') : shoe
+    const label = fid ? (editing ? '🪪 Take new photo' : (it.daily ? "🪪 Show today's ID card" : '🪪 Enroll ID card')) : shoe
       ? (editing ? 'Take new photo' : (need > 1 ? `Take photo (${have + 1} of ${need})` : 'Take photo'))
       : (editing ? `Upload new ${word}` : (need > 1 ? `Upload ${word} (${have + 1} of ${need})` : `Upload ${word}`));
     return `<div class="pf-req">${tile}<div class="pf-body">
@@ -1169,7 +1167,7 @@
       ${lkHtml}
       ${(!editing && have > 0) ? `<div class="pf-shots" style="margin-top:8px;">${thumbs}</div><div class="pf-prog">${have} of ${need} ${word}s saved</div>` : ''}
       ${linkIn}
-      <div class="pf-acts"><button type="button" class="pf-up" onclick="${fid ? 'pfFaceId' : shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${it.example ? `<span style="margin-left:auto;">${egSquare('proof', id, it.example, it.title)}</span>` : ''}${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
+      <div class="pf-acts"><button type="button" class="pf-up" onclick="${fid ? 'pfIdCard' : shoe ? 'pfShoe' : 'pfPick'}(${id}, ${editing ? 'true' : 'false'})">${label}</button>${it.example ? `<span style="margin-left:auto;">${egSquare('proof', id, it.example, it.title)}</span>` : ''}${editing ? `<button type="button" class="pf-alt" onclick="pfEditOff(${id})">Cancel</button>` : ''}</div>
     </div></div>`;
   }
 
@@ -1188,13 +1186,13 @@
     pill.textContent = `${d.done_count} of ${d.total}`;
     const once = !!d.once;      // already enrolled, a once-only proof (ID card …) still missing
     const enr = pfStage === 'enroll' && !once, unlockTxt = enr ? 'Enroll' : 'Punch In';
-    document.getElementById('pfTitle').textContent = once ? '🪪 Enroll now — 1st time only' : enr ? 'Proofs before you enroll' : 'Punch In proofs';
+    document.getElementById('pfTitle').textContent = once ? '🪪 Enroll your ID card — 1st time only' : enr ? 'Proofs before you enroll' : 'Punch In proofs';
     pill.className = 'ck-pill' + (complete ? ' ok' : '');
     let note;
     if (compact) note = `<div class="pf-note ok">✓ Punch-in proofs submitted</div>`;
     else if (punched) note = `<div class="pf-note bad">Your admin sent ${redo} proof${redo === 1 ? '' : 's'} back — upload ${redo === 1 ? 'it' : 'them'} again.</div>`;
     else if (complete) note = `<div class="pf-note ok">All proofs saved — you can ${enr ? 'enroll your face' : 'punch in'} now.</div>`;
-    else if (once) note = `<div class="pf-note wait">One-time step — only once. After this, Punch In works as normal.</div>`;
+    else if (once) note = `<div class="pf-note wait">One-time step — take a live photo of your ID card. After this, Punch In works as normal.</div>`;
     else if (Number(d.done_count) === 0) note = `<div class="pf-note wait">Upload ${Number(d.total) === 1 ? 'this proof' : 'these ' + d.total + ' proofs'} to unlock ${unlockTxt}.</div>`;
     else { const left = Number(d.total) - Number(d.done_count); note = `<div class="pf-note wait">${left} proof${left === 1 ? '' : 's'} left — then ${unlockTxt} unlocks.</div>`; }
     document.getElementById('pfBox').innerHTML = note + (compact ? '' : d.items.map(it => pfItemHtml(it, punched)).join(''));
@@ -1386,66 +1384,59 @@
   // The one-time proofs of an already-enrolled person are done: switch to the day's Punch In proofs.
   function pfOnceDone() {
     if (pfState && pfState.once && Number(pfState.complete) && !enrollMode) {
-      showAlert('✅ One-time photo saved — thank you! You can punch in now.');
+      showAlert('✅ ID card enrolled — thank you! You can punch in now.');
       pfLoaded = false; loadProofs();
     }
   }
 
-  // Face + ID card: front camera, one live photo with the face in the green oval and the card in the yellow box.
-  // The phone checks the face (it must be the enrolled face once there is one); the admin checks the card in the photo.
-  window.pfFaceId = async function (ruleId, replace) {
+  // ID card: live camera only (back camera, no gallery) — the card held inside the yellow box, one photo. No face check.
+  // The server's AI checks it is an ID card and, for the daily check, that it is the same card the person enrolled.
+  window.pfIdCard = async function (ruleId, replace) {
     if (pfBusy || busy) return;
     const it = pfItem(ruleId);
     if (!it) return;
     pfBusy = true; busy = true; cancelled = false;
     pfAlert('');
-    document.getElementById('hmVerifyT').textContent = 'Photo — your face + ID card';
+    document.getElementById('hmVerifyT').textContent = it.daily ? "Show today's ID card" : 'Enroll your ID card';
     document.body.classList.add('punching');
     window.scrollTo(0, 0);
     stepsEl.hidden = true;
     setMsg('Opening the camera…', 'var(--accent)');
     const chk = document.querySelector('#camCheck small'), chkOld = chk ? chk.textContent : '';
-    if (chk) chk.textContent = 'Is your face in the photo?';
+    if (chk) chk.textContent = it.daily ? 'Is this your enrolled ID card?' : 'Is this an ID card?';
     try {
-      await Promise.all([openCamera('user'), loadModels()]);
+      await openCamera('environment');
       if (cancelled) return;
       panel.classList.add('shoe', 'idc'); camShoe.hidden = false; shoeUnfreeze();
       for (let tries = 0; tries < 12; tries++) {
-        setMsg('Face in the green oval · ID card in the yellow box · then tap the round button', 'var(--accent)');
-        shoeHint('Hold your ID card next to your face, inside the yellow box', false);
+        setMsg('Hold your ID card inside the yellow box, then tap the round button', 'var(--accent)');
+        shoeHint('ID card inside the box · close · clear · no glare', false);
         btnShoe.disabled = false;
         if (!(await shoeWaitSnap())) return;                 // ✕ tapped
         btnShoe.disabled = true;
-        const blob = await frameBlob();                      // also leaves the frame on the #snap canvas
+        const blob = await frameBlob();
         shoeFreeze(blob);
-        shoeHint('Checking your face…', false);
-        let det = null;
-        try { det = await faceapi.detectSingleFace(document.getElementById('snap'), new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptor(); } catch (e) { det = null; }
-        const dist = det && enrolledDescriptor ? faceapi.euclideanDistance(det.descriptor, enrolledDescriptor) : null;
-        let bad = !det ? 'No face found — keep your face inside the green oval.' : (dist != null && dist > 0.5 ? 'This face does not match your enrolled face. Take it yourself, in good light.' : '');
-        if (!bad) {
-          const fd = new FormData();
-          fd.append('rule_id', ruleId);
-          if (pfStage === 'enroll') fd.append('stage', 'enroll');
-          fd.append('replace', replace ? 1 : 0);
-          fd.append('link', '');
-          fd.append('face_found', '1');
-          if (dist != null) fd.append('face_dist', dist.toFixed(3));
-          fd.append('photo', blob, 'face_id.jpg');
-          try {
-            const d = await api.upload('proofs.upload', fd);
-            shoeStamp(true, '✓ SAVED');
-            shoeHint('Face + ID card photo saved ✓', false); camShoeT.classList.add('ok');
-            pfState = d; delete pfEdit[ruleId];
-            renderProofs();
-            if (!cancelled) { setMsg('Photo saved ✓', 'var(--ok-fg)'); await sleep(1300); setMsg(''); }
-            pfOnceDone();
-            return;
-          } catch (e) {
-            if (cancelled) return;
-            if (!(e.data && e.data.retake)) throw e;
-            bad = e.message;
-          }
+        shoeHint('Checking your ID card…', false);
+        const fd = new FormData();
+        fd.append('rule_id', ruleId);
+        if (pfStage === 'enroll') fd.append('stage', 'enroll');
+        fd.append('replace', replace ? 1 : 0);
+        fd.append('link', '');
+        fd.append('photo', blob, 'id_card.jpg');
+        let bad = '';
+        try {
+          const d = await api.upload('proofs.upload', fd);
+          shoeStamp(true, it.daily ? '✓ ID CARD OK' : '✓ ENROLLED');
+          shoeHint(it.daily ? "Today's ID card checked ✓" : 'ID card enrolled ✓', false); camShoeT.classList.add('ok');
+          pfState = d; delete pfEdit[ruleId];
+          renderProofs();
+          if (!cancelled) { setMsg(it.daily ? 'ID card checked ✓' : 'ID card enrolled ✓', 'var(--ok-fg)'); await sleep(1300); setMsg(''); }
+          pfOnceDone();
+          return;
+        } catch (e) {
+          if (cancelled) return;
+          if (!(e.data && e.data.retake)) throw e;
+          bad = e.message;
         }
         shoeStamp(false, '✕ TRY AGAIN');
         shoeHint(bad, true);
@@ -1453,7 +1444,7 @@
         if ((await shoeWaitRetake()) !== 'retake') return;
         shoeUnfreeze();
       }
-      throw new Error('Photo not accepted after several tries — try again in good light.');
+      throw new Error('ID card not accepted after several tries — try again in good light.');
     } catch (err) {
       if (!cancelled && err.message !== 'cancelled') pfAlert(err.message);
     } finally {
