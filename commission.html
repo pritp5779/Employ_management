@@ -239,7 +239,7 @@
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
-<script src="assets/js/ml_slab.js?v=261022c"></script>
+<script src="assets/js/ml_slab.js?v=261023s"></script>
 <script>
   // Embed mode: the Orders page opens this page in a hidden frame (commission.html?embed=1&from=..&to=..) and reads the finished numbers,
   // so both pages always show exactly the same commission.
@@ -829,7 +829,7 @@
       else {
         if (sl.pct < sl.base && slabHit(o) === false) why.push('target incomplete');
         if (!o.code && Number(SLAB.nocode) !== 100) why.push('no code');
-        if (sl.bonus) why.push('target achieved +' + fmtN(SLAB.bonus) + '%');
+        if (sl.bonus) why.push('target achieved +' + fmtN(sl.bonusPct != null ? sl.bonusPct : SLAB.bonus) + '%'); if (sl.special) why.push('📅 ' + sl.special.join(', '));
       }
       return { v, note: 'ML slab · ' + sl.ml + ' ml · ' + fmtN(sl.base) + '%' + (why.length ? ' → ' + fmtN(sl.pct) + '% (' + why.join(', ') + ')' : '') + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: v < 0.005 ? 'z' : 'sl', slab: sl };
     }

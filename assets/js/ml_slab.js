@@ -69,9 +69,33 @@
   }
   const datesTxt = (c) => !c || (!c.from && !c.to) ? 'all days' : (c.from ? 'from ' + c.from : 'until') + (c.to ? (c.from ? ' to ' : ' ') + c.to : ' onwards');
 
+  // 📅 Special days (Commission Rules → "Specific date / person"): chart.special = [{ id, from, to, emps:[ids] (empty = everyone),
+  // set:{ bonus, cap, nocode, maxdisc, maxdisc_for, floor, prepaid }, note }]. On those days these numbers replace the chart's own.
+  // Person-specific entries win over "everyone"; among equals the later one wins. Same as api.php ml_slab_for().
+  const SP_KEYS = ['bonus', 'cap', 'nocode', 'maxdisc', 'maxdisc_for', 'floor', 'prepaid'];
+  function specialsOn(chart, day, emp) {
+    const l = (chart && chart.special) || [];
+    if (!l.length || !day) return [];
+    emp = Number(emp) || 0;
+    return l.map((x, i) => ({ x, i, who: (x.emps || []).length ? 1 : 0 }))
+      .filter(({ x }) => x.from <= day && x.to >= day && (!(x.emps || []).length || x.emps.map(Number).indexOf(emp) >= 0))
+      .sort((a, b) => a.who - b.who || a.i - b.i).map((h) => h.x);
+  }
+  function forDay(chart, day, emp) {
+    const hits = specialsOn(chart, day, emp);
+    if (!hits.length) return chart;
+    const c = Object.assign({}, chart), lab = [];
+    hits.forEach((x) => { SP_KEYS.forEach((k) => { if (x.set && x.set[k] != null && x.set[k] !== '') c[k] = x.set[k]; }); lab.push(x.note || 'special day'); });
+    c.special_on = lab; c.special_day = day;
+    return c;
+  }
+  const dShort = (d) => { const t = new Date(d + 'T00:00:00'); return isNaN(t) ? d : t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); };
+
   function orderCom(chart, o, hit) {
     if (!chart || !Number(chart.on) || o.ml == null || !(Number(o.ml) > 0)) return null;
     if (o.day && !activeOn(chart, o.day)) return null;     // order outside the chart's dates: normal commission
+    if (o.day && chart.special && chart.special.length && !chart.special_on) chart = forDay(chart, o.day, o.emp);
+    const spT = chart.special_on ? ' (📅 special day ' + dShort(chart.special_day) + ')' : '';
     const amt = Number(o.amt) || 0;
     const look = o.pre && Number(chart.prepaid) > 0 ? amt / (1 - Number(chart.prepaid) / 100) : amt;
     const s = pctOf(chart, o.ml, look);
@@ -84,19 +108,19 @@
     // The limit is for orders WITHOUT a code (maxdisc_for = 'nocode', default); 'all' limits every order. With a code, any discount is allowed.
     const maxOn = maxd > 0 && (chart.maxdisc_for === 'all' || !o.code);
     if (maxOn && disc > maxd + 1e-9) {
-      steps.push('discount ' + r2(disc) + '% is more than the ' + maxd + '% max' + (chart.maxdisc_for === 'all' ? '' : ' for orders without code') + ' → no commission');
-      return { v: 0, pct: 0, base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: true };
+      steps.push('discount ' + r2(disc) + '% is more than the ' + maxd + '% max' + (chart.maxdisc_for === 'all' ? '' : ' for orders without code') + spT + ' → no commission');
+      return { v: 0, pct: 0, base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: true, special: chart.special_on || null };
     }
-    if (hit === false && Number(chart.cap) > 0 && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%'); }
-    if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it'); }
+    if (hit === false && Number(chart.cap) > 0 && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%' + spT); }
+    if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it' + spT); }
     // Below the lowest slab % (the last column, 0.1%) = nothing: e.g. 0.1% without code = 0.05% → 0%.
     // (Not with a lowest % set: 2.8% without code = 1.4% is paid.)
     const minPct = Number(chart.floor) > 0 ? 0 : Number(chart.cols[chart.cols.length - 1]) || 0;
     if (pct > 0 && pct < minPct - 1e-9) { steps.push(r2(pct) + '% is below the lowest slab (' + minPct + '%) → 0%'); pct = 0; }
     // Daily target achieved → bonus on top of the commission (20% → ₹100 becomes ₹120). Not achieved → no cut, no bonus.
     const bonus = Number(chart.bonus) || 0;
-    if (hit === true && bonus > 0 && pct > 0) { pct = pct * (1 + bonus / 100); steps.push('daily target achieved → +' + bonus + '% bonus'); }
-    return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false, bonus: hit === true && bonus > 0 };
+    if (hit === true && bonus > 0 && pct > 0) { pct = pct * (1 + bonus / 100); steps.push('daily target achieved → +' + bonus + '% bonus' + spT); }
+    return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false, bonus: hit === true && bonus > 0, bonusPct: bonus, special: chart.special_on || null };
   }
 
   // An order's ML in parts: total (free ML included), extra = the free 10 ml pieces, base = what was bought. null = no ML known.
@@ -127,5 +151,5 @@
     return { chart: cp, per, look, paid, extra: Math.round(extra * 10) / 10, value: Math.max(0, cp - look) };
   }
 
-  window.MLSLAB = { rowFor, pctOf, orderCom, parts, preview, isPre, extraByPrice, activeOn, datesTxt, on: (c) => !!(c && Number(c.on)) };
+  window.MLSLAB = { rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, on: (c) => !!(c && Number(c.on)) };
 })();

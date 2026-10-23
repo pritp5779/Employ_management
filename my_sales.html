@@ -167,7 +167,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261022c"></script>
+<script src="assets/js/ml_slab.js?v=261023s"></script>
 <script src="assets/js/convo.js?v=261022b"></script>
 <script>
   guardPage();
@@ -344,7 +344,7 @@
     if (window.MLSLAB && MLSLAB.on(CM.slab)) {
       const ctx = c && hasCond() ? { hit: c.hit, ticket: c.ticket } : undefined;
       orders.forEach((o) => {
-        const s = MLSLAB.orderCom(CM.slab, o, slabHit(o));
+        const s = MLSLAB.orderCom(CM.slab, Object.assign({ emp: CM.slab.me }, o), slabHit(o));   // 📅 special days for me
         if (!s) return;
         const p = ctx ? calcPrice(o, ctx) : o;
         amount += s.v - (c ? c.rate * p.eff / 100 + p.flat : 0); slabN++;

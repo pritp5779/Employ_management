@@ -224,6 +224,10 @@
   .tob .tbc .cl1,.tob .tbc .cl2{justify-content:flex-start;}
   .tob .tb2{display:flex; align-items:center; gap:16px; padding-top:6px; border-top:1px dashed #cfd8e3; font-size:12px; color:var(--muted);}
   .tob .tb2 b{color:var(--ink);}
+  .tob .tb3, .mbox .tb3{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding-top:6px; border-top:1px dashed #cfd8e3; font-size:12px; color:var(--muted); white-space:normal;}
+  .tb3 .pk{display:inline-block; border-radius:99px; padding:2px 9px; font-weight:800; font-size:11.5px; text-decoration:none;}
+  .tb3 .ok{background:#dcfce7; color:#166534;} .tb3 .bad{background:#fee2e2; color:#991b1b;} .tb3 .pd{background:#ffedd5; color:#9a3412;} .tb3 .cl{background:#eff6ff; color:#1e40af;} .tb3 .z{background:#f1f5f9; color:#64748b;}
+  .mbox .tb3{margin-top:6px;}
   /* After punch-out: this person's orders that came in after they punched out, split before 12 AM / after 12 AM */
   .po{margin-top:7px; padding-top:7px; border-top:1px dashed #cfd8e3; font-size:12px; color:var(--muted); line-height:1.5;}
   .po .h{display:flex; justify-content:space-between; gap:8px; white-space:nowrap;} .po .h b{color:var(--ink);} .po .h em{font-style:normal; font-size:11px;}
@@ -650,6 +654,7 @@
               <th class="th-sort" data-key="financial_status" style="cursor:pointer; user-select:none;">Payment</th>
               <th class="th-sort" data-key="fulfillment_status" style="cursor:pointer; user-select:none;">Fulfillment</th>
               <th class="th-sort" data-key="ticket_rating" style="cursor:pointer; user-select:none;" title="Ticket size convincing — same rating as the Performance page">Rating</th>
+              <th title="WhatsApp chat screenshots and the call recording of this order — the AI reviews them (see My Sales → Chat coach)">Chat / Call</th>
               <th id="thAct"></th>
             </tr>
           </thead>
@@ -802,7 +807,7 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261022c"></script>
+<script src="assets/js/ml_slab.js?v=261023s"></script>
 <script src="assets/js/convo.js?v=261022b"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
 <div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
@@ -1132,7 +1137,8 @@
   // The list under the stat cards: the scoped orders, narrowed to one person
   // when a name was clicked in the Employee sheet (the cards stay unchanged).
   let pickSalesman = '';
-  let pickPanel = '';      // a name / count was clicked inside a panel block: only that panel's orders
+  let pickPanel = '';
+  let pickProof = false;   // only the orders still waiting for their chat proof      // a name / count was clicked inside a panel block: only that panel's orders
   let housePick = '';      // a platform card was clicked: only that platform's orders (cleared with the ✕ chip)
   let listType = '';      // '' = all orders, 'query' / 'campaign' = only that kind (Query orders / Campaign orders tabs)
   const LIST_NAMES = { '': 'Orders', query: 'Query orders', campaign: 'Campaign orders', unalloc: 'Not allocated orders', cancelled: 'Cancelled orders',
@@ -1152,6 +1158,7 @@
       : scopedOrders();
     if (pickSalesman) b = b.filter(o => o.salesman === pickSalesman);
     if (pickPanel) b = b.filter(o => panelOf(o) === pickPanel);
+    if (pickProof) b = b.filter(o => ocvOk(o) && !ocvDone(OCV[ocvKey(o)]));      // Employee sheet → "N pending" chat proof
     if (housePick) b = b.filter(o => (o.house || STORE_HOUSE_MAP[o.store_key]) === housePick);
     if (TIME_SEGS.includes(listType)) { const om = esOutMap(); return b.filter(o => orderTimeSeg(o, om) === listType); }
     return listType && listType !== 'cancelled' && listType !== 'unalloc' ? b.filter(o => orderTagType(o.tags) === listType) : b;
@@ -2074,10 +2081,10 @@
     if (!PM.d) return `<div class="stat-card pm-card">${head}<div class="dtt">Loading…</div></div>`;
     if (PM.d.error) return `<div class="stat-card pm-card">${head}<div class="dtt">Could not load: ${esEsc(PM.d.error)}</div></div>`;
     const rows = PM.d.rows || [], rated = rows.filter((x) => x.rating != null);
-    const best = rated.slice(0, 2), weak = rated.slice().reverse().filter((x) => x.rating < 5.5).slice(0, 2);
+    const best = rated.filter((x) => x.rating >= 5.5).slice(0, 2), weak = rated.filter((x) => x.rating < 5.5).sort((a, b) => a.rating - b.rating).slice(0, 2);
     return `<div class="stat-card pm-card">${head}
       <div class="dtt">${rows.length} message${rows.length === 1 ? '' : 's'} · rated from ${PM.d.base.chats} reviewed chats (last ${PM.d.days} days) · our order rate ${pmPct(PM.d.base.order_rate)}</div>
-      ${best.map((x) => `<a href="#" class="rt-r" data-pmopen="1"><b>✅ ${esEsc(x.title)}</b><span class="cq-s g">${Number(x.rating).toFixed(1)}</span><small>${x.uses} uses · reply ${pmPct(x.reply_rate)} · order ${pmPct(x.order_rate)}</small></a>`).join('')}
+      ${best.map((x) => `<a href="#" class="rt-r" data-pmopen="1"><b>${x.rating >= 7.5 ? '✅' : '👍'} ${esEsc(x.title)}</b><span class="cq-s g">${Number(x.rating).toFixed(1)}</span><small>${x.uses} uses · reply ${pmPct(x.reply_rate)} · order ${pmPct(x.order_rate)}</small></a>`).join('')}
       ${weak.map((x) => `<a href="#" class="rt-r" data-pmopen="1"><b>⚠️ ${esEsc(x.title)}</b><span class="cq-s a">${Number(x.rating).toFixed(1)}</span><small>${x.uses} uses · reply ${pmPct(x.reply_rate)} · order ${pmPct(x.order_rate)}</small></a>`).join('')}
       ${!rated.length ? `<div class="dtt">${rows.length ? 'Ratings appear after a message is seen in 5 reviewed chats.' : 'Add the ready-made messages your team sends — the AI spots them in every reviewed chat and rates them from our own results.'}</div>` : ''}
       ${(PM.d.found || []).length ? `<div class="rt-tip">🤖 AI found ${PM.d.found.length} ready-made message${PM.d.found.length === 1 ? '' : 's'} in chats that are not in the list yet.</div>` : ''}
@@ -2382,13 +2389,15 @@
   // (before the daily-target cap / no-code cut), Commission = the order's commission from the Commission page (exact, once it has
   // loaded), otherwise the slab estimate in grey. MySales orders have no product sizes: "—".
   let ML_CHART = null;
+  // The chart for this order's day and salesman (📅 special days from Commission Rules applied).
+  const mlDay = (o) => ML_CHART && MLSLAB.forDay ? MLSLAB.forDay(ML_CHART, o.biz_date || '', o.employee_id) : ML_CHART;
   api.get('ml_slab.get').then((d) => { ML_CHART = d && d.chart ? d.chart : null; if (allOrders.length) try { renderPage(); summaryRefresh(); } catch (e) {} }).catch(() => {});
   function mlInfo(o) {
     const m = window.MLSLAB ? MLSLAB.parts(o) : null;
     const key = (o.store_key || o.source || '') + ':' + o.id;
     const ex = commValid() && COMM.res.ord ? COMM.res.ord[key] : null;      // [₹, note, rule kind] from the Commission page
     const pre = MLSLAB.isPre(o.financial_status);
-    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', amt: Number(o.total || 0), pre, code: o.code || '' }, null) : null;   // daily target not known here: no bonus / cut (the Commission page has it)
+    const r = m && m.total && ML_CHART ? MLSLAB.orderCom(MLSLAB.preview(ML_CHART), { ml: m.total, day: o.biz_date || '', emp: o.employee_id, amt: Number(o.total || 0), pre, code: o.code || '' }, null) : null;   // daily target not known here: no bonus / cut (the Commission page has it)
     let x = m && m.total && ML_CHART ? MLSLAB.extraByPrice(ML_CHART, m.total, Number(o.total || 0), pre) : null;   // extra ML by price
     // Campaign orders (Type = Campaign on Order Allocation): the campaign price is the set price → no extra ML counted.
     if (x && orderTagType(o.tags) === 'campaign') x = Object.assign({}, x, { extra: 0, value: 0, campaign: true });
@@ -2423,7 +2432,7 @@
     // The % actually paid (same as the Commission column): the Commission page's figure when loaded, else the slab estimate
     // (code as on the order, target taken as complete). The chart % before the cuts shows underneath when it differs.
     const fp = mlFinalPct(o, r, ex);
-    if (!ex && r && r.overMax) return `<td style="white-space:nowrap;">${ml}</td><td style="text-align:right; white-space:nowrap;">${cp}</td><td style="text-align:right; white-space:nowrap;">${xm}</td><td style="text-align:right;"><span class="mlp lo" title="${esEsc(r.steps.join(' · '))}">0%</span><div class="mls">${r.disc}% off · over ${ML_CHART.maxdisc}% max</div></td><td style="text-align:right; white-space:nowrap;"><a href="#" class="mlcw est" onclick="comWhy(${o._i}); return false;">₹0</a></td>`;
+    if (!ex && r && r.overMax) return `<td style="white-space:nowrap;">${ml}</td><td style="text-align:right; white-space:nowrap;">${cp}</td><td style="text-align:right; white-space:nowrap;">${xm}</td><td style="text-align:right;"><span class="mlp lo" title="${esEsc(r.steps.join(' · '))}">0%</span><div class="mls">${r.disc}% off · over ${mlDay(o).maxdisc}% max</div></td><td style="text-align:right; white-space:nowrap;"><a href="#" class="mlcw est" onclick="comWhy(${o._i}); return false;">₹0</a></td>`;
     const pc = fp != null ? `<span class="mlp ${mlPctCls(fp)}" title="${esEsc(r ? r.steps.join(' · ') : '')}">${fp}%</span>${r && Math.abs(r.base - fp) > 0.005 ? `<div class="mls">chart ${Math.round(r.base * 100) / 100}%${mlCutTxt(o, ex)}</div>` : ''}` : dash;
     const cm = ex ? `<a href="#" class="mlcw" onclick="comWhy(${o._i}); return false;" title="Click to see how it was worked out">${fmtMoney(ex[0], 'INR')}</a>` : (r ? `<a href="#" class="mlcw est" onclick="comWhy(${o._i}); return false;" title="Estimate — click to see how it was worked out">≈ ${fmtMoney(Math.round(r.v), 'INR')}</a>` : dash);
     return `<td style="white-space:nowrap;">${ml}</td><td style="text-align:right; white-space:nowrap;">${cp}</td><td style="text-align:right; white-space:nowrap;">${xm}</td><td style="text-align:right;">${pc}</td><td style="text-align:right; white-space:nowrap;">${cm}</td>`;
@@ -2437,6 +2446,7 @@
   const CW_KIND = { slab: 'ML price slab', panel: 'Panel rule', fixed: 'Fixed commission', mix: 'Order-code mix rule', star: 'Rating rule', code: 'Order-code rule' };
   window.comWhy = (i) => {
     const o = allOrders[i]; if (!o) return;
+    const ML_CHART = mlDay(o);      // this order's day + salesman (📅 special days)
     const { m, r, ex, x } = mlInfo(o);
     const amt = Number(o.total || 0), pre = MLSLAB.isPre(o.financial_status);
     const line = (n, t) => `<div style="display:flex; gap:10px; padding:7px 0; border-bottom:1px solid #f1f3f6; font-size:13.5px; line-height:1.5;"><b style="flex:none; width:22px; height:22px; border-radius:50%; background:#6d28d9; color:#fff; font-size:11.5px; display:flex; align-items:center; justify-content:center; margin-top:1px;">${n}</b><div>${t}</div></div>`;
@@ -2494,6 +2504,39 @@
   }
   window.mlEmpToggle = () => { mlEmpOpen = !mlEmpOpen; mlTotals(filteredOrders); };
 
+  // ---------- Chat / Call: WhatsApp screenshots + call recording of each order (assets/js/convo.js) ----------
+  // Sales employee: their own allocated orders (upload + see the AI review). Admin / HR: open any order's review.
+  const OCV = {};
+  const ocvKey = (o) => o.store_key + '|' + o.id;
+  const ocvOk = (o) => !!window.Convo && o.store_key && o.store_key !== 'manual' && o.id !== undefined && o.id !== null && !!o.employee_id && !o.cancelled;
+  function ocvChip(e) {
+    if (!e) return `<button type="button" class="cvchip none" data-cv="1" title="Upload the WhatsApp chat screenshots (3–10) and, if you have it, the call recording">📎 Chat · 📞 Call</button>`;
+    return Convo.chip(e);
+  }
+  function ocvCell(o) { return ocvOk(o) ? `<span class="ocv-slot" data-cvk="${ocEsc(ocvKey(o))}" data-i="${o._i}">${ocvChip(OCV[ocvKey(o)])}</span>` : '<span style="color:var(--muted);">—</span>'; }
+  let ocvTimer = null;
+  function ocvRefresh(only) {
+    if (!window.Convo) return;
+    clearTimeout(ocvTimer);
+    ocvTimer = setTimeout(async () => {
+      const keys = only || [...new Set(Array.from(document.querySelectorAll('.ocv-slot')).map((x) => x.dataset.cvk))];
+      if (!keys.length) return;
+      try {
+        const m = await Convo.forOrders(keys);
+        keys.forEach((k) => { if (m[k]) OCV[k] = m[k]; else delete OCV[k]; });
+        document.querySelectorAll('.ocv-slot').forEach((x) => { if (keys.includes(x.dataset.cvk)) x.innerHTML = ocvChip(OCV[x.dataset.cvk]); });
+      } catch (e) { /* chips stay as they are */ }
+    }, 250);
+  }
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('.ocv-slot [data-cv]'); if (!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const slot = b.closest('.ocv-slot'), o = allOrders[Number(slot.dataset.i)]; if (!o) return;
+    const k = ocvKey(o);
+    Convo.open({ kind: 'order', source: o.store_key, order_id: String(o.id), order_name: o.order_name, total: o.total, day: String(o.created_at || '').slice(0, 10),
+      id: OCV[k] ? OCV[k].id : 0, admin: TCO_ON, onChange: () => ocvRefresh([k]) });
+  }, true);
+
   function renderPage() {
     mlTotals(filteredOrders);
     const body = document.getElementById('ordersBody');
@@ -2512,7 +2555,7 @@
     });
 
     if (filteredOrders.length === 0) {
-      body.innerHTML = '<tr><td colspan="18" class="empty-state">No matching orders.</td></tr>';
+      body.innerHTML = '<tr><td colspan="19" class="empty-state">No matching orders.</td></tr>';
       document.getElementById('ordersCards').innerHTML = '<div class="empty-state">No matching orders.</div>';
       pagerBar.style.display = 'none';
       return;
@@ -2541,6 +2584,7 @@
           <td><span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span></td>
           <td><span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span></td>
           <td style="white-space:nowrap;">${rtCell(o)}</td>
+          <td style="white-space:nowrap;">${ocvCell(o)}</td>
           <td style="white-space:nowrap;">${cxBtn(o)}</td>
         </tr>`;
 
@@ -2561,6 +2605,7 @@
           </div>
           ${mlCard(o)}
           <div style="margin-top:8px;">${rtCell(o)}</div>
+          ${ocvOk(o) ? `<div style="margin-top:6px;">${ocvCell(o)}</div>` : ''}
           <div style="display:flex; gap:6px; margin-top:8px;">
             <span class="badge ${o.financial_status === 'paid' ? '' : 'inactive'}">${o.financial_status || '—'}</span>
             <span class="badge ${o.fulfillment_status === 'fulfilled' ? '' : 'inactive'}">${o.fulfillment_status || 'unfulfilled'}</span>
@@ -2594,7 +2639,7 @@
         const dt = dayTotals[day];
         return `
           <tr style="background:#f0f4ff;">
-            <td colspan="18" style="font-weight:700;">
+            <td colspan="19" style="font-weight:700;">
               ${dateLabel(day)}
               <span style="float:right; font-weight:600; color:var(--muted);">${dt.count} order${dt.count === 1 ? '' : 's'} · ${fmtMoney(dt.total, 'INR')}</span>
             </td>
@@ -2615,6 +2660,7 @@
       cardsEl.innerHTML = pageOrders.map(cardHtml).join('');
     }
 
+    ocvRefresh();
     // Pager UI
     pagerBar.style.display = 'flex';
     document.getElementById('pagerInfo').textContent =
@@ -3218,10 +3264,51 @@
     const chip = (cls, l, n, v) => n ? `<span class="${cls}">${l} · ${n} · ${esInr(v)}</span>` : '';
     return `<div class="po"><div class="h"><span>${lab}${out}</span><span><b>${e.pon} ${e.pon === 1 ? 'order' : 'orders'}</b> · <b>${esInr(e.pot)}</b></span></div><div class="ch">${chip('pcb', 'Before 12 AM', e.pobn, e.pobt)}${chip('pca', 'After 12 AM', e.poan, e.poat)}</div></div>`;
   }
+  // ---- Pending target + chat proof (pending / done) + call recordings, under Orders / Total query / Ratio
+  // Chat proof = the uploads of this person's orders in this panel for the dates shown (assets/js/convo.js); calls = one day only.
+  const ESCV = { key: '', busy: false, calls: {} };
+  const ocvDone = (x) => !!x && ['done', 'saved', 'analyzing'].includes(x.status);
+  async function esCvLoad() {
+    if (!window.Convo || ESCV.busy) return;
+    const list = scopedOrders().filter(ocvOk), df = esEl('dateFrom').value, dt = esEl('dateTo').value;
+    const key = df + '|' + dt + '|' + list.length;
+    if (key === ESCV.key) return;
+    ESCV.key = key; ESCV.busy = true;
+    try {
+      const keys = [...new Set(list.map(ocvKey))];
+      for (let i = 0; i < keys.length; i += 500) {
+        const part = keys.slice(i, i + 500), m = await Convo.forOrders(part);
+        part.forEach((k) => { if (m[k]) OCV[k] = m[k]; else delete OCV[k]; });
+      }
+      ESCV.calls = {};
+      if (TCO_ON && df === dt) { try { (await api.get('convo.calls_team', { date: dt })).rows.forEach((r) => { ESCV.calls[r.id] = r; }); } catch (e) {} }
+    } catch (e) { ESCV.key = ''; }
+    ESCV.busy = false;
+    renderTeamSheet();
+  }
+  function esPend(e, tot) {
+    if (tot || !e.real) return '';
+    let h = '';
+    if (e.tg > 0) {
+      const left = Math.round(e.tg - e.coll);
+      if (left <= 0) h += `<div class="tb3">🎯 Pending target <span class="pk ok">✅ Done (+${esInr(-left)})</span></div>`;
+      else { const avg = e.ord > 0 ? e.coll / e.ord : 0; h += `<div class="tb3">🎯 Pending target <span class="pk bad">${esInr(left)} left</span>${avg > 0 ? `<span>· ~${Math.ceil(left / avg)} order${Math.ceil(left / avg) === 1 ? '' : 's'}</span>` : ''}</div>`; }
+    }
+    if (window.Convo) {
+      const mine = scopedOrders().filter((o) => ocvOk(o) && o.salesman === e.n && panelOf(o) === e.b);
+      const c = ESCV.calls[e.id];
+      if (mine.length || (c && c.required)) {
+        const done = mine.filter((o) => ocvDone(OCV[ocvKey(o)])).length, pend = mine.length - done;
+        h += `<div class="tb3">📎 Chat proof ${pend ? `<a href="#" class="pk pd" data-proof="1" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${pend} pending</a>` : `<span class="pk z">0 pending</span>`}<span class="pk ok">${done} done</span>`
+          + (c && (c.required || c.uploaded) ? ` · 📞 Calls <span class="pk ${c.uploaded >= c.required ? 'ok' : 'cl'}">${c.uploaded} / ${c.required}</span>` : '') + `</div>`;
+      }
+    }
+    return h;
+  }
   function esBox(e, tot, abs) {
     const cv = esCv(e, tot, abs);
     return `<div class="tob"><div class="tb1"><div class="tbt">${cv('tg')}</div><div class="tbc">${cv('coll')}</div></div>` +
-      `<div class="tb2"><span>Orders ${cv('ord')}</span><span>Total query <b>${cv('tq')}</b></span><span>Ratio ${cv('ratio')}</span></div>${esPo(e, tot)}</div>`;
+      `<div class="tb2"><span>Orders ${cv('ord')}</span><span>Total query <b>${cv('tq')}</b></span><span>Ratio ${cv('ratio')}</span></div>${esPend(e, tot)}${esPo(e, tot)}</div>`;
   }
   // ---- live commission cell: amount, the % of the collection it comes to, and a chip for every rule that decided orders
   const esPf = (v) => (Math.round(v * 10) / 10) + '%';
@@ -3353,7 +3440,7 @@
     }
     const box = esOn.to
       ? `<div class="mbox"><div class="mbt">Target &amp; Orders</div><div class="mb1"><span class="lb">Target</span>${cv('tg')}</div><div class="mb1 c"><span class="lb">Collection</span>${cv('coll')}</div>` +
-        `<div class="mb2"><div><span class="lb">Orders</span>${cv('ord')}</div><div><span class="lb">Total query</span>${cv('tq')}</div><div><span class="lb">Ratio</span>${cv('ratio')}</div></div>${esPo(e, tot)}</div>` : '';
+        `<div class="mb2"><div><span class="lb">Orders</span>${cv('ord')}</div><div><span class="lb">Total query</span>${cv('tq')}</div><div><span class="lb">Ratio</span>${cv('ratio')}</div></div>${esPend(e, tot)}${esPo(e, tot)}</div>` : '';
     const sec = (g, title, color, items) => esOn[g]
       ? `<div class="msec" style="--g:${color}"><div class="msh">${title}</div><div class="msg">${items.map(([l, k]) => `<div><span class="lb">${l}</span>${cv(k)}</div>`).join('')}</div></div>` : '';
     return `<div class="mc ${tot ? 'tot' : (abs ? 'abs' : (e.real ? '' : 'un'))}"${e.real && !tot ? ` data-id="${e.id}" data-b="${e.b}"` : ''}>${head}${box}` +
@@ -3374,6 +3461,7 @@
 
   function renderTeamSheet() {
     if (!ES_ALLOWED || !teamData || esDrag) return;
+    setTimeout(esCvLoad, 0);      // chat proof / calls counts for the pending lines (re-draws once loaded)
     const gs = ES_GROUPS.filter(g => esOn[g.k]);
     const all = esRows(), people = new Set(), blocks = [];
     PANELS.forEach(([k, label, color]) => {
@@ -3464,7 +3552,8 @@
     const tab = TIME_SEGS.includes(v) ? 'orders' : v;      // an Order time list is shown under the All orders tab
     document.querySelectorAll('#vtabs button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tab));
   }
-  function esPick(name, house, panel) {
+  function esPick(name, house, panel, proof) {
+    pickProof = !!proof;
     pickSalesman = name || '';
     housePick = house || '';
     pickPanel = panel || '';
@@ -3475,9 +3564,9 @@
   // The filter chip above the list (the Query / Campaign tab shows its own kind when there are no tabs).
   function esChip() {
     const tl = !ES_ALLOWED && listType ? LIST_NAMES[listType] : '';
-    esEl('esWho').hidden = !pickSalesman && !housePick && !pickPanel && !tl;
+    esEl('esWho').hidden = !pickSalesman && !housePick && !pickPanel && !tl && !pickProof;
     const hl = (PLATFORMS.find(p => p[0] === housePick) || [])[1] || '';
-    esEl('esWhoN').textContent = [pickSalesman ? 'Salesman: ' + pickSalesman : '', pickPanel ? 'Panel: ' + PANEL_NAME[pickPanel] : '', hl ? 'Platform: ' + hl : '', tl].filter(Boolean).join(' · ');
+    esEl('esWhoN').textContent = [pickSalesman ? 'Salesman: ' + pickSalesman : '', pickPanel ? 'Panel: ' + PANEL_NAME[pickPanel] : '', hl ? 'Platform: ' + hl : '', tl, pickProof ? '📎 Chat proof pending' : ''].filter(Boolean).join(' · ');
   }
 
 
@@ -3595,6 +3684,8 @@
         return;
       }
       const lk = ev.target.closest('.es-lk, a.es-tm');
+      const pf = ev.target.closest('[data-proof]');
+      if (pf) { ev.preventDefault(); esPick(pf.dataset.n, '', pf.dataset.b, true); esView('orders'); window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' }); return; }
       if (lk) { ev.preventDefault(); esPick(lk.dataset.n, '', lk.dataset.b); esView(lk.dataset.lk); window.scrollTo({ top: esEl('vtabs').offsetTop - 10, behavior: 'smooth' }); return; }
       const a = ev.target.closest('.es-nm'); if (!a) return;
       ev.preventDefault(); esPick(a.dataset.n, '', a.dataset.b); esView('orders');
