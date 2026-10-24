@@ -121,6 +121,18 @@
   .rd-sh h3{margin:0 0 2px; font-size:18px;} .rd-k{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0;} .rd-k div{border-radius:12px; padding:8px 4px; text-align:center; background:#f3f4f6;} .rd-k b{display:block; font-size:20px; font-weight:900;} .rd-k small{font-size:9.5px; font-weight:800; color:var(--muted); text-transform:uppercase;} .rd-k .r{background:#fee2e2; color:#991b1b;} .rd-k .g{background:#dcfce7; color:#166534;}
   .rd-act{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;} .rd-act .btn{flex:1 1 140px; width:auto;}
   .rm-st{font-size:12px; border-radius:10px; padding:6px 10px; margin-top:8px; background:#f8fafc; border:1px solid var(--line); line-height:1.45; word-break:break-word;} .rm-st.ok{background:#f0fdf4; border-color:#bbf7d0; color:#166534;} .rm-st.wait{background:#fffbeb; border-color:#fde68a; color:#92400e;} .rm-st b{font-weight:800;}
+
+  /* Last days (Today tab) */
+  .hs-live{float:right; font-size:11px; font-weight:800; color:#15803d; background:#dcfce7; border-radius:99px; padding:3px 9px; white-space:nowrap;}
+  .hs-same{background:#eff6ff; border-radius:12px; padding:9px 11px; font-size:12.5px; line-height:1.7; margin:2px 0 10px;} .hs-same b{font-weight:900;} .hs-same .up{color:#15803d; font-weight:800;} .hs-same .dn{color:#b91c1c; font-weight:800;}
+  .hs-t{width:100%; border-collapse:collapse; font-size:12.5px;} .hs-t th{font-size:9.5px; text-transform:uppercase; color:var(--muted); text-align:right; padding:4px 4px; border-bottom:2px solid var(--line); white-space:nowrap;} .hs-t th:first-child,.hs-t td:first-child{text-align:left;}
+  .hs-t td{padding:7px 4px; border-bottom:1px solid #f1f5f9; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;} .hs-t td small{display:block; font-size:9.5px; color:var(--muted); font-weight:700;}
+  .hs-t tr.now td{background:#fefce8; font-weight:800;} .hs-t tr.tot td{border-top:2px solid var(--line); font-weight:900; background:#f8fafc;}
+  .hs-lg{display:flex; gap:4px 12px; flex-wrap:wrap; font-size:11px; font-weight:800; margin-top:6px;} .hs-lg i{display:inline-block; width:14px; height:4px; border-radius:3px; margin-right:4px; vertical-align:middle;}
+  .card table.hs-t{min-width:0; width:100%;}
+  .hs-c{padding:14px 14px 12px;}
+  .hs-ch{width:100%; height:auto; display:block;}
+  .hs-hw{overflow:auto; max-height:440px; margin-top:6px;} .hs-h th{position:sticky; top:0; background:#fff; z-index:1;} .hs-h td,.hs-h th{font-size:11px; padding:5px 4px;} .hs-h td.z{color:#cbd5e1;} .hs-h td.hi{background:#dcfce7; font-weight:800;} .hs-h td.lo{background:#fee2e2;} .hs-h td.fut{color:#cbd5e1; background:#f8fafc;} .hs-h tr.cur td:first-child{box-shadow:inset 3px 0 0 #f59e0b;}
   .empty{padding:26px; text-align:center; color:var(--muted); font-size:13.5px;}
   .big-ok{font-size:15px; font-weight:700; color:#16945a;}
   @media (max-width:820px){ .al{flex-wrap:wrap;} .al .act{margin-left:22px;} .ct-tile .v{font-size:23px;} }
@@ -208,6 +220,7 @@
     tab = b.dataset.t;
     document.querySelectorAll('.ct-tab').forEach(x => x.classList.toggle('on', x === b));
     ['focus', 'today', 'alerts', 'md', 'qb', 'rd', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
+    if (tab === 'today') loadHist();
     if (tab === 'focus') loadFocus();
     if (tab === 'qb') loadGive();
     if (tab === 'rd') loadRd();
@@ -307,7 +320,8 @@
       <div class="cl-ph"><div class="cl-pr cl-ph-h"><span>Name</span><span>Query ₹</span><span>Campaign ₹</span><span>Total ₹</span></div>${(T.emps || []).map(e => `<details class="cl-pr"><summary><span class="n">${esc(e.name)}<small>${e.orders ?? 0} orders · ${e.queries ?? 0} queries</small></span><span><b class="clq">${inr(e.qsales || 0)}</b><small>${e.qo ?? 0} orders</small></span><span><b class="clc">${inr(e.csales || 0)}</b><small>${e.co ?? 0} orders</small></span><span><b class="clt">${inr(e.sales || 0)}</b></span></summary>
         <div class="cl-more">Ticket ${inr(e.ticket)} (clean ${inr(e.clean_ticket)}) · Codes ${e.code_rate == null ? '—' : Math.round(e.code_rate) + '%'}${e.code_left > 0 ? ' (' + e.code_left + ' more)' : ''} · Colour mix ${(e.mix || {}).pct == null ? '—' : Math.round(e.mix.pct) + '%'} · Proof ${((e.proof || {}).orders_no_chat || 0) + ((e.proof || {}).orders_no_call || 0) + ((e.proof || {}).pending_queries || 0) ? 'missing' : '✓ all'}${e.conv != null ? ' · conv ' + Math.round(e.conv) + '%' : ''}</div></details>`).join('')}
         ${(T.emps || []).length ? `<div class="cl-pr cl-ptot"><span class="n">Team</span><span><b class="clq">${inr(qS)}</b></span><span><b class="clc">${inr(cS)}</b></span><span><b class="clt">${inr(tot)}</b></span></div>` : ''}</div></div>`;
-    $('p-today').innerHTML = `<div class="cl-top">${coll}${tiles}</div>` + alerts + people;
+    $('p-today').innerHTML = `<div class="cl-top">${coll}${tiles}</div><div id="histBox"></div>` + alerts + people;
+    renderHist();
   }
 
   // ---------- Query → order ranking: orders ÷ queries given (today + last 7 days), who ordered first, and who to give more queries to ----------
@@ -442,6 +456,61 @@
   window.setLV = (v) => { LV = v; renderQb(); };
   window.goTab = (k) => document.querySelector(`.ct-tab[data-t="${k}"]`).click();
 
+
+
+  // ---------- 📅 LAST DAYS (Today tab): orders + collection of the last 2 / 3 / 5 / 7 business days, same-time check, by-hour line chart + table. Refreshes every minute. ----------
+  let HS = null, HN = (() => { try { const v = Number(localStorage.getItem('ct_hist_n')); if ([2, 3, 5, 7].includes(v)) return v; } catch (e) {} return 3; })();
+  const HCOL = ['#15803d', '#2563eb', '#f59e0b', '#9333ea', '#ef4444', '#0891b2', '#64748b'];
+  const kS = (v) => { v = Math.round(Number(v) || 0); return v >= 100000 ? (v / 100000).toFixed(v % 100000 === 0 ? 0 : 1) + 'L' : v >= 1000 ? (v / 1000).toFixed(v >= 10000 || v % 1000 === 0 ? 0 : 1) + 'k' : String(v); };
+  const hLb = (h) => h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h - 12) + 'p';
+  const hFl = (h) => (h % 12 === 0 ? 12 : h % 12) + ' ' + (h < 12 ? 'AM' : 'PM');
+  async function loadHist() {
+    const day = $('datePick').value;
+    try { HS = await api.get('ct.history', day ? { date: day } : {}); } catch (e) { HS = { error: e.message }; }
+    renderHist();
+  }
+  window.setHN = (n) => { HN = n; try { localStorage.setItem('ct_hist_n', String(n)); } catch (e) {} renderHist(); };
+  function renderHist() {
+    const box = $('histBox'); if (!box) return;
+    if (!HS) { box.innerHTML = '<div class="card" style="margin-bottom:14px;"><div class="empty">Loading the last days…</div></div>'; return; }
+    if (HS.error) { box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>📅 Last days</h2></div></div>${/unknown action/i.test(HS.error) ? errHtml({ message: HS.error }) : `<div class="empty">${esc(HS.error)}</div>`}</div>`; return; }
+    const D = (HS.days || []).slice(0, HN), live = HS.is_today, nowIdx = HS.now_idx;
+    const lab = (d, i) => live ? (i === 0 ? ['Today', 'till ' + HS.now] : i === 1 ? ['Yesterday', d.dow] : i === 2 ? ['Day before', d.dow] : [d.dow, '']) : [d.dow, i === 0 ? 'full day' : ''];
+    const short = (d, i) => live ? (i === 0 ? 'Today' : i === 1 ? 'Yest.' : d.dow.replace(/ \w+$/, '')) : d.dow.replace(/ \w+$/, '');
+    const pc = (a, b) => b > 0 ? (a >= b ? `<span class="up">▲ ${Math.round((a - b) / b * 100)}%</span>` : `<span class="dn">▼ ${Math.round((b - a) / b * 100)}%</span>`) : '';
+    // same-time check (today so far against the same clock time on the days before)
+    let same = '';
+    if (D.length > 1 && D[0].same_s != null) {
+      const parts = D.slice(0, 3).map((d, i) => `${i === 0 ? 'Today' : i === 1 ? 'Yesterday' : 'Day before'} <b>${inr(d.same_s)}</b> <span class="sub">(${d.same_n} orders)</span>${i > 0 ? ' ' + pc(D[0].same_s, d.same_s) : ''}`);
+      same = `<div class="hs-same">⏱ <b>${live ? 'Same time (till ' + esc(HS.now) + ')' : 'Full day'}</b><br>${parts.join(' · ')}</div>`;
+    }
+    const sum = (k) => D.reduce((x, d) => x + (Number(d[k]) || 0), 0), n = D.length, tOrd = sum('orders'), tS = sum('sales');
+    const rows = D.map((d, i) => { const [a, b] = lab(d, i); return `<tr class="${i === 0 ? 'now' : ''}"><td><b>${esc(a)}</b>${b ? `<small>${esc(b)}</small>` : ''}</td><td>${d.orders}</td><td>${inr(d.sales)}</td><td>${d.orders ? inr(d.ticket) : '—'}</td><td>${inr(d.qs)}<small>${d.qo} orders</small></td><td>${inr(d.cs)}<small>${d.co} orders</small></td></tr>`; }).join('');
+    const tot = `<tr class="tot"><td>${n}-day total<small>avg / day</small></td><td>${tOrd}<small>${Math.round(tOrd / n)}</small></td><td>${inr(tS)}<small>${inr(tS / n)}</small></td><td>${tOrd ? inr(tS / tOrd) : '—'}</td><td>${inr(sum('qs'))}<small>${sum('qo')} orders</small></td><td>${inr(sum('cs'))}<small>${sum('co')} orders</small></td></tr>`;
+    // running total by hour
+    const cum = D.map((d, i) => { let c = 0; const last = i === 0 && live ? nowIdx : 23; return d.h.slice(0, last + 1).map(x => (c += x[1])); });
+    const wide = innerWidth >= 900, W = wide ? 1100 : 720, Hh = wide ? 240 : 230, L = 40, R = 10, Tp = 12, B = 24, raw = Math.max(1, ...cum.map(c => c[c.length - 1] || 0)), mag = Math.pow(10, Math.floor(Math.log10(raw / 4))), stp = [1, 2, 2.5, 5, 10].map(m => m * mag).find(v => v * 4 >= raw), mx = stp * 4;
+    const px = (i) => L + (W - L - R) * i / 24, py = (v) => Tp + (Hh - Tp - B) * (1 - v / mx);
+    let svg = `<svg class="hs-ch" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Collection by hour">`;
+    for (let g = 0; g <= 4; g++) { const v = mx * g / 4, y = py(v); svg += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#eef0f3"/><text x="${L - 4}" y="${y + 3}" font-size="10" fill="#94a3b8" text-anchor="end">${kS(v)}</text>`; }
+    (HS.hours || []).forEach((h, i) => { if (i % 3 === 0) svg += `<text x="${px(i)}" y="${Hh - 7}" font-size="10" fill="#94a3b8" text-anchor="middle">${hLb(h)}</text>`; });
+    cum.slice().reverse().forEach((c, ri) => { const k = cum.length - 1 - ri, pts = [[0, 0]].concat(c.map((v, i) => [i + 1, v])).map(q => px(q[0]).toFixed(1) + ',' + py(q[1]).toFixed(1)); const lastP = pts[pts.length - 1].split(',');
+      svg += `<polyline points="${pts.join(' ')}" fill="none" stroke="${HCOL[k]}" stroke-width="${k === 0 ? 3.6 : 1.9}" stroke-linejoin="round" stroke-linecap="round" ${k > 2 ? 'stroke-dasharray="5 4"' : ''}/>`; if (k === 0) svg += `<circle cx="${lastP[0]}" cy="${lastP[1]}" r="5" fill="${HCOL[0]}"/>`; });
+    svg += '</svg>';
+    const leg = D.map((d, i) => `<span><i style="background:${HCOL[i]}"></i>${esc(lab(d, i)[0])} ${kS(d.sales)}</span>`).join('');
+    // hour by hour table
+    const hrs = HS.hours || [];
+    const stat = D.map((d, i) => { const ok = d.h.map((x, j) => (i === 0 && live && j > nowIdx) ? null : x[1]).map((v, j) => v != null && d.h[j][0] > 0 ? v : null).filter(v => v != null); return { mx: ok.length ? Math.max(...ok) : null, mn: ok.length > 1 ? Math.min(...ok) : null }; });
+    const hr = hrs.map((h, j) => `<tr class="${live && j === nowIdx ? 'cur' : ''}"><td><b>${hFl(h)}</b></td>${D.map((d, i) => { const x = d.h[j], fut = i === 0 && live && j > nowIdx;
+      const cls = fut ? 'fut' : x[0] === 0 ? 'z' : x[1] === stat[i].mx ? 'hi' : (stat[i].mn != null && x[1] === stat[i].mn ? 'lo' : '');
+      return `<td class="${cls}">${fut ? '—' : x[0] === 0 ? '·' : x[0] + ' · ₹' + kS(x[1])}</td>`; }).join('')}</tr>`).join('');
+    box.innerHTML = `<div class="card hs-c" style="margin-bottom:14px;"><span class="hs-live">● live · ${esc(HS.at || '')}</span><div class="card-head" style="padding:0;"><div><h2>📅 Last days — orders &amp; collection</h2><div class="sub">Compare ${live ? 'today' : 'this day'} with the days before · every business day is 10 AM → 10 AM</div></div></div>
+      <div class="ldseg" style="margin:10px 0;">${[2, 3, 5, 7].map(k => `<button type="button" class="${HN === k ? 'on' : ''}" onclick="setHN(${k})">${k} days</button>`).join('')}</div>${same}
+      <div class="tbl-wrap"><table class="hs-t no-stack"><tr><th>Day</th><th>Orders</th><th>Collection</th><th>Ticket</th><th>Query ₹</th><th>Campaign ₹</th></tr>${rows}${D.length > 1 ? tot : ''}</table></div></div>
+      <div class="card hs-c" style="margin-bottom:14px;"><h2>📈 Collection by hour <span class="sub" style="font-weight:600;">(running total)</span></h2><div class="sub">One line per day${live ? ' · thick line = today, stops at the current hour' : ''}</div>${svg}<div class="hs-lg">${leg}</div></div>
+      <div class="card hs-c" style="margin-bottom:14px;"><h2>🕐 Hour by hour — orders · ₹</h2><div class="sub">Green = best hour of that day · red = weakest hour so far · orange mark = the hour running now</div>
+      <div class="hs-hw"><table class="hs-t hs-h no-stack"><tr><th>Hour</th>${D.map((d, i) => `<th>${esc(short(d, i))}</th>`).join('')}</tr>${hr}</table></div></div>`;
+  }
 
   // ---------- 📋 GIVE QUERIES (inside Query Boost): ONE count per person — shower-gel and normal queries are the same thing, no house, no campaign ----------
   let GQ = null, GQH = null, GQT = 0;
@@ -720,9 +789,10 @@
     } catch (err) { showAlert(err.message, 'error'); }
   }
 
-  $('btnRefresh').onclick = () => { loadTower(true); if (MD) loadMd(true); if (BM) loadBench(); };
-  $('datePick').onchange = () => { loadTower(false); if (tab === 'qb') loadGive(); };
-  loadTower(false); loadFocus(); loadRd();
+  $('btnRefresh').onclick = () => { loadTower(true); loadHist(); if (MD) loadMd(true); if (BM) loadBench(); };
+  $('datePick').onchange = () => { loadTower(false); loadHist(); if (tab === 'qb') loadGive(); };
+  loadTower(false); loadHist(); loadFocus(); loadRd();
+  setInterval(() => { if (!document.hidden && tab === 'today') loadHist(); }, 60000);      // the Last days panel is live: every minute
   loadMd(false);
   setInterval(() => { if (!document.hidden && $('datePick').value === (T && T.today)) loadTower(false); }, 120000);
 </script>
