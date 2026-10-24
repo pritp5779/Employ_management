@@ -169,6 +169,34 @@
     .card .tscroll table.ot{min-width:0;}
     #hrTable{min-width:760px;}
     #planTable{min-width:700px;}
+    #hrTable .emp b, #planTable .emp b{max-width:104px;}
+    .seg{max-width:100%;}
+    .seg button{white-space:nowrap; flex:none; min-height:36px;}
+    .tgt{min-height:36px; padding:3px 8px; margin:-3px -8px;}
+    .plus{min-height:36px; padding:8px 12px;}
+    input.hc{height:38px; font-size:16px;}
+    input.tn{height:38px; font-size:16px; width:66px;}
+    .pchip{padding:3px 4px 3px 6px;}
+    .pchip button{min-width:36px; min-height:36px; font-size:18px; padding:0; margin:-4px 0;}
+    .pick select, .pick input[type=text], .hrs-set select, .same input[type=number], .same select{min-height:40px; font-size:16px;}
+    .hrs-set .btn, .same .btn{min-height:38px;}
+    .pick select, .hrs-set select, .same select{max-width:100%; min-width:0;}
+    .addc{min-height:36px; padding:8px 14px;}
+    .cand .go{min-height:36px; min-width:64px; padding:6px 12px;}
+    .seg button#wkPrev, .seg button#wkNext{min-width:40px;}
+    .xform{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:end;}
+    .xform > div:not(.prev):not(.acts){flex:none; min-width:0;}
+    .xform > div:first-child, .xform .prev, .xform .acts{grid-column:1 / -1;}
+    .xform select, .xform input, .xform input.xq, .xform input.xc{width:100%; min-width:0; min-height:42px; font-size:16px;}
+    .xform .acts{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    .xform .acts .btn{min-height:44px; font-size:14px;}
+  }
+  @media (min-width:600px) and (max-width:820px){
+    .mcs{display:grid; grid-template-columns:1fr 1fr; gap:0 10px; align-items:start;}
+    .mcs .mc.team, .mcs .mc:has(.xform){grid-column:1 / -1;}
+  }
+  @media (max-width:560px){
+    .bar-ctl .btn{flex:1 1 120px;}
   }
 </style>
 </head>

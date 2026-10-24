@@ -12,13 +12,13 @@
 <title>Login — HRMS</title>
 <script>
   // Already signed in: go straight to the home page before anything is drawn — no login page flash.
-  // The opening splash then plays on that page (dashboard.html / attendance.html).
+  // The opening splash then plays on that page (dashboard.html / my_sales.html).
   (function () {
     try {
       if (localStorage.getItem('hrms_token')) {
         var u = JSON.parse(localStorage.getItem('hrms_user') || 'null');
         window.__hsGo = true;
-        window.location.replace((u && u.role === 'Employee') ? 'attendance.html' : 'dashboard.html');
+        window.location.replace((u && u.role === 'Employee') ? (localStorage.getItem('hrms_home') || 'my_sales.html') : 'dashboard.html');   // Employees land on My Sales (their numbers); non-sales roles are sent to attendance.html by layout.js and remembered
       }
     } catch (e) { /* fall through to the login form */ }
   })();
@@ -61,7 +61,7 @@
   // Each role has its own home page: employees never pass through the
   // admin Dashboard. replace() keeps the login page out of the history, so
   // the phone's back button can't land on it (or on a page it bounced off).
-  const homeFor = (u) => (u && u.role === 'Employee') ? 'attendance.html' : 'dashboard.html';
+  const homeFor = (u) => (u && u.role === 'Employee') ? (localStorage.getItem('hrms_home') || 'my_sales.html') : 'dashboard.html';
   if (api.token()) window.location.replace(homeFor(api.currentUser()));   // safety net; normally handled in <head>
 
   const togglePassword = document.getElementById('togglePassword');
@@ -94,6 +94,7 @@
       });
       api.setToken(data.token);
       api.setUser(data.user);
+      try { localStorage.removeItem('hrms_home'); } catch (e) { /* ignore */ }      // a different person may have used this device: learn the home page again
       window.location.replace(homeFor(data.user));
     } catch (err) {
       alertBox.innerHTML = '<div class="alert error">' + err.message + '</div>';

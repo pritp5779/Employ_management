@@ -118,6 +118,7 @@
     ['bonus', 'Daily target achieved → bonus +', '% on top', 'p1', (v) => '🎯 Target bonus +' + fmtN(v) + '%', 1, 0, 500],
     ['cap', 'Daily target not achieved → at most', '% (0 = no cut)', 'p4', (v) => Number(v) > 0 ? '⬇ Not achieved: at most ' + fmtN(v) + '%' : '⬇ Not achieved: no cut', 0.1, 0, 100],
     ['nocode', 'Order without code → pays', '% of it', 'p3', (v) => '🔑 No code pays ' + fmtN(v) + '%', 1, 0, 100],
+    ['codepct', 'Code goal → full commission once', '% of the day\'s orders have a code (0 = off)', 'p3', (v) => Number(v) > 0 ? '🔑 Code goal ' + fmtN(v) + '% of orders' : '🔑 Code goal off', 1, 0, 100],
     ['maxdisc', 'Max discount → more than', '% off = ₹0 (0 = no limit)', 'p6', (v, x) => Number(v) > 0 ? '✂ Max discount ' + fmtN(v) + '%' + (x && x.maxdisc_for === 'all' ? ' (all orders)' : ' (no code)') : '✂ No discount limit', 0.5, 0, 100],
     ['floor', 'Lowest commission →', '%', 'p2', (v) => '⤓ Lowest ' + fmtN(v) + '%', 0.1, 0, 100],
     ['prepaid', 'Prepaid discount →', '% borne by the company', 'p5', (v) => '💳 Prepaid ' + fmtN(v) + '%', 0.5, 0, 20],
@@ -161,6 +162,7 @@
         <div class="fld" style="border-color:#bbf7d0; background:#f0fdf4;"><label>Daily target achieved</label><div class="in">bonus + <input type="number" id="mlsBonus" min="0" max="500" step="1" value="${esc(Number(C.bonus) || '')}" placeholder="0"> % on top</div><small>Commission ₹100 + 20% = ₹120, for every order of a day whose target is achieved. No target set that day = no bonus.</small>${spNote('bonus')}</div>
         <div class="fld"><label>Daily target not achieved</label><div class="in">at most <input type="number" id="mlsCap" min="0" max="100" step="0.1" value="${esc(Number(C.cap) || '')}" placeholder="no cut"> %</div><small>Empty = <b>no cut</b> (the order keeps its chart %).</small>${spNote('cap')}</div>
         <div class="fld"><label>Order without code</label><div class="in">pays <input type="number" id="mlsNc" min="0" max="100" step="1" value="${esc(C.nocode)}"> % of it</div><small>50 = half. (While this slab is on, it replaces the order-code rules for these orders.)</small>${spNote('nocode')}</div>
+        <div class="fld" style="border-color:#bbf7d0; background:#f0fdf4;"><label>Code goal (per person, per day)</label><div class="in">full commission once <input type="number" id="mlsCode" min="0" max="100" step="1" value="${esc(C.codepct != null ? C.codepct : 65)}"> % of the day's orders have a code</div><small>65 → 6 orders need 4 codes, 10 orders need 7. Once reached, <b>every</b> order of that day pays full — also the ones without a code. Not reached → each no-code order pays the "Order without code" % above. 0 = off.</small>${spNote('codepct')}</div>
         <div class="fld" style="border-color:#fecaca; background:#fff5f5;"><label>Max discount</label><div class="in">more than <input type="number" id="mlsMax" min="0" max="100" step="0.5" value="${esc(Number(C.maxdisc) || '')}" placeholder="off"> % off → ₹0</div>
           <div class="in" style="margin-top:6px;">for <select id="mlsMaxFor" style="width:auto; padding:5px 8px; min-height:0;"><option value="nocode" ${C.maxdisc_for === 'all' ? '' : 'selected'}>orders WITHOUT code only</option><option value="all" ${C.maxdisc_for === 'all' ? 'selected' : ''}>all orders</option></select></div>
           <small>With a code, any discount is allowed (the chart % still applies). Discount = how far the price paid is below the size's chart price (first column), free ML included. Example: ₹1,810 − 10% = ₹1,629 → below ₹1,629 pays ₹0. Empty = no limit.</small>${spNote('maxdisc')}</div>
@@ -207,6 +209,7 @@
     $('mlsCap').oninput = (e) => { C.cap = Number(e.target.value) || 0; markDirty(); test(); };
     $('mlsBonus').oninput = (e) => { C.bonus = Number(e.target.value) || 0; markDirty(); test(); };
     $('mlsNc').oninput = (e) => { C.nocode = Number(e.target.value); markDirty(); test(); };
+    if ($('mlsCode')) $('mlsCode').oninput = (e) => { C.codepct = e.target.value === '' ? 0 : Number(e.target.value); markDirty(); test(); };
     $('mlsPre').oninput = (e) => { C.prepaid = Number(e.target.value); markDirty(); test(); };
     $('mlsMax').oninput = (e) => { C.maxdisc = Number(e.target.value) || 0; markDirty(); test(); };
     $('mlsFloor').oninput = (e) => { C.floor = Number(e.target.value) || 0; const fc = $('mlsFloorCol'); if (fc) fc.value = C.floor; markDirty(); test(); };
@@ -369,7 +372,7 @@
   async function save() {
     const b = $('mlsSave'); b.disabled = true; b.textContent = 'Saving…';
     try {
-      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: Number(C.cap) || 0, bonus: Number(C.bonus) || 0, nocode: C.nocode, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', floor: Number(C.floor) || 0, mode: C.mode === 'between' ? 'between' : 'step', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
+      const d = await api.post('ml_slab.save', { chart: { on: C.on, cap: Number(C.cap) || 0, bonus: Number(C.bonus) || 0, nocode: C.nocode, codepct: C.codepct != null ? Number(C.codepct) : 65, prepaid: C.prepaid, maxdisc: C.maxdisc || 0, maxdisc_for: C.maxdisc_for === 'all' ? 'all' : 'nocode', floor: Number(C.floor) || 0, mode: C.mode === 'between' ? 'between' : 'step', from: C.from || '', to: C.to || '', cols: C.cols, names: C.names, rows: C.rows } });
       if (d.error) throw new Error(d.error);
       C = JSON.parse(JSON.stringify(d.chart)); dirty = false;
       render(); flash(esc(d.message || 'Saved.'), 'success');

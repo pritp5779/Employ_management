@@ -303,6 +303,16 @@
   .tm-chips .t{background:#f4f8ff; border-color:#dbe7ff; color:#1d4ed8;} .tm-chips .p{background:#f1faf5; border-color:#cdeedb; color:#0f7a41;} .tm-chips .a{background:#fff4ec; border-color:#fed7aa; color:#ea580c;}
   .tm-bar{display:flex; height:6px; border-radius:4px; overflow:hidden; margin-top:7px; background:#f3f4f6;} .tm-bar i{display:block;} .tm-bar .p{background:#1D9E75;} .tm-bar .a{background:#f97316;}
   .tm-more{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.35;}
+  /* Order codes box (Total order / Code order / No code + Code %) — same tiles and bar as Sales team */
+  .cd-box .tm-chips button small{white-space:normal; overflow:visible; text-overflow:clip; line-height:1.15;}      /* two short lines (Total / order) instead of a cut-off one */
+  @media (max-width:820px){     /* the small cards are ~100–140px wide here: tiles become three one-line rows */
+    .stat-card:not(.ar) .cd-box .tm-h{flex-direction:column; align-items:flex-start; gap:0;}
+    .stat-card:not(.ar) .cd-box .tm-chips{grid-template-columns:1fr; gap:3px;}
+    .stat-card:not(.ar) .cd-box .tm-chips button{display:flex; flex-direction:row-reverse; justify-content:space-between; align-items:center; padding:3px 8px; text-align:left;}
+    .stat-card:not(.ar) .cd-box .tm-chips button b{font-size:13px;}
+    .stat-card:not(.ar) .cd-box .tm-chips button small{font-size:9.5px; letter-spacing:0;} .stat-card:not(.ar) .cd-box .tm-chips button small br{display:none;}
+  }
+  .cd-box .tm-h em{font-style:normal; color:#0f7a41; font-weight:800; text-transform:none; letter-spacing:0; font-size:12px;}
   .tm-chips button small{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   @media (max-width:820px){ .tm-chips{gap:4px;} .tm-chips button{padding:5px 0;} .tm-chips button b{font-size:15px;} .tm-chips button small{font-size:9.5px;} .stat-card:not(.ar) .tm-chips{gap:3px;} .stat-card:not(.ar) .tm-chips button small{font-size:8px; letter-spacing:-.02em;} }
   .cmd .tmtabs{display:flex; gap:6px; margin:0 0 12px; flex-wrap:wrap;} .cmd .tmtabs button{min-height:0; width:auto; padding:7px 14px; border-radius:999px; font-size:12.5px; font-weight:700; background:#f1f2f5; color:#4a4f5a; border:none; cursor:pointer;} .cmd .tmtabs button span{margin-left:6px; opacity:.8;}
@@ -441,7 +451,7 @@
   .oh-card .ohp{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;}
   .oh-card .ohp button, .dti-card .ohp button, .csl-card .ohp button{width:auto; min-height:0; padding:3px 9px; font-size:11px; font-weight:700; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer;}
   .oh-card .ohp button.on, .dti-card .ohp button.on, .csl-card .ohp button.on{background:#111827; color:#fff; border-color:#111827;}
-  .ohr{display:grid; grid-template-columns:84px minmax(12px, 1fr) 26px 26px 28px 62px 100px 62px; gap:5px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
+  .ohr{display:grid; grid-template-columns:84px minmax(12px, 1fr) 26px 26px 28px 66px 100px 70px; gap:5px; align-items:center; padding:3px 5px; border-radius:7px; font-size:12px;}
   .ohr.hd{font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase;} .ohr.hd .r{text-align:right;} .ohr.hd .q{color:#2563eb;} .ohr.hd i{font-style:normal;} .ohr.hd .hs{display:none;} .ohr.hd .c{color:#c2410c;}
   /* Split column: this hour's amount broken into Query vs Campaign (amount/count each). */
   .ohsp{text-align:right; line-height:1.35; font-size:10.5px; white-space:nowrap;}
@@ -457,13 +467,18 @@
      The bar column is removed from the template entirely (not just hidden) — hiding a grid item with display:none while
      still declaring its track would shift every later item one column to the left into an undersized track. */
   @container (max-width:480px){
-    .ohr{grid-template-columns:76px 24px 24px 26px 58px 88px 54px; gap:4px;}
+    .ohr{grid-template-columns:76px 22px 22px 24px 60px 82px 66px; gap:4px;}
     .ohr .ohb, .ohr.hd .ohbh{display:none;}
+    .ohtot{font-size:11px; padding:3px 4px;} .ohr.hd .ohtot{padding:3px 4px 3px 0;}
   }
+  /* Phones (card about 330–360px wide): short header labels, smaller figures. Widths leave room for lakh-size amounts (₹3,58,680). */
   @container (max-width:360px){
-    .ohr{grid-template-columns:minmax(58px, 1fr) 20px 20px 22px 50px 76px 46px; gap:3px; font-size:11px; padding:3px 3px;}
-    .ohsp{font-size:9.5px;} .ohsp i u{display:none;} .ohtot{font-size:10px; padding:2px 4px;}
+    .ohr{grid-template-columns:68px 18px 18px 20px 54px 58px 60px; gap:3px; font-size:11px; padding:3px 3px;}
+    .ohsp{font-size:9.5px;} .ohsp i u{display:none;} .ohtot{font-size:10px; padding:2px 3px;} .ohr.hd .ohtot{padding:3px 3px 3px 0;}
     .ohr.hd .hl{display:none;} .ohr.hd .hs{display:inline;}
+  }
+  @container (max-width:326px){
+    .ohr{grid-template-columns:66px 18px 18px 20px 52px 54px 58px; gap:2px; padding:3px 2px; font-size:10px;} .oha{font-size:10.5px;} .ohl{letter-spacing:-.02em;} .ohl small{font-size:9px;}
   }
   .ohn.q{color:#2563eb;} .ohn.c{color:#c2410c;} .ohn.t{color:var(--ink);}
   .ohk{display:flex; gap:6px; margin-bottom:8px;} .ohk div{flex:1; border-radius:9px; padding:5px 8px; font-size:10.5px; color:var(--muted); line-height:1.3;} .ohk b{display:block; font-size:14px; color:var(--ink);}
@@ -539,7 +554,7 @@
   @container (max-width:320px){ .ohf{flex-direction:column;} }
   /* Narrowest cards (old / small phones, or several stat-cards squeezed per row): no room for Split or Total at all —
      drop both and fall back to exactly the original 5-column view (same as before this feature existed). */
-  @container (max-width:290px){
+  @container (max-width:300px){
     .ohr{grid-template-columns:minmax(60px, 1fr) 16px 18px 20px 54px; gap:3px; padding:3px 2px; font-size:11px;}
     .ohr.hd{font-size:9px;} .ohr.hd .oha{font-size:9px;} .ohr.hd .hl{display:none;} .ohr.hd .hs{display:inline;}
     .ohk div{padding:4px 6px;} .ohk b{font-size:13px;} .oha{font-size:10.5px;}
@@ -566,6 +581,56 @@
     .stpop{left:10px !important; right:10px; width:auto;}
     .es-tools{display:grid; grid-template-columns:1fr 1fr; gap:8px;} .es-tools input,.es-tools select{width:100%; min-width:0;} .es-tools input[type=search]{grid-column:1 / -1;}
     .vtabs button{flex:1; padding:10px 8px; font-size:13px;}
+  }
+
+  /* ===== Responsive pass: filters, tabs, sheet tools, orders list, popups ===== */
+  .vtabs[hidden], .pchips[hidden], .xlw[hidden] {display:none;}
+  .qh details summary{flex-wrap:wrap;}      /* "Day 120 / 30 ▾" drops under the title in a narrow box instead of leaving it */
+  @media (min-width:821px){
+    #ordersCard tbody td:nth-child(1), #ordersCard tbody td:nth-child(2), #ordersCard tbody td:nth-child(5), #ordersCard tbody td:nth-child(7) {white-space:nowrap;}   /* store / time / mobile stay on one line; the table scrolls in its own box */
+  }
+  @media (max-width:820px){
+    .vrow, .pchips, .es-chips, .es-note, .es-tools {padding-left:10px; padding-right:10px;}
+    .es-tools input[type=search]{width:100%;}
+    .es-tools input, .es-tools select, #orderSearch, #pageSize, #dateFrom, #dateTo, .ms-btn {min-height:42px; font-size:16px;}
+    .pchip{min-height:38px;} .es-chip{min-height:36px; padding:6px 12px; font-size:12.5px;}
+    .cx-btn{min-height:36px; padding:6px 14px;} .mlbtn{min-height:38px;} .rm-add{min-height:34px;} .cu-ed{min-height:32px; padding:4px 11px;}
+    .stedit{min-width:32px; min-height:32px; margin:-8px -6px; padding:6px;}
+    .es-tbl .tgt-chip, .es-cards .tgt-chip{min-height:36px; display:inline-flex; align-items:center;}
+    .es-lk, .es-nm, .es-tm{position:relative;} .es-lk::after, .es-nm::after, .es-tm::after{content:""; position:absolute; inset:-11px -7px;}      /* bigger finger target, same look */
+    .pbx{min-height:34px;} a.pk{min-height:32px; display:inline-flex; align-items:center;} .tgt-revert{min-height:32px;}
+    .unalloc-note a{display:inline-block; padding:7px 0;}
+    #ordersCards .badge{align-self:center;}
+    .xlm .it{min-height:42px;}
+    .pager-controls .btn{min-height:40px;}
+    .modal input, .modal select, .modal textarea, .stpop input, .stpop select, .rm-edit textarea, .tgt-edit input, .cu-edit input, .timing-in {font-size:16px;}
+    .modal .actions .btn, .modal .actions button, .stpop .acts button{min-height:42px;}
+    .timing-in{min-height:40px; font-size:16px !important;} .rule-day{min-height:36px;} .stpop .tin input{font-size:16px; min-height:36px;}
+    .cmd .x{width:38px; height:38px;} .cmd .dl{min-height:38px;}
+    #ruleModal .rule-body input[type=text], #ruleModal .rule-body input[type=number], #ruleModal .rule-body select{font-size:16px; min-height:40px;}
+    .tgt-edit button, .rm-edit button{min-height:36px; min-width:36px;}
+    /* popups drawn into the big popup (hour detail, order codes, Team coach, Chats, Rating, playbook) */
+    #ohBody .ohtab{font-size:12px;} #ohBody .ohtab th{padding:6px 5px; font-size:10px; white-space:nowrap;} #ohBody .ohtab td{padding:7px 5px;}
+    #ohBody .ohtab td a, #ohBody .ohtab td a.ohn{display:inline-block; padding:7px 0;}
+    #ohBody td:first-child, #ohBody th:first-child{min-width:64px;}
+    .tco-sort button, .rt-tabs button{min-height:34px; padding:6px 12px;}
+    #ohModal .actions .btn, #detailModal .actions .btn, #comWhyModal .actions .btn{min-height:44px;}
+  }
+  @media (max-width:820px){
+    .vtabs{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px;}
+    .vtabs[hidden]{display:none;}
+    .vtabs button{flex:none; min-height:44px; padding:8px 10px; line-height:1.25; display:flex; align-items:center; justify-content:center; text-align:center; flex-wrap:wrap; gap:0 4px;}
+    .vtabs .cnt{margin-left:0;}
+  }
+  @media (min-width:600px) and (max-width:820px){
+    #ordersCard #ordersCards{display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 10px; align-items:start;}
+    #ordersCards > div[style*="justify-content:space-between"], #ordersCards > .empty-state{grid-column:1 / -1;}
+  }
+  @media (max-width:560px){
+    .vtabs{grid-template-columns:1fr 1fr;}
+    #paneOrders > .card > .card-head{padding-left:14px; padding-right:14px;}
+    .pager-controls{width:100%;} .pager-controls .btn{flex:1;} #pageSize{flex:1 1 100%;}
+    .modal .actions{flex-wrap:wrap;} .modal .actions .btn{flex:1 1 40%;}
   }
 </style>
 </head>
@@ -839,7 +904,7 @@
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
 <script src="assets/js/ml_slab.js?v=261023s"></script>
-<script src="assets/js/convo.js?v=261022b"></script>
+<script src="assets/js/convo.js?v=261024a"></script>
 <div class="cmo" id="mbOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="mbTtl"><div class="hd"><div><h3 id="mbTtl"></h3><p id="mbSub"></p></div><div class="acts"><button type="button" class="dl" id="mbDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button><button type="button" class="x" id="mbX" aria-label="Close">✕</button></div></div><div class="bd" id="mbBd"></div></div></div>
 <div class="cmo" id="tmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="tmTtl" style="width:min(560px,100%);"><div class="hd"><div><h3 id="tmTtl"></h3><p id="tmSub"></p></div><button type="button" class="x" id="tmX" aria-label="Close">✕</button></div><div class="bd" id="tmBd"></div></div></div>
 <div class="cmo" id="cmOv" hidden><div class="cmd" role="dialog" aria-modal="true" aria-labelledby="cmTtl"><div class="hd"><div><h3 id="cmTtl"></h3><p id="cmSub"></p></div><button type="button" class="x" id="cmX" aria-label="Close">✕</button></div><div class="bd" id="cmBd"></div></div></div>
@@ -2299,6 +2364,27 @@
     }
   });
 
+  // ---------- Order codes box: Total order / Code order / No code + Code % (same tiles as Sales team) ----------
+  // A box's orders are exactly the ones its amount / count adds up (label '' = the All Orders & Revenue box). Tap a tile → those orders.
+  const cdBoxOf = (o) => { const pk = panelOf(o); return pk !== 'none' ? PANEL_NAME[pk] : o.store; };
+  const cdList = (base, label) => label ? base.filter(o => cdBoxOf(o) === label) : base;
+  function codeHtml(list, label) {
+    const tot = list.length, wc = list.filter(o => o.code).length, no = tot - wc, pct = tot ? Math.round(wc / tot * 100) : null, L = esEsc(label || '');
+    const tile = (cls, side, n, name) => `<button type="button" class="${cls}" data-cd="${side}" data-cdl="${L}"><b>${n}</b><small>${name}</small></button>`;
+    return `<div class="pt-box tm-box cd-box"><div class="tm-h">Order codes <em>${pct === null ? '—' : 'Code ' + pct + '%'}</em></div>` +
+      `<div class="tm-chips">${tile('t', 'all', tot, 'Total <br>order')}${tile('p', 'with', wc, 'Code <br>order')}${tile('a', 'no', no, 'No code <br>order')}</div>` +
+      `<div class="tm-bar">${tot ? `<i class="p" style="width:${wc / tot * 100}%"></i><i class="a" style="width:${no / tot * 100}%"></i>` : ''}</div></div>`;
+  }
+  function cdOpen(label, side) {
+    const list = cdList(scopedOrders(), label).filter(o => side === 'with' ? !!o.code : side === 'no' ? !o.code : true).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+    const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ohTitle').textContent = 'Order codes · ' + (label || 'All panels') + (side === 'with' ? ' · With code' : side === 'no' ? ' · No code' : '');
+    document.getElementById('ohSub').textContent = list.length + ' order' + (list.length === 1 ? '' : 's') + ' · ' + fmtMoney(list.reduce((a, o) => a + (Number(o.total) || 0), 0), 'INR') + ' · tap an order number to open it';
+    document.getElementById('ohBody').innerHTML = list.length ? `<div style="overflow-x:auto;"><table class="no-stack ohtab"><thead><tr><th>Order</th><th>Time</th><th>Salesman</th><th>Code</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${list.map(o => `<tr><td><a href="#" data-ohi="${o._i}" style="font-weight:800;">${esEsc(o.order_name)}</a>${label ? '' : `<div style="font-size:10.5px; color:var(--muted);">${esEsc(PANEL_NAME[panelOf(o)] || '')}</div>`}</td><td style="white-space:nowrap;">${tm(o.created_at)}</td><td>${esEsc(o.salesman || '—')}</td><td>${o.code ? `<span class="ocd">${esEsc(o.code)}</span>` : '<span class="ocd no">no code</span>'}</td><td style="text-align:right; font-weight:700; white-space:nowrap;">${fmtMoney(o.total, o.currency)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No orders.</p>';
+    ohPush();
+  }
+  document.getElementById('summaryGrid').addEventListener('click', (ev) => { const t = ev.target.closest('[data-cd]'); if (t) { ev.preventDefault(); cdOpen(t.dataset.cdl || '', t.dataset.cd); } });
+
   function renderSummary() {
     const base = scopedOrders();
     const byStore = {};
@@ -2348,6 +2434,7 @@
         ${EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(qOrders, qTotal)}</div>`}
         <div class="tkr"><span>Campaign order</span> <b class="n">${cOrders}</b></div>
         ${xmlRow(base)}
+        ${codeHtml(base, '')}
         ${teamHtml(allKey)}
         ${empTargetHtml('All Orders & Revenue', { total: grandTotal }, allKey)}
         <div class="pcm"><span class="p"><b>${fmtMoney(prepaid, 'INR')}</b><small>${share(prepaid, grandTotal)[0]}% prepaid</small></span><span class="d"><b>${fmtMoney(cod, 'INR')}</b><small>${share(prepaid, grandTotal)[1]}% COD</small></span></div>
@@ -2361,6 +2448,7 @@
           ${(() => { const pk = (PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0]; if (!pk) return ''; const x = pQC[pk] || { qo: 0, co: 0 };
             return `<div class="tkr"><span>Query order</span> <b class="n">${x.qo}</b></div>` +
               (EMP_VIEW ? '' : `<div class="tkr"><span>Query ratio</span> ${qRatio(x.qo, (platformQueries[pk] || {}).query || 0)}</div>`) + `<div class="tkr"><span>Campaign order</span> <b class="n">${x.co}</b></div>`; })()}
+          ${codeHtml(cdList(base, label), label)}
           ${teamHtml((PANELS.find(p => p[1] === label && p[0] !== 'none') || [])[0])}
           ${empTargetHtml(label, s)}
           ${panelTargetHtml(label, s)}
@@ -2812,8 +2900,8 @@
   function detailRow(label, value) {
     if (!value) return '';
     return `<div style="display:flex; gap:12px; padding:5px 0; font-size:13.5px;">
-      <div style="min-width:110px; color:var(--muted); font-weight:600;">${label}</div>
-      <div>${value}</div></div>`;
+      <div style="flex:none; min-width:100px; color:var(--muted); font-weight:600;">${label}</div>
+      <div style="flex:1; min-width:0; overflow-wrap:anywhere;">${value}</div></div>`;
   }
 
   window.openDetail = async function (i) {

@@ -10,7 +10,7 @@
  *     Between two columns: chart.mode 'step' (the chart's rule) → the LOWER column's % (₹1,690 between ₹1,700 = 6% and ₹1,670 = 4% → 4%);
  *     'between' → a % in between, in proportion. Below the last column → chart.floor % (2.8%, never less; no code → half = 1.4%).
  *  4. Daily target: hit === true (achieved) → + chart.bonus % on top (20 → 100 becomes 120); hit === false (not achieved) → at most
- *     chart.cap % (0 / empty = no cut); hit === null (no target that day / not known) → nothing.   5. No order code → chart.nocode % of it (50 = half).
+ *     chart.cap % (0 / empty = no cut); hit === null (no target that day / not known) → nothing.   5. No order code → chart.nocode % of it (50 = half) — unless the day has enough codes (chart.codepct, 65 = 65% of the day's orders; see tagCodes) → full.
  *  0. More than chart.maxdisc % off the size's chart price → no commission at all (0 / empty = no limit).
  */
 (function () {
@@ -70,9 +70,9 @@
   const datesTxt = (c) => !c || (!c.from && !c.to) ? 'all days' : (c.from ? 'from ' + c.from : 'until') + (c.to ? (c.from ? ' to ' : ' ') + c.to : ' onwards');
 
   // 📅 Special days (Commission Rules → "Specific date / person"): chart.special = [{ id, from, to, emps:[ids] (empty = everyone),
-  // set:{ bonus, cap, nocode, maxdisc, maxdisc_for, floor, prepaid }, note }]. On those days these numbers replace the chart's own.
+  // set:{ bonus, cap, nocode, codepct, maxdisc, maxdisc_for, floor, prepaid }, note }]. On those days these numbers replace the chart's own.
   // Person-specific entries win over "everyone"; among equals the later one wins. Same as api.php ml_slab_for().
-  const SP_KEYS = ['bonus', 'cap', 'nocode', 'maxdisc', 'maxdisc_for', 'floor', 'prepaid'];
+  const SP_KEYS = ['bonus', 'cap', 'nocode', 'codepct', 'maxdisc', 'maxdisc_for', 'floor', 'prepaid'];
   function specialsOn(chart, day, emp) {
     const l = (chart && chart.special) || [];
     if (!l.length || !day) return [];
@@ -112,7 +112,9 @@
       return { v: 0, pct: 0, base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: true, special: chart.special_on || null };
     }
     if (hit === false && Number(chart.cap) > 0 && pct > Number(chart.cap)) { pct = Number(chart.cap); steps.push('daily target incomplete → max ' + chart.cap + '%' + spT); }
-    if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it' + spT); }
+    // 70% code rule: o.codeOk (set by tagCodes) = enough of that day's orders have a code → the no-code cut is skipped for every order of the day.
+    if (!o.code && o.codeOk) steps.push('no code, but the day\'s code goal is reached → full' + spT);
+    else if (!o.code && Number(chart.nocode) !== 100) { pct = pct * Number(chart.nocode) / 100; steps.push('no code → ' + chart.nocode + '% of it' + spT); }
     // Below the lowest slab % (the last column, 0.1%) = nothing: e.g. 0.1% without code = 0.05% → 0%.
     // (Not with a lowest % set: 2.8% without code = 1.4% is paid.)
     const minPct = Number(chart.floor) > 0 ? 0 : Number(chart.cols[chart.cols.length - 1]) || 0;
@@ -172,10 +174,33 @@
     return null;
   }
   function flashCom(f, o) {
-    const amt = Number(o.amt) || 0, pct = f.pct * (o.code ? 1 : f.nocode / 100);
-    const steps = ['⚡ flash offer · ' + Number(o.ml) + ' ml → ' + r2(f.pct) + '%' + (o.code ? '' : ' → no code: ' + r2(pct) + '%')];
+    const full = !!(o.code || o.codeOk);      // a code on the order, or the day's 70% code goal reached
+    const amt = Number(o.amt) || 0, pct = f.pct * (full ? 1 : f.nocode / 100);
+    const steps = ['⚡ flash offer · ' + Number(o.ml) + ' ml → ' + r2(f.pct) + '%' + (full ? '' : ' → no code: ' + r2(pct) + '%')];
     return { v: amt * pct / 100, pct: r2(pct), base: r2(f.pct), steps, ml: Number(o.ml), look: amt, disc: 0, overMax: false, bonus: false, special: null, flash: true };
   }
 
-  window.MLSLAB = { rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, flashFor, flashCom, on: (c) => !!(c && Number(c.on)) };
+  /**
+   * 70% code rule (Commission Rules → "Order without code" → "Full commission once __% of the day's orders have a code").
+   * codeNeed(6, 65) = 4, (10, 65) = 7: round(n × % / 100), at least 1. Same as api.php ml_code_need().
+   * tagCodes(chart, orders, defEmp): orders = [{ emp, day, code }…] (all of a person's orders, any size). Sets o.codeOk = true on every
+   * order of a person-day that has enough codes, and returns { 'emp|day': { n, have, need, left, ok, pct } }. orderCom() / flashCom() read o.codeOk.
+   */
+  function codeNeed(n, pct) { n = Number(n) || 0; pct = Number(pct) || 0; return n <= 0 || pct <= 0 ? 0 : Math.max(1, Math.round(n * pct / 100)); }
+  function tagCodes(chart, orders, defEmp) {
+    const map = {};
+    (orders || []).forEach((o) => {
+      const emp = o.emp != null ? o.emp : defEmp, k = emp + '|' + o.day, x = map[k] = map[k] || { n: 0, have: 0, emp, day: o.day };
+      x.n++; if (o.code) x.have++;
+    });
+    Object.keys(map).forEach((k) => {
+      const x = map[k], c = chart && chart.special && chart.special.length ? forDay(chart, x.day, x.emp) : chart;
+      const pct = c && c.codepct != null && c.codepct !== '' ? Number(c.codepct) : 0;
+      x.pct = pct; x.need = codeNeed(x.n, pct); x.ok = x.need > 0 && x.have >= x.need; x.left = Math.max(0, x.need - x.have);
+    });
+    (orders || []).forEach((o) => { const x = map[(o.emp != null ? o.emp : defEmp) + '|' + o.day]; o.codeOk = !!(x && x.ok); });
+    return map;
+  }
+
+  window.MLSLAB = { codeNeed, tagCodes, rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, flashFor, flashCom, on: (c) => !!(c && Number(c.on)) };
 })();

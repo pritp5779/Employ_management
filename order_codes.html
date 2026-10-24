@@ -58,7 +58,43 @@
   @media (max-width:820px){
     .res{grid-template-columns:1fr 1fr;}
     .cust-top, .cust-id, .cust-stats{padding-left:14px; padding-right:14px;}
+    /* the Orders and Matching-result tables stack into labelled cards (shared rule) — the Code box is on screen, not off to the right */
+    .tab{min-height:40px; display:inline-flex; align-items:center;} .pill{min-height:38px;}
+    .sel, #search{min-height:42px; font-size:16px;}
+    .inl{flex-wrap:wrap;} .inl input{width:140px; min-height:40px; font-size:16px;} .inl .btn{min-height:40px; padding:6px 16px;}
+    .lnk{padding:9px 10px; min-height:36px;}
+    .code .x{padding:8px 8px; margin:-8px -6px -8px 0; font-size:16px;}
+    .cust-x{min-height:36px; padding:6px 14px;} .cust-act a{min-height:38px;}
+    .card .sub{overflow-wrap:anywhere;}
+    #applyNote{flex:1 1 100%;} #btnApply2{margin-left:0 !important; width:100% !important;}
+    #resCard .card-head > div, #ocOrdersCard .card-head > div{width:100%;}
+    #resCard .card-head .btn{flex:1 1 40%;}
+    #dateFrom, #dateTo{font-size:16px;}
+    #ocOrdersCard .card-head .search-box, #sourceFilter{flex:1 1 100%;}
   }
+  /* Phones: the Orders and Matching-result tables become labelled cards (same look as the shared stacking rule) so the Code box is on screen;
+     on a tablet the table stays a table and scrolls inside its card. */
+  @media (max-width:600px){
+    #ocOrdersCard table.no-stack, #resCard table.no-stack{display:block; min-width:0; width:100%; overflow-x:visible;}
+    #ocOrdersCard thead, #resCard thead{display:none;}
+    #ocOrdersCard tbody, #ocOrdersCard tbody tr, #ocOrdersCard tbody td, #resCard tbody, #resCard tbody tr, #resCard tbody td{display:block; width:auto;}
+    #ocOrdersCard tbody tr, #resCard tbody tr{border:1px solid var(--line); border-radius:16px; padding:6px 12px; margin:0 12px 8px;}
+    #ocOrdersCard tbody td, #resCard tbody td{border:none; padding:6px 0; font-size:13px; display:flex; flex-wrap:wrap; align-items:flex-start; gap:2px 10px; min-width:0; overflow-wrap:anywhere;}
+    #ocOrdersCard tbody td + td, #resCard tbody td + td{border-top:1px solid var(--line);}
+    #ocOrdersCard tbody td[data-label]::before, #resCard tbody td[data-label]::before{content:attr(data-label); flex:none; width:104px; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; padding-top:2px;}
+    #ocOrdersCard tbody td[colspan], #resCard tbody td[colspan]{display:block; padding:10px 0;}
+    #ocOrdersCard tbody tr:has(td[colspan]), #resCard tbody tr:has(td[colspan]){border:none; padding:0; margin:0;}
+    #ocOrdersCard tbody td[data-label] .sub, #resCard tbody td[data-label] .sub{flex:1 1 100%; padding-left:114px;}
+    #resCard tbody td:nth-child(3){display:block;} #resCard tbody td:nth-child(3)::before{display:block; width:auto; margin-bottom:3px;}      /* matched-order text reads as one sentence */
+  }
+  @media (max-width:560px){
+    .stat-grid{grid-template-columns:repeat(2, minmax(0, 1fr));}
+    .topbar > div > input[type=date]{flex:1 1 120px; min-width:0;} .topbar > div > button{flex:1 1 120px;}
+    .tabs{flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:0 10px 4px;} .tab{flex:none;}
+    .drop{padding:22px 14px;}
+    .res .n{font-size:18px;}
+  }
+  @media (min-width:1500px){ .cust-stats{gap:12px;} }
 </style>
 </head>
 <body>

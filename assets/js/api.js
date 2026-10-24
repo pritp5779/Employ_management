@@ -82,5 +82,6 @@ function guardPage() {
 function logout() {
   api.clearToken();
   localStorage.removeItem('hrms_user');
+  localStorage.removeItem('hrms_home');
   window.location.href = 'index.html';
 }

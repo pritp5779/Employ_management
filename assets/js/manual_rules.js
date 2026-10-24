@@ -57,7 +57,7 @@
 #mrc .flash{margin-bottom:12px;}
 #mrc .chip, .mrc-modal .chip{display:inline-block; font-size:11px; font-weight:800; border-radius:999px; padding:2px 10px; margin:0 4px 2px 0;}
 #mrc .c-live{background:#e7f7ee; color:#0f7a41;} #mrc .c-soon{background:#fff4db; color:#8a5a00;} #mrc .c-done{background:#f1f3f6; color:#6b7280;}
-#mrc .c-tmph{background:#ede9fe; color:#5b21b6;} #mrc .c-tmf{background:#fff4db; color:#8a5a00;} #mrc .c-tm4u{background:#dbeafe; color:#1d4ed8;} #mrc .c-tmsg{background:#dcfce7; color:#15803d;} #mrc .c-tmh4{background:#ffe4e6; color:#be123c;}
+#mrc .c-tmph{background:#ede9fe; color:#5b21b6;} #mrc .c-tm4u{background:#dbeafe; color:#1d4ed8;} #mrc .c-tmsg{background:#dcfce7; color:#15803d;} #mrc .c-tmh4{background:#ffe4e6; color:#be123c;}
 .mrc-modal .pick{display:flex; gap:6px; flex-wrap:wrap;}
 .mrc-modal .pick label{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer; background:#fff; text-transform:none; letter-spacing:0; margin:0;}
 .mrc-modal .pick label:has(input:checked){background:#14161a; color:#fff; border-color:#14161a;}
@@ -114,7 +114,7 @@
   root.innerHTML = '<div class="mcard"><div class="muted">Loading manual commission rules…</div></div>';
   mount.appendChild(root);
 
-  const PANELS = [['tmph', 'TM Perfume House'], ['tmf', 'TM Fragrance'], ['tm4u', 'TM4U'], ['tmsg', 'TM Shower Gel'], ['tmh4', 'TM House 4th']];
+  const PANELS = [['tmph', 'TM Perfume House'], ['tm4u', 'TM4U'], ['tmsg', 'TM Shower Gel'], ['tmh4', 'TM House 4th']];
   const panelName = (k) => (PANELS.find((x) => x[0] === k) || [k, k])[1];
   const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

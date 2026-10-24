@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="HRMS">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Punch Checks — HRMS</title>
+<link rel="stylesheet" href="assets/css/style.css?v=4">
+<style>
+  .pc-sel{padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.5px; max-width:190px; background:#fff;}
+  .pc-sel.saving{opacity:.6;}
+  .chk{display:inline-flex; align-items:center; gap:4px; font-size:12px; padding:2px 8px; border-radius:10px; background:#f3f4f6; color:var(--muted); margin:2px 4px 2px 0; white-space:nowrap;}
+  .chk.ok{background:#e7f7ee; color:#0f7a41;}
+  .chk.bad{background:#fdecec; color:#c81e1e;}
+  .chk.first{background:#eef2ff; color:#3730a3;}
+  .thumb{width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid var(--line); vertical-align:middle; cursor:zoom-in; background:#f3f4f6;}
+  .kind{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-right:4px;}
+  .sub{font-size:11.5px; color:var(--muted);}
+  .link-btn{background:none; border:none; padding:0; color:var(--accent); font-weight:600; font-size:12.5px; cursor:pointer; min-height:0;}
+  .link-btn.danger{color:var(--bad-fg);}
+  .rem-line{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13.5px;}
+  .rem-line input{width:80px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px;}
+  .cron{font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.5; word-break:break-all;}
+  .cron code{background:#f3f4f6; padding:1px 5px; border-radius:4px;}
+  #photoModal .modal{max-width:520px; text-align:center;}
+  #photoModal img{max-width:100%; max-height:70vh; border-radius:8px;}
+  .cell{min-width:0;}
+  @media (max-width:820px){
+    .pc-sel{max-width:none; width:100%; font-size:16px; min-height:40px;}
+    .cell{flex:1 1 0; min-width:0; overflow-wrap:anywhere;}
+    .chk{white-space:normal; max-width:100%; line-height:1.35; padding:3px 9px;}
+    .link-btn{min-height:36px; padding:8px 8px; font-size:13px;}
+    .rem-line input{min-height:40px; font-size:16px;}
+    #checksOn{width:22px !important; height:22px !important; flex:none;}
+    #bulkBar{padding:10px 14px !important;}
+    #bulkBar > span{flex:1 1 100%;}
+    #bulkBar .pc-sel{flex:1 1 180px; min-width:0; width:auto;}
+    #placeFilter{max-width:none !important;}
+    #empSearch{font-size:16px;}
+    .card-head .search-box{flex:1 1 100% !important;}
+    .card-head + div[style*="padding:14px 20px"], .card > div[style*="padding:14px 20px"]{padding:12px 14px !important;}
+    .cron{word-break:break-word;}
+    .thumb{width:56px; height:56px;}
+    #placeModal .modal, #photoModal .modal{max-height:92vh; overflow-y:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar"></div>
+  <main class="main">
+    <div class="topbar">
+      <h1>Punch Checks</h1>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="date" id="datePick" title="Checks for this date" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+        <button class="btn secondary" id="btnRunRem" style="width:auto;" title="Send today's punch-in reminders right now to everyone who hasn't punched in">Send reminders now</button>
+      </div>
+    </div>
+    <div class="content">
+      <div id="alertBox"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Places</h2>
+            <div class="sub" style="margin-top:3px;">Where each employee is allowed to punch. Assign a place to an employee below; employees with no place are not location-checked.</div>
+          </div>
+          <button class="btn" id="btnAddPlace" style="width:auto;">+ Add place</button>
+        </div>
+        <table>
+          <thead><tr><th>Place</th><th>Location</th><th>Radius</th><th>Employees</th><th style="width:150px;">Actions</th></tr></thead>
+          <tbody id="placesBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>ID card + shoes checks</h2></div>
+        <div style="padding:14px 20px;">
+          <label style="display:flex; align-items:center; gap:10px; font-size:13.5px; cursor:pointer;">
+            <input type="checkbox" id="checksOn" style="width:18px; height:18px; margin:0;">
+            <span>Require <b>ID card</b> and <b>shoes</b> checks at every punch in</span>
+          </label>
+          <div class="sub" style="margin-top:8px; line-height:1.45;" id="checksNote">Off: punch in = location (if a place is set) + face only. Switch on when you're ready to roll the extra steps out — employees register their ID card at their first punch in after that.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Punch-in reminder</h2></div>
+        <div style="padding:14px 20px;">
+          <div class="rem-line">
+            <span>Notify employees who haven't punched in at shift start +</span>
+            <input type="number" id="remMin" min="0" max="600" step="5"> <span>minutes</span>
+            <button class="btn" id="btnRemSave" style="width:auto; padding:7px 14px; font-size:13px;">Save</button>
+          </div>
+          <div class="cron">Each employee switches the reminder on from their Attendance page (it needs their permission on their own phone).
+            Reminders go out automatically while the app is in use; for guaranteed timing add a Hostinger cron job every 5 minutes calling
+            <code id="cronUrl">api.php?action=push.cron&amp;key=API_KEY</code> (replace API_KEY with the key from api.php).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2 id="empTitle">Employees</h2>
+            <div class="sub" style="margin-top:3px;" id="empSub">Place, registered ID card, reminder and the selected day's check results.</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <div class="search-box"><input type="text" id="empSearch" placeholder="Search name, code, department..."></div>
+            <select id="placeFilter" class="pc-sel" style="max-width:200px; padding:8px 10px; font-size:13px;">
+              <option value="">All employees</option>
+              <option value="none">No place assigned</option>
+            </select>
+          </div>
+        </div>
+        <div id="bulkBar" style="padding:10px 20px; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:13px;">
+          <span>Everyone without a place →</span>
+          <select id="bulkPlace" class="pc-sel"></select>
+          <button class="btn secondary" id="btnBulk" style="width:auto; padding:6px 12px; font-size:12.5px;">Assign</button>
+        </div>
+        <table>
+          <thead><tr><th>Employee</th><th>Place</th><th>ID card</th><th>Reminder</th><th>Checks</th></tr></thead>
+          <tbody id="empBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+        </table>
+        <div style="padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <span id="empCount" class="sub"></span>
+          <button class="btn secondary" id="btnMore" style="width:auto; display:none;">Load more</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="placeModal">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="placeTitle">Add place</h3>
+    <div id="placeAlert"></div>
+    <input type="hidden" id="placeId" value="0">
+    <div class="field"><label for="placeName">Name</label><input type="text" id="placeName" maxlength="100" placeholder="e.g. Office — Oberon Business Hub"></div>
+    <div class="field-grid">
+      <div class="field"><label for="placeLat">Latitude</label><input type="number" id="placeLat" step="0.0000001" placeholder="21.1702"></div>
+      <div class="field"><label for="placeLng">Longitude</label><input type="number" id="placeLng" step="0.0000001" placeholder="72.8311"></div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:-6px 0 14px;">
+      <button type="button" class="btn secondary" id="btnUseHere" style="width:auto; padding:7px 12px; font-size:12.5px;">📍 Use my current location</button>
+      <a id="mapLink" href="#" target="_blank" class="btn secondary" style="width:auto; padding:7px 12px; font-size:12.5px; text-decoration:none; display:none;">Check on map ↗</a>
+    </div>
+    <div class="field"><label for="placeRadius">Allowed distance (metres)</label><input type="number" id="placeRadius" min="20" max="5000" step="10" value="150">
+      <div class="sub" style="margin-top:5px;">Phones are usually accurate to 10–50 m indoors. 100–200 m is a safe fence for a shop or office.</div></div>
+    <div class="actions">
+      <button type="button" class="btn secondary" id="placeCancel">Cancel</button>
+      <button type="button" class="btn" id="placeSave">Save place</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="photoModal">
+  <div class="modal">
+    <h3 id="photoTitle">Photo</h3>
+    <img id="photoImg" alt="">
+    <div class="actions"><button type="button" class="btn secondary" id="photoClose">Close</button></div>
+  </div>
+</div>
+
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/api.js?v=2"></script>
+<script src="assets/js/layout.js?v=3"></script>
+<script>
+  guardPage();
+  renderSidebar('punch_checks');
+
+  const alertBox = document.getElementById('alertBox');
+  function showAlert(msg, type = 'success') {
+    alertBox.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    setTimeout(() => (alertBox.innerHTML = ''), 5000);
+  }
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  const fmtT = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—';
+  const fmtD = (t) => t ? new Date(t.replace(' ', 'T')).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  function photoUrl(empId, date, which) {
+    return API_BASE_URL + '?action=attendance.photo&employee_id=' + empId + '&date=' + date + '&which=' + which + '&token=' + encodeURIComponent(api.token() || '');
+  }
+  function cardPhotoUrl(empId) {
+    return API_BASE_URL + '?action=idcard.photo&employee_id=' + empId + '&token=' + encodeURIComponent(api.token() || '');
+  }
+
+  // ---------- Places ----------
+  let places = [];
+  const placeModal = document.getElementById('placeModal');
+  document.getElementById('placeCancel').addEventListener('click', () => placeModal.classList.remove('open'));
+  placeModal.addEventListener('click', (e) => { if (e.target === placeModal) placeModal.classList.remove('open'); });
+
+  function openPlace(p) {
+    document.getElementById('placeAlert').innerHTML = '';
+    document.getElementById('placeTitle').textContent = p ? 'Edit place — ' + p.name : 'Add place';
+    document.getElementById('placeId').value = p ? p.place_id : 0;
+    document.getElementById('placeName').value = p ? p.name : '';
+    document.getElementById('placeLat').value = p ? p.lat : '';
+    document.getElementById('placeLng').value = p ? p.lng : '';
+    document.getElementById('placeRadius').value = p ? p.radius_m : 150;
+    syncMapLink();
+    placeModal.classList.add('open');
+  }
+  function syncMapLink() {
+    const lat = document.getElementById('placeLat').value, lng = document.getElementById('placeLng').value;
+    const a = document.getElementById('mapLink');
+    if (lat && lng) { a.href = `https://www.google.com/maps?q=${lat},${lng}`; a.style.display = ''; } else a.style.display = 'none';
+  }
+  document.getElementById('placeLat').addEventListener('input', syncMapLink);
+  document.getElementById('placeLng').addEventListener('input', syncMapLink);
+  document.getElementById('btnAddPlace').addEventListener('click', () => openPlace(null));
+  window.editPlace = (id) => { const p = places.find(x => Number(x.place_id) === id); if (p) openPlace(p); };
+
+  document.getElementById('btnUseHere').addEventListener('click', () => {
+    const b = document.getElementById('btnUseHere');
+    if (!navigator.geolocation) { showAlert('This browser has no location support.', 'error'); return; }
+    b.disabled = true; b.textContent = 'Locating…';
+    navigator.geolocation.getCurrentPosition(p => {
+      document.getElementById('placeLat').value = p.coords.latitude.toFixed(7);
+      document.getElementById('placeLng').value = p.coords.longitude.toFixed(7);
+      syncMapLink();
+      b.disabled = false; b.textContent = `📍 Used current location (±${Math.round(p.coords.accuracy)} m)`;
+    }, err => {
+      b.disabled = false; b.textContent = '📍 Use my current location';
+      document.getElementById('placeAlert').innerHTML = `<div class="alert error">${err.code === 1 ? 'Location permission is blocked for this site.' : 'Could not read the location — try again near a window, or type the coordinates from Google Maps.'}</div>`;
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+
+  document.getElementById('placeSave').addEventListener('click', async () => {
+    const btn = document.getElementById('placeSave');
+    btn.disabled = true;
+    try {
+      const d = await api.post('places.save', {
+        place_id: Number(document.getElementById('placeId').value || 0),
+        name: document.getElementById('placeName').value.trim(),
+        lat: Number(document.getElementById('placeLat').value),
+        lng: Number(document.getElementById('placeLng').value),
+        radius_m: Number(document.getElementById('placeRadius').value || 150),
+      });
+      placeModal.classList.remove('open');
+      showAlert(d.message);
+      await loadPlaces();
+      renderEmployees();
+    } catch (err) {
+      document.getElementById('placeAlert').innerHTML = `<div class="alert error">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  window.deletePlace = async function (id, name) {
+    if (!confirm(`Delete "${name}"?\n\nEmployees assigned to it will no longer be location-checked.`)) return;
+    try {
+      const d = await api.post('places.delete', { place_id: id });
+      showAlert(d.message);
+      await loadPlaces();
+      await loadEmployees();
+    } catch (err) { showAlert(err.message, 'error'); }
+  };
+
+  function placeOptions(selected) {
+    return '<option value="">— No place (not checked) —</option>' + places.map(p =>
+      `<option value="${p.place_id}" ${String(p.place_id) === String(selected || '') ? 'selected' : ''}>${esc(p.name)} · ${p.radius_m} m</option>`).join('');
+  }
+
+  async function loadPlaces() {
+    const body = document.getElementById('placesBody');
+    try {
+      const d = await api.get('places.list');
+      places = d.places || [];
+      document.getElementById('remMin').value = d.reminder_after_min;
+      document.getElementById('checksOn').checked = !!d.checks_enabled;
+      if (!places.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty-state">No places yet — add your office or shop, then assign employees to it below.</td></tr>';
+      } else {
+        body.innerHTML = places.map(p => `<tr>
+          <td><b>${esc(p.name)}</b></td>
+          <td><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" title="Open in Google Maps">${Number(p.lat).toFixed(5)}, ${Number(p.lng).toFixed(5)} ↗</a></td>
+          <td>${p.radius_m} m</td>
+          <td>${p.employees}</td>
+          <td><div class="row-actions">
+            <button onclick="editPlace(${p.place_id})">Edit</button>
+            <button class="danger-link" onclick="deletePlace(${p.place_id}, '${esc(p.name).replace(/'/g, "\\'")}')">Delete</button>
+          </div></td>
+        </tr>`).join('');
+      }
+      const filt = document.getElementById('placeFilter');
+      const keep = filt.value;
+      filt.innerHTML = '<option value="">All employees</option><option value="none">No place assigned</option>' +
+        places.map(p => `<option value="${p.place_id}">${esc(p.name)}</option>`).join('');
+      filt.value = keep;
+      document.getElementById('bulkPlace').innerHTML = places.map(p => `<option value="${p.place_id}">${esc(p.name)}</option>`).join('');
+      document.getElementById('bulkBar').style.display = places.length ? 'flex' : 'none';
+    } catch (err) {
+      body.innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  // ---------- Reminder setting ----------
+  document.getElementById('btnRemSave').addEventListener('click', async () => {
+    const b = document.getElementById('btnRemSave');
+    b.disabled = true;
+    try {
+      const d = await api.post('punch_checks.settings', { reminder_after_min: Number(document.getElementById('remMin').value || 0) });
+      showAlert(d.message);
+    } catch (err) { showAlert(err.message, 'error'); }
+    finally { b.disabled = false; }
+  });
+  document.getElementById('cronUrl').textContent = API_BASE_URL + '?action=push.cron&key=API_KEY';
+
+  document.getElementById('checksOn').addEventListener('change', async (e) => {
+    const cb = e.target;
+    cb.disabled = true;
+    try {
+      const d = await api.post('punch_checks.settings', { checks_enabled: cb.checked ? 1 : 0 });
+      showAlert(d.message);
+    } catch (err) { cb.checked = !cb.checked; showAlert(err.message, 'error'); }
+    finally { cb.disabled = false; }
+  });
+
+  document.getElementById('btnRunRem').addEventListener('click', async () => {
+    const b = document.getElementById('btnRunRem');
+    b.disabled = true;
+    try {
+      const d = await api.get('push.run');
+      showAlert(d.skipped ? `Nothing sent — ${d.skipped}.` : `Sent ${d.sent} reminder${d.sent === 1 ? '' : 's'}${d.candidates ? ` (${d.candidates} not punched in with reminders on)` : ''}.`);
+    } catch (err) { showAlert(err.message, 'error'); }
+    finally { b.disabled = false; }
+  });
+
+  // ---------- Employees ----------
+  let rows = [];
+  const PAGE = 10;
+  let limit = PAGE;
+
+  function matches(r) {
+    const q = document.getElementById('empSearch').value.trim().toLowerCase();
+    const f = document.getElementById('placeFilter').value;
+    if (f === 'none' && r.place_id) return false;
+    if (f && f !== 'none' && String(r.place_id) !== f) return false;
+    if (!q) return true;
+    return (r.full_name || '').toLowerCase().includes(q) || (r.employee_code || '').toLowerCase().includes(q) || (r.department_name || '').toLowerCase().includes(q);
+  }
+
+  function checkHtml(r, date) {
+    const c = r.checks || {};
+    const kinds = ['in', 'out'].filter(k => c[k]);
+    if (!kinds.length) return '<span class="sub">—</span>';
+    return kinds.map(k => {
+      const x = c[k];
+      const parts = [];
+      if (x.place_name) parts.push(`<span class="chk ok" title="${x.lat}, ${x.lng} (±${x.accuracy_m || '?'} m)">📍 ${x.distance_m} m · ${esc(x.place_name)}</span>`);
+      else if (x.lat) parts.push(`<span class="chk" title="No place assigned at the time">📍 <a href="https://www.google.com/maps?q=${x.lat},${x.lng}" target="_blank">location</a></span>`);
+      else parts.push('<span class="chk">📍 no location</span>');
+      if (k === 'in') {
+        if (x.card_ok) parts.push(`<span class="chk ${Number(x.card_first) ? 'first' : 'ok'}" title="${Number(x.card_first) ? 'Card registered at this punch' : 'Match ' + Math.round((x.card_score || 0) * 100) + '%' + (x.card_text_ok ? ', name/code read' : '')}">🪪 ${Number(x.card_first) ? 'registered' : 'matched'}</span>`);
+        else parts.push('<span class="chk">🪪 —</span>');
+        if (x.shoes_ok) parts.push(`<span class="chk ok" title="${Math.round((x.shoes_conf || 0) * 100)}% sure">👟 ${esc(x.shoes_label || 'ok')}</span>`);
+        if (x.shoes_has_photo) parts.push(`<img class="thumb" src="${photoUrl(r.employee_id, date, 'shoes')}" alt="shoes" loading="lazy" onclick="openPhoto(this.src, 'Shoes — ${esc(r.full_name).replace(/'/g, "\\'")}')">`);
+      }
+      return `<div style="margin-bottom:4px;"><span class="kind">${k} ${fmtT(k === 'in' ? x.punch_in : x.punch_out)}</span>${parts.join('')}</div>`;
+    }).join('');
+  }
+
+  function rowHtml(r) {
+    const date = document.getElementById('datePick').value;
+    const card = Number(r.card_enrolled)
+      ? `<span class="chk ok">Registered</span><div class="sub">${fmtD(r.card_enrolled_at)}
+           ${Number(r.card_has_photo) ? ` · <button class="link-btn" onclick="openPhoto('${cardPhotoUrl(r.employee_id)}', 'ID card — ${esc(r.full_name).replace(/'/g, "\\'")}')">View</button>` : ''}
+           · <button class="link-btn danger" onclick="resetCard(${r.employee_id}, '${esc(r.full_name).replace(/'/g, "\\'")}')">Reset</button></div>`
+      : '<span class="sub">Not registered yet — happens at their first punch in.</span>';
+    const rem = Number(r.reminder_devices) > 0
+      ? `<span class="chk ok">On</span><div class="sub">${r.reminder_devices} phone${Number(r.reminder_devices) === 1 ? '' : 's'}</div>`
+      : '<span class="sub">Off</span>';
+    return `<tr>
+      <td><div class="cell"><a href="employee_detail.html?id=${r.employee_id}">${esc(r.full_name)}</a><div class="sub">${esc(r.employee_code)}${r.department_name ? ' · ' + esc(r.department_name) : ''}</div></div></td>
+      <td><div class="cell"><select class="pc-sel" onchange="assignPlace(${r.employee_id}, this)">${placeOptions(r.place_id)}</select></div></td>
+      <td><div class="cell">${card}</div></td>
+      <td><div class="cell">${rem}</div></td>
+      <td><div class="cell">${checkHtml(r, date)}</div></td>
+    </tr>`;
+  }
+
+  function renderEmployees() {
+    const body = document.getElementById('empBody');
+    const shown = rows.filter(matches);
+    document.getElementById('empTitle').textContent = shown.length === rows.length ? `Employees (${rows.length})` : `Employees (${shown.length} of ${rows.length})`;
+    if (!shown.length) {
+      body.innerHTML = '<tr><td colspan="5" class="empty-state">No matching employees.</td></tr>';
+      document.getElementById('empCount').textContent = '';
+      document.getElementById('btnMore').style.display = 'none';
+      return;
+    }
+    const n = Math.min(limit, shown.length);
+    body.innerHTML = shown.slice(0, n).map(rowHtml).join('');
+    document.getElementById('empCount').textContent = `Showing ${n} of ${shown.length}`;
+    document.getElementById('btnMore').style.display = n >= shown.length ? 'none' : 'inline-block';
+  }
+
+  async function loadEmployees() {
+    const date = document.getElementById('datePick').value || todayStr();
+    try {
+      const d = await api.get('punch_checks.list', { date });
+      rows = d.rows || [];
+      document.getElementById('empSub').textContent = `Place, registered ID card, reminder and the check results for ${new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}.`;
+      renderEmployees();
+    } catch (err) {
+      document.getElementById('empBody').innerHTML = `<tr><td colspan="5"><div class="alert error">${err.message}</div></td></tr>`;
+    }
+  }
+
+  window.assignPlace = async function (empId, sel) {
+    sel.classList.add('saving'); sel.disabled = true;
+    try {
+      await api.post('places.assign', { employee_id: empId, place_id: sel.value === '' ? null : Number(sel.value) });
+      const r = rows.find(x => Number(x.employee_id) === empId);
+      if (r) { r.place_id = sel.value === '' ? null : Number(sel.value); r.place_name = (places.find(p => String(p.place_id) === sel.value) || {}).name || null; }
+      sel.style.borderColor = '#0f7a41';
+      setTimeout(() => (sel.style.borderColor = ''), 1200);
+      loadPlaces();   // employee counts
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      sel.classList.remove('saving'); sel.disabled = false;
+    }
+  };
+
+  document.getElementById('btnBulk').addEventListener('click', async () => {
+    const pid = Number(document.getElementById('bulkPlace').value || 0);
+    const ids = rows.filter(r => !r.place_id).map(r => r.employee_id);
+    if (!pid || !ids.length) { showAlert(ids.length ? 'Pick a place first.' : 'Everyone already has a place.', 'error'); return; }
+    const p = places.find(x => Number(x.place_id) === pid);
+    if (!confirm(`Assign "${p ? p.name : ''}" to all ${ids.length} employees who have no place yet?`)) return;
+    const b = document.getElementById('btnBulk');
+    b.disabled = true;
+    try {
+      const d = await api.post('places.assign', { employee_ids: ids, place_id: pid });
+      showAlert(d.message);
+      await loadPlaces();
+      await loadEmployees();
+    } catch (err) { showAlert(err.message, 'error'); }
+    finally { b.disabled = false; }
+  });
+
+  window.resetCard = async function (empId, name) {
+    if (!confirm(`Reset the registered ID card for "${name}"?\n\nThey register their card again at their next punch in. Use this when they get a new card or the wrong card was registered.`)) return;
+    try {
+      const d = await api.post('idcard.reset', { employee_id: empId });
+      showAlert(d.message);
+      const r = rows.find(x => Number(x.employee_id) === empId);
+      if (r) { r.card_enrolled = 0; r.card_enrolled_at = null; r.card_has_photo = 0; }
+      renderEmployees();
+    } catch (err) { showAlert(err.message, 'error'); }
+  };
+
+  // ---------- Photo viewer ----------
+  const photoModal = document.getElementById('photoModal');
+  window.openPhoto = function (src, title) {
+    document.getElementById('photoTitle').textContent = title || 'Photo';
+    document.getElementById('photoImg').src = src;
+    photoModal.classList.add('open');
+  };
+  document.getElementById('photoClose').addEventListener('click', () => photoModal.classList.remove('open'));
+  photoModal.addEventListener('click', (e) => { if (e.target === photoModal) photoModal.classList.remove('open'); });
+
+  let searchTimer = null;
+  document.getElementById('empSearch').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { limit = PAGE; renderEmployees(); }, 150); });
+  document.getElementById('placeFilter').addEventListener('change', () => { limit = PAGE; renderEmployees(); });
+  document.getElementById('btnMore').addEventListener('click', () => { limit += PAGE; renderEmployees(); });
+  document.getElementById('datePick').value = todayStr();
+  document.getElementById('datePick').addEventListener('change', loadEmployees);
+
+  loadPlaces().then(loadEmployees);
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

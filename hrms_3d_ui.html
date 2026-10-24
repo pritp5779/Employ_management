@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HRMS — TM Perfume House · 3D admin UI</title>
+<meta name="description" content="Design preview of the HRMS admin interface with a live 3D object.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== TOKENS ===== */
+:root{
+  --bg:#f6f1ee; --bg-2:#efe7e3; --ink:#17131c; --ink-2:#5b5563; --line:rgba(23,19,28,.12);
+  --surface:#ffffff; --accent:#b69cff; --accent-ink:#17131c;
+  --serif:"Instrument Serif", "Times New Roman", Georgia, serif;
+  --sans:"Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --maxw:1240px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0a12; --bg-2:#13101b; --ink:#f4eff5; --ink-2:#a79fb2; --line:rgba(244,239,245,.12);
+    --surface:#1a1624; --accent:#ffc8a8; --accent-ink:#0c0a12;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0a12; --bg-2:#13101b; --ink:#f4eff5; --ink-2:#a79fb2; --line:rgba(244,239,245,.12);
+  --surface:#1a1624; --accent:#ffc8a8; --accent-ink:#0c0a12;
+}
+*,*::before,*::after{box-sizing:inherit;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;line-height:1.55;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--accent-ink)}
+
+/* ===== 3D LAYER ===== */
+#scene{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+.blob-fallback{display:none;position:fixed;z-index:0;pointer-events:none;width:52vmin;height:52vmin;right:8vw;top:24vh;border-radius:50%;
+  background:conic-gradient(from 20deg,#FFC8A8,#FF9EC7,#B69CFF,#A8E6FF,#FFC8A8);filter:blur(28px);opacity:.8;animation:spin 18s linear infinite}
+.no-webgl .blob-fallback{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+main,footer,.nav{position:relative;z-index:2}
+
+/* ===== LAYOUT ===== */
+.wrap{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,48px)}
+section{position:relative}
+.eyebrow{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2);font-weight:500}
+h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em;line-height:1}
+h1{font-size:clamp(3.2rem,9vw,8.6rem)}
+h2{font-size:clamp(2.4rem,5.6vw,5rem)}
+h3{font-size:clamp(1.5rem,2.2vw,2rem)}
+em{font-style:italic}
+.lead{font-size:clamp(1.05rem,1.4vw,1.25rem);color:var(--ink-2);max-width:34ch}
+.btn{display:inline-flex;align-items:center;gap:.6em;padding:1em 1.6em;border-radius:999px;font-weight:500;font-size:.95rem;transition:transform .5s var(--ease),background .3s,color .3s}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--ink);color:var(--bg)}
+.btn svg{width:14px;height:14px;transition:transform .4s var(--ease)}
+.btn:hover svg{transform:translateX(3px)}
+.glass{background:color-mix(in srgb,var(--surface) 55%,transparent);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line);border-radius:24px}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;padding-top:calc(env(safe-area-inset-top,0px) + 14px);padding-bottom:14px;z-index:10;transition:background .4s,backdrop-filter .4s}
+.nav.scrolled{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font-family:var(--serif);font-size:1.6rem;letter-spacing:-.02em}
+.nav ul{display:flex;gap:28px;list-style:none;font-size:.92rem;color:var(--ink-2)}
+.nav ul a:hover{color:var(--ink)}
+.nav .btn{padding:.7em 1.2em;font-size:.85rem}
+.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);z-index:11;
+  background:linear-gradient(90deg,#FFC8A8,#FF9EC7,#B69CFF,#A8E6FF)}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:120px 0 80px}
+.hero .copy{max-width:720px}
+.hero h1{margin:22px 0 28px}
+.line{display:block;overflow:hidden;padding-bottom:.08em}
+.line>span{display:inline-block;transform:translateY(110%);transition:transform 1.2s var(--ease)}
+.loaded .line>span{transform:none}
+.line:nth-child(2)>span{transition-delay:.12s}
+.line:nth-child(3)>span{transition-delay:.24s}
+.hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;gap:10px}
+.scroll-hint i{width:1px;height:40px;background:linear-gradient(var(--ink-2),transparent);animation:drip 2.2s var(--ease) infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ===== MARQUEE ===== */
+.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:26px 0;overflow:hidden;background:color-mix(in srgb,var(--bg) 60%,transparent)}
+.marquee .track{display:flex;gap:64px;width:max-content;animation:marq 38s linear infinite;font-family:var(--serif);font-size:clamp(1.4rem,2.4vw,2rem);color:var(--ink-2);white-space:nowrap}
+.marquee .track span::after{content:"✦";margin-left:64px;font-size:.6em;vertical-align:middle;color:var(--accent)}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* ===== SPLIT SECTIONS ===== */
+.block{padding:clamp(100px,16vh,180px) 0;min-height:90vh;display:flex;align-items:center}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,96px);align-items:center}
+.split.right>.content{grid-column:2}
+.content h2{margin:18px 0 22px}
+.cards{display:grid;gap:14px;margin-top:40px}
+.card{padding:26px 28px;display:grid;grid-template-columns:auto 1fr;gap:6px 20px;transition:transform .6s var(--ease),border-color .3s}
+.card:hover{transform:translateX(6px);border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+.card .num{font-family:var(--serif);font-size:1.1rem;color:var(--ink-2);grid-row:span 2}
+.card p{color:var(--ink-2);font-size:.95rem}
+
+.work-list{list-style:none;margin-top:40px;border-top:1px solid var(--line)}
+.work-list li{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:22px 0;border-bottom:1px solid var(--line);transition:padding .5s var(--ease)}
+.work-list li:hover{padding-left:12px}
+.work-list .name{font-family:var(--serif);font-size:clamp(1.5rem,2.6vw,2.2rem)}
+.work-list .tag{font-size:.82rem;color:var(--ink-2);text-align:right}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:40px}
+.stat{padding:28px}
+.stat b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(2.6rem,4.6vw,4rem);line-height:1}
+.stat span{color:var(--ink-2);font-size:.9rem}
+
+.quote{font-family:var(--serif);font-size:clamp(1.9rem,3.6vw,3.2rem);line-height:1.12;margin:22px 0 28px}
+.cite{display:flex;align-items:center;gap:14px;color:var(--ink-2);font-size:.92rem}
+.cite i{width:42px;height:42px;border-radius:50%;background:conic-gradient(#FFC8A8,#FF9EC7,#B69CFF,#A8E6FF,#FFC8A8)}
+
+/* ===== CTA ===== */
+.cta{padding:clamp(120px,20vh,220px) 0;min-height:100vh;display:flex;align-items:center}
+.cta .panel{max-width:760px;margin:0 auto;text-align:center;padding:clamp(40px,6vw,72px)}
+.cta h2{margin:18px 0 20px}
+.cta .lead{margin:0 auto 34px}
+
+footer{padding:40px 0 48px;border-top:1px solid var(--line);color:var(--ink-2);font-size:.88rem}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
+footer nav{display:flex;gap:22px}
+
+/* ===== REVEALS ===== */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 1s var(--ease),transform 1.1s var(--ease);transition-delay:calc(var(--d,0) * 90ms)}
+.reveal.in{opacity:1;transform:none}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:860px){
+  .nav ul{display:none}
+  .split{grid-template-columns:1fr}
+  .split.right>.content{grid-column:auto}
+  .hero{align-items:flex-end;padding-bottom:110px}
+  .block{min-height:auto}
+  .stats{grid-template-columns:1fr 1fr}
+  .scroll-hint{display:none}
+  .blob-fallback{right:-10vw;top:10vh;width:80vmin;height:80vmin}
+}
+@media (prefers-reduced-motion: reduce){
+  .reveal,.line>span{transition:none;opacity:1;transform:none}
+  .marquee .track,.scroll-hint i,.blob-fallback{animation:none}
+}
+
+/* ===== HRMS admin shell (added) ===== */
+:root{--maxw:1180px;--ok:#7ee0b2;--warn:#ffd08a;--bad:#ff9e9e}
+.nav .logo b{color:var(--accent)}
+.nav ul li a.active{color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:.35em .8em;border-radius:999px;font-size:.78rem;color:var(--ink-2);border:1px solid var(--line)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
+.kpi{padding:20px 22px;display:flex;flex-direction:column;gap:6px;transition:transform .6s var(--ease),border-color .3s}
+.kpi:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+.kpi .l{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.kpi .v{font-family:var(--serif);font-size:clamp(1.9rem,2.8vw,2.6rem);line-height:1;background:linear-gradient(90deg,var(--ink),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kpi .d{font-size:.8rem;color:var(--ok)}
+.kpi .d.down{color:var(--bad)}
+.kpi svg{width:100%;height:36px;margin-top:6px;overflow:visible}
+.kpi path.fill{opacity:0;animation:fadeIn 1s .6s forwards}
+.kpi path.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s var(--ease) .3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}} @keyframes fadeIn{to{opacity:1}}
+.panel{padding:0;overflow:hidden}
+.panel .ph{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.panel .ph h3{font-size:1.25rem}
+.trow{display:grid;grid-template-columns:1.6fr .9fr .9fr 1.2fr .8fr;gap:12px;align-items:center;padding:13px 20px;border-bottom:1px solid var(--line);font-size:.9rem;transition:background .3s}
+.trow:last-child{border-bottom:0}
+.trow:hover{background:color-mix(in srgb,var(--surface) 40%,transparent)}
+.trow.h{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding:10px 20px}
+.who{display:flex;align-items:center;gap:10px}
+.av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#0c0a12;flex:none}
+.who small{display:block;color:var(--ink-2);font-size:.75rem}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#A8E6FF,#B69CFF,#FF9EC7);transform:scaleX(0);transform-origin:left;transition:transform 1.4s var(--ease)}
+.in .bar i, .reveal.in .bar i{transform:scaleX(1)}
+.pill{display:inline-block;padding:.25em .7em;border-radius:999px;font-size:.72rem;font-weight:600}
+.pill.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.stars{color:#FFD08A;letter-spacing:1px;font-size:.85rem}
+.stars span{opacity:.25}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring circle.f{stroke-dasharray:377;stroke-dashoffset:377;transition:stroke-dashoffset 1.6s var(--ease) .2s}
+.reveal.in .ring circle.f{stroke-dashoffset:calc(377 * (1 - var(--p)))}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--serif);font-size:2rem;line-height:1}
+.ring .c small{font-family:var(--sans);font-size:.7rem;letter-spacing:.14em;color:var(--ink-2);margin-top:4px}
+.feed{display:grid;gap:10px;margin-top:24px}
+.feed .ev{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;font-size:.88rem}
+.feed .ev i{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.feed .ev time{color:var(--ink-2);font-size:.75rem;display:block}
+.punch{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:24px}
+.punch .p{padding:14px;text-align:center}
+.punch .p b{display:block;font-family:var(--serif);font-size:1.6rem}
+.punch .p span{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.dock{display:none}
+@media (max-width:860px){
+  .hero{padding-top:150px !important}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{padding:14px 16px}
+  .trow{grid-template-columns:1.5fr 1fr .7fr;padding:12px 14px}
+  .trow .hide-m{display:none}
+  .punch{grid-template-columns:1fr 1fr}
+  .nav ul{display:none}
+  .dock{display:flex;position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:20;justify-content:space-around;padding:10px 6px;border-radius:22px}
+  .dock a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.62rem;color:var(--ink-2);letter-spacing:.06em}
+  .dock a.active{color:var(--ink)}
+  .dock a svg{width:20px;height:20px}
+}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="blob-fallback" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="progress" aria-hidden="true"></div>
+
+<!-- CONTENT:START -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" class="logo">HR<b>MS</b></a>
+    <ul>
+      <li><a href="#top" class="active">Dashboard</a></li>
+      <li><a href="#targets">Targets</a></li>
+      <li><a href="#performance">Performance</a></li>
+      <li><a href="#attendance">Attendance</a></li>
+      <li><a href="#salary">Salary</a></li>
+    </ul>
+    <span class="chip"><i></i>Synced 2 min ago</span>
+  </div>
+</header>
+
+<main id="top">
+  <!-- data-blob = "x, y, scale, noiseAmp, noiseFreq, colorShift"; data-blob-m = same for ≤860px -->
+  <section class="hero" data-blob="1.45,0.1,1.05,0.2,0.95,0" data-blob-m="1.05,1.6,0.42,0.2,0.95,0" style="padding:120px 0 60px;min-height:auto">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow reveal">Tuesday, 22 September · TM Perfume House</p>
+        <h1 style="font-size:clamp(2.6rem,6vw,5.4rem)">
+          <span class="line"><span>Good afternoon,</span></span>
+          <span class="line"><span><em>Jaimin.</em></span></span>
+        </h1>
+        <p class="lead reveal" style="--d:2">Seven of thirty-one targets hit before four o'clock. Sales are running 18% ahead of yesterday.</p>
+      </div>
+      <div class="kpis">
+        <div class="glass kpi reveal" style="--d:3"><span class="l">Revenue today</span><span class="v">₹64,082</span><span class="d">▲ 18% vs yesterday</span><svg viewBox="0 0 108 36" preserveAspectRatio="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF9EC7" stop-opacity=".45"/><stop offset="1" stop-color="#FF9EC7" stop-opacity="0"/></linearGradient></defs><path class="fill" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3 L108,36 L0,36 Z" fill="url(#g1)"/><path class="ln" pathLength="1" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3" fill="none" stroke="#FF9EC7" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="glass kpi reveal" style="--d:4"><span class="l">Orders</span><span class="v">29</span><span class="d">▲ 6 more</span><svg viewBox="0 0 108 36" preserveAspectRatio="none"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A8E6FF" stop-opacity=".45"/><stop offset="1" stop-color="#A8E6FF" stop-opacity="0"/></linearGradient></defs><path class="fill" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3 L108,36 L0,36 Z" fill="url(#g2)"/><path class="ln" pathLength="1" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3" fill="none" stroke="#A8E6FF" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="glass kpi reveal" style="--d:5"><span class="l">Avg ticket</span><span class="v">₹2,210</span><span class="d down">▼ 3.1%</span><svg viewBox="0 0 108 36" preserveAspectRatio="none"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC8A8" stop-opacity=".45"/><stop offset="1" stop-color="#FFC8A8" stop-opacity="0"/></linearGradient></defs><path class="fill" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3 L108,36 L0,36 Z" fill="url(#g3)"/><path class="ln" pathLength="1" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3" fill="none" stroke="#FFC8A8" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="glass kpi reveal" style="--d:6"><span class="l">Present</span><span class="v">112<span style="font-size:.5em;opacity:.6">/116</span></span><span class="d">4 not in yet</span><svg viewBox="0 0 108 36" preserveAspectRatio="none"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B69CFF" stop-opacity=".45"/><stop offset="1" stop-color="#B69CFF" stop-opacity="0"/></linearGradient></defs><path class="fill" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3 L108,36 L0,36 Z" fill="url(#g4)"/><path class="ln" pathLength="1" d="M0,30 L12,22 L24,26 L36,16 L48,20 L60,10 L72,14 L84,6 L96,9 L108,3" fill="none" stroke="#B69CFF" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="targets" class="block" data-blob="2.0,0.15,0.7,0.28,1.35,0.3" data-blob-m="0.95,-1.2,0.45,0.32,1.6,0.3" style="padding:70px 0">
+    <div class="wrap">
+      <div class="split right">
+        <div class="content">
+          <p class="eyebrow reveal">Targets · today</p>
+          <h2 class="reveal" style="--d:1">One number <em>per person.</em></h2>
+          <p class="lead reveal" style="--d:2">Orders from every house add up to a single daily target. Automatic from the last three days, or set by hand.</p>
+          <div class="reveal" style="--d:3;display:flex;align-items:center;gap:22px;margin-top:28px">
+            <div class="ring" style="--p:.74"><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="60" fill="none" stroke="var(--line)" stroke-width="10"/><circle class="f" cx="75" cy="75" r="60" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round"/><defs><linearGradient id="rg"><stop offset="0" stop-color="#A8E6FF"/><stop offset="1" stop-color="#FF9EC7"/></linearGradient></defs></svg><div class="c">74%<small>TEAM</small></div></div>
+            <div style="font-size:.9rem;color:var(--ink-2)">₹64,082 of ₹86,500<br>7 people on track · 9 behind · 15 at risk</div>
+          </div>
+        </div>
+        <div class="glass panel reveal" style="--d:1">
+          <div class="ph"><h3>Employees</h3><span class="chip">All houses</span></div>
+          <div class="trow h"><div>Employee</div><div>Achieved</div><div class="hide-m">Target</div><div>Progress</div><div>Status</div></div>
+          <div class="trow reveal" style="--d:2"><div class="who"><span class="av" style="background:#FF9EC7">SV</span><div>Sneha Vithani<small>EMP0059</small></div></div><div>₹7,860</div><div class="hide-m">₹9,500</div><div class="bar"><i style="width:83%"></i></div><div><span class="pill ok">On track</span></div></div><div class="trow reveal" style="--d:3"><div class="who"><span class="av" style="background:#A8E6FF">AB</span><div>Ahmed Bhagad<small>EMP0065</small></div></div><div>₹7,825</div><div class="hide-m">₹9,500</div><div class="bar"><i style="width:61%"></i></div><div><span class="pill warn">Behind</span></div></div><div class="trow reveal" style="--d:4"><div class="who"><span class="av" style="background:#B69CFF">AJ</span><div>Alkama Jamadar<small>EMP0091</small></div></div><div>₹5,210</div><div class="hide-m">₹9,500</div><div class="bar"><i style="width:42%"></i></div><div><span class="pill bad">At risk</span></div></div><div class="trow reveal" style="--d:5"><div class="who"><span class="av" style="background:#FFC8A8">PP</span><div>Parth Patel<small>EMP0034</small></div></div><div>₹4,990</div><div class="hide-m">₹9,500</div><div class="bar"><i style="width:38%"></i></div><div><span class="pill bad">At risk</span></div></div><div class="trow reveal" style="--d:6"><div class="who"><span class="av" style="background:#7ee0b2">AV</span><div>Aditya Vadelkar<small>EMP0073</small></div></div><div>₹2,940</div><div class="hide-m">₹9,500</div><div class="bar"><i style="width:12%"></i></div><div><span class="pill bad">At risk</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="performance" class="block" data-blob="-2.05,-0.1,0.7,0.16,0.9,0.6" data-blob-m="-0.95,-1.2,0.45,0.16,0.9,0.6" style="padding:70px 0">
+    <div class="wrap">
+      <div class="split">
+        <div class="glass panel reveal" style="--d:1">
+          <div class="ph"><h3>Per-order ratings</h3><span class="chip">Daily · 22 Sept</span></div>
+          <div class="trow h" style="grid-template-columns:1.6fr 1fr 1fr 1fr"><div>Employee</div><div>Ticket size</div><div class="hide-m">Call</div><div>Behaviour</div></div>
+          <div class="trow reveal" style="--d:2;grid-template-columns:1.6fr 1fr 1fr 1fr"><div class="who"><span class="av" style="background:#FF9EC7">SV</span><div>Sneha Vithani<small>3 orders</small></div></div><div class="stars">★★★★<span>★</span></div><div class="stars hide-m">★★★★<span>★</span></div><div><span class="pill ok">Good</span></div></div><div class="trow reveal" style="--d:3;grid-template-columns:1.6fr 1fr 1fr 1fr"><div class="who"><span class="av" style="background:#A8E6FF">AB</span><div>Ahmed Bhagad<small>5 orders</small></div></div><div class="stars">★★★<span>★★</span></div><div class="stars hide-m">★★<span>★★★</span></div><div><span class="pill ok">Good</span></div></div><div class="trow reveal" style="--d:4;grid-template-columns:1.6fr 1fr 1fr 1fr"><div class="who"><span class="av" style="background:#B69CFF">AJ</span><div>Alkama Jamadar<small>2 orders</small></div></div><div class="stars">★★★★<span>★</span></div><div class="stars hide-m">★★★<span>★★</span></div><div><span class="pill warn">Average</span></div></div><div class="trow reveal" style="--d:5;grid-template-columns:1.6fr 1fr 1fr 1fr"><div class="who"><span class="av" style="background:#FFC8A8">PP</span><div>Parth Patel<small>4 orders</small></div></div><div class="stars">★★<span>★★★</span></div><div class="stars hide-m">★★★★<span>★</span></div><div><span class="pill ok">Good</span></div></div><div class="trow reveal" style="--d:6;grid-template-columns:1.6fr 1fr 1fr 1fr"><div class="who"><span class="av" style="background:#7ee0b2">AV</span><div>Aditya Vadelkar<small>1 orders</small></div></div><div class="stars">★★★<span>★★</span></div><div class="stars hide-m">★★★<span>★★</span></div><div><span class="pill bad">Bad</span></div></div>
+        </div>
+        <div class="content">
+          <p class="eyebrow reveal">Performance</p>
+          <h2 class="reveal" style="--d:1">Rate the <em>call,</em> not the day.</h2>
+          <p class="lead reveal" style="--d:2">Each Shopify order gets its own three ratings. The row shows the day's average; open it to rate order by order.</p>
+          <div class="feed">
+            <div class="glass ev reveal" style="--d:3"><i></i><div><time>12:03</time>Sneha · order #53418 rated 4.5 · 5 · Good</div></div>
+            <div class="glass ev reveal" style="--d:4"><i style="background:#7ee0b2;box-shadow:0 0 12px #7ee0b2"></i><div><time>11:40</time>Parth hit his daily target 🎯</div></div>
+            <div class="glass ev reveal" style="--d:5"><i style="background:#A8E6FF;box-shadow:0 0 12px #A8E6FF"></i><div><time>11:15</time>Alkama · order #53411 · ₹2,401</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="attendance" class="block" data-blob="2.0,0.1,0.75,0.26,1.25,0.85" data-blob-m="0.95,-1.2,0.45,0.28,1.4,0.85" style="padding:70px 0">
+    <div class="wrap">
+      <div class="split right">
+        <div class="content">
+          <p class="eyebrow reveal">Attendance</p>
+          <h2 class="reveal" style="--d:1">Camera on <em>only</em> when you punch.</h2>
+          <p class="lead reveal" style="--d:2">Face match plus a blink, then the camera turns off. Punches from any phone, in any house.</p>
+          <div class="punch">
+            <div class="glass p reveal" style="--d:3"><b>112</b><span>Present</span></div>
+            <div class="glass p reveal" style="--d:4"><b>4</b><span>Not in yet</span></div>
+            <div class="glass p reveal" style="--d:5"><b>9:58</b><span>Avg punch in</span></div>
+            <div class="glass p reveal" style="--d:6"><b>98%</b><span>Face match</span></div>
+          </div>
+        </div>
+        <div class="glass panel reveal" style="--d:1">
+          <div class="ph"><h3>Not in yet</h3><span class="chip"><i style="background:var(--warn);box-shadow:0 0 10px var(--warn)"></i>4 people</span></div>
+          <div class="trow" style="grid-template-columns:1.6fr 1fr 1fr"><div class="who"><span class="av" style="background:#FFC8A8">PP</span><div>Parth Patel</div></div><div>Not punched</div><div><span class="pill warn">Remind</span></div></div>
+          <div class="trow" style="grid-template-columns:1.6fr 1fr 1fr"><div class="who"><span class="av" style="background:#7ee0b2">AV</span><div>Aditya Vadelkar</div></div><div>Not punched</div><div><span class="pill warn">Remind</span></div></div>
+          <div class="trow" style="grid-template-columns:1.6fr 1fr 1fr"><div class="who"><span class="av" style="background:#ffd08a">RS</span><div>Riya Shah<small>TM Perfume House</small></div></div><div>On leave</div><div><span class="pill ok">Approved</span></div></div>
+          <div class="trow" style="grid-template-columns:1.6fr 1fr 1fr"><div class="who"><span class="av" style="background:#ff9e9e">NG</span><div>Neel Gandhi<small>TM Perfume House</small></div></div><div>Not punched</div><div><span class="pill bad">Late 3×</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="salary" class="cta" data-blob="0,0,1.3,0.28,1.1,1.15" data-blob-m="0,0,0.95,0.26,1.1,1.15" style="padding:90px 0 140px">
+    <div class="wrap">
+      <div class="glass reveal" style="max-width:620px;margin:0 auto;padding:clamp(28px,5vw,56px);text-align:center;border-radius:28px">
+        <p class="eyebrow">Salary · September</p>
+        <h2 style="margin:14px 0 10px">₹7,40,000 <em>payable.</em></h2>
+        <p class="lead" style="margin:0 auto">Commission ₹41,320 across 31 people, worked out from today's rules. Ready to export on the 1st.</p>
+        <div class="actions" style="display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap"><a class="btn btn-primary" href="#">Open salary sheet</a><a class="btn btn-ghost" href="#">Export Excel</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="glass dock">
+  <a href="#top" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Home</a>
+  <a href="#targets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Targets</a>
+  <a href="#performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Rate</a>
+  <a href="#attendance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Punch</a>
+</nav>
+
+<footer style="padding:20px 0 90px;text-align:center;font-size:.78rem;color:var(--ink-2)">HRMS · TM Perfume House · design preview</footer>
+<!-- CONTENT:END -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============ CONFIG (edit per brand) ============ */
+const CONFIG = {
+  palette: ['#FFC8A8', '#FF9EC7', '#B69CFF', '#A8E6FF'], // peach → pink → violet → ice; change for another mood
+  speed: 0.16,          // noise flow speed
+  mouseStrength: 0.3,  // how much the surface bulges toward the cursor
+  particles: { desktop: 650, mobile: 240 },
+  detail: { desktop: 64, mobile: 28 }, // icosahedron subdivision
+  follow: 0.055         // scroll-state easing per frame (lower = floatier)
+};
+
+(() => {
+  const html = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobileMQ = matchMedia('(max-width: 860px)');
+
+  /* ---------- UI: load-in, reveals, nav, progress ---------- */
+  requestAnimationFrame(() => html.classList.add('loaded'));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  const nav = document.querySelector('.nav');
+  const bar = document.querySelector('.progress');
+
+  /* ---------- WebGL check ---------- */
+  const canvas = document.getElementById('scene');
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+  catch (e) { renderer = null; }
+  if (!renderer || typeof THREE === 'undefined') { html.classList.add('no-webgl'); bindScrollUI(); return; }
+
+  const isMobile = () => mobileMQ.matches;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile() ? 1.5 : 2));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+  camera.position.z = 6;
+
+  const pal = CONFIG.palette.map(c => new THREE.Color(c));
+
+  /* ---------- Shaders ---------- */
+  const NOISE = `
+  vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+  vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+  vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+  vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+  float snoise(vec3 v){
+    const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,1.0,2.0);
+    vec3 i=floor(v+dot(v,C.yyy)); vec3 x0=v-i+dot(i,C.xxx);
+    vec3 g=step(x0.yzx,x0.xyz); vec3 l=1.0-g; vec3 i1=min(g.xyz,l.zxy); vec3 i2=max(g.xyz,l.zxy);
+    vec3 x1=x0-i1+C.xxx; vec3 x2=x0-i2+C.yyy; vec3 x3=x0-D.yyy;
+    i=mod289(i);
+    vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+    float n_=0.142857142857; vec3 ns=n_*D.wyz-D.xzx;
+    vec4 j=p-49.0*floor(p*ns.z*ns.z); vec4 x_=floor(j*ns.z); vec4 y_=floor(j-7.0*x_);
+    vec4 x=x_*ns.x+ns.yyyy; vec4 y=y_*ns.x+ns.yyyy; vec4 h=1.0-abs(x)-abs(y);
+    vec4 b0=vec4(x.xy,y.xy); vec4 b1=vec4(x.zw,y.zw);
+    vec4 s0=floor(b0)*2.0+1.0; vec4 s1=floor(b1)*2.0+1.0; vec4 sh=-step(h,vec4(0.0));
+    vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy; vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+    vec3 p0=vec3(a0.xy,h.x); vec3 p1=vec3(a0.zw,h.y); vec3 p2=vec3(a1.xy,h.z); vec3 p3=vec3(a1.zw,h.w);
+    vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+    p0*=norm.x; p1*=norm.y; p2*=norm.z; p3*=norm.w;
+    vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
+    return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+  }`;
+
+  const blobVert = NOISE + `
+  uniform float uTime, uAmp, uFreq, uMouseAmp;
+  uniform vec3 uMouseDir;
+  varying vec3 vN; varying vec3 vV; varying float vD;
+  float disp(vec3 p){
+    vec3 q = p * uFreq;
+    float n  = snoise(q + vec3(0.0, 0.0, uTime));
+    float n2 = snoise(q * 2.1 - vec3(uTime * 0.6));
+    float m  = max(dot(normalize(p), uMouseDir), 0.0);
+    return n * uAmp + n2 * uAmp * 0.12 + pow(m, 4.0) * uMouseAmp;
+  }
+  void main(){
+    vec3 p = position; vec3 n = normalize(normal);
+    float d = disp(p);
+    vec3 pos = p + n * d;
+    vec3 t = normalize(cross(n, abs(n.y) < 0.99 ? vec3(0.0,1.0,0.0) : vec3(1.0,0.0,0.0)));
+    vec3 b = normalize(cross(n, t));
+    float e = 0.01;
+    vec3 p1 = p + t * e; p1 += normalize(p1) * disp(p1);
+    vec3 p2 = p + b * e; p2 += normalize(p2) * disp(p2);
+    vec3 nn = normalize(cross(p1 - pos, p2 - pos));
+    vN = normalize(normalMatrix * nn);
+    vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+    vV = -mv.xyz; vD = d;
+    gl_Position = projectionMatrix * mv;
+  }`;
+
+  const blobFrag = `
+  uniform vec3 c1, c2, c3, c4;
+  uniform float uTime, uShift;
+  varying vec3 vN; varying vec3 vV; varying float vD;
+  vec3 pal(float t){
+    t = fract(t) * 4.0;
+    if (t < 1.0) return mix(c1, c2, smoothstep(0.0,1.0,t));
+    if (t < 2.0) return mix(c2, c3, smoothstep(0.0,1.0,t-1.0));
+    if (t < 3.0) return mix(c3, c4, smoothstep(0.0,1.0,t-2.0));
+    return mix(c4, c1, smoothstep(0.0,1.0,t-3.0));
+  }
+  void main(){
+    vec3 N = normalize(vN); vec3 V = normalize(vV);
+    float ndv = max(dot(N, V), 0.0);
+    float fr = pow(1.0 - ndv, 2.2);
+    float t = fr * 0.9 + N.y * 0.22 + N.x * 0.12 + vD * 1.4 + uTime * 0.02 + uShift;
+    vec3 col = pal(t);
+    vec3 L = normalize(vec3(-0.5, 0.8, 0.6));
+    float diff = max(dot(N, L), 0.0) * 0.3 + 0.72;
+    float spec  = pow(max(dot(N, normalize(L + V)), 0.0), 70.0);
+    float spec2 = pow(max(dot(N, normalize(normalize(vec3(0.7,-0.4,0.6)) + V)), 0.0), 22.0) * 0.22;
+    col = col * diff + pal(t + 0.33) * fr * 0.45 + vec3(1.0) * (spec * 0.75 + spec2);
+    gl_FragColor = vec4(col, 1.0);
+  }`;
+
+  const blobUniforms = {
+    uTime: { value: 0 }, uAmp: { value: 0.26 }, uFreq: { value: 1.15 }, uShift: { value: 0 },
+    uMouseAmp: { value: 0 }, uMouseDir: { value: new THREE.Vector3(0, 0, 1) },
+    c1: { value: pal[0] }, c2: { value: pal[1] }, c3: { value: pal[2] }, c4: { value: pal[3] }
+  };
+  let blobGeo = new THREE.IcosahedronGeometry(1, isMobile() ? CONFIG.detail.mobile : CONFIG.detail.desktop);
+  const blob = new THREE.Mesh(blobGeo, new THREE.ShaderMaterial({ vertexShader: blobVert, fragmentShader: blobFrag, uniforms: blobUniforms }));
+  scene.add(blob);
+
+  /* ---------- Particles ---------- */
+  const partVert = `
+  uniform float uTime, uPR;
+  attribute float aSeed; attribute float aSize;
+  varying float vSeed; varying float vFade;
+  void main(){
+    vec3 p = position;
+    float s = aSeed * 6.2831;
+    p += vec3(sin(uTime*0.35 + s)*0.18, cos(uTime*0.28 + s*1.3)*0.22, sin(uTime*0.22 + s*0.7)*0.18);
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    gl_PointSize = aSize * uPR * (42.0 / -mv.z);
+    vSeed = aSeed; vFade = 0.55 + 0.45 * sin(uTime * 0.8 + s * 3.0);
+    gl_Position = projectionMatrix * mv;
+  }`;
+  const partFrag = `
+  uniform vec3 c1, c2, c3, c4;
+  varying float vSeed; varying float vFade;
+  void main(){
+    float d = length(gl_PointCoord - 0.5);
+    float a = smoothstep(0.5, 0.0, d);
+    vec3 col = vSeed < 0.25 ? c1 : vSeed < 0.5 ? c2 : vSeed < 0.75 ? c3 : c4;
+    gl_FragColor = vec4(col, a * 0.75 * vFade);
+  }`;
+  let particles;
+  function buildParticles(){
+    if (particles) { scene.remove(particles); particles.geometry.dispose(); }
+    const n = isMobile() ? CONFIG.particles.mobile : CONFIG.particles.desktop;
+    const pos = new Float32Array(n * 3), seed = new Float32Array(n), size = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const r = 1.7 + Math.pow(Math.random(), 0.7) * 3.2;
+      const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      pos[i*3] = r * Math.sin(ph) * Math.cos(th);
+      pos[i*3+1] = r * Math.sin(ph) * Math.sin(th) * 0.8;
+      pos[i*3+2] = r * Math.cos(ph) * 0.6;
+      seed[i] = Math.random(); size[i] = 0.6 + Math.random() * 1.8;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+    particles = new THREE.Points(g, partMat);
+    scene.add(particles);
+  }
+  const partMat = new THREE.ShaderMaterial({
+    vertexShader: partVert, fragmentShader: partFrag, transparent: true, depthWrite: false,
+    uniforms: { uTime: { value: 0 }, uPR: { value: renderer.getPixelRatio() }, c1: { value: pal[0] }, c2: { value: pal[1] }, c3: { value: pal[2] }, c4: { value: pal[3] } }
+  });
+  buildParticles();
+
+  /* ---------- Scroll states ---------- */
+  let anchors = [];
+  const parse = s => s.split(',').map(Number);
+  function measure(){
+    const m = isMobile();
+    anchors = [...document.querySelectorAll('[data-blob]')].map(el => {
+      const r = el.getBoundingClientRect();
+      const top = r.top + scrollY;
+      const at = Math.max(0, top + Math.min(r.height, innerHeight) * 0.5 - innerHeight * 0.5);
+      const v = parse((m && el.dataset.blobM) || el.dataset.blob);
+      return { at, v };
+    }).sort((a, b) => a.at - b.at);
+  }
+  const smooth = t => t * t * (3 - 2 * t);
+  function targetState(y){
+    if (!anchors.length) return [0,0,1,0.22,1,0];
+    if (y <= anchors[0].at) return anchors[0].v;
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const a = anchors[i], b = anchors[i + 1];
+      if (y < b.at) { const t = smooth((y - a.at) / Math.max(1, b.at - a.at)); return a.v.map((x, k) => x + (b.v[k] - x) * t); }
+    }
+    return anchors[anchors.length - 1].v;
+  }
+  let state = null;
+
+  /* ---------- Pointer ---------- */
+  const mouse = { x: 0, y: 0, tx: 0, ty: 0, active: 0, tActive: 0 };
+  addEventListener('pointermove', e => {
+    mouse.tx = (e.clientX / innerWidth) * 2 - 1;
+    mouse.ty = -((e.clientY / innerHeight) * 2 - 1);
+    mouse.tActive = 1;
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { mouse.tActive = 0; });
+
+  /* ---------- Resize ---------- */
+  let wasMobile = isMobile();
+  function resize(){
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile() ? 1.5 : 2));
+    renderer.setSize(innerWidth, innerHeight, false);
+    camera.aspect = innerWidth / innerHeight;
+    // keep the blob a similar on-screen size on tall/narrow screens
+    camera.position.z = camera.aspect < 0.8 ? 6 + (0.8 - camera.aspect) * 4 : 6;
+    camera.updateProjectionMatrix();
+    partMat.uniforms.uPR.value = renderer.getPixelRatio();
+    if (isMobile() !== wasMobile) {
+      wasMobile = isMobile();
+      blob.geometry.dispose();
+      blob.geometry = new THREE.IcosahedronGeometry(1, wasMobile ? CONFIG.detail.mobile : CONFIG.detail.desktop);
+      buildParticles();
+    }
+    measure();
+  }
+  addEventListener('resize', resize);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  addEventListener('load', measure);
+  resize();
+
+  /* ---------- Loop ---------- */
+  const clock = new THREE.Clock();
+  let t = 0, intro = 0;
+  function frame(){
+    const dt = Math.min(clock.getDelta(), 0.05);
+    t += dt * (reduce ? 0.25 : 1);
+    intro = Math.min(1, intro + dt * 0.6);
+
+    const target = targetState(scrollY);
+    if (!state) state = target.slice();
+    const k = reduce ? 1 : 1 - Math.pow(1 - CONFIG.follow, dt * 60); // frame-rate independent
+    for (let i = 0; i < state.length; i++) state[i] += (target[i] - state[i]) * k;
+    const [x, y, s, amp, freq, shift] = state;
+
+    const km = 1 - Math.pow(0.93, dt * 60);
+    mouse.x += (mouse.tx - mouse.x) * km;
+    mouse.y += (mouse.ty - mouse.y) * km;
+    mouse.active += (mouse.tActive - mouse.active) * km * 0.7;
+
+    const ease = 1 - Math.pow(1 - intro, 3);
+    blob.position.set(x + mouse.x * 0.12, y + mouse.y * 0.1, 0);
+    blob.scale.setScalar(s * (0.6 + 0.4 * ease));
+    blob.rotation.y = t * 0.08 + mouse.x * 0.35 + scrollY * 0.0006;
+    blob.rotation.x = mouse.y * -0.25 + scrollY * 0.0003;
+
+    const u = blobUniforms;
+    u.uTime.value = t * CONFIG.speed;
+    u.uAmp.value = amp; u.uFreq.value = freq; u.uShift.value = shift;
+    u.uMouseAmp.value = reduce || isMobile() ? 0 : CONFIG.mouseStrength * mouse.active;
+    // cursor direction in the blob's local space
+    const dir = new THREE.Vector3(mouse.x - x * 0.35, mouse.y - y * 0.35, 0.9).normalize();
+    blob.updateMatrixWorld();
+    u.uMouseDir.value.copy(dir).applyQuaternion(blob.quaternion.clone().invert());
+
+    particles.position.x += (x * 0.55 - particles.position.x) * 0.03;
+    particles.position.y += (y * 0.55 - particles.position.y) * 0.03;
+    particles.rotation.y = t * 0.03 + mouse.x * 0.12;
+    particles.rotation.x = mouse.y * -0.08;
+    partMat.uniforms.uTime.value = t;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  bindScrollUI();
+
+  function bindScrollUI(){
+    const onScroll = () => {
+      nav && nav.classList.toggle('scrolled', scrollY > 40);
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar && (bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`);
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+})();
+</script>
+</body>
+</html>

@@ -465,3 +465,87 @@ thead th:last-child, tbody td:last-child{padding-right:20px;}
   thead th:first-child, tbody td:first-child{padding-left:14px;}
   thead th:last-child, tbody td:last-child{padding-right:14px;}
 }
+
+/* ===== Responsive hardening (all pages) =====
+   Appended last so it only tops up the rules above. */
+
+/* Media never forces a page wider than its container. */
+img, video, canvas, svg{max-width:100%;}
+.sidebar svg, .btn svg, button svg{max-width:none;}
+
+/* Long words / IDs / URLs wrap instead of stretching a card or table cell. */
+.card, .modal, .stat-card, .alert{overflow-wrap:break-word;}
+.card, .stat-card, .modal{min-width:0;}
+
+/* Popups: use the *visible* viewport height (phone address bar) when the
+   browser knows it, and never grow taller than it. */
+.modal{max-height:90vh; max-height:90dvh;}
+.modal-overlay{overflow-y:auto; overscroll-behavior:contain;}
+
+/* Very wide monitors: keep the content block readable instead of stretching
+   edge to edge. Starts above 1900px so laptops/desktops are unchanged. */
+@media (min-width:1900px){
+  .topbar, .content{max-width:1780px; width:100%; margin-left:auto; margin-right:auto;}
+}
+
+/* Phones */
+@media (max-width:820px){
+  .modal-overlay{padding:10px; align-items:center;}
+  .modal{padding:20px 16px; border-radius:22px; max-height:94vh; max-height:94dvh;}
+  .modal h3{font-size:17px; margin-bottom:14px;}
+  .modal .actions{flex-wrap:wrap; gap:8px;}
+  .modal .actions .btn, .modal .actions button{flex:1 1 120px;}
+  .modal input, .modal select, .modal textarea{max-width:100%;}
+  /* Wide helper panels that were sized in px for desktop. */
+  .modal [style*="min-width"]{min-width:0 !important;}
+  /* Checkbox/radio rows get a real hit area. */
+  label:has(> input[type=checkbox]), label:has(> input[type=radio]){min-height:32px;}
+}
+
+/* iPhone Safari zooms the page when an input under 16px is focused, and then
+   leaves it zoomed. Only iOS needs the bigger size. */
+@supports (-webkit-touch-callout:none){
+  @media (max-width:820px){
+    input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), select, textarea{font-size:16px !important;}
+  }
+}
+
+/* Narrow phones: login / reset card */
+@media (max-width:400px){
+  .auth-wrap{padding:12px;}
+  .auth-card{padding:26px 20px; border-radius:22px;}
+  .auth-card h1{font-size:20px;}
+}
+
+/* Phone held sideways: short screens, so popups use the whole height and the
+   drawer scrolls. */
+@media (max-height:480px) and (max-width:900px){
+  .modal{max-height:96vh; max-height:96dvh; padding:14px 16px;}
+  .modal-overlay{padding:6px;}
+  .topbar{padding-top:8px; min-height:56px;}
+}
+
+/* Tablet portrait / small laptops: stat cards keep a comfortable minimum. */
+@media (min-width:821px) and (max-width:1100px){
+  .stat-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:12px;}
+  .content{padding-left:6px; padding-right:6px;}
+}
+
+/* ===== Phone table-cards: multi-part cells stack, label sits at the left =====
+   A cell holding a title + sub-line (name + code, amount + note…) used to turn
+   into two side-by-side columns inside the card. Now the cell is a block with
+   the label pinned in a left gutter, so its contents stack naturally. */
+@media (max-width:820px){
+  .card table:not(.no-stack) tbody td[data-label]{display:block; position:relative; padding-left:114px; min-height:26px; text-align:left !important;}
+  .card table:not(.no-stack) tbody td[data-label]::before{position:absolute; left:0; top:6px; width:104px; text-align:left; padding-top:2px;}
+  /* Stat tiles / tab rows sitting straight in the page body keep a side gutter. */
+  .content > .stat-grid, .content > .tabs, #statsArea{margin-left:10px; margin-right:10px;}
+  /* Control rows under the title use the space left of the menu button. */
+  .topbar > div:not(:has(h1)){margin-left:-52px; width:calc(100% + 52px);}
+}
+/* Small tablets: stacked cards sit two across instead of one very wide column. */
+@media (min-width:640px) and (max-width:820px){
+  .card table:not(.no-stack) tbody{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 12px 8px;}
+  .card table:not(.no-stack) tbody tr{margin:0; min-width:0;}
+  .card table:not(.no-stack) tbody tr:has(td[colspan]){grid-column:1/-1;}
+}

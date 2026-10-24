@@ -58,6 +58,8 @@
 .cvx-h{font-size:12px; font-weight:800; letter-spacing:.06em; color:var(--muted,#6f7480); margin:14px 0 4px; text-transform:uppercase}
 .cvx-spin{display:inline-block; width:16px; height:16px; border:3px solid #bbf7d0; border-top-color:#16a34a; border-radius:50%; animation:cvxs 0.8s linear infinite; vertical-align:-3px; margin-right:6px}
 @keyframes cvxs{to{transform:rotate(360deg)}}
+.cvx-fi{width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:26px; background:#f8fafc}.cvx-fi small{font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase}
+.cvx-meet{background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:12px; padding:10px 12px; font-size:13.5px; font-weight:700; margin:8px 0}
 .cvx-lb{position:fixed; inset:0; z-index:10060; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; padding:16px}
 .cvx-lb img{max-width:100%; max-height:100%; border-radius:8px}
 .cvx-files{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
@@ -205,7 +207,7 @@
     const ex = shotsOf(up), canEdit = !up.status || !['analyzing'].includes(up.status);
     let k = 0;
     const exHtml = ex.map((f) => { k++; return `<div class="cvx-sh"><img data-n="${f.n}" alt="Screenshot ${k}" data-zoom="1"><b>${k} ✓</b>${canEdit ? `<button type="button" class="rm" data-rmf="${f.n}" title="Remove">✕</button>` : ''}</div>`; }).join('');
-    const pkHtml = S.picks.map((p, i) => { if (!p.dup) k++; return `<div class="cvx-sh new ${p.dup ? 'dup' : ''}"><img src="${p.url}" alt="" data-zoom="1"><b>${p.dup ? 'Same as ' + p.dup : k + ' ✓'}</b><button type="button" class="rm" data-rmp="${i}" title="Remove">✕</button></div>`; }).join('');
+    const pkHtml = S.picks.map((p, i) => { if (!p.dup) k++; return `<div class="cvx-sh new ${p.dup ? 'dup' : ''}">${p.raw ? `<div class="cvx-fi">📄<small>${esc((p.name.split('.').pop() || 'file').slice(0, 5))}</small></div>` : `<img src="${p.url}" alt="" data-zoom="1">`}<b>${p.dup ? 'Same as ' + p.dup : k + ' ✓'}</b><button type="button" class="rm" data-rmp="${i}" title="Remove">✕</button></div>`; }).join('');
     const full = c.total >= CFG.max_shots;
     const dups = S.picks.filter((p) => p.dup);
     const isLost = (up.kind || S.opts.kind) === 'lost';
@@ -213,9 +215,11 @@
     const canSave = !S.busy && (c.need === 0 ? (c.add > 0 || !!S.video || !!S.call || ['saved', 'error', 'waiting'].includes(up.status)) : (c.add > 0 || !!S.call));
     return titleHtml()
       + (isLost ? `<textarea id="cvxNote" maxlength="300" placeholder="Customer શું પૂછતા હતા? (optional) — e.g. Oud 100 ml price પૂછ્યો">${esc(S.note || up.note || '')}</textarea>` : '')
-      + `<div class="cvx-grid">${exHtml}${pkHtml}${full ? '' : `<label class="cvx-add">＋<small>Screenshots</small><input type="file" accept="image/*" multiple hidden id="cvxShots"></label>`}</div>`
+      + `<div class="cvx-grid">${exHtml}${pkHtml}${full ? '' : `<label class="cvx-add">＋<small>Screenshots</small><input type="file" multiple hidden id="cvxShots"></label>`}</div>`
       + dups.map((p) => `<div class="cvx-warn">⚠️ આ screenshot, screenshot ${p.dup} જેવો જ છે — repeat નહીં ચાલે. ✕ થી કાઢો અને બાકીની chat upload કરો.</div>`).join('')
       + S.rejected.map((r) => `<div class="cvx-warn">⚠️ ${esc(r.name)}: ${esc(r.why)}</div>`).join('')
+      + (S.notes || []).map((r) => `<div class="cvx-warn">ℹ️ ${esc(r.name)}: ${esc(r.why)}</div>`).join('')
+      + dupHtml(S.dupNote)
       + (up.msg && up.status !== 'done' ? `<div class="cvx-warn">🤖 ${esc(up.msg)}</div>` : '')
       + (S.err ? `<div class="cvx-warn">${esc(S.err)}</div>` : '')
       + `<div class="cvx-chk">${c.total ? '✅' : '⬜'} ${c.total} unique screenshot${c.total === 1 ? '' : 's'}</div>`
@@ -224,7 +228,7 @@
       + (CFG.video_ok ? `<div class="cvx-or">OR</div><div class="cvx-opt ${S.video || up.has_video ? 'on' : ''}"><span>🎬 ${S.video ? esc(S.video.name) : up.has_video ? 'Screen recording saved' : '1 screen-recording video (chat scroll કરો)'}</span>`
         + `<label class="cvx-lnk">${S.video || up.has_video ? 'Change' : '≤ ' + CFG.video_sec + ' s · Add'}<input type="file" accept="video/*" hidden id="cvxVideo"></label></div>` : '')
       + `<div class="cvx-opt ${S.call || up.has_call ? 'on' : ''}"><span>📞 ${S.call ? esc(S.call.name) : up.has_call ? 'Call recording saved' : 'Call recording <span class="mut">(optional)</span>'}${CFG.call_ok ? '' : ' <span class="mut">· review needs Admin AI setup</span>'}</span>`
-      + `<label class="cvx-lnk">${S.call || up.has_call ? 'Change' : '+ Add'}<input type="file" accept="audio/*,.m4a,.mp3,.aac,.wav,.ogg,.opus" hidden id="cvxCall"></label></div>`
+      + `<label class="cvx-lnk">${S.call || up.has_call ? 'Change' : '+ Add'}<input type="file" hidden id="cvxCall"></label></div>`
       + `<button type="button" class="cvx-btn" data-save="1" ${canSave ? '' : 'disabled'}>${saveLbl}</button>`
       + (up.status === 'done' ? `<button type="button" class="cvx-btn ghost" data-view="review">← Back to review</button>` : '');
   }
@@ -278,9 +282,10 @@
   // ---------- events ----------
   async function addShots(files) {
     for (const f of files) {
-      if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp)$/i.test(f.name)) { S.rejected.push({ name: f.name, why: 'not a screenshot (JPG / PNG)' }); continue; }
+      const isImg = /^image\/(jpeg|png|webp|gif|bmp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
       if (f.size > CFG.shot_mb * 1048576) { S.rejected.push({ name: f.name, why: 'too big (max ' + CFG.shot_mb + ' MB)' }); continue; }
       if (counts().total >= CFG.max_shots) { S.rejected.push({ name: f.name, why: 'max ' + CFG.max_shots + ' screenshots' }); continue; }
+      if (!isImg) { S.picks.push({ file: f, name: f.name, size: f.size, url: '', hash: '', dup: null, raw: 1 }); continue; }   // any other file type (HEIC, PDF …) is accepted as it is
       const blob = await shrink(f); let h = '';
       try { h = await dhash(blob); } catch (e) {}
       // compare with the screenshots already picked (the server checks the saved ones too)
@@ -298,7 +303,6 @@
       const f = (t.files || [])[0]; if (!f) return;
       S.rejected = [];
       if (f.size > CFG.media_mb * 1048576) S.rejected.push({ name: f.name, why: 'too big (max ' + CFG.media_mb + ' MB)' + (t.id === 'cvxVideo' ? ' — record a shorter scroll' : '') });
-      else if (t.id === 'cvxCall' && /\.amr$/i.test(f.name)) S.rejected.push({ name: f.name, why: 'AMR recordings cannot be read — set the call recorder to MP3 / M4A' });
       else if (t.id === 'cvxVideo') { const s = await mediaSeconds(f, 'video'); if (s && s > CFG.video_sec + 2) S.rejected.push({ name: f.name, why: 'video is ' + Math.round(s) + ' s — max ' + CFG.video_sec + ' s' }); else S.video = f; }
       else S.call = f;
       draw();
@@ -338,7 +342,7 @@
     else if (o.kind === 'lost') fd.append('kind', 'lost');
     else { fd.append('kind', 'order'); fd.append('source', o.source); fd.append('order_id', o.order_id); fd.append('order_name', o.order_name || ''); fd.append('order_total', o.total || 0); fd.append('order_day', o.day || ''); }
     if ((S.up ? S.up.kind : o.kind) === 'lost') fd.append('note', S.note || (S.up && S.up.note) || '');
-    goodPicks().forEach((p, i) => fd.append('shots[]', p.file, 'shot' + (i + 1) + '.jpg'));
+    goodPicks().forEach((p, i) => fd.append('shots[]', p.file, p.raw ? p.name : 'shot' + (i + 1) + '.jpg'));
     if (S.video) fd.append('video', S.video, S.video.name);
     if (S.call) fd.append('call', S.call, S.call.name);
     try {
@@ -347,7 +351,7 @@
       C.setCfg(d.cfg);
       S.picks.forEach((p) => URL.revokeObjectURL(p.url));
       S.picks = []; S.video = null; S.call = null; S.rejected = d.rejected || [];
-      S.up = Object.assign(S.up || {}, d.upload); S.opts.id = d.upload.id; S.busy = false;
+      S.up = Object.assign(S.up || {}, d.upload); S.opts.id = d.upload.id; S.busy = false; S.dupNote = d.dup_note || null; S.notes = d.notes || [];
       if (d.upload.status === 'need_more') { await reload(); return; }
       if (S.rejected.length && !d.added) { await reload(); S.view = 'upload'; draw(); return; }
       analyze(false);
@@ -364,6 +368,105 @@
     S.view = (S.up.status === 'need_more') ? 'upload' : 'review';
     await reload();
   }
+
+
+  // A repeated screenshot: first a soft note, then a firmer one, then "meet admin" (levels come from the server).
+  function dupHtml(n) {
+    if (!n) return '';
+    const cls = n.level === 'meet' ? 'cvx-meet' : 'cvx-warn';
+    return `<div class="${cls}">${n.level === 'meet' ? '🚨' : '🔁'} ${esc(n.gu || n.text || '')}${n.gu && n.text ? `<div class="mut" style="margin-top:3px">${esc(n.text)}</div>` : ''}</div>`;
+  }
+  C.dupHtml = dupHtml;
+
+  // ---------- Proof first, allocation right after ----------
+  // Convo.proof({ source, order_id, order_name, total, day, need: 'chat' | 'call', msg, gu }) -> Promise<{ok, id, upload}>:
+  //   ok = something was saved (any file type) and the caller can try allocation.set again. The server decides what is enough.
+  C.proof = function (opts) {
+    opts = opts || {};
+    return new Promise((resolve) => {
+      if (S) close();
+      const P = { picks: [], call: null, busy: false, rejected: [], notes: [], dupNote: null, err: '', saved: null };
+      const root = document.createElement('div'); root.className = 'cvx';
+      root.innerHTML = '<div class="cvx-box"><button type="button" class="cvx-x" aria-label="Close">×</button><div class="cvx-body"></div></div>';
+      document.body.appendChild(root);
+      let done = false;
+      const finish = (v) => { if (done) return; done = true; P.picks.forEach((p) => p.url && URL.revokeObjectURL(p.url)); root.remove(); document.removeEventListener('keydown', key); resolve(v); };
+      const key = (e) => { if (e.key === 'Escape') { const lb = document.querySelector('.cvx-lb'); if (lb) lb.remove(); else finish({ ok: false }); } };
+      document.addEventListener('keydown', key);
+      const needCall = opts.need === 'call';
+      function draw() {
+        const b = root.querySelector('.cvx-body');
+        const tiles = P.picks.map((p, i) => `<div class="cvx-sh new ${p.dup ? 'dup' : ''}">${p.raw ? `<div class="cvx-fi">📄<small>${esc((p.name.split('.').pop() || 'file').slice(0, 5))}</small></div>` : `<img src="${p.url}" alt="" data-zoom="1">`}<b>${p.dup ? 'Same as ' + p.dup : (i + 1) + ' ✓'}</b><button type="button" class="rm" data-rmp="${i}" title="Remove">✕</button></div>`).join('');
+        const good = P.picks.filter((p) => !p.dup).length;
+        const ok = !P.busy && (needCall ? !!P.call : good > 0 || !!P.call);
+        b.innerHTML = `<h3>📎 પહેલા proof, પછી allocation${opts.order_name ? ' · ' + esc(opts.order_name) : ''}</h3>`
+          + `<div class="${needCall ? 'cvx-meet' : 'cvx-warn'}">${esc(opts.gu || (needCall ? 'આ order માટે call recording જોઈએ.' : 'Chat ના screenshots (કોઈ પણ file ચાલશે) upload કરો, પછી order allocate થશે.'))}${opts.msg ? `<div class="mut" style="margin-top:3px">${esc(opts.msg)}</div>` : ''}</div>`
+          + `<div class="cvx-h">1 · Chat screenshots <span class="mut" style="text-transform:none;letter-spacing:0">(customer ના પહેલા message થી order confirm સુધી · કોઈ પણ file type)</span></div>`
+          + `<div class="cvx-grid">${tiles}<label class="cvx-add">＋<small>Screenshots</small><input type="file" multiple hidden id="cvxPShots"></label></div>`
+          + `<div class="cvx-h">2 · Call recording ${needCall ? '<span style="color:#b91c1c">(જરૂરી)</span>' : '<span class="mut" style="text-transform:none;letter-spacing:0">(હોય તો)</span>'}</div>`
+          + `<div class="cvx-opt ${P.call ? 'on' : ''}"><span>📞 ${P.call ? esc(P.call.name) : 'Call recording — કોઈ પણ file'}</span><label class="cvx-lnk">${P.call ? 'Change' : '+ Add'}<input type="file" hidden id="cvxPCall"></label></div>`
+          + P.picks.filter((p) => p.dup).map((p) => `<div class="cvx-warn">⚠️ આ screenshot, screenshot ${p.dup} જેવો જ છે — repeat નહીં ચાલે.</div>`).join('')
+          + P.rejected.map((r) => `<div class="cvx-warn">⚠️ ${esc(r.name)}: ${esc(r.why)}</div>`).join('')
+          + P.notes.map((r) => `<div class="cvx-warn">ℹ️ ${esc(r.name)}: ${esc(r.why)}</div>`).join('')
+          + dupHtml(P.dupNote)
+          + (P.err ? `<div class="cvx-warn">${esc(P.err)}</div>` : '')
+          + `<button type="button" class="cvx-btn" data-psave="1" ${ok ? '' : 'disabled'}>${P.busy ? '<span class="cvx-spin"></span>Saving…' : 'Save proof &amp; allocate ✓'}</button>`
+          + `<button type="button" class="cvx-btn ghost" data-pclose="1">Not now</button>`;
+      }
+      root.addEventListener('click', async (e) => {
+        const t = e.target;
+        if (t === root || t.closest('.cvx-x') || t.closest('[data-pclose]')) { finish({ ok: false }); return; }
+        const z = t.closest('[data-zoom]');
+        if (z && z.src) { const lb = document.createElement('div'); lb.className = 'cvx-lb'; lb.innerHTML = `<img src="${z.src}" alt="">`; lb.onclick = () => lb.remove(); document.body.appendChild(lb); return; }
+        const rp = t.closest('[data-rmp]');
+        if (rp) { const p = P.picks.splice(Number(rp.dataset.rmp), 1)[0]; if (p && p.url) URL.revokeObjectURL(p.url); draw(); return; }
+        if (t.closest('[data-psave]')) await save();
+      });
+      root.addEventListener('change', async (e) => {
+        const t = e.target;
+        if (t.id === 'cvxPShots') {
+          P.rejected = [];
+          for (const f of Array.from(t.files || [])) {
+            if (f.size > CFG.shot_mb * 1048576) { P.rejected.push({ name: f.name, why: 'too big (max ' + CFG.shot_mb + ' MB)' }); continue; }
+            const isImg = /^image\/(jpeg|png|webp|gif|bmp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+            if (!isImg) { P.picks.push({ file: f, name: f.name, size: f.size, url: '', hash: '', dup: null, raw: 1 }); continue; }
+            const blob = await shrink(f); let h = ''; try { h = await dhash(blob); } catch (er) {}
+            let dup = null, n = 0;
+            for (const p of P.picks) { if (p.dup) continue; n++; if (p.hash && h && ham(h, p.hash) <= DUP_BITS) { dup = n; break; } }
+            P.picks.push({ file: blob, name: f.name, size: f.size, url: URL.createObjectURL(blob), hash: h, dup });
+          }
+          draw();
+        } else if (t.id === 'cvxPCall') {
+          const f = (t.files || [])[0]; if (!f) return;
+          P.rejected = [];
+          if (f.size > CFG.media_mb * 1048576) P.rejected.push({ name: f.name, why: 'too big (max ' + CFG.media_mb + ' MB)' }); else P.call = f;
+          draw();
+        }
+      });
+      async function save() {
+        if (P.busy) return;
+        P.busy = true; P.err = ''; draw();
+        const fd = new FormData();
+        fd.append('kind', 'order'); fd.append('source', opts.source); fd.append('order_id', opts.order_id); fd.append('pre_alloc', '1');
+        fd.append('order_name', opts.order_name || ''); fd.append('order_total', opts.total || 0); fd.append('order_day', opts.day || '');
+        if (opts.employee_id) fd.append('employee_id', opts.employee_id);
+        P.picks.filter((p) => !p.dup).forEach((p, i) => fd.append('shots[]', p.file, p.raw ? p.name : 'shot' + (i + 1) + '.jpg'));
+        if (P.call) fd.append('call', P.call, P.call.name);
+        try {
+          const d = await api.upload('convo.upload', fd);
+          C.setCfg(d.cfg);
+          P.busy = false; P.rejected = d.rejected || []; P.notes = d.notes || []; P.dupNote = d.dup_note || null;
+          if (d.added > 0) {
+            P.picks.forEach((p) => p.url && URL.revokeObjectURL(p.url)); P.picks = []; P.call = null;
+            // gentle notes stay visible for a moment, then the caller goes on with allocation
+            if (P.rejected.length || P.notes.length || P.dupNote) { draw(); await new Promise((r) => setTimeout(r, P.dupNote && P.dupNote.level === 'meet' ? 3500 : 1800)); }
+            finish({ ok: true, id: d.upload && d.upload.id, upload: d.upload });
+          } else draw();
+        } catch (er) { P.busy = false; P.err = er.message; draw(); }
+      }
+      draw();
+    });
+  };
 
   // ---------- Today's call recordings (Punch Out / My Sales) ----------
   // Convo.calls({ punch: true }) → Promise<boolean>: true = go on with Punch Out (enough recordings, warn mode, or a reason written).
@@ -392,7 +495,7 @@
           + `<div class="cvx-score"><div style="flex:1"><div class="cvx-sk"><span>${upl} of ${req || upl} uploaded</span><b>${left ? left + ' left' : '✅ Done'}</b></div><div class="cvx-bar" style="height:10px"><i style="width:${pct}%;background:${left ? '#f59e0b' : '#16a34a'}"></i></div></div></div>`
           + st.lines.map((l) => `<div class="cvx-chk">${l}</div>`).join('')
           + (st.err ? `<div class="cvx-warn">${esc(st.err)}</div>` : '')
-          + `<label class="cvx-btn" style="text-align:center; ${st.busy ? 'opacity:.6; pointer-events:none;' : ''}">${st.busy ? '<span class="cvx-spin"></span>Uploading…' : '＋ Upload call recordings (choose many)'}<input type="file" accept="audio/*,.m4a,.mp3,.aac,.wav,.ogg,.opus" multiple hidden id="cvxCalls"></label>`
+          + `<label class="cvx-btn" style="text-align:center; ${st.busy ? 'opacity:.6; pointer-events:none;' : ''}">${st.busy ? '<span class="cvx-spin"></span>Uploading…' : '＋ Upload call recordings (choose many)'}<input type="file" accept="audio/*,.m4a,.mp3,.aac,.wav,.ogg,.opus,.mp4,video/mp4" multiple hidden id="cvxCalls"></label>`
           + (d.ai_call_ok ? '' : `<div class="mut" style="margin-top:6px">Recordings save થશે; AI review માટે Admin એ setup કરવું પડશે.</div>`);
         if (d.list && d.list.length) {
           h += `<div class="cvx-h">Uploaded today</div>` + d.list.slice(0, 12).map((u) => `<div class="cvx-opt" style="border-style:solid"><span>${u.kind === 'qcall' && !u.order_name ? '⏳ AI checking…' : u.kind === 'lost' ? '💔 No order — study' : '✅ Order ' + esc(u.order_name)}</span><b>${u.call_score != null ? '📞 ' + Number(u.call_score).toFixed(1) : ''}</b></div>`).join('');

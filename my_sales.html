@@ -13,6 +13,16 @@
 <title>My Sales — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
+  /* Wide screens: two columns of cards instead of one 640px strip with the rest of the screen empty */
+  @media (min-width:1100px){
+    .content{column-count:2; column-gap:20px;}
+    .content > *{break-inside:avoid; -webkit-column-break-inside:avoid;}
+    .content > #alertBox, .content > #shHome{column-span:all;}
+    #shHome{display:grid; grid-template-columns:1fr 1fr; gap:0 20px; align-items:start;}
+    #shHome > .sh-hero{grid-column:1/-1;} #shHome > .sh-quests{grid-column:1/-1;} #shHome > #shOffer, #shHome > .sh-price{grid-column:auto;}
+    .content .card, .content .cch, .content .ot-card, .content #qcCard, .content #detailCard, .content #arCard{max-width:none !important;}
+    .content .card{break-inside:avoid;}
+  }
   /* Coach (top of the page): pace, ranks and every tip of today */
   .cch{max-width:640px; margin-bottom:20px; padding:16px 18px;}
   .cch h2{font-size:15px; margin:0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
@@ -124,6 +134,13 @@
     <div class="topbar"><h1>My Sales</h1></div>
     <div class="content">
       <div id="alertBox"></div>
+      <!-- Sales Home (assets/js/sales_home.js): cheer hero · missions (target + code goal) · the ONE orange offer card · price chart · bottom "Allocate order" button -->
+      <div id="shHome">
+        <section class="sh-hero" id="shHero" style="display:none;"></section>
+        <div class="sh-quests" id="shQuests" style="display:none;"></div>
+        <div id="shOffer"></div>
+        <section class="card sh-price" id="shPrice" style="display:none;"></section>
+      </div>
       <div class="card cch rtc" id="rateCard" style="display:none;"></div>
       <div class="card cch" id="coachCard" style="display:none;"></div>
       <div class="card cch chc" id="chatCard" style="display:none;"></div>
@@ -168,8 +185,10 @@
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
 <script src="assets/js/ml_slab.js?v=261024a"></script>
-<script src="assets/js/flash_offer.js?v=261024a"></script>
-<script src="assets/js/convo.js?v=261022b"></script>
+<script>window.FO_MOUNT = document.getElementById('shOffer');</script>
+<script src="assets/js/flash_offer.js?v=261024b"></script>
+<script src="assets/js/sales_home.js?v=261024b"></script>
+<script src="assets/js/convo.js?v=261024a"></script>
 <script>
   guardPage();
   renderSidebar('my_sales');
@@ -316,6 +335,8 @@
       if (pk) { const pc = ((PN.sales[pk] = PN.sales[pk] || {})[day] = PN.sales[pk][day] || { ach: 0, n: 0 }); pc.ach += amt; pc.n++; }
     });
   }
+  // 70% code rule: enough of my orders of a day have a code → every order of that day pays full (x.codeOk, used by MLSLAB.orderCom / flashCom).
+  function tagMyCodes() { if (window.MLSLAB && CM.slab) CM.codeDays = MLSLAB.tagCodes(CM.slab, CM.ord, CM.slab.me); }
   // ML price slab: his daily target of that day (that row) is complete? No target set = not capped.
   function slabHit(o) {
     const t = Number(((CM.target || {})[o.rk] || {})[o.day] || 0);
@@ -396,6 +417,7 @@
       CM.code = { on: !!(cm.code && cm.code.on), rules: (cm.code && cm.code.rules) || [], shares: (cm.shares && !Array.isArray(cm.shares)) ? cm.shares : {} };
       CM.target = cm.target || {}; CM.status = cm.status || {}; CM.manual = (cm.manual && !Array.isArray(cm.manual)) ? cm.manual : {}; CM.slab = cm.ml_slab || null;
       buildOrders(od.orders || [], from, to, dayStart);
+      tagMyCodes();
       const days = []; for (let x = from; x <= to; ) { days.push(x); const t = new Date(x + 'T00:00:00'); t.setDate(t.getDate() + 1); x = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
       const m = period(days, true), t = period([to]);
       const set = (id, html) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.classList.remove('wait'); } };
@@ -574,6 +596,7 @@
     const box = document.getElementById('coachCard');
     let d; try { d = await api.get('my.coach'); } catch (e) { return; }
     const m = d && d.me; if (!m) { box.style.display = 'none'; return; }
+    if (window.SalesHome) SalesHome.setCoach(d);
     const ce = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const rs = (v) => '₹' + Math.round(Number(v) || 0).toLocaleString('en-IN');
     const T = Number(m.target) || 0, G = d.goal || { mode: 'none' }, goalMode = G.mode === 'newgoal';
@@ -640,6 +663,7 @@
       else h += `<div class="tp win"><span class="e">🌟</span><div><b>બધા parts 8+ છે!</b>આમ જ ચાલુ રાખો — તમે team માટે example છો.</div></div>`;
     }
     box.innerHTML = h; box.style.display = '';
+    if (window.SalesHome) SalesHome.setRating(tv != null ? tv : mv);
   }
   document.getElementById('rateCard').addEventListener('click', (e) => { const b = e.target.closest('[data-rtv]'); if (b) { RT.view = b.dataset.rtv; renderRating(); } });
 
@@ -712,6 +736,14 @@
   setInterval(() => { if (!document.hidden && !document.querySelector('.cvx')) loadChat(); }, 180000);
 
   load();
+  // After orders were allocated in the pop-up: bring today's pace, commission and target up to date (the hero shows it straight away).
+  if (window.SalesHome) SalesHome.onRefresh = async () => {
+    await loadCoach();
+    const c = SalesHome._s.coach;
+    if (c && c.me) { TOP.sales = Number(c.me.sales) || TOP.sales; renderTop(); }
+    loadTarget();
+    SalesHome.refreshMissions();
+  };
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

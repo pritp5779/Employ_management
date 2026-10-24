@@ -40,6 +40,12 @@
 .foCard.slim .foPill b{display:inline;}
 .foCard .foPill span{font-size:10.5px; opacity:.9;}
 .foCard.slim .foPill span{font-size:11.5px; opacity:1; margin-left:3px;}
+.foCard .foBlk{margin-top:12px; padding-top:10px; border-top:1px dashed rgba(255,255,255,.4);}
+.foCard .foBlk .foRate{font-size:12.5px; font-weight:700; background:rgba(0,0,0,.18); display:inline-block; padding:4px 12px; border-radius:99px;}
+.foCard .foBlk .foPills{margin-top:8px;}
+.foCard .foLeft{margin-top:6px; font-size:11.5px; font-weight:700; opacity:.9;}
+@media (prefers-reduced-motion:no-preference){ .foCard .foTtl > span:first-child{animation:foPulse 2.2s ease-in-out infinite;} }
+@keyframes foPulse{0%,100%{opacity:1;}50%{opacity:.78;}}
 #fo{margin-bottom:20px; background:#fff; border:1px solid var(--line); border-radius:var(--radius,18px); padding:18px 22px 20px;}
 #fo h3{margin:0 0 4px; font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 #fo .rsub{font-size:12.5px; color:var(--muted); line-height:1.5; margin:0 0 14px; max-width:860px;}
@@ -92,7 +98,7 @@
 }
 `;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  const mount = document.querySelector('.content') || document.querySelector('.main') || document.body;
+  const mount = window.FO_MOUNT || document.querySelector('.content') || document.querySelector('.main') || document.body;      // My Sales gives its own slot (window.FO_MOUNT) so the offer sits under the missions
 
   const ADMIN = !!window.FO_ADMIN;
   const SIZE = window.FO_SIZE === 'slim' ? 'slim' : 'big';
@@ -118,24 +124,27 @@
   function renderBanner() {
     const b = ensureBanner();
     const list = (DATA && DATA.running) || [];
-    if (!list.length) { b.hidden = true; b.innerHTML = ''; return; }
+    if (!list.length || window.FO_HIDE) { b.hidden = true; b.innerHTML = ''; return; }
     b.hidden = false;
     const slimCls = SIZE === 'slim' ? ' slim' : '';
-    // One .foCard per running offer — several can be live at once, each with its own items, rate and countdown.
-    b.innerHTML = list.map((r) => {
-      const pills = (r.items || []).map((it) => `<div class="foPill"><b>${esc(it.ml)} ml</b><span>${esc(inr(it.price))}</span></div>`).join('');
-      // Folded into .foTtl (not a separate trailing flex item) so this line is always part of the title and can never be
-      // squeezed out by leftover-space flex layout — the bug reported on the Order Allocation slim strip.
-      const rate = `Sell these now → <b>${fmtN(r.pct)}%</b> commission (<b>${fmtN(flashNocodePct(r))}%</b> without a code)`;
-      return `
+    // ONE orange card, however many offers run at once (several used to stack as separate panels): the countdown is the one that ends first,
+    // each offer adds its own sizes + rate inside the same card.
+    const endMs = (r) => new Date(String(r.ends_at || '').replace(' ', 'T')).getTime();
+    const soon = list.slice().sort((x, y) => endMs(x) - endMs(y))[0], multi = list.length > 1;
+    const pillsOf = (r) => (r.items || []).map((it) => `<div class="foPill"><b>${esc(it.ml)} ml</b><span>${esc(inr(it.price))}</span></div>`).join('');
+    // The rate line is folded into .foTtl (not a separate trailing flex item) so it can never be squeezed out by leftover-space flex layout.
+    const rateOf = (r) => `Sell these now → <b>${fmtN(r.pct)}%</b> commission (<b>${fmtN(flashNocodePct(r))}%</b> without a code)`;
+    const body = multi
+      ? list.map((r) => `<div class="foBlk"><div class="foRate">${rateOf(r)}</div><div class="foPills">${pillsOf(r)}</div><div class="foLeft" id="foMini_${esc(r.id)}"></div></div>`).join('')
+      : `<div class="foPills">${pillsOf(list[0])}</div>`;
+    b.innerHTML = `
       <div class="foCard${slimCls}">
         <div class="foTop">
-          <div class="foTtl"><span>🔥 Limited Time Offer</span><span class="foRate">${rate}</span></div>
-          <div class="foTimer" id="foTimerBox_${esc(r.id)}"></div>
+          <div class="foTtl"><span>⚡ Limited Time Offer</span>${multi ? '' : `<span class="foRate">${rateOf(list[0])}</span>`}</div>
+          <div class="foTimer" id="foTimerBox_${esc(soon.id)}"></div>
         </div>
-        <div class="foPills">${pills}</div>
+        ${body}
       </div>`;
-    }).join('');
   }
 
   // ---------- Countdown ----------
@@ -153,6 +162,8 @@
       if (left <= 0) { anyEnded = true; continue; }        // this one just ended — refresh everything once, below
       const box1 = document.getElementById('foTimerBox_' + r.id); if (box1) box1.innerHTML = timerHtml(left);
       const box2 = document.getElementById('foRunTimer_' + r.id); if (box2) box2.innerHTML = timerHtml(left);
+      const mini = document.getElementById('foMini_' + r.id);
+      if (mini) { const hh = Math.floor(left / 3600000), mm = Math.floor((left % 3600000) / 60000); mini.textContent = '⏳ ends in ' + (hh ? hh + 'h ' : '') + mm + 'm'; }
     }
     if (anyEnded) load();
   }

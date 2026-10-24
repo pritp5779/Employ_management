@@ -135,6 +135,8 @@
   #cm .prog{margin-left:0;}
   #cm .scroll tbody td{white-space:normal;}
   #cm tr.ord td{padding:7px 12px;} #cm .oline{padding-left:0;}
+  .content .irow input.ml, .content .irow input.price{min-height:38px !important;} .content .irow button{min-width:36px !important; min-height:36px !important;}
+  .content #foAddRow{min-height:38px !important;} .content #foHours, .content #foPct, .content #foNocode, .content #foNote{min-height:36px !important;}
 }
 </style>
 </head>
@@ -801,8 +803,15 @@
     return !!cell && cell.ach >= t;
   }
   // null = the slab does not decide this order (switched off, no ML, size outside the chart, or a fixed commission / code-mix rule pays the person).
+  // 70% code rule: once enough of a person's orders of a day carry a code, every order of that day pays full (o.codeOk). Worked out once per order list / chart.
+  let CODE_DONE = { s: null, o: null };
+  function ensureCodes() {
+    if (!window.MLSLAB || !SLAB || (CODE_DONE.s === SLAB && CODE_DONE.o === ORD)) return;
+    CODE_DONE = { s: SLAB, o: ORD }; MLSLAB.tagCodes(SLAB, ORD);
+  }
   function slabFor(o, aggs) {
     if (!window.MLSLAB || o.ml == null || !(MLSLAB.on(SLAB) || FLASH.length)) return null;
+    ensureCodes();
     const A = aggs && aggs[o.emp + '|' + o.rk], c = A && A.c;
     if (c && (c.fixedPlan || (c.mix && c.mix.mode !== 'full' && inWin(c.mix.win, o.day)))) return null;
     // ⚡ Flash Offer: this size, sold inside the offer's hours → the offer's flat % (price not compared); wins over the slab, works with the chart off.
@@ -839,7 +848,8 @@
       if (sl.overMax) why.push('discount ' + fmtN(sl.disc) + '% more than ' + fmtN(SLAB.maxdisc) + '% max');
       else {
         if (sl.pct < sl.base && slabHit(o) === false) why.push('target incomplete');
-        if (!o.code && Number(SLAB.nocode) !== 100) why.push('no code');
+        if (!o.code && o.codeOk) why.push('no code, but the day\'s code goal is reached → full');
+        else if (!o.code && Number(SLAB.nocode) !== 100) why.push('no code');
         if (sl.bonus) why.push('target achieved +' + fmtN(sl.bonusPct != null ? sl.bonusPct : SLAB.bonus) + '%'); if (sl.special) why.push('📅 ' + sl.special.join(', '));
       }
       return { v, note: 'ML slab · ' + sl.ml + ' ml · ' + fmtN(sl.base) + '%' + (why.length ? ' → ' + fmtN(sl.pct) + '% (' + why.join(', ') + ')' : '') + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: v < 0.005 ? 'z' : 'sl', slab: sl };

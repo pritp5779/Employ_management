@@ -193,6 +193,7 @@ function renderSidebarCore(active) {
   // Each permission can unlock one or more pages.
   const PAGES_FOR_PERM = {
     dashboard: [['dashboard.html', 'Dashboard', 'dashboard']],
+    control_tower: [['control_tower.html', 'Sales Control Tower <span id="ctBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'control_tower']],
     orders: [['orders.html', 'Shopify Orders', 'orders']],
     allocation: [['order_allocation.html', 'Order Allocation', 'order_allocation']],
     order_codes: [['order_codes.html', 'Order Codes', 'order_codes']],
@@ -317,6 +318,8 @@ function renderSidebarCore(active) {
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
       const allowed = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements'].concat(grantedActives);
       if (d.is_sales) allowed.push('my_sales', 'orders', 'ml_price');
+      // Home page after login: sales people open My Sales (their numbers, rating, offer); everyone else opens Attendance. Remembered for index.html.
+      try { localStorage.setItem('hrms_home', d.is_sales ? 'my_sales.html' : 'attendance.html'); } catch (e) { /* private mode */ }
       // replace(): the refused page never enters the history, so the back
       // button goes to the previous employee page, not back to this one.
       if (!allowed.includes(active)) { window.location.replace('attendance.html'); return; }
@@ -374,6 +377,7 @@ function renderSidebarCore(active) {
   const categories = [
     { key: 'main', label: 'Main', defaultOpen: true, links: [
       ['dashboard.html', 'Dashboard', 'dashboard'],
+      ['control_tower.html', 'Sales Control Tower <span id="ctBadge" style="display:none; background:#e02424; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; margin-left:6px;"></span>', 'control_tower'],
       ['orders.html', 'Shopify Orders', 'orders'],
       ['order_allocation.html', 'Order Allocation', 'order_allocation'],
       ['order_codes.html', 'Order Codes', 'order_codes'],
@@ -458,6 +462,11 @@ function renderSidebarCore(active) {
       const badge = document.getElementById('leaveBadge');
       if (badge && d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline-block'; }
     }).catch(() => {});
+    if (document.getElementById('ctBadge')) api.get('ct.pulse').then((d) => {
+      const badge = document.getElementById('ctBadge');
+      const n = (d && (d.red || 0)) + (d && (d.meet || 0));
+      if (badge && n > 0) { badge.textContent = n; badge.style.display = 'inline-block'; }
+    }).catch(() => {});
     if (document.getElementById('stockBadge')) api.get('retail.stock_alerts', { badge: 1 }).then((d) => {
       const badge = document.getElementById('stockBadge');
       if (badge && d.unread > 0) { badge.textContent = d.unread; badge.style.display = 'inline-block'; }
@@ -511,9 +520,10 @@ const RAIL_ICONS = {
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   out: '<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',
   chev: '<path d="M9 6l6 6-6 6"/>',
+  tower: '<path d="M12 3v3M8 21l1.5-11h5L16 21M7 21h10M9.5 10h5M10 6h4l.5 4h-5z"/>',
 };
 const RAIL_ICON_FOR = {
-  dashboard: 'home', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
+  dashboard: 'home', control_tower: 'tower', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
   attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
   performance: 'chart', detailed_report: 'sheet', store_analytics: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
   commission_rules: 'sliders', ml_price: 'percent', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
@@ -596,7 +606,7 @@ function setupRail() {
       ico.innerHTML = railSvg(RAIL_ICON_FOR[key] || 'dot');
       a.appendChild(ico);
       a.appendChild(lbl);
-      const bd = lbl.querySelector('#approvalBadge, #leaveBadge, #stockBadge');
+      const bd = lbl.querySelector('#approvalBadge, #leaveBadge, #stockBadge, #ctBadge');
       if (bd) a.appendChild(bd);   // keep the count visible on the narrow rail
       a.setAttribute('data-tip', label);
       a.setAttribute('aria-label', label);
@@ -665,6 +675,12 @@ function setupRail() {
 
 function renderSidebar(active) {
   renderSidebarCore(active);
+  // Festive (Diwali) theme: switched from Control Tower > Settings; harmless when off.
+  if (!document.getElementById('diwaliJs')) {
+    const dw = document.createElement('script');
+    dw.id = 'diwaliJs'; dw.src = 'assets/js/diwali.js?v=261024a'; dw.async = true;
+    document.body.appendChild(dw);
+  }
   try { setupRail(); } catch (e) { /* styling only — never block the menu */ }
   // The "Order code rules" section lives in its own file and adds itself to the Commission Rules page.
   if (active === 'commission_rules' && !document.getElementById('codeRulesJs')) {
@@ -682,6 +698,10 @@ function renderSidebar(active) {
     const se = document.createElement('script');
     se.id = 'mlSlabRulesJs'; se.src = 'assets/js/ml_slab_rules.js?v=261023s'; se.async = false;
     document.body.appendChild(se);
+    // The combo price chart (shower gel / attar / perfume combos at each commission tier): its own card, under the ML price slab.
+    const sc2 = document.createElement('script');
+    sc2.id = 'comboPricesJs'; sc2.src = 'assets/js/combo_prices.js'; sc2.async = false;
+    document.body.appendChild(sc2);
   }
 }
 

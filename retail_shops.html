@@ -456,6 +456,69 @@
     .vp-dh{flex-wrap:wrap; gap:8px 12px;} .vp-dh .d{min-width:0; flex:1;} .vp-prog{order:5; flex-basis:100%;}
     .vp-fil > *{flex:1 1 auto;}
   }
+  /* laptops with the sidebar open (821–1200px): the two half-width cards on the home row and the cash box fit without sideways scrolling */
+  @media (min-width:821px) and (max-width:1200px){ .cb-hm{display:none;} .hgrid .card table.no-stack#osTable{min-width:0;} }
+  /* ===== responsive pass: phones & small tablets ===== */
+  @media (max-width:820px){
+    /* stacked table cards: label in the left gutter, cell content flows normally (cells holding several elements no longer become side-by-side flex columns) */
+    .card:not(#rgCard) table:not(.no-stack) tbody td[data-label]{display:block; position:relative; padding-left:112px; min-height:30px;}
+    .card:not(#rgCard) table:not(.no-stack) tbody td[data-label]::before{position:absolute; left:0; top:8px; width:100px;}
+    /* "no-stack" tables inside a .tscroll scroll sideways in their own box instead of running off the screen */
+    .tscroll:has(> table.no-stack){overflow-x:auto;}
+    /* the nine view buttons: two per row instead of eight full-width bars; "+ Add Shop" keeps its own row */
+    .view-toggle{display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px !important;}
+    .view-toggle .btn{width:auto; min-width:0; white-space:nowrap; padding-left:8px; padding-right:8px;}
+    .view-toggle #btnAddShop{grid-column:1 / -1;}
+    /* rows that sit outside a card get side gutters; chips / segmented buttons get a proper tap height */
+    .citybar{padding:0 12px;} .citybar .cc, .seg button, .vp-chip, .vp-nav input[type=date], .vp-fil input[type=date], .vp-fil select{min-height:36px;}
+    .vp-bar, .vp-fil, .vp-opts, #vpToday > .vp-hero, .vp-tabs{margin-left:10px; margin-right:10px;} .vp-list, .vp-day{margin-left:10px; margin-right:10px;} .vp-list .vp-day{margin:0 0 10px;} #vpMove{margin:0 10px;}
+    #viewTotals > div:first-child, #viewCash > .card-head, #viewDisplay > .card-head, #viewLedgerAll > .ld-top, #viewLedger > .ld-top, #viewLedger > div:first-child, #viewShop > div:first-child{padding-left:12px !important; padding-right:12px !important;}
+    #viewTotals > div:first-child{margin-left:0; margin-right:0;}
+    #viewLedger .ld-phone, #viewCash .cb-grid, #viewDisplay .cb-grid{margin-left:8px; margin-right:8px;}
+    #viewLedger .ld-phone#ldHero{margin-left:12px; margin-right:12px;}
+    /* tap-sized controls (≥36px) */
+    .dnav button, .dnav input[type=date], .pp-trig, .rg-pager .btn, .rg-pager select, .rg-bulk .btn, .rg-filters input, .rg-filters select, .search-box input, #areaSel, .lrange input[type=date], .cb-filt input[type=date], .cb-filt select, .ld-btns .btn, .loc-btns .btn, .loc-btns a.btn, .vp-pill, .vp-done, .vp-nav button.sq, #cityRows .cr button, .imp-foot .btn, .pp-ok{min-height:36px;}
+    .modal input:not([type=checkbox]):not([type=radio]), .modal select, .modal .btn, .modal textarea{min-height:38px;}
+    #oDiscVal, .seg button{min-height:36px;}
+    .hgrid .dnav button, .hgrid .dnav input[type=date], .pp-ft .btn{min-height:36px;} #btnMlSave, #btnAddDisplay{min-height:36px !important;} #dpBody .ib, #cbBody .ib{min-width:36px;}
+    .vp-links button{padding:12px 6px; margin:-12px -6px;}
+    .row-actions button, .row-actions a{min-height:36px;}
+    td a:not(.pill-btn):not(.btn), .kv a, .la-row a, .bd-shop, .shopLink{padding:12px 3px;}
+    .hgrid .lk{padding:10px 4px; margin:-10px -4px;}
+    .link{padding:12px 8px; margin:-12px -8px;}
+    .pill-btn{min-height:36px; padding:8px 12px;} .dp-mk{min-height:36px;}
+    .cb-tbl .ib{min-width:30px; min-height:36px; padding:8px 4px;} .cb-tbl th, .cb-tbl td{padding-left:4px; padding-right:4px;} .cb-tbl td:first-child, .cb-tbl th:first-child{padding-left:12px;} .cb-tbl td:last-child, .cb-tbl th:last-child{padding-right:8px;} .dp-mk{padding:8px 9px;}
+    #cbPartyTbl td:first-child, #dpCashTbl td:nth-child(2){white-space:normal;} #dpBody td:nth-child(4){white-space:normal !important;}
+    .card .tscroll table.cityTbl{min-width:0; width:100%;} .cityTbl th, .cityTbl td{padding-left:3px; padding-right:3px;} .cityTbl th{font-size:10px;} .cityTbl td{font-size:12px;} .cityTbl tfoot td{font-size:12px;} .cityTbl td:first-child, .cityTbl th:first-child{padding-left:12px !important;} .cityTbl td:last-child, .cityTbl th:last-child{padding-right:10px !important;}
+    /* Display entries: date + name + amount on the first line, payment + actions on the second */
+    #dpTable, #dpTable tbody, #dpTable tfoot{display:block; width:100%;} #dpTable{min-width:0 !important;}
+    #dpFoot tr{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; padding:10px 12px;} #dpFoot td{display:block; padding:0 !important; width:auto;}
+    /* Cash box entries: same two-line row as Display */
+    #cbTable, #cbTable tbody, #cbTable tfoot{display:block; width:100%;} #cbTable{min-width:0 !important;} #cbTable thead{display:none;}
+    #cbBody tr:not(:has(td[colspan])){display:grid; grid-template-columns:46px minmax(0,1fr) auto; column-gap:8px; align-items:start; padding:8px 12px 6px 12px; border-bottom:1px solid var(--line);}
+    #cbBody tr:not(:has(td[colspan])) td{padding:0; border:none; display:block;}
+    #cbBody td:nth-child(1){grid-column:1; grid-row:1 / span 2;} #cbBody td:nth-child(2){grid-column:2; grid-row:1;} #cbBody td:nth-child(4){grid-column:3; grid-row:1; text-align:right;} #cbBody td:nth-child(3){grid-column:2; grid-row:2; margin-top:4px;} #cbBody td:nth-child(5){grid-column:3; grid-row:2; align-self:center;}
+    #cbFoot tr{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:4px 12px; padding:10px 12px;} #cbFoot td{display:block; padding:0 !important; width:auto;} #cbFoot td[colspan]{flex:1 1 180px;}
+    #cbFoot td.r{white-space:nowrap;}
+    #dpTable thead{display:none;}
+    #dpBody tr:not(:has(td[colspan])){display:grid; grid-template-columns:46px minmax(0,1fr) auto; column-gap:8px; align-items:start; padding:8px 12px 6px 12px; border-bottom:1px solid var(--line);}
+    #dpBody tr:not(:has(td[colspan])) td{padding:0; border:none; display:block;}
+    #dpBody td:nth-child(1){grid-column:1; grid-row:1 / span 2;} #dpBody td:nth-child(2){grid-column:2; grid-row:1;} #dpBody td:nth-child(3){grid-column:3; grid-row:1; text-align:right;} #dpBody td:nth-child(4){grid-column:2; grid-row:2; margin-top:4px;} #dpBody td:nth-child(5){grid-column:3; grid-row:2; align-self:center;}
+    .cb-tbl tr.tot td:first-child, .cb-tbl tfoot td:first-child{white-space:normal;}   /* the long "Total · n entries (+… added · −… used)" line made the whole table wider than the phone */
+    .dr .rm, .ol .rm, .imp-x, .pchip button, .cb-pick-x{min-width:36px; min-height:36px;}
+    .cb-pick-x{min-width:30px; min-height:30px;}
+    .gal .del{min-width:36px; min-height:36px;}
+  }
+  @media (max-width:640px){
+    /* money cards: two per row so lakh / crore amounts stay on one line */
+    .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:0 8px;}
+    .stat-grid > .stat-card:last-child:nth-child(odd){grid-column:1 / -1;}
+    .stat-card .value, .hstat .value, .cb-grid .stat-card .value{font-size:20px; white-space:nowrap;}
+    #laCards, #ldCards, #tCards, #vhCards{padding:0 8px;}
+    .hgrid td .sub{white-space:normal;}
+    #dbTable td:first-child, #osTable td:first-child{min-width:96px;} .hgrid td{font-size:12px;} .hgrid th{font-size:9.5px; letter-spacing:0;} .hgrid tfoot td{font-size:12px;} .hgrid th, .hgrid td{padding-left:5px; padding-right:5px;} .hgrid td:first-child, .hgrid th:first-child{padding-left:12px;}
+    #viewList > .sub{padding:0 12px;}
+  }
 </style>
 </head>
 <body>
@@ -1213,6 +1276,8 @@
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const inr = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+  // short form for tight spots (month bars on a phone): ₹65L, ₹1.2Cr
+  const inrShort = (n) => { n = Math.round(Number(n) || 0); const a = Math.abs(n), f = (v) => String(Math.round(v * 10) / 10); return a >= 1e7 ? '₹' + f(n / 1e7) + 'Cr' : (a >= 1e5 ? '₹' + f(n / 1e5) + 'L' : inr(n)); };
   const fmtD = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
   const fmtDS = (d) => d ? new Date(String(d).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—';
   const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -3326,7 +3391,7 @@
     const max = Math.max(1, ...d.months.map(m => m.amount));
     document.getElementById('tChart').innerHTML = d.months.map(m => `
       <div class="mb ${m.month === r.month && r.period === 'month' ? 'on' : ''}" data-m="${m.month}" title="${m.orders} orders · ${m.qty} pcs">
-        <b>${m.amount ? inr(m.amount) : ''}</b><i style="height:${Math.round(m.amount / max * 86)}px"></i><span>${esc(m.label)}</span></div>`).join('');
+        <b>${m.amount ? (matchMedia('(max-width:560px)').matches ? inrShort(m.amount) : inr(m.amount)) : ''}</b><i style="height:${Math.round(m.amount / max * 86)}px"></i><span>${esc(m.label)}</span></div>`).join('');
     document.getElementById('tChartNote').textContent = `Last 6 months up to ${d.months[d.months.length - 1].label} · amount billed`;
     // shop-wise
     document.getElementById('tShopsTitle').textContent = 'Shop-wise total — ' + r.label;
