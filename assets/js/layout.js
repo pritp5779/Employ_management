@@ -215,7 +215,7 @@ function renderSidebarCore(active) {
     documents: [['documents.html', 'Documents', 'documents']],
     whatsapp_groups: [['whatsapp_groups.html', 'WhatsApp Groups', 'whatsapp']],
     excel_files: [['excel_files.html', 'Excel Files', 'excel']],
-    assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
+    assign_queries: [],        // Assign Queries now lives only inside Control Tower > Query Boost
     salary: [['salary.html', 'Salary', 'salary']],
     commission: [['commission.html', 'Commission', 'commission']],
     commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
@@ -390,7 +390,6 @@ function renderSidebarCore(active) {
       ['performance.html', 'Performance', 'performance'],
       ['detailed_report.html', 'Detailed Report', 'detailed_report'],
       ...(isAdmin ? [['store_analytics.html', 'Store Analytics', 'store_analytics']] : []),   // the store report (fourpirates.space/analytics) inside HRMS — Admin only
-      ['assign_queries.html', 'Assign Queries', 'assign_queries'],
       ['salary.html', 'Salary', 'salary'],
       ['commission.html', 'Commission', 'commission'],
       ['commission_rules.html', 'Commission Rules', 'commission_rules'],

@@ -167,6 +167,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-ls small{grid-column:1/-1; font-size:10.5px; color:#9a3412; font-weight:700; margin-top:-1px;} .sh-ls small:empty{display:none;}
 .sh-ls.on{opacity:.95;} .sh-ls.on span{color:#166534;} .sh-ls.on b{background:#dcfce7; color:#166534;} .sh-ls.on small{color:#166534;}
 .sh-ls.next{background:#fff; box-shadow:0 0 0 2px #fb923c inset;}
+.sh-ls.base{opacity:.85;} .sh-ls.base b{background:#f1f5f9; color:#475569;} .sh-ls.base small{color:#64748b;} .sh-ls b{font-size:12px;} .sh-ln{font-size:10px; color:#9a3412; opacity:.8; padding:2px 6px 1px;}
 .sh-ls:not(.on):not(.next){opacity:.72;}
 .sh-cbig{display:flex; align-items:center; gap:10px; margin:4px 0 6px;} .sh-cbig b{font-size:34px; line-height:1; font-weight:900; color:#ea580c; min-width:44px; text-align:center; font-variant-numeric:tabular-nums;}
 .sh-cbig span{font-size:14px; line-height:1.15; font-weight:900; color:#0f172a;} .sh-cbig span small{display:block; font-size:12px; font-weight:700; color:#64748b; margin-top:2px;}
@@ -343,11 +344,17 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     const L = Array.isArray(m.ladder) ? m.ladder : [];
     if (!L.length) return md.bonus > 0 ? `<div class="sh-qw">${done ? `🎁 <b>+${md.bonus}%</b> extra on every order you add today` : `🎁 Finish it → <b>+${md.bonus}% extra on EVERY order</b> today`}</div>` : '';
     const sales = Number(md.sales) || 0, now = Number(m.bonus_now) || 0;
+    const hasRs = L.every((x) => x.total != null);          // rupees shown once today has a commissioned order
+    // 🔓 the plain row: the same target sales WITHOUT the bonus, so the jump to the next rows is visible
+    const plain = hasRs ? `<div class="sh-ls base"><span>🔓 ${rs(L[0].sales)} sales</span><b>${rs(L[0].base)}</b><small>your commission with no bonus</small></div>` : '';
     const rows = L.map((x, i) => {
       const next = !x.hit && (i === 0 || L[i - 1].hit);
-      return `<div class="sh-ls ${x.hit ? 'on' : ''} ${next ? 'next' : ''}"><span>${x.hit ? '✅' : next ? '👉' : '🔒'} ${rs(x.sales)}</span><b>+${Number(x.bonus)}% extra</b><small>${x.hit ? 'unlocked' : next ? rs(Math.max(0, x.sales - sales)) + ' more sales to unlock' : ''}</small></div>`;
+      const st = x.hit ? 'unlocked ✅' : next ? rs(Math.max(0, x.sales - sales)) + ' more sales to unlock' : '';
+      const sm = hasRs ? `${rs(x.base)} + <i style="font-style:normal;font-weight:900;">${Number(x.bonus)}% extra (+${rs(x.extra)})</i>${st ? ' · ' + st : ''}` : st;
+      return `<div class="sh-ls ${x.hit ? 'on' : ''} ${next ? 'next' : ''}"><span>${x.hit ? '✅' : next ? '👉' : '🔒'} ${rs(x.sales)} sales</span><b>${hasRs ? rs(x.total) : '+' + Number(x.bonus) + '% extra'}</b><small>${sm}</small></div>`;
     }).join('');
-    return `<div class="sh-lad"><div class="sh-lt">${done && now > 0 ? `🎁 You earn <b>+${now}%</b> extra on every order today — reach the next number for more` : '🎁 Reach this sales number → get this extra commission on EVERY order today'}</div>${rows}</div>`;
+    const head = done && now > 0 ? `🎁 You earn <b>+${now}%</b> extra on every order today — the next step pays even more` : hasRs ? '🎁 Smash the target → <b>every order</b> pays more. This is what your day can earn:' : '🎁 Reach this sales number → get this extra commission on EVERY order today';
+    return `<div class="sh-lad"><div class="sh-lt">${head}</div>${plain}${rows}${hasRs ? '<div class="sh-ln">≈ at your average commission today · exact amount depends on your orders &amp; codes</div>' : ''}</div>`;
   }
   function moment(md, m, wasFirst, prevKey) {
     const day = (S.coach && S.coach.business_day) || '';

@@ -128,6 +128,14 @@
     .type-grid{grid-template-columns:auto 1fr;}
   }
 </style>
+<script>if (/[?&]embed=1\b/.test(location.search)) document.documentElement.classList.add('emb');</script>
+<style>
+  /* embed mode: shown inside Control Tower > Query Boost — no menu, no big title, no side margin */
+  html.emb #sidebar, html.emb .topbar h1, html.emb .hamburger, html.emb .rail-toggle{display:none !important;}
+  html.emb body, html.emb .app{background:transparent;} html.emb .main{margin-left:0 !important;} html.emb .topbar{padding:8px 0; border:0; background:transparent; position:static;}
+  html.emb .content{padding:0;}
+  html.emb, html.emb body, html.emb .app, html.emb .main{min-height:0 !important; height:auto !important;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -228,7 +236,11 @@
     const sw = e.target.closest && e.target.closest('.color-pick .sw');
     if (sw && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); sw.click(); }
   });
-  renderSidebar('assign_queries');
+  if (!document.documentElement.classList.contains('emb')) renderSidebar('assign_queries');
+  else {          // embedded: tell the Control Tower how tall we are so there is no inner scrollbar
+    const tell = () => { try { parent.postMessage({ aqh: Math.ceil(document.querySelector('.app').getBoundingClientRect().height) }, location.origin); } catch (e) {} };
+    new ResizeObserver(tell).observe(document.body); window.addEventListener('load', tell); setInterval(tell, 1500);
+  }
 
   const alertBox = document.getElementById('alertBox');
   let employees = []; // each: { employee_id, full_name, employee_code, groups: [{group_key, group_label, query_count, scout_count, champion_count}] }
