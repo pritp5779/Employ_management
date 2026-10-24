@@ -26,6 +26,12 @@ html.diwali .sh-lead .sh-ph h2::after, html.diwali .rtc .hd h2::after{content:" 
 html.diwali .sh-bar i{background:linear-gradient(90deg,#f5b301,#e8651a);}
 html.diwali .sh-lr.me{background:#fff4d6; box-shadow:0 0 0 1.5px #f5b301;}
 
+/* My Sales "my day" card: a gold edge, a little diya and a warm glow at the end of the green line */
+html.diwali .sh-now{box-shadow:0 0 0 1.5px #fbbf24 inset, 0 6px 18px rgba(20,83,45,.25);}
+html.diwali .sh-now::after{content:"🪔"; position:absolute; right:9px; bottom:5px; font-size:15px; filter:drop-shadow(0 0 5px #fbbf24);}
+html.diwali .sh-now .fill{background:linear-gradient(90deg,#bbf7d0,#4ade80,#fde68a); box-shadow:0 0 8px rgba(253,230,138,.7);}
+html.diwali .sh-now .nn .cm b{color:#fde68a;} html.diwali .sh-now .rl{padding-right:22px; padding-left:22px;}
+
 /* garland across the top */
 #dwGarland{position:fixed; left:0; right:0; top:0; height:40px; z-index:998; pointer-events:none; overflow:hidden;}
 #dwGarland svg{width:100%; height:40px; display:block;}

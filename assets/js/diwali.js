@@ -9,7 +9,7 @@
     if (root.classList.contains('diwali') && document.getElementById('dwGarland')) return;
     root.classList.add('diwali');
     if (!document.getElementById('dwCss')) {
-      var l = document.createElement('link'); l.id = 'dwCss'; l.rel = 'stylesheet'; l.href = 'assets/css/diwali.css?v=261024b'; document.head.appendChild(l);
+      var l = document.createElement('link'); l.id = 'dwCss'; l.rel = 'stylesheet'; l.href = 'assets/css/diwali.css?v=261024c'; document.head.appendChild(l);
     }
     build();
   }

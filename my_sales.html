@@ -127,18 +127,18 @@
   .stat-card .value.wait{color:#9ca3af; font-weight:600;}
   @media (max-width:520px){ .stat-card .sub{font-size:10px;} }
   @media (max-width:520px){ .qc{gap:8px;} .qc .qb{padding:10px;} .qc .qn{font-size:24px;} .qc .ln{flex-direction:column; gap:0;} }
-  /* Priority order on phones and desktop: stories → rating → target → chat coach → top 5 → code / ticket / mix → numbers → offer → price charts.
+  /* Priority order on phones and desktop: stories → my day (orders / ticket / sales / commission + step track) → rating → target → chat coach → top 5 → code / ticket / mix → numbers → offer → price charts.
      #shHome and #shMis only group things, so they are display:contents and every card is ordered here. */
   .ms-flow{display:flex; flex-direction:column;}
-  .ms-flow > *{order:20;}
-  .ms-flow > #alertBox{order:0;} #shStory{order:1;} #rateCard{order:2;}
+  .ms-flow > *{order:21;}
+  .ms-flow > #alertBox{order:0;} #shStory{order:1;} #shNow{order:2;} #rateCard{order:3;}
   #shHome, #shMis{display:contents;}
-  #shHome > *{order:19;}
-  #shHero{order:3;} #shQuests{order:4;}
-  #shMis > .sh-meet{order:5;} #chatCard{order:6;} #shLead{order:7;}
-  #shMis > .sh-ting{order:8;} #shMis > .sh-mgrid{order:9;} #shMis > :not(.sh-meet):not(.sh-ting):not(.sh-mgrid){order:10;}
-  #coachCard{order:11;} #otWrap{order:12;} #statGrid{order:13;} #qcCard{order:14;} #detailCard{order:15;} #arCard{order:16;}
-  #shOffer{order:17;} #shPrice{order:18;}
+  #shHome > *{order:20;}
+  #shHero{order:4;} #shQuests{order:5;}
+  #shMis > .sh-meet{order:6;} #chatCard{order:7;} #shLead{order:8;}
+  #shMis > .sh-ting{order:9;} #shMis > .sh-mgrid{order:10;} #shMis > :not(.sh-meet):not(.sh-ting):not(.sh-mgrid){order:11;}
+  #coachCard{order:12;} #otWrap{order:13;} #statGrid{order:14;} #qcCard{order:15;} #detailCard{order:16;} #arCard{order:17;}
+  #shOffer{order:18;} #shPrice{order:19;}
   @media (max-width:640px){ #chatCard, #coachCard, #otWrap, #statGrid, #qcCard, #detailCard, #arCard{zoom:.8;} }
 </style>
 </head>
@@ -151,6 +151,7 @@
       <div id="alertBox"></div>
       <!-- 📸 story strip (sales_home.js): 5 bubbles — tap one and the page scrolls to that section -->
       <div id="shStory"></div>
+      <section class="sh-now" id="shNow" style="display:none;"></section>
       <!-- ⭐ My Rating sits at the very top (Code and Community lead the list) -->
       <div class="card cch rtc" id="rateCard" style="display:none;"></div>
       <!-- Sales Home (assets/js/sales_home.js): cheer hero · missions (target + code goal) · the ONE orange offer card · price chart · bottom "Allocate order" button -->
@@ -205,7 +206,7 @@
 <script src="assets/js/ml_slab.js?v=261024b"></script>
 <script>window.FO_MOUNT = document.getElementById('shOffer');</script>
 <script src="assets/js/flash_offer.js?v=261024b"></script>
-<script src="assets/js/sales_home.js?v=261024k"></script>
+<script src="assets/js/sales_home.js?v=261024m"></script>
 <script src="assets/js/convo.js?v=261024b"></script>
 <script>
   guardPage();

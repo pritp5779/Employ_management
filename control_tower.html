@@ -12,11 +12,12 @@
 <style>
   .ldseg{display:flex; gap:4px;} .ldseg button{width:auto; min-height:0; border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:99px; padding:4px 12px; font-size:12px; font-weight:800; cursor:pointer;} .ldseg button.on{background:#111827; color:#fff; border-color:#111827;}
   .ldr{display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; padding:8px 4px; border-top:1px solid var(--line);} .ldr:first-child{border-top:0;}
+  .ldr .cv .mut{display:block; font-size:10.5px; color:#94a3b8; font-weight:700;}
   .ldr .rk{text-align:center; font-weight:900; color:var(--muted);} .ldr .nm b{font-weight:800;} .ldr .nm em{font-style:normal; font-size:10.5px; font-weight:800; color:#b45309; background:#fef3c7; border-radius:99px; padding:1px 8px; margin-left:4px;}
   .ldr .bar{height:5px; border-radius:4px; background:#e5e7eb; margin-top:4px; overflow:hidden;} .ldr .bar i{display:block; height:100%; background:linear-gradient(90deg,#4ade80,#16a34a);}
   .ldr .cv{text-align:right;} .ldr .cv b{display:block; font-size:15px; font-weight:900;} .ldr .cv b.ok{color:#15803d;} .ldr .cv b.warn{color:#b45309;} .ldr .cv small{font-size:10.5px; color:var(--muted);}
   .ldt{border-radius:10px; padding:8px 11px; margin-top:6px; font-size:12.5px; line-height:1.45; background:#EEF2FF; color:#3730a3;} .ldt.coach{background:#FFF7ED; color:#9a3412;} .ldt b{display:block; font-size:13px;}
-  @media (max-width:640px){ #p-today, #p-alerts, #p-md, #p-rt, #qbTop, #qbBot, #aqCard, #p-bench, #p-set, #tabs{zoom:.8;} }
+  @media (max-width:640px){ #p-focus, #p-today, #p-alerts, #p-md, #p-rt, #qbTop, #qbBot, #aqCard, #p-bench, #p-set, #tabs{zoom:.8;} }
   .ct-tabs{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px;}
   .ct-tab{border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 16px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
   .ct-tab.on{background:var(--ink); color:#fff; border-color:var(--ink);}
@@ -69,6 +70,19 @@
   .rt-bar{grid-column:1/-1; height:5px; border-radius:4px; background:#e5e7eb; overflow:hidden; margin:3px 0;} .rt-bar i{display:block; height:100%;} .rt-bar i.g{background:#16a34a;} .rt-bar i.a{background:#f59e0b;} .rt-bar i.r{background:#ef4444;}
   .rt-rm{grid-column:1/-1; font-size:12px; color:#92400e; background:#fffbeb; border-radius:8px; padding:3px 8px; margin-top:2px;}
   @media (max-width:640px){ .rt-sum{grid-template-columns:repeat(2,1fr);} .rt-body{padding-left:4px;} }
+  .fc-seg{display:flex; gap:6px; flex-wrap:wrap; align-items:center;} .fc-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0 2px;} .fc-sum div{background:#f6f7f9; border-radius:12px; padding:8px 10px;} .fc-sum b{display:block; font-size:18px; font-weight:900;} .fc-sum small{font-size:11px; color:var(--muted); font-weight:700;}
+  .fc-h{font-size:11.5px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; margin:14px 0 6px; display:flex; gap:6px; align-items:center;} .fc-h.r{color:#b91c1c;} .fc-h.a{color:#b45309;} .fc-h.g{color:#166534;}
+  .fc-pc{border:1px solid var(--line); border-left-width:5px; border-radius:12px; padding:10px 12px; margin-bottom:8px; background:#fff;} .fc-pc.r{border-left-color:#ef4444;} .fc-pc.a{border-left-color:#f59e0b;} .fc-pc.g{border-left-color:#22c55e;}
+  .fc-top{display:flex; justify-content:space-between; align-items:center; gap:8px;} .fc-top b{font-size:14.5px;} .fc-up{font-size:11px; color:var(--muted); font-weight:700; margin-left:6px;}
+  .fc-sc{font-weight:900; border-radius:99px; padding:1px 10px; font-size:13px; background:#e5e7eb;} .fc-sc.g{background:#dcfce7; color:#166534;} .fc-sc.a{background:#fef3c7; color:#92400e;} .fc-sc.r{background:#fee2e2; color:#991b1b;}
+  .fc-it{display:grid; grid-template-columns:22px 1fr; gap:6px; padding:6px 0; border-top:1px dashed var(--line); font-size:13px;} .fc-it:first-of-type{margin-top:6px;} .fc-it .w{font-weight:800;} .fc-it .y{color:var(--muted); font-size:12px;}
+  .fc-do{color:#1e40af; background:#eff6ff; border-radius:8px; padding:3px 8px; margin-top:3px; display:inline-block; font-size:12px; font-weight:700;}
+  .fc-b{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center;} .fc-b .btn{width:auto; min-height:0; padding:5px 13px; font-size:12px; font-weight:800; border-radius:99px;}
+  .fc-dn{background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:5px 9px; font-size:12.5px; color:#166534; margin-top:6px; word-break:break-word;} .fc-dn i{font-style:normal; color:#14532d; font-weight:700;}
+  .fc-imp{font-size:11.5px; font-weight:800; border-radius:99px; padding:1px 9px; background:#f1f5f9; color:#475569; display:inline-block; margin:2px 4px 0 0;} .fc-imp.up{background:#dcfce7; color:#166534;} .fc-imp.down{background:#fee2e2; color:#991b1b;} .fc-lp{font-size:11px; color:var(--muted); font-weight:800; margin-top:6px;}
+  .fc-tw{overflow-x:auto;} .fc-tb{width:100%; border-collapse:collapse; font-size:13px; min-width:760px;} .fc-tb th{text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; padding:6px 8px; border-bottom:2px solid var(--line);} .fc-tb td{padding:8px; border-bottom:1px solid #eef0f3; vertical-align:top;}
+  .fc-tb tr.r td:first-child{box-shadow:inset 4px 0 0 #ef4444;} .fc-tb tr.a td:first-child{box-shadow:inset 4px 0 0 #f59e0b;} .fc-tb tr.g td:first-child{box-shadow:inset 4px 0 0 #22c55e;} .fc-tb .ln{margin-bottom:4px;}
+  @media (max-width:640px){ .fc-sum{grid-template-columns:repeat(2,1fr);} }
   .empty{padding:26px; text-align:center; color:var(--muted); font-size:13.5px;}
   .big-ok{font-size:15px; font-weight:700; color:#16945a;}
   @media (max-width:820px){ .al{flex-wrap:wrap;} .al .act{margin-left:22px;} .ct-tile .v{font-size:23px;} }
@@ -88,7 +102,8 @@
     <div class="content">
       <div id="alertBox"></div>
       <div class="ct-tabs" id="tabs">
-        <button class="ct-tab on" data-t="today">Today</button>
+        <button class="ct-tab on" data-t="focus">☀️ Focus <span class="n" id="nFo" style="display:none;"></span></button>
+        <button class="ct-tab" data-t="today">Today</button>
         <button class="ct-tab" data-t="alerts">Alerts <span class="n" id="nAl" style="display:none;"></span></button>
         <button class="ct-tab" data-t="md">Message Doctor <span class="n" id="nMd" style="display:none;"></span></button>
         <button class="ct-tab" data-t="qb">🏁 Query Boost</button>
@@ -97,7 +112,8 @@
         <button class="ct-tab" data-t="set" id="tabSet" style="display:none;">Settings</button>
       </div>
 
-      <section id="p-today"></section>
+      <section id="p-focus"></section>
+      <section id="p-today" style="display:none;"></section>
       <section id="p-alerts" style="display:none;"></section>
       <section id="p-md" style="display:none;"></section>
       <section id="p-rt" style="display:none;"></section>
@@ -151,7 +167,8 @@
     const b = e.target.closest('.ct-tab'); if (!b) return;
     tab = b.dataset.t;
     document.querySelectorAll('.ct-tab').forEach(x => x.classList.toggle('on', x === b));
-    ['today', 'alerts', 'md', 'qb', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
+    ['focus', 'today', 'alerts', 'md', 'qb', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
+    if (tab === 'focus') loadFocus();
     if (tab === 'qb') ensureAq();
     if (tab === 'rt') loadRt();
     if (tab === 'md' && !MD) loadMd(false);
@@ -243,14 +260,54 @@
     const medal = (r) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '·';
     const rows = (V.rows || []).filter(r => r.queries > 0 || r.orders > 0).map(r => {
       const ok = r.rank != null, w = ok && r.conv != null ? Math.min(100, r.conv * 2) : 0;
-      return `<div class="ldr"><span class="rk">${medal(r.rank)}</span><div class="nm"><b>${esc(r.name)}</b>${r.first ? ' <em>⚡ first order ' + esc(r.first_order || '') + '</em>' : ''}<div class="bar"><i style="width:${w}%"></i></div></div><div class="cv"><b class="${ok ? (V.team_conv != null && r.conv >= V.team_conv ? 'ok' : 'warn') : ''}">${r.conv != null ? r.conv + '%' : '—'}</b><small>${r.orders} orders / ${r.queries} queries</small></div></div>`;
+      return `<div class="ldr"><span class="rk">${medal(r.rank)}</span><div class="nm"><b>${esc(r.name)}</b>${r.first ? ' <em>⚡ first order ' + esc(r.first_order || '') + '</em>' : ''}<div class="bar"><i style="width:${w}%"></i></div></div><div class="cv"><b class="${ok ? (V.team_conv != null && r.conv >= V.team_conv ? 'ok' : 'warn') : ''}">${r.conv != null ? r.conv + '%' : '—'}</b><small>${r.orders} query order${r.orders === 1 ? '' : 's'} / ${r.queries} queries</small>${r.comm ? '<span class="mut">+' + r.comm + ' community — not counted</span>' : ''}</div></div>`;
     }).join('');
     const tips = (L.tips || []).map(t => `<div class="ldt ${t.kind}"><b>${t.kind === 'more' ? '📈 Give more queries' : '🎯 Coach first'} — ${esc(t.name)}</b>${esc(t.text)}</div>`).join('');
-    return `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🏁 Query → order ranking</h2><div class="sub">Orders ÷ queries given. Team ${V.team_conv != null ? V.team_conv + '%' : '—'} · under ${min} queries not ranked. Suggestions only — you assign the queries.</div></div>
+    return `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🏁 Query → order ranking</h2><div class="sub">Query orders ÷ queries given (community / campaign orders are not counted). Team ${V.team_conv != null ? V.team_conv + '%' : '—'} · under ${min} queries not ranked. Suggestions only — you assign the queries.</div></div>
       <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
       ${tips ? '<div class="sub" style="font-weight:800;margin:2px 0 4px;">Suggestions (last 7 days)</div>' + tips : ''}
       <div style="margin-top:8px;">${rows || '<div class="empty">No queries recorded yet.</div>'}</div></div>`;
   }
+  // ---------- ☀️ MORNING FOCUS: who to talk to today and about what (built from yesterday) ----------
+  let FO = null, FV = (() => { try { const v = localStorage.getItem('ct_focus_view'); if (v === 'cards' || v === 'table') return v; } catch (e) {} return innerWidth >= 900 ? 'table' : 'cards'; })();
+  async function loadFocus() {
+    if (!FO) $('p-focus').innerHTML = '<div class="card"><div class="empty">Getting today\'s focus ready…</div></div>';
+    try { FO = await api.get('ct.focus'); } catch (e) { FO = { error: e.message }; }
+    renderFocus();
+  }
+  window.setFV = (v) => { FV = v; try { localStorage.setItem('ct_focus_view', v); } catch (e) {} renderFocus(); };
+  function renderFocus() {
+    const box = $('p-focus'), D = FO; if (!box) return;
+    const nf = $('nFo');
+    if (!D || D.error) { box.innerHTML = `<div class="card"><div class="card-head"><div><h2>☀️ Morning Focus</h2></div></div><div class="empty">${esc(D ? D.error : 'No data')}</div></div>`; return; }
+    const rows = D.rows || [], tm = D.team || {};
+    const open = rows.filter(r => !r.done).length; if (nf) { nf.textContent = open; nf.style.display = open ? '' : 'none'; }
+    const cl = (v) => v == null ? '' : v >= 7 ? 'g' : v >= 5.5 ? 'a' : 'r';
+    const G = { talk: ['🔴', 'Talk first', 'r'], check: ['🟡', 'Check in', 'a'], praise: ['🟢', 'Praise today', 'g'] };
+    const dayTxt = (() => { try { return new Date(D.day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }); } catch (e) { return D.day; } })();
+    const mv = (r) => r.prev != null && r.score != null ? (r.score >= r.prev ? '▲ ' : '▼ ') + Math.abs(Math.round((r.score - r.prev) * 10) / 10) + ' vs day before' : '';
+    const prog = (r) => (r.progress || []).length ? `<div class="fc-lp">Last focus: ${(r.progress).map(p => `<span class="fc-imp ${p.state}">${esc(p.label)} ${p.from} → ${p.to} ${p.state === 'up' ? '✅ improved' : p.state === 'down' ? '⚠ went down' : '· same'}</span>`).join('')}</div>` : '';
+    const done = (r) => r.done ? `<div class="fc-dn">✅ <b>${r.grp === 'praise' ? 'Praised' : 'Talked'}</b> by ${esc(r.done_by || 'someone')} · ${esc(String(r.done_at || '').slice(11, 16))} — <i>“${esc(r.note || '')}”</i></div>` : '';
+    const btns = (r) => r.done ? '' : `<div class="fc-b"><button type="button" class="btn" style="background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'} — add comment</button><button type="button" class="btn secondary" onclick="goTab('rt')">⭐ Ratings</button>${(r.items || []).some(i => i.k === 'conv') ? '<button type="button" class="btn secondary" onclick="goTab(\'qb\')">🏁 Query Boost</button>' : ''}</div>`;
+    const card = (r) => `<div class="fc-pc ${G[r.grp][2]}"><div class="fc-top"><div><b>${esc(r.name)}</b><span class="fc-up">${esc(mv(r))}</span></div><span class="fc-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span></div>
+      ${(r.items || []).map(i => `<div class="fc-it"><span>${i.icon || ''}</span><div><div class="w">${esc(i.label)} — ${esc(i.why)}</div><div class="fc-do">Do: ${esc(i.do)}</div></div></div>`).join('')}${prog(r)}${done(r)}${btns(r)}</div>`;
+    let body;
+    if (!rows.length) body = '<div class="empty">Nothing to work on yet — yesterday\'s ratings are not ready, or everyone is doing great 🎉</div>';
+    else if (FV === 'cards') body = ['talk', 'check', 'praise'].map(g => { const l = rows.filter(r => r.grp === g); return l.length ? `<div class="fc-h ${G[g][2]}">${G[g][0]} ${G[g][1]} (${l.length})</div>` + l.map(card).join('') : ''; }).join('');
+    else body = `<div class="fc-tw"><table class="fc-tb"><tr><th>Person</th><th>Yesterday</th><th>Work on</th><th>Why (yesterday's number)</th><th>What to say / do</th><th>Done</th></tr>${rows.map(r => `<tr class="${G[r.grp][2]}"><td><b>${esc(r.name)}</b></td><td><span class="fc-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span><div class="fc-up" style="margin:3px 0 0;">${esc(mv(r))}</div></td>
+      <td>${(r.items || []).map(i => `<div class="ln">${i.icon || ''} ${esc(i.label)}</div>`).join('')}</td><td>${(r.items || []).map(i => `<div class="ln">${esc(i.why)}</div>`).join('')}${prog(r)}</td><td>${(r.items || []).map(i => `<div class="ln">${esc(i.do)}</div>`).join('')}</td>
+      <td>${r.done ? `<div class="fc-dn" style="margin:0;">✅ ${esc(r.done_by || '')} · ${esc(String(r.done_at || '').slice(11, 16))}<br><i>“${esc(r.note || '')}”</i></div>` : `<button type="button" class="btn" style="width:auto;min-height:0;padding:4px 12px;font-size:12px;background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'}</button>`}</td></tr>`).join('')}</table></div>`;
+    const wk = tm.weak ? `${esc(tm.weak.label)} (${tm.weak.avg})` : '—';
+    box.innerHTML = `<div class="card"><div class="card-head"><div><h2>☀️ Focus for ${esc(dayTxt)}</h2><div class="sub">Built from yesterday's numbers · who to talk to and what to work on · <b>${tm.done || 0} of ${tm.total || 0} done</b></div></div>
+      <div class="fc-seg"><div class="ldseg"><button type="button" class="${FV === 'cards' ? 'on' : ''}" onclick="setFV('cards')">Cards</button><button type="button" class="${FV === 'table' ? 'on' : ''}" onclick="setFV('table')">Table</button></div></div></div>
+      <div class="fc-sum"><div><b>${tm.avg != null ? tm.avg : '—'}</b><small>Team rating yesterday</small></div><div><b style="font-size:14px;">${wk}</b><small>Team weak spot</small></div><div><b>${tm.talk || 0}</b><small>Talk first</small></div><div><b>${tm.praise || 0}</b><small>Praise today</small></div></div>${body}</div>`;
+  }
+  let resMode = 'alert', resEmp = 0;
+  window.askTalked = (id) => {
+    resMode = 'focus'; resEmp = id; const r = ((FO && FO.rows) || []).find(x => x.id === id) || {};
+    $('resTitle').textContent = r.grp === 'praise' ? 'Mark praised' : 'Mark talked'; $('resSub').textContent = r.name || '';
+    $('resNote').value = ''; $('resErr').style.display = 'none'; $('resOk').disabled = true; $('resModal').classList.add('open'); setTimeout(() => $('resNote').focus(), 50);
+  };
   // ---------- RATINGS: every salesperson's rating, by person or by section, with the remarks ----------
   let RT = {}, RV = 'today', RM = 'person';
   async function loadRt() {
@@ -300,9 +357,9 @@
     const split = best.map(r => Math.round(sum > 0 ? r.conv / sum * 100 : 0));
     if (split.length) split[0] += 100 - split.reduce((x, n) => x + n, 0);          // the shares add up to exactly 100
     const medal = (i) => ['🥇', '🥈', '🥉', '4', '5'][i];
-    const rows = best.map((r, i) => `<div class="ldr"><span class="rk">${medal(i)}</span><div class="nm"><b>${esc(r.name)}</b><div class="bar"><i style="width:${Math.min(100, r.conv * 2)}%"></i></div></div><div class="cv"><b class="ok">${r.conv}%</b><small>${r.orders} orders / ${r.queries} queries</small></div><div class="cv" style="min-width:74px;"><b>${split[i]}</b><small>of next 100</small></div></div>`).join('');
+    const rows = best.map((r, i) => `<div class="ldr"><span class="rk">${medal(i)}</span><div class="nm"><b>${esc(r.name)}</b><div class="bar"><i style="width:${Math.min(100, r.conv * 2)}%"></i></div></div><div class="cv"><b class="ok">${r.conv}%</b><small>${r.orders} query order${r.orders === 1 ? '' : 's'} / ${r.queries} queries</small>${r.comm ? '<span class="mut">+' + r.comm + ' community — not counted</span>' : ''}</div><div class="cv" style="min-width:74px;"><b>${split[i]}</b><small>of next 100</small></div></div>`).join('');
     box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🎯 Give the most queries to</h2>
-      <div class="sub">Best orders ÷ queries ${V === L.week ? 'in the last 7 days' : 'today'} · team ${V.team_conv != null ? V.team_conv + '%' : '—'}. People under ${min} queries are not ranked yet. <b>Suggestion only</b> — assign the queries in <b>Assign queries</b> just below.</div></div>
+      <div class="sub">Best query orders ÷ queries ${V === L.week ? 'in the last 7 days' : 'today'} · team ${V.team_conv != null ? V.team_conv + '%' : '—'}. People under ${min} queries are not ranked yet. <b>Suggestion only</b> — assign the queries in <b>Assign queries</b> just below.</div></div>
       <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
       ${rows ? '<div class="sub" style="font-weight:800;margin:6px 0 2px;">If you have 100 more queries to give, split them like this:</div>' + rows : '<div class="empty">Not enough queries yet — nobody has reached ' + min + ' queries.</div>'}</div>`;
     bot.innerHTML = leadersCard();
@@ -336,14 +393,17 @@
       sec('Recently resolved', done);
   }
   let resId = 0;
-  window.askResolve = (id) => { resId = id; const a = (T.alerts || []).find(x => x.id === id) || {}; $('resSub').textContent = a.title || ''; $('resNote').value = ''; $('resErr').style.display = 'none'; $('resOk').disabled = true; $('resModal').classList.add('open'); setTimeout(() => $('resNote').focus(), 50); };
+  window.askResolve = (id) => { resMode = 'alert'; $('resTitle').textContent = 'Mark resolved'; resId = id; const a = (T.alerts || []).find(x => x.id === id) || {}; $('resSub').textContent = a.title || ''; $('resNote').value = ''; $('resErr').style.display = 'none'; $('resOk').disabled = true; $('resModal').classList.add('open'); setTimeout(() => $('resNote').focus(), 50); };
   $('resNote').oninput = () => { const ok = $('resNote').value.trim().length >= 3; $('resOk').disabled = !ok; if (ok) $('resErr').style.display = 'none'; };
   $('resNote').onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); $('resOk').click(); } };
   $('resCancel').onclick = () => $('resModal').classList.remove('open');
   $('resOk').onclick = async () => {
     const note = $('resNote').value.trim();
     if (note.length < 3) { $('resErr').style.display = 'block'; $('resNote').focus(); return; }
-    try { await api.post('ct.resolve', { id: resId, note }); $('resModal').classList.remove('open'); showAlert('Marked resolved.'); loadTower(false); }
+    try {
+      if (resMode === 'focus') { await api.post('ct.focus_done', { employee_id: resEmp, note }); $('resModal').classList.remove('open'); showAlert('Saved.'); loadFocus(); }
+      else { await api.post('ct.resolve', { id: resId, note }); $('resModal').classList.remove('open'); showAlert('Marked resolved.'); loadTower(false); }
+    }
     catch (err) { showAlert(err.message, 'error'); }
   };
 
@@ -499,7 +559,7 @@
 
   $('btnRefresh').onclick = () => { loadTower(true); if (MD) loadMd(true); if (BM) loadBench(); };
   $('datePick').onchange = () => loadTower(false);
-  loadTower(false);
+  loadTower(false); loadFocus();
   loadMd(false);
   setInterval(() => { if (!document.hidden && $('datePick').value === (T && T.today)) loadTower(false); }, 120000);
 </script>

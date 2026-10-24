@@ -675,7 +675,7 @@ function renderSidebar(active) {
   // Festive (Diwali) theme: switched from Control Tower > Settings; harmless when off.
   if (!document.getElementById('diwaliJs')) {
     const dw = document.createElement('script');
-    dw.id = 'diwaliJs'; dw.src = 'assets/js/diwali.js?v=261024a'; dw.async = true;
+    dw.id = 'diwaliJs'; dw.src = 'assets/js/diwali.js?v=261024b'; dw.async = true;
     document.body.appendChild(dw);
   }
   try { setupRail(); } catch (e) { /* styling only — never block the menu */ }

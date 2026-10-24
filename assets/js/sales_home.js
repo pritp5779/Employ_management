@@ -45,9 +45,6 @@
 .sh-bar u{position:absolute; top:-5px; bottom:-5px; width:3px; margin-left:-1px; background:#fff; border-radius:2px; text-decoration:none; opacity:.9;}
 .sh-bar s{position:absolute; right:-2px; top:-22px; font-size:10.5px; font-weight:900; text-decoration:none; background:#fde68a; color:#78350f; border-radius:99px; padding:1px 7px;}
 .sh-bl{display:flex; justify-content:space-between; gap:8px; font-size:11.5px; opacity:.9; position:relative; z-index:1;}
-.sh-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; position:relative; z-index:1;}
-.sh-mini div{background:rgba(255,255,255,.12); border-radius:10px; padding:5px 8px; font-size:10.5px; opacity:.98;}
-.sh-mini b{display:block; font-size:14px; font-weight:900;}
 .sh-quests{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;}
 .sh-q{background:#fff; border:1px solid var(--line,#e5e7eb); border-radius:14px; padding:9px 11px 9px; min-width:0; position:relative; overflow:hidden;}
 .sh-q.done{border-color:#86efac; background:linear-gradient(180deg,#f0fdf4,#fff);}
@@ -97,7 +94,37 @@
 .sh-sb.done .bd{background:#16a34a;}
 .sh-sb .lb{display:block; font-size:11px; font-weight:800;}
 .sh-flash{animation:shFlash 1.3s ease-out;} @keyframes shFlash{0%{box-shadow:0 0 0 0 rgba(249,115,22,.65);}100%{box-shadow:0 0 0 16px rgba(249,115,22,0);}}
-#shHero,#shCode,#chatCard,#rateCard,#shLead,#shOffer,#shPrice{scroll-margin-top:10px;}
+#shNow,#shHero,#shCode,#chatCard,#rateCard,#shLead,#shOffer,#shPrice{scroll-margin-top:10px;}
+.sh-now{position:relative; background:linear-gradient(160deg,#14532d,#15803d); color:#fff; border-radius:18px; padding:13px 12px 11px; margin-bottom:10px; overflow:hidden; box-shadow:0 6px 18px rgba(20,83,45,.25);}
+.sh-now .nn{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; text-align:center;} .sh-now .nn b{display:block; font-size:17px; font-weight:900; font-variant-numeric:tabular-nums;} .sh-now .nn small{font-size:9.5px; opacity:.85; font-weight:800; text-transform:uppercase; letter-spacing:.03em;} .sh-now .nn .cm b{color:#bbf7d0;}
+.sh-now hr{border:0; border-top:1px solid rgba(255,255,255,.2); margin:10px 0 0;}
+.sh-now .tk{position:relative; height:26px; margin:6px 4px 0;} .sh-now .rail{position:absolute; left:0; right:0; top:15px; height:6px; border-radius:9px; background:rgba(255,255,255,.22);} .sh-now .fill{position:absolute; left:0; top:15px; height:6px; border-radius:9px; background:linear-gradient(90deg,#bbf7d0,#4ade80); transition:width .8s ease;}
+.sh-now .dot{position:absolute; top:11px; width:14px; height:14px; border-radius:50%; background:#14532d; border:2px solid #86efac; transform:translateX(-50%);} .sh-now .dot.on{background:#4ade80; border-color:#fff;} .sh-now .dot.next{background:#fff; border-color:#fb923c;}
+.sh-now .nb{position:absolute; top:-2px; transform:translateX(-50%); background:#fff; color:#14532d; font-size:10.5px; font-weight:900; border-radius:99px; padding:0 7px; line-height:15px; white-space:nowrap; z-index:2;}
+.sh-now .st{display:grid; gap:2px; text-align:center; margin-top:6px;} .sh-now .st div{font-size:10px; font-weight:800; line-height:1.35; padding:3px 0; border-radius:9px; font-variant-numeric:tabular-nums;} .sh-now .st b{display:block; font-size:11px;} .sh-now .st small{display:block; opacity:.85; font-weight:700;}
+.sh-now .st .on{color:#bbf7d0;} .sh-now .st .next{color:#fff; background:rgba(255,255,255,.16);} .sh-now .st div:not(.on):not(.next){opacity:.8;}
+.sh-now .ms{margin-top:8px; font-size:12.5px; font-weight:700; text-align:center;} .sh-now .ms b{color:#bbf7d0;}
+.sh-now .rl{margin-top:7px; font-size:10.5px; line-height:1.45; opacity:.82; text-align:center;} .sh-now .rl b{color:#dcfce7;}
+@media (prefers-reduced-motion:reduce){.sh-now .fill{transition:none;}}
+/* 💥 BOOM — the full-screen celebration when the target (and each higher step) is reached */
+.sh-boom{position:fixed; inset:0; z-index:3000; display:flex; align-items:center; justify-content:center; padding:18px; background:radial-gradient(circle at 50% 45%,rgba(20,83,45,.86),rgba(2,12,6,.94) 70%); animation:bmIn .35s ease-out both; overflow:hidden; cursor:pointer;}
+.sh-boom.out{animation:bmOut .35s ease-in forwards;} @keyframes bmIn{from{opacity:0}to{opacity:1}} @keyframes bmOut{to{opacity:0; transform:scale(1.04)}}
+.bm-rays{position:absolute; left:50%; top:46%; width:150vmax; height:150vmax; margin:-75vmax 0 0 -75vmax; background:repeating-conic-gradient(from 0deg,rgba(253,224,71,.26) 0 7deg,transparent 7deg 18deg); -webkit-mask-image:radial-gradient(circle,#000 0,transparent 55%); mask-image:radial-gradient(circle,#000 0,transparent 55%); animation:bmSpin 14s linear infinite, bmFade 1s ease-out both;}
+@keyframes bmSpin{to{transform:rotate(360deg)}} @keyframes bmFade{from{opacity:0}to{opacity:1}}
+.bm-ring{position:absolute; left:50%; top:46%; width:120px; height:120px; margin:-60px 0 0 -60px; border-radius:50%; border:6px solid rgba(253,224,71,.9); opacity:0; animation:bmRing 1.6s ease-out .1s both;} .bm-ring.r2{animation-delay:.35s; border-color:rgba(74,222,128,.9);} .bm-ring.r3{animation-delay:.6s; border-color:rgba(255,255,255,.85);}
+@keyframes bmRing{0%{transform:scale(.2); opacity:.95}100%{transform:scale(7); opacity:0}}
+.bm-card{position:relative; width:min(380px,100%); text-align:center; color:#fff; padding:26px 18px 20px; border-radius:26px; background:linear-gradient(160deg,#15803d,#14532d 70%); box-shadow:0 0 0 3px #fde047,0 0 60px 8px rgba(253,224,71,.55),0 24px 70px rgba(0,0,0,.55); animation:bmPop .75s cubic-bezier(.2,1.5,.35,1) .12s both;}
+@keyframes bmPop{0%{transform:scale(.15) rotate(-8deg); opacity:0}60%{transform:scale(1.14) rotate(2deg); opacity:1}100%{transform:scale(1) rotate(0)}}
+.bm-e{font-size:92px; line-height:1; filter:drop-shadow(0 6px 14px rgba(0,0,0,.4)); animation:bmBounce 1.1s ease-in-out .7s infinite;} @keyframes bmBounce{0%,100%{transform:translateY(0) rotate(-6deg) scale(1)}50%{transform:translateY(-12px) rotate(6deg) scale(1.1)}}
+.bm-h{font-size:clamp(26px,8.4vw,34px); line-height:1.05; font-weight:1000; letter-spacing:.01em; margin:8px 0 4px; text-shadow:0 3px 0 rgba(0,0,0,.28); color:#fde047;} .bm-h .w{display:inline-block; white-space:nowrap; font-weight:inherit;} .bm-h span{display:inline-block; animation:bmLet .5s cubic-bezier(.2,1.6,.4,1) both;}
+@keyframes bmLet{0%{transform:translateY(46px) scale(0); opacity:0}100%{transform:translateY(0) scale(1); opacity:1}}
+.bm-s{font-size:15px; font-weight:800; opacity:.98; margin:2px 0 12px; animation:bmUp .5s ease-out 1s both;} @keyframes bmUp{from{transform:translateY(14px); opacity:0}to{transform:none; opacity:1}}
+.bm-chips{display:grid; grid-template-columns:1fr 1fr; gap:8px; animation:bmUp .5s ease-out 1.15s both;} .bm-chips div{background:rgba(255,255,255,.14); border-radius:14px; padding:8px 6px;} .bm-chips small{display:block; font-size:10.5px; font-weight:800; opacity:.85; text-transform:uppercase; letter-spacing:.04em;} .bm-chips b{display:block; font-size:24px; font-weight:1000; color:#bbf7d0; font-variant-numeric:tabular-nums;}
+.bm-n{margin-top:10px; font-size:12.5px; font-weight:700; opacity:.92; animation:bmUp .5s ease-out 1.3s both;} .bm-n b{color:#fde047;}
+.bm-b{margin-top:14px; width:100%; min-height:0; border:0; border-radius:99px; padding:12px 16px; font-size:16px; font-weight:900; color:#14532d; background:linear-gradient(180deg,#fef08a,#facc15); box-shadow:0 5px 0 #ca8a04; cursor:pointer; animation:bmUp .5s ease-out 1.45s both, bmBtn 1.4s ease-in-out 2s infinite;} @keyframes bmBtn{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.bm-cv{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+html.sh-shake body{animation:shShake .55s cubic-bezier(.36,.07,.19,.97) both;} @keyframes shShake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(5px,1px,0)}30%,50%,70%{transform:translate3d(-9px,-2px,0)}40%,60%{transform:translate3d(9px,2px,0)}}
+@media (prefers-reduced-motion:reduce){.bm-rays,.bm-ring,.bm-e,.bm-b{animation:none !important;} .bm-rays,.bm-ring{display:none;} .bm-card,.bm-h span,.bm-s,.bm-chips,.bm-n,.bm-b{animation-duration:.01s !important; animation-delay:0s !important;}}
 /* the big bottom Allocate button */
 .sh-ab{position:fixed; left:0; right:0; bottom:0; z-index:60; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.92) 40%); pointer-events:none;}
 .sh-ab button{pointer-events:auto; width:100%; max-width:720px; margin:0 auto; display:flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:18px; padding:15px 18px; min-height:56px; font-size:16px; font-weight:900; color:#fff; background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 12px 28px rgba(234,88,12,.4); cursor:pointer;}
@@ -160,15 +187,6 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-pop .row button{background:#16a34a; color:#fff; padding:6px 12px;}
 .sh-pop .main{display:block; width:100%; background:#16a34a; color:#fff; margin-top:12px; padding:12px; border-radius:12px; font-size:15px;}
 .sh-pop .later{display:block; width:100%; background:transparent; color:#64748b; margin-top:6px; border:1px solid #e2e8f0; border-radius:12px; padding:10px;}
-.sh-lad{margin-top:6px; border:1px solid #fed7aa; background:#fff7ed; border-radius:10px; padding:4px 6px 3px;} .sh-q.done .sh-lad{border-color:#bbf7d0; background:#f0fdf4;}
-.sh-lt{font-size:10.5px; font-weight:800; color:#9a3412; margin:0 2px 4px; line-height:1.3;} .sh-q.done .sh-lt{color:#166534;}
-.sh-ls{display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:8px; padding:2px 6px; border-radius:8px; font-size:11.5px; color:#475569;}
-.sh-ls span{font-weight:900; color:#0f172a; font-variant-numeric:tabular-nums;} .sh-ls b{font-weight:900; font-size:11px; color:#9a3412; background:#ffedd5; border-radius:99px; padding:0 8px;}
-.sh-ls small{grid-column:1/-1; font-size:10.5px; color:#9a3412; font-weight:700; margin-top:-1px;} .sh-ls small:empty{display:none;}
-.sh-ls.on{opacity:.95;} .sh-ls.on span{color:#166534;} .sh-ls.on b{background:#dcfce7; color:#166534;} .sh-ls.on small{color:#166534;}
-.sh-ls.next{background:#fff; box-shadow:0 0 0 2px #fb923c inset;}
-.sh-ls.base{opacity:.85;} .sh-ls.base b{background:#f1f5f9; color:#475569;} .sh-ls.base small{color:#64748b;} .sh-ls b{font-size:12px;} .sh-ln{font-size:10px; color:#9a3412; opacity:.8; padding:2px 6px 1px;}
-.sh-ls:not(.on):not(.next){opacity:.72;}
 .sh-cbig{display:flex; align-items:center; gap:10px; margin:4px 0 6px;} .sh-cbig b{font-size:34px; line-height:1; font-weight:900; color:#ea580c; min-width:44px; text-align:center; font-variant-numeric:tabular-nums;}
 .sh-cbig span{font-size:14px; line-height:1.15; font-weight:900; color:#0f172a;} .sh-cbig span small{display:block; font-size:12px; font-weight:700; color:#64748b; margin-top:2px;}
 .sh-q.near .sh-cbig b{color:#dc2626;} .sh-q.done .sh-cbig b{color:#16a34a;}
@@ -194,7 +212,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-lr .cv{text-align:right;} .sh-lr .cv b{display:block; font-size:14px; font-weight:900; color:#0f172a;} .sh-lr .cv small{font-size:10px; color:#64748b;}
 /* phones: everything on My Sales Home about 20% smaller (text, cards, notifications) */
 @media (max-width:640px){
-  #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
+  #shNow, #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
   .sh-toast{zoom:.8; width:min(440px,calc((100vw - 24px) / .8));}
   .sh-zoom .zb, .sh-zoom .zs{zoom:.9;}
 }
@@ -249,6 +267,48 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     requestAnimationFrame(step);
   }
 
+  // ------------------------------------------------------------------ 💚 "My day" card (above the rating): orders · ticket · sales · commission + the commission step track
+  // Commission = the normal slab commission of every order  +  the extra % of that total once the sales reach a step
+  // (target → +20%, then 30 / 40 / 60 / 100% over target). The track shows every step with what the day pays there.
+  const kfmt = (v) => { v = Number(v) || 0; return v >= 1000 ? (v % 1000 === 0 ? v / 1000 : (v / 1000).toFixed(1).replace(/\.0$/, '')) + 'k' : String(Math.round(v)); };
+  function paintNow() {
+    const box = $('shNow'); if (!box) return;
+    const d = S.coach; if (!d || !d.me) { box.style.display = 'none'; return; }
+    const m = d.me, T = Number(m.target) || 0, sales = Number(m.sales) || 0;
+    let L = Array.isArray(m.ladder) ? m.ladder.filter((x) => Number(x.sales) > 0) : [];
+    if (!L.length && T > 0) L = [{ sales: T, bonus: Number(m.bonus) || 0, hit: sales >= T }];      // slab chart off: just the target
+    const hasRs = L.length > 0 && L.every((x) => x.total != null);
+    const nums = `<div class="nn"><div><b data-cu="${Number(m.orders) || 0}">${Number(m.orders) || 0}</b><small>Orders</small></div><div><b data-cu="${Math.round(Number(m.ticket) || 0)}" data-rs="1">${rs(m.ticket)}</b><small>Ticket</small></div><div><b data-cu="${Math.round(sales)}" data-rs="1">${rs(sales)}</b><small>Sales</small></div><div class="cm"><b data-cu="${Math.round(Number(m.com_today) || 0)}" data-rs="1">${rs(m.com_today)}</b><small>Commission</small></div></div>`;
+    let track = '';
+    if (L.length) {
+      const n = L.length, pos = (i) => (i + 0.5) / n * 100;
+      let f;
+      if (sales <= L[0].sales) f = sales / L[0].sales * pos(0);
+      else if (sales >= L[n - 1].sales) f = pos(n - 1) + Math.min(1, (sales - L[n - 1].sales) / L[n - 1].sales) * (100 - pos(n - 1));
+      else { f = 100; for (let i = 1; i < n; i++) if (sales <= L[i].sales) { f = pos(i - 1) + (sales - L[i - 1].sales) / (L[i].sales - L[i - 1].sales) * (pos(i) - pos(i - 1)); break; } }
+      f = Math.max(0, Math.min(100, f));
+      const nx = L.findIndex((x) => !x.hit);
+      const dots = L.map((x, i) => `<i class="dot ${x.hit ? 'on' : i === nx ? 'next' : ''}" style="left:${pos(i)}%"></i>`).join('');
+      const labs = L.map((x, i) => `<div class="${x.hit ? 'on' : i === nx ? 'next' : ''}"><b>${x.hit ? '✅' : i === nx ? '👉' : '🔒'} ${kfmt(x.sales)}</b>${hasRs ? rs(x.total) : (Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : 'Target')}${hasRs && Number(x.bonus) > 0 ? `<small>+${Number(x.bonus)}%</small>` : ''}</div>`).join('');
+      let msg;
+      if (nx < 0) msg = '🏆 <b>Every step unlocked</b> — you are at the top level. Keep stacking!';
+      else {
+        const x = L[nx], more = Math.max(0, x.sales - sales);
+        msg = nx === 0 && T > 0 ? `Only <b>${rs(more)}</b> more to hit your target${Number(x.bonus) > 0 ? ' → ' + (hasRs ? `commission jumps to <b>${rs(x.total)}</b>` : `<b>+${Number(x.bonus)}% extra</b> on every order`) + ' 🎁' : ''}`
+          : `Only <b>${rs(more)}</b> more → ${hasRs ? `commission jumps to <b>${rs(x.total)}</b>` : `<b>+${Number(x.bonus)}% extra</b> on every order`} 🎁`;
+      }
+      let rule = '';
+      if (L.some((x) => Number(x.bonus) > 0)) {
+        const eg = hasRs ? (L[nx >= 0 ? nx : n - 1]) : null, rate = Number(m.avg_pct) || 0;
+        rule = `<div class="rl">How it's counted: your normal commission on every order <b>+ ${L.filter((x) => Number(x.bonus) > 0).map((x) => Number(x.bonus) + '% at ' + kfmt(x.sales)).join(' · + ')}</b> of it.${eg && rate > 0 ? ` e.g. ${rs(eg.sales)} × ${rate}% = ${rs(eg.base)} → +${Number(eg.bonus)}% = <b>${rs(eg.total)}</b>` : ''}</div>`;
+      }
+      track = `<hr><div class="tk"><span class="nb" style="left:${Math.max(7, Math.min(93, f))}%">${rs(sales)}</span><div class="rail"></div><div class="fill" style="width:${f}%"></div>${dots}</div><div class="st" style="grid-template-columns:repeat(${n},1fr)">${labs}</div><div class="ms">${msg}</div>${rule}`;
+    }
+    box.className = 'sh-now'; box.style.display = '';
+    box.innerHTML = nums + track;
+    box.querySelectorAll('[data-cu]').forEach((el) => countUp(el, Number(el.dataset.cu), el.dataset.rs ? rs : (v) => String(Math.round(v))));
+  }
+
   function paint() {
     const d = S.coach; if (!d || !d.me) return;
     const m = d.me, md = mood(d);
@@ -263,9 +323,8 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
       <h2 class="sh-head">${esc(md.head)}</h2>
       <p class="sh-sub">${md.sub}</p>
       ${md.T > 0 ? `<div class="sh-bar"><i style="width:${pct}%"></i>${should != null && md.tone !== 'win' ? `<u style="left:${should}%" title="Where you should be by now"></u>` : ''}${md.bonus > 0 ? `<s>🎁 +${md.bonus}%</s>` : ''}</div>
-      <div class="sh-bl"><span><b>${rs(md.sales)}</b> of ${rs(md.T)}</span>${should != null && md.tone !== 'win' ? `<span>pace marker ▏= where you should be now</span>` : '<span></span>'}</div>` : ''}
-      <div class="sh-mini"><div><b data-cu="${Number(m.orders) || 0}">${Number(m.orders) || 0}</b>Orders</div><div><b data-cu="${Number(m.com_today) || 0}" data-rs="1">${rs(m.com_today)}</b>Commission today</div><div><b>${S.rating != null ? Number(S.rating).toFixed(1) : '—'}</b>⭐ Rating</div></div>`;
-    hero.querySelectorAll('[data-cu]').forEach((el) => countUp(el, Number(el.dataset.cu), el.dataset.rs ? rs : (v) => String(Math.round(v))));
+      <div class="sh-bl"><span><b>${rs(md.sales)}</b> of ${rs(md.T)}</span>${should != null && md.tone !== 'win' ? `<span>pace marker ▏= where you should be now</span>` : '<span></span>'}</div>` : ''}`;
+    paintNow();
     const sb = $('shSnd'); if (sb) sb.onclick = () => { S.sound = !S.sound; store.set('sh_sound', S.sound ? '1' : '0'); sb.textContent = S.sound ? '🔔' : '🔕'; if (S.sound) chime(); };
 
     // missions
@@ -275,8 +334,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
       q.push(`<div class="sh-q ${done ? 'done' : near ? 'near' : ''}"><div class="sh-qh"><span>🎯</span>Daily target<em>${done ? 'DONE ✅' : Math.round(pct) + '%'}</em></div>
         <div class="sh-qbig">${done ? 'Target done — bonus unlocked!' : plural(md.away, 'order') + ' to go'}</div>
         <div class="sh-qbar"><i style="width:${pct}%"></i></div>
-        <div class="sh-qs">${rs(md.sales)} of <b>${rs(md.T)}</b>${done ? '' : ' · ' + rs(md.left) + ' left'}</div>
-        ${ladderHtml(m, md, done)}</div>`);
+        <div class="sh-qs">${rs(md.sales)} of <b>${rs(md.T)}</b>${done ? '' : ' · ' + rs(md.left) + ' left'}</div></div>`);
     }
     const pctC = Number(m.code_pct) || 0;
     if (pctC > 0) {
@@ -296,6 +354,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     // celebrate / nudge when the moment changes (once per change)
     const code = pctC > 0 ? (m.code_ok ? 'ok' : 'l' + (m.code_left || 0)) : '';
     paintStory();
+    checkBoom(md, m);
     const key = md.key + '|' + code;
     if (key !== S.lastKey) {
       const wasFirst = S.first; S.first = false;
@@ -339,28 +398,90 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
       if (f < 170) requestAnimationFrame(loop); else cv.remove();
     })();
   }
-  // 🎁 The bonus ladder, in rupees (not percentages): "reach ₹13,000 sales → +30% extra on EVERY order today". Steps come from the server (m.ladder).
-  function ladderHtml(m, md, done) {
-    const L = Array.isArray(m.ladder) ? m.ladder : [];
-    if (!L.length) return md.bonus > 0 ? `<div class="sh-qw">${done ? `🎁 <b>+${md.bonus}%</b> extra on every order you add today` : `🎁 Finish it → <b>+${md.bonus}% extra on EVERY order</b> today`}</div>` : '';
-    const sales = Number(md.sales) || 0, now = Number(m.bonus_now) || 0;
-    const hasRs = L.every((x) => x.total != null);          // rupees shown once today has a commissioned order
-    // 🔓 the plain row: the same target sales WITHOUT the bonus, so the jump to the next rows is visible
-    const plain = hasRs ? `<div class="sh-ls base"><span>🔓 ${rs(L[0].sales)} sales</span><b>${rs(L[0].base)}</b><small>your commission with no bonus</small></div>` : '';
-    const rows = L.map((x, i) => {
-      const next = !x.hit && (i === 0 || L[i - 1].hit);
-      const st = x.hit ? 'unlocked ✅' : next ? rs(Math.max(0, x.sales - sales)) + ' more sales to unlock' : '';
-      const sm = hasRs ? `${rs(x.base)} + <i style="font-style:normal;font-weight:900;">${Number(x.bonus)}% extra (+${rs(x.extra)})</i>${st ? ' · ' + st : ''}` : st;
-      return `<div class="sh-ls ${x.hit ? 'on' : ''} ${next ? 'next' : ''}"><span>${x.hit ? '✅' : next ? '👉' : '🔒'} ${rs(x.sales)} sales</span><b>${hasRs ? rs(x.total) : '+' + Number(x.bonus) + '% extra'}</b><small>${sm}</small></div>`;
-    }).join('');
-    const head = done && now > 0 ? `🎁 You earn <b>+${now}%</b> extra on every order today — the next step pays even more` : hasRs ? '🎁 Smash the target → <b>every order</b> pays more. This is what your day can earn:' : '🎁 Reach this sales number → get this extra commission on EVERY order today';
-    return `<div class="sh-lad"><div class="sh-lt">${head}</div>${plain}${rows}${hasRs ? '<div class="sh-ln">≈ at your average commission today · exact amount depends on your orders &amp; codes</div>' : ''}</div>`;
+  // ------------------------------------------------------------------ 💥 BOOM: the big celebration (target + every higher step)
+  const BOOM = [['🏆', 'TARGET SMASHED!'], ['🔥', 'LEVEL UP!'], ['⚡', 'UNSTOPPABLE!'], ['👑', 'LEGEND MODE!'], ['🚀', 'ABSOLUTE BEAST!']];
+  function fanfare(level) {
+    if (!S.sound || !S.interacted) return;
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      const seq = [[523, 0], [659, .11], [784, .22], [1047, .36], [1319, .5]].slice(0, 3 + Math.min(2, level));
+      seq.forEach(([f, t]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination);
+        const t0 = AC.currentTime + t; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.22, t0 + .03); g.gain.exponentialRampToValueAtTime(0.0001, t0 + .55); o.start(t0); o.stop(t0 + .6); });
+    } catch (e) { /* sound is a bonus */ }
   }
+  function cannons(cv, level) {
+    const dpr = window.devicePixelRatio || 1, W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr, ctx = cv.getContext('2d');
+    const COL = ['#f97316', '#22c55e', '#3b82f6', '#ec4899', '#facc15', '#a855f7', '#ffffff'], EM = ['💰', '🎉', '✨', '🪙', '🔥', '💸'];
+    const per = 70 + level * 35, P = [];
+    const shoot = (fromLeft, delay) => { for (let i = 0; i < per; i++) {
+      const a = (fromLeft ? -62 : -118) * Math.PI / 180 + (Math.random() - .5) * .9, sp = (13 + Math.random() * 13) * dpr, k = Math.random();
+      P.push({ x: fromLeft ? 0 : W, y: H, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, s: (6 + Math.random() * 8) * dpr, r: Math.random() * 6, vr: (Math.random() - .5) * .45, c: COL[(Math.random() * COL.length) | 0], t: k < .12 ? 'e' : k < .3 ? 'o' : 'r', e: EM[(Math.random() * EM.length) | 0], d: delay + Math.random() * 6 });
+    } };
+    shoot(true, 0); shoot(false, 0); setTimeout(() => { shoot(true, 0); shoot(false, 0); }, 700); if (level > 0) setTimeout(() => { shoot(true, 0); shoot(false, 0); }, 1500);
+    let f = 0;
+    (function loop() {
+      if (!cv.isConnected) return;
+      ctx.clearRect(0, 0, W, H); f++;
+      P.forEach((p) => {
+        if (p.d > 0) { p.d--; return; }
+        p.x += p.vx; p.y += p.vy; p.vy += .42 * dpr; p.vx *= .992; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, Math.min(1, 1 - (f - 160) / 150)); ctx.fillStyle = p.c;
+        if (p.t === 'e') { ctx.font = (p.s * 2.4) + 'px serif'; ctx.textAlign = 'center'; ctx.fillText(p.e, 0, 0); }
+        else if (p.t === 'o') { ctx.beginPath(); ctx.fillStyle = '#facc15'; ctx.arc(0, 0, p.s / 2, 0, 6.283); ctx.fill(); ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 2 * dpr; ctx.stroke(); }
+        else ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66);
+        ctx.restore();
+      });
+      if (f < 330) requestAnimationFrame(loop);
+    })();
+  }
+  // level = 0 target, 1.. = each higher step. info: {bonus, total, com, next:{sales,total,bonus}|null}
+  function boom(level, info) {
+    if (document.querySelector('.sh-boom')) return;
+    const [emo, head] = BOOM[Math.min(level, BOOM.length - 1)];
+    let li = 0;
+    const letters = head.split(' ').map((w) => '<b class="w">' + w.split('').map((c) => `<span style="animation-delay:${(0.45 + (li++) * 0.035).toFixed(2)}s">${esc(c)}</span>`).join('') + '</b>').join(' ');
+    const o = document.createElement('div'); o.className = 'sh-boom'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Congratulations');
+    const nx = info.next ? `Next: <b>${rs(info.next.sales)}</b> sales → ${info.next.total != null ? 'commission <b>' + rs(info.next.total) + '</b>' : '<b>+' + Number(info.next.bonus) + '%</b>'} 🎁` : '🏆 You reached the TOP level — nothing can stop you!';
+    o.innerHTML = `${reduce ? '' : '<div class="bm-rays"></div><i class="bm-ring"></i><i class="bm-ring r2"></i><i class="bm-ring r3"></i><canvas class="bm-cv"></canvas>'}
+      <div class="bm-card"><div class="bm-e">${emo}</div><div class="bm-h">${letters}</div>
+        <div class="bm-s">${Number(info.bonus) > 0 ? `+${Number(info.bonus)}% extra on EVERY order today 🎁` : 'Amazing work today!'}</div>
+        <div class="bm-chips"><div><small>Commission now</small><b id="bmCom" data-cu="${Math.round(info.com)}">${reduce ? rs(info.com) : '₹0'}</b></div><div><small>Extra unlocked</small><b>${Number(info.bonus) > 0 ? '+' + Number(info.bonus) + '%' : '✓'}</b></div></div>
+        <div class="bm-n">${nx}</div><button type="button" class="bm-b">Keep going 🚀</button></div>`;
+    document.body.appendChild(o);
+    let closed = false;
+    const close = () => { if (closed) return; closed = true; o.classList.add('out'); setTimeout(() => o.remove(), 380); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape' || e.key === 'Enter') close(); };
+    o.addEventListener('click', close); document.addEventListener('keydown', onKey); setTimeout(close, 11000);
+    if (!reduce) {
+      const cv = o.querySelector('.bm-cv'); if (cv) cannons(cv, level);
+      document.documentElement.classList.add('sh-shake'); setTimeout(() => document.documentElement.classList.remove('sh-shake'), 650);
+      setTimeout(() => countUp($('bmCom'), Math.round(info.com), rs), 900);
+    }
+    try { if (navigator.vibrate) navigator.vibrate([90, 50, 90, 50, 220]); } catch (e) { /* phones only */ }
+    fanfare(level);
+  }
+  // called on every paint: the highest step reached that has not been celebrated on this phone today
+  function checkBoom(md, m) {
+    const day = (S.coach && S.coach.business_day) || ''; if (!day || !(md.T > 0)) return;
+    let L = Array.isArray(m.ladder) ? m.ladder.filter((x) => Number(x.sales) > 0) : [];
+    if (!L.length) L = [{ sales: md.T, bonus: Number(md.bonus) || 0, hit: md.sales >= md.T }];
+    let hi = -1; L.forEach((x, i) => { if (x.hit) hi = i; });
+    if (hi < 0) return;
+    const kk = (i) => 'sh_c_' + day + '_' + (i === 0 ? 'target' : 'step' + i);
+    if (store.get(kk(hi))) return;
+    for (let i = 0; i <= hi; i++) store.set(kk(i), '1');          // lower steps are celebrated by this one
+    const x = L[hi], nx = L[hi + 1] || null;
+    const info = { bonus: x.bonus, total: x.total, com: Number(m.com_today) || 0, next: nx };
+    // the app's opening splash plays first (about 3 s) — wait for it, so the BOOM is seen from its very first frame
+    let tries = 0;
+    (function go() { if ((window.__hrmsSplashActive || document.getElementById('hrmsSplash')) && tries++ < 60) return setTimeout(go, 150); boom(hi, info); })();
+  }
+
   function moment(md, m, wasFirst, prevKey) {
     const day = (S.coach && S.coach.business_day) || '';
     const now = Date.now();
     const celebrated = (k) => { const kk = 'sh_c_' + day + '_' + k; if (store.get(kk)) return true; store.set(kk, '1'); return false; };
-    if (md.tone === 'win' && md.key === 'win' && !celebrated('target')) { confetti(); toast('🏆', 'Target smashed!', md.bonus > 0 ? `+${md.bonus}% extra on every order from now on 🎁` : 'Amazing work today!', true); chime(); return; }
+    if (md.tone === 'win' && md.key === 'win') return;          // the target celebration is the BOOM card (checkBoom)
     if (m.code_ok && Number(m.orders) > 0 && !celebrated('code')) { confetti(); toast('🔑', 'Code goal done!', 'Full commission on ALL your orders today 🎉', true); chime(); return; }
     if (now - S.lastNudge < 20 * 60 * 1000 && !wasFirst) return;          // a nudge is a nudge, not a nag: at most once every 20 min
     if (md.tone === 'ting') { S.lastNudge = now; setTimeout(() => { toast('⏰', 'Ting ting!', md.head.replace(/^Ting ting!\s*/, '') + ' — you can do it!'); chime(); }, wasFirst ? 1400 : 200); return; }
@@ -569,7 +690,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   // ------------------------------------------------------------------ 📸 story strip (jump to a section)
   const vis = (e) => (e && e.style.display !== 'none' ? e : null);
   const STORY = [
-    { k: 'target', e: '🎯', l: 'Target', el: () => vis($('shHero')) || vis($('shQuests')) },
+    { k: 'target', e: '🎯', l: 'Target', el: () => vis($('shNow')) || vis($('shHero')) || vis($('shQuests')) },
     { k: 'code', e: '🔑', l: 'Code', el: () => $('shCode') || vis($('shQuests')) },
     { k: 'chat', e: '💬', l: 'Chat', el: () => vis($('chatCard')) || document.querySelector('#shMis .sh-mgrid') },
     { k: 'rating', e: '⭐', l: 'Rating', el: () => vis($('rateCard')) },
@@ -773,7 +894,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     const myRank = mine && mine.rank != null ? mine.rank : null;
     S.myRank = myRank;
     box.innerHTML = `<div class="sh-ph"><h2>🏆 Top 5 ${LD.view === 'week' ? 'this week' : 'today'}</h2><div class="sh-lt2"><span data-lv="today" class="${LD.view === 'today' ? 'on' : ''}">Today</span><span data-lv="week" class="${LD.view === 'week' ? 'on' : ''}">7 days</span></div></div>
-      <div class="sh-fn" style="margin:2px 0 4px">Orders ÷ queries · team <b>${tc != null ? tc + '%' : '—'}</b>${myRank && myRank > 5 ? ' · you are #' + myRank + ' — climb! 🚀' : ''}</div>${rows}`;
+      <div class="sh-fn" style="margin:2px 0 4px">Query orders ÷ queries · team <b>${tc != null ? tc + '%' : '—'}</b>${myRank && myRank > 5 ? ' · you are #' + myRank + ' — climb! 🚀' : ''}</div>${rows}`;
     box.style.display = '';
   }
 
