@@ -91,7 +91,20 @@
   }
   const dShort = (d) => { const t = new Date(d + 'T00:00:00'); return isNaN(t) ? d : t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); };
 
-  function orderCom(chart, o, hit) {
+  // Over-target steps: [[over %, bonus %], …] (default +30% → 30% extra, +40% → 40%, +60% → 60%, +100% → 100%). The bonus = the highest step reached,
+  // never below the plain target bonus. over = how far the day's sales are above the target, in % (0 = just reached). Same as ml_bonus_for() in PHP.
+  const TIERS = [[30, 30], [40, 40], [60, 60], [100, 100]];
+  function tiersOf(chart) {
+    const t = Array.isArray(chart && chart.tiers) ? chart.tiers : TIERS;
+    return t.filter((x) => Array.isArray(x) && Number(x[0]) > 0).map((x) => [Number(x[0]), Number(x[1]) || 0]).sort((a, b) => a[0] - b[0]);
+  }
+  function bonusFor(chart, over) {
+    let b = Number(chart && chart.bonus) || 0;
+    if (over == null || !(over >= 0)) return b;
+    tiersOf(chart).forEach(([o, v]) => { if (over + 1e-6 >= o && v > b) b = v; });
+    return b;
+  }
+  function orderCom(chart, o, hit, over) {
     if (!chart || !Number(chart.on) || o.ml == null || !(Number(o.ml) > 0)) return null;
     if (o.day && !activeOn(chart, o.day)) return null;     // order outside the chart's dates: normal commission
     if (o.day && chart.special && chart.special.length && !chart.special_on) chart = forDay(chart, o.day, o.emp);
@@ -120,7 +133,7 @@
     const minPct = Number(chart.floor) > 0 ? 0 : Number(chart.cols[chart.cols.length - 1]) || 0;
     if (pct > 0 && pct < minPct - 1e-9) { steps.push(r2(pct) + '% is below the lowest slab (' + minPct + '%) → 0%'); pct = 0; }
     // Daily target achieved → bonus on top of the commission (20% → ₹100 becomes ₹120). Not achieved → no cut, no bonus.
-    const bonus = Number(chart.bonus) || 0;
+    const bonus = hit === true ? bonusFor(chart, over) : (Number(chart.bonus) || 0);
     if (hit === true && bonus > 0 && pct > 0) { pct = pct * (1 + bonus / 100); steps.push('daily target achieved → +' + bonus + '% bonus' + spT); }
     return { v: amt * pct / 100, pct: r2(pct), base: r2(s.pct), steps, ml: Number(o.ml), look, disc: r2(disc), overMax: false, bonus: hit === true && bonus > 0, bonusPct: bonus, special: chart.special_on || null };
   }
@@ -202,5 +215,5 @@
     return map;
   }
 
-  window.MLSLAB = { codeNeed, tagCodes, rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, flashFor, flashCom, on: (c) => !!(c && Number(c.on)) };
+  window.MLSLAB = { bonusFor, tiersOf, codeNeed, tagCodes, rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, flashFor, flashCom, on: (c) => !!(c && Number(c.on)) };
 })();

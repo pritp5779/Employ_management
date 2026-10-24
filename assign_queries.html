@@ -98,6 +98,10 @@
   .hour-table td{text-align:center; padding:7px 6px; font-size:13px;}
   .hour-table td.q{color:#0C447C; font-weight:700;} .hour-table td.c{color:#854F0B; font-weight:700;} .hour-table td.t{font-weight:700;}
   .hour-table tr.cur td{background:#EEF2FF;}
+  .hour-table td.o{font-weight:700;} .hour-table td.pc{font-size:12px; color:#475569;} .hour-table td.lowc, .hour-table td.pc.lowc{color:#b91c1c; font-weight:800;} .hour-table td.okc, .hour-table td.pc.okc{color:#15803d; font-weight:800;}
+  .hour-table th, .hour-table td{padding-left:4px; padding-right:4px;} .hour-table td{font-size:12.5px;}
+  .hr-why{margin:0 0 10px; padding:9px 12px; border-radius:10px; font-size:12.5px; line-height:1.5; background:#FEF2F2; color:#991b1b; border:1px solid #FECACA;}
+  .hr-why.good{background:#F0FDF4; color:#166534; border-color:#BBF7D0;} .hr-why.wait{background:#F3F4F6; color:#374151; border-color:#E5E7EB;} .hr-why b{font-weight:800;}
   .hour-table tfoot td{border-top:2px solid var(--line); background:#FAFBFC; font-weight:700;}
   /* Beside the employee table the By-hour card must leave it at least ~700px, or the Campaign / Total columns scroll out of sight. */
   @media (max-width:1250px){ .hour-card{flex:1 1 100%; max-width:none;} }
@@ -181,10 +185,11 @@
       <!-- By hour: the team's counts grouped by the hour each +1 / − was clicked -->
       <div class="card hour-card" id="hourCard">
         <div class="card-head"><h2>By hour</h2><span id="hourSub" style="font-size:12px; color:var(--muted);">click a time</span></div>
+        <div id="hourWhy" class="hr-why" style="display:none;"></div>
         <div class="hour-scroll">
           <table class="no-stack hour-table">
-            <thead><tr><th>Time</th><th>Query</th><th>Campaign</th><th>Total</th></tr></thead>
-            <tbody id="hourBody"><tr><td colspan="4" class="loading" style="padding:16px;">Loading...</td></tr></tbody>
+            <thead><tr><th>Time</th><th>Query</th><th>Camp.</th><th>Total</th><th title="Orders that came in this hour">Orders</th><th title="Orders ÷ queries given">Conv.</th></tr></thead>
+            <tbody id="hourBody"><tr><td colspan="6" class="loading" style="padding:16px;">Loading...</td></tr></tbody>
             <tfoot id="hourFoot"></tfoot>
           </table>
         </div>
@@ -470,27 +475,33 @@
   const ordersFor = (name) => ordersByName[name];
   let ordersLoadedFor = '';
   let ordersLoading = false;
+  // hour (0-23) -> { scout, champion, other } orders that came in that hour (same panel / day as the table), + the By-hour reply
+  let ordersByHour = {}, hourlyData = null;
   async function loadOrdersCount() {
     const key = day() + '|' + groupFilter();
     if (ordersLoadedFor === key) return;
     ordersLoading = true;
     try {
       const d = await api.get('shopify.orders', { date_from: day(), date_to: day() });
-      const map = {};
+      const map = {}, byH = {};
       (d.orders || []).forEach(o => {
-        if (!o.salesman || !STORE_HOUSE[o.store_key]) return;   // MySales / manual belong to no house
-        if (houseOf(o) !== groupFilter()) return;
+        if (!STORE_HOUSE[o.store_key] || houseOf(o) !== groupFilter()) return;   // MySales / manual belong to no house
+        const hh = new Date(o.created_at).getHours();
+        if (!isNaN(hh)) { byH[hh] = byH[hh] || { scout: 0, champion: 0, other: 0 }; byH[hh][orderType(o.tags)]++; }
+        if (!o.salesman) return;
         map[o.salesman] = map[o.salesman] || { scout: 0, champion: 0, other: 0 };
         map[o.salesman][orderType(o.tags)]++;
       });
+      ordersByHour = byH;
       employees.forEach(e => { if (!map[e.full_name]) map[e.full_name] = { scout: 0, champion: 0, other: 0 }; });
       ordersByName = map;
       ordersLoadedFor = key;
     } catch (err) {
-      ordersByName = {};
+      ordersByName = {}; ordersByHour = {};
     } finally {
       ordersLoading = false;
       render();
+      if (hourlyData) renderHourly();
     }
   }
 
@@ -537,30 +548,55 @@
   async function loadHourly() {
     const body = document.getElementById('hourBody'), foot = document.getElementById('hourFoot');
     try {
-      const d = await api.get('queries.hourly', { date: day(), store_group: groupFilter() });
-      const nowHour = new Date().getHours(), isToday = day() === bizToday;
-      document.getElementById('hourSub').textContent = new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-      const rows = [];
-      if (d.earlier && (d.earlier.scout || d.earlier.champion)) rows.push(`<tr onclick="setHour(null)" title="Counts entered before the hour log existed — shown in the whole-day view"><td>Earlier</td><td class="q">${d.earlier.scout}</td><td class="c">${d.earlier.champion}</td><td class="t">${d.earlier.scout + d.earlier.champion}</td></tr>`);
-      // The server sends every hour of the business day in order (10 AM …
-      // 11 PM, 12 AM … 9 AM), empty ones included — do not re-sort, or the
-      // after-midnight hours jump to the top.
-      const hoursList = (d.hours || []).slice();
-      if (isToday && !hoursList.some(h => h.hour === nowHour)) hoursList.push({ hour: nowHour, scout: 0, champion: 0 });
-      hoursList.forEach(h => {
-        const isNow = h.now || (isToday && h.hour === nowHour);
-        const later = !!h.future && !isNow;   // hour has not started yet today
-        const cell = (v) => later ? '—' : v;
-        rows.push(`<tr class="${isNow ? 'cur' : ''} ${viewHour === h.hour ? 'sel' : ''}"${later ? ' style="opacity:.45;"' : ''} onclick="setHour(${h.hour})" title="${later ? 'This hour has not started yet' : 'Click to view / edit this hour per employee'}"><td><span class="hr-t">${hourRange(h.hour)}</span>${isNow ? ' <span class="hr-now">● now</span>' : ''}</td><td class="q">${cell(h.scout)}</td><td class="c">${cell(h.champion)}</td><td class="t">${cell(h.scout + h.champion)}</td></tr>`);
-      });
-      body.innerHTML = rows.join('') || '<tr><td colspan="4" class="empty-state" style="padding:16px;">Nothing added yet.</td></tr>';
-      renderChips(hoursList, d.total || { scout: 0, champion: 0 }, isToday);
-      const t = d.total || { scout: 0, champion: 0 };
-      foot.innerHTML = `<tr><td>Total</td><td class="q">${t.scout}</td><td class="c">${t.champion}</td><td class="t">${t.scout + t.champion}</td></tr>`;
+      hourlyData = await api.get('queries.hourly', { date: day(), store_group: groupFilter() });
+      renderHourly();
     } catch (err) {
-      body.innerHTML = `<tr><td colspan="4"><div class="alert error" style="margin:8px;">${err.message}</div></td></tr>`;
+      hourlyData = null;
+      body.innerHTML = `<tr><td colspan="6"><div class="alert error" style="margin:8px;">${err.message}</div></td></tr>`;
       foot.innerHTML = '';
+      document.getElementById('hourWhy').style.display = 'none';
     }
+  }
+  const ordN = (h) => { const x = ordersByHour[h]; return x ? x.scout + x.champion + x.other : 0; };
+  const pctTxt = (o, g) => g > 0 ? Math.round(o / g * 100) + '%' : '—';
+  function renderHourly() {
+    const d = hourlyData; if (!d) return;
+    const body = document.getElementById('hourBody'), foot = document.getElementById('hourFoot');
+    const nowHour = new Date().getHours(), isToday = day() === bizToday;
+    document.getElementById('hourSub').textContent = new Date(day() + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    const rows = [];
+    if (d.earlier && (d.earlier.scout || d.earlier.champion)) rows.push(`<tr onclick="setHour(null)" title="Counts entered before the hour log existed — shown in the whole-day view"><td>Earlier</td><td class="q">${d.earlier.scout}</td><td class="c">${d.earlier.champion}</td><td class="t">${d.earlier.scout + d.earlier.champion}</td><td class="o">—</td><td class="pc">—</td></tr>`);
+    // The server sends every hour of the business day in order (10 AM … 11 PM, 12 AM … 9 AM), empty ones included — do not re-sort,
+    // or the after-midnight hours jump to the top.
+    const hoursList = (d.hours || []).slice();
+    if (isToday && !hoursList.some(h => h.hour === nowHour)) hoursList.push({ hour: nowHour, scout: 0, champion: 0 });
+    // the day's usual orders-per-query ratio from the finished hours (the running hour is judged against it)
+    let gDone = 0, oDone = 0;
+    hoursList.forEach(h => { const isNow = h.now || (isToday && h.hour === nowHour); if (isNow || h.future) return; const g = h.scout + h.champion; if (g > 0) { gDone += g; oDone += ordN(h.hour); } });
+    const usual = gDone >= 8 ? oDone / gDone : null;
+    hoursList.forEach(h => {
+      const isNow = h.now || (isToday && h.hour === nowHour);
+      const later = !!h.future && !isNow;   // hour has not started yet today
+      const cell = (v) => later ? '—' : v;
+      const g = h.scout + h.champion, o = ordN(h.hour), ex = usual != null ? Math.round(g * usual) : null;
+      const low = !later && isNow && ex != null && g > 0 && o < ex ? ' lowc' : (!later && usual != null && g >= 5 && o / g >= usual * 1.2 ? ' okc' : '');
+      rows.push(`<tr class="${isNow ? 'cur' : ''} ${viewHour === h.hour ? 'sel' : ''}"${later ? ' style="opacity:.45;"' : ''} onclick="setHour(${h.hour})" title="${later ? 'This hour has not started yet' : 'Click to view / edit this hour per employee'}"><td><span class="hr-t">${hourRange(h.hour)}</span>${isNow ? ' <span class="hr-now">● now</span>' : ''}</td><td class="q">${cell(h.scout)}</td><td class="c">${cell(h.champion)}</td><td class="t">${cell(g)}</td><td class="o${low}">${cell(o)}</td><td class="pc${low}">${later ? '—' : pctTxt(o, g)}</td></tr>`);
+    });
+    body.innerHTML = rows.join('') || '<tr><td colspan="6" class="empty-state" style="padding:16px;">Nothing added yet.</td></tr>';
+    renderChips(hoursList, d.total || { scout: 0, champion: 0 }, isToday);
+    const t = d.total || { scout: 0, champion: 0 }, tg = t.scout + t.champion, to = Object.keys(ordersByHour).reduce((a, h) => a + ordN(h), 0);
+    foot.innerHTML = `<tr><td>Total</td><td class="q">${t.scout}</td><td class="c">${t.champion}</td><td class="t">${tg}</td><td class="o">${to}</td><td class="pc">${pctTxt(to, tg)}</td></tr>`;
+    // Why-is-this-hour-low line (today, the running hour only)
+    const why = document.getElementById('hourWhy');
+    const cur = isToday ? hoursList.find(h => h.now || h.hour === nowHour) : null;
+    if (!cur) { why.style.display = 'none'; return; }
+    const g = cur.scout + cur.champion, o = ordN(cur.hour), ex = usual != null ? Math.round(g * usual) : null;
+    const lab = `<b>${hourRange(cur.hour)} · now</b>`, up = usual != null ? Math.round(usual * 100) : null;
+    why.style.display = '';
+    if (g === 0) { why.className = 'hr-why wait'; why.innerHTML = `${lab}: no queries given yet this hour${o ? ` — but <b>${o} order${o === 1 ? '' : 's'}</b> already came in` : ''}. Orders come from queries, so give queries first.`; }
+    else if (ex == null) { why.className = 'hr-why wait'; why.innerHTML = `${lab}: <b>${g} queries</b> given, <b>${o} order${o === 1 ? '' : 's'}</b> so far (${pctTxt(o, g)}). Too little data earlier today to say what is usual.`; }
+    else if (o < ex) { why.className = 'hr-why'; why.innerHTML = `${lab}: <b>${g} queries</b> given, only <b>${o} order${o === 1 ? '' : 's'}</b> so far (${pctTxt(o, g)}). Today's usual is ${up}% → about <b>${ex}</b> expected. Gap: <b>${ex - o}</b>. Check the queries given this hour — follow up, call back, send the offer.`; }
+    else { why.className = 'hr-why good'; why.innerHTML = `${lab}: <b>${g} queries</b> → <b>${o} order${o === 1 ? '' : 's'}</b> (${pctTxt(o, g)}) — on pace (usual ${up}%, about ${ex} expected). 👍`; }
   }
   // Chips above the table: one per hour with data (plus the running hour),
   // and "Whole day" for the old all-hours view.

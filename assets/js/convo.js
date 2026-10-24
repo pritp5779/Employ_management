@@ -70,6 +70,7 @@
 .cvchip.ok{background:#ecfdf5; border-color:#a7f3d0; color:#065f46}
 .cvchip.mid{background:#fff7ed; border-color:#fed7aa; color:#9a3412}
 .cvchip.run{background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8}
+@media (max-width:640px){ .cvx-box{zoom:.8} }
 @media (max-width:520px){ .cvx{padding:10px 6px; align-items:flex-end} .cvx-box{border-radius:20px 20px 14px 14px; padding:16px 14px} .cvx-grid{grid-template-columns:repeat(4,1fr)} }
 `;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -227,7 +228,7 @@
       + `<div class="cvx-chk">☑️ Chat ની શરૂઆત થી order confirm / address સુધી — AI check કરશે</div>`
       + (CFG.video_ok ? `<div class="cvx-or">OR</div><div class="cvx-opt ${S.video || up.has_video ? 'on' : ''}"><span>🎬 ${S.video ? esc(S.video.name) : up.has_video ? 'Screen recording saved' : '1 screen-recording video (chat scroll કરો)'}</span>`
         + `<label class="cvx-lnk">${S.video || up.has_video ? 'Change' : '≤ ' + CFG.video_sec + ' s · Add'}<input type="file" accept="video/*" hidden id="cvxVideo"></label></div>` : '')
-      + `<div class="cvx-opt ${S.call || up.has_call ? 'on' : ''}"><span>📞 ${S.call ? esc(S.call.name) : up.has_call ? 'Call recording saved' : 'Call recording <span class="mut">(optional)</span>'}${CFG.call_ok ? '' : ' <span class="mut">· review needs Admin AI setup</span>'}</span>`
+      + `<div class="cvx-opt ${S.call || up.has_call ? 'on' : ''}"><span>📞 ${S.call ? esc(S.call.name) : up.has_call ? 'Call recording saved' : (isLost ? 'Call recording <span class="mut">— if you spoke to this customer on a call</span>' : 'Call recording <span class="mut">(optional)</span>')}${CFG.call_ok ? '' : ' <span class="mut">· review needs Admin AI setup</span>'}</span>`
       + `<label class="cvx-lnk">${S.call || up.has_call ? 'Change' : '+ Add'}<input type="file" hidden id="cvxCall"></label></div>`
       + `<button type="button" class="cvx-btn" data-save="1" ${canSave ? '' : 'disabled'}>${saveLbl}</button>`
       + (up.status === 'done' ? `<button type="button" class="cvx-btn ghost" data-view="review">← Back to review</button>` : '');
@@ -273,7 +274,8 @@
       h += `<div class="cvx-h">Files</div><div class="cvx-files">${shots.map((f, i) => `<div class="cvx-sh"><img data-n="${f.n}" alt="${i + 1}" data-zoom="1"></div>`).join('')}</div>`
         + media.map((f) => f.kind === 'call' ? `<audio controls preload="none" data-media="${f.n}"></audio>` : `<video controls preload="metadata" data-media="${f.n}"></video>`).join('');
     } else if (u.files_gone) h += `<div class="mut" style="margin-top:8px">Files deleted after ${CFG.keep_days} days — scores and notes are kept.</div>`;
-    if (u.status === 'done' && !u.has_call) h += `<button type="button" class="cvx-btn ghost" data-view="upload">📞 Add call recording</button>`;
+    if (u.status === 'done' && Number(u.shots || 0) < Number(CFG.max_shots || 10)) h += `<button type="button" class="cvx-btn ghost" data-view="upload">＋ Add more screenshots${u.kind === 'lost' ? ' of this chat' : ''}</button>`;
+    if (u.status === 'done' && !u.has_call) h += `<button type="button" class="cvx-btn ghost" data-view="upload">📞 Add call recording${u.kind === 'lost' ? ' (call with this customer)' : ''}</button>`;
     if (adm) h += `<button type="button" class="cvx-btn ghost" data-flag="${u.flag_wrong ? 0 : 1}">${u.flag_wrong ? '↶ AI review is fine (count it again)' : '🚩 AI review is wrong (leave it out of scores)'}</button>`;
     h += `<button type="button" class="cvx-btn ghost" data-close="1">Close</button>`;
     return h;

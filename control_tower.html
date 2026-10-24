@@ -10,6 +10,13 @@
 <title>Sales Control Tower — HRMS</title>
 <link rel="stylesheet" href="assets/css/style.css?v=4">
 <style>
+  .ldseg{display:flex; gap:4px;} .ldseg button{width:auto; min-height:0; border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:99px; padding:4px 12px; font-size:12px; font-weight:800; cursor:pointer;} .ldseg button.on{background:#111827; color:#fff; border-color:#111827;}
+  .ldr{display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; padding:8px 4px; border-top:1px solid var(--line);} .ldr:first-child{border-top:0;}
+  .ldr .rk{text-align:center; font-weight:900; color:var(--muted);} .ldr .nm b{font-weight:800;} .ldr .nm em{font-style:normal; font-size:10.5px; font-weight:800; color:#b45309; background:#fef3c7; border-radius:99px; padding:1px 8px; margin-left:4px;}
+  .ldr .bar{height:5px; border-radius:4px; background:#e5e7eb; margin-top:4px; overflow:hidden;} .ldr .bar i{display:block; height:100%; background:linear-gradient(90deg,#4ade80,#16a34a);}
+  .ldr .cv{text-align:right;} .ldr .cv b{display:block; font-size:15px; font-weight:900;} .ldr .cv b.ok{color:#15803d;} .ldr .cv b.warn{color:#b45309;} .ldr .cv small{font-size:10.5px; color:var(--muted);}
+  .ldt{border-radius:10px; padding:8px 11px; margin-top:6px; font-size:12.5px; line-height:1.45; background:#EEF2FF; color:#3730a3;} .ldt.coach{background:#FFF7ED; color:#9a3412;} .ldt b{display:block; font-size:13px;}
+  @media (max-width:640px){ #p-today, #p-alerts, #p-md, #p-qb, #p-bench, #p-set, #tabs{zoom:.8;} }
   .ct-tabs{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px;}
   .ct-tab{border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 16px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
   .ct-tab.on{background:var(--ink); color:#fff; border-color:var(--ink);}
@@ -75,6 +82,7 @@
         <button class="ct-tab on" data-t="today">Today</button>
         <button class="ct-tab" data-t="alerts">Alerts <span class="n" id="nAl" style="display:none;"></span></button>
         <button class="ct-tab" data-t="md">Message Doctor <span class="n" id="nMd" style="display:none;"></span></button>
+        <button class="ct-tab" data-t="qb">🏁 Query Boost</button>
         <button class="ct-tab" data-t="bench">Benchmarks &amp; Ideas</button>
         <button class="ct-tab" data-t="set" id="tabSet" style="display:none;">Settings</button>
       </div>
@@ -82,6 +90,7 @@
       <section id="p-today"></section>
       <section id="p-alerts" style="display:none;"></section>
       <section id="p-md" style="display:none;"></section>
+      <section id="p-qb" style="display:none;"></section>
       <section id="p-bench" style="display:none;"></section>
       <section id="p-set" style="display:none;"></section>
     </div>
@@ -131,7 +140,7 @@
     const b = e.target.closest('.ct-tab'); if (!b) return;
     tab = b.dataset.t;
     document.querySelectorAll('.ct-tab').forEach(x => x.classList.toggle('on', x === b));
-    ['today', 'alerts', 'md', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
+    ['today', 'alerts', 'md', 'qb', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
     if (tab === 'md' && !MD) loadMd(false);
     if (tab === 'bench' && !BM) loadBench();
     if (tab === 'bench' && !MD) loadMd(false);
@@ -145,7 +154,7 @@
       T = await api.get('ct.tower', Object.assign({}, day ? { date: day } : {}, refresh ? { refresh: 1 } : {}));
       if (!$('datePick').value) $('datePick').value = T.day;
       $('tabSet').style.display = T.can_settings ? '' : 'none';
-      renderToday(); renderAlerts();
+      renderToday(); renderAlerts(); renderQb();
       const open = (T.alerts || []).filter(a => a.status === 'open' && a.kind !== 'digest').length;
       const nAl = $('nAl'); nAl.textContent = open; nAl.style.display = open ? '' : 'none';
       if (tab === 'set') renderSettings();
@@ -170,7 +179,7 @@
           <div class="v">${t.query_orders ?? 0} <small>/ ${qTarget} goal</small></div>
           ${bar(t.query_orders || 0, qTarget, qs)}
           <div class="s">${isToday ? `Should be ~<b>${Math.round(t.q_expected_now || 0)}</b> by now · on track for ~<b>${Math.round(t.q_projected || 0)}</b>` : 'Final for the day'}</div></div>
-        <div class="ct-tile"><div class="k">Community orders</div>
+        <div class="ct-tile"><div class="k">Community / campaign orders</div>
           <div class="v">${t.community_orders ?? 0} <small>/ ${t.comm_target || cfg.comm_target || 200}</small></div>
           ${bar(t.community_orders || 0, t.comm_target || cfg.comm_target || 200)}
           <div class="chips">${checks || '<span class="sub">No checkpoints</span>'}</div></div>
@@ -198,7 +207,7 @@
       const empAl = open.filter(a => Number(a.emp) === Number(e.id));
       return `<tr>
         <td><b>${esc(e.name)}</b>${empAl.some(a => a.meet) ? '<span class="tag">meet admin</span>' : ''}</td>
-        <td>${e.orders ?? 0} <span class="sub">(${e.qo ?? 0} query · ${e.co ?? 0} comm.)</span></td>
+        <td>${e.orders ?? 0} <span class="sub">(${e.qo ?? 0} query · ${e.co ?? 0} community)</span></td>
         <td>${e.queries ?? 0} <span class="sub">${e.conv != null ? '· ' + Math.round(e.conv) + '% conv' : ''}</span></td>
         <td><span class="pc ${tCls}">${inr(e.ticket)}</span> <span class="sub">clean ${inr(e.clean_ticket)}${tv.carried ? ' · carried by big order' : ''}${tv.need_next ? ' · next order ' + inr(tv.need_next) : ''}</span></td>
         <td><span class="pc ${e.code_ok ? 'ok' : 'warn'}">${codeTxt}</span> <span class="sub">${e.code_left > 0 ? e.code_left + ' more codes' : ''}</span></td>
@@ -212,6 +221,41 @@
       <tbody>${rows || '<tr><td colspan="8" class="empty">No sales team data for this day.</td></tr>'}</tbody></table></div></div>`;
     $('p-today').innerHTML = tiles + alerts + people;
   }
+
+  // ---------- Query → order ranking: orders ÷ queries given (today + last 7 days), who ordered first, and who to give more queries to ----------
+  let LV = 'today';
+  function leadersCard() {
+    const L = T.leaders; if (!L || !L.today) return '';
+    const V = L[LV] || L.today, min = L.min || 5;
+    const medal = (r) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '·';
+    const rows = (V.rows || []).filter(r => r.queries > 0 || r.orders > 0).map(r => {
+      const ok = r.rank != null, w = ok && r.conv != null ? Math.min(100, r.conv * 2) : 0;
+      return `<div class="ldr"><span class="rk">${medal(r.rank)}</span><div class="nm"><b>${esc(r.name)}</b>${r.first ? ' <em>⚡ first order ' + esc(r.first_order || '') + '</em>' : ''}<div class="bar"><i style="width:${w}%"></i></div></div><div class="cv"><b class="${ok ? (V.team_conv != null && r.conv >= V.team_conv ? 'ok' : 'warn') : ''}">${r.conv != null ? r.conv + '%' : '—'}</b><small>${r.orders} orders / ${r.queries} queries</small></div></div>`;
+    }).join('');
+    const tips = (L.tips || []).map(t => `<div class="ldt ${t.kind}"><b>${t.kind === 'more' ? '📈 Give more queries' : '🎯 Coach first'} — ${esc(t.name)}</b>${esc(t.text)}</div>`).join('');
+    return `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🏁 Query → order ranking</h2><div class="sub">Orders ÷ queries given. Team ${V.team_conv != null ? V.team_conv + '%' : '—'} · under ${min} queries not ranked. Suggestions only — you assign the queries.</div></div>
+      <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
+      ${tips ? '<div class="sub" style="font-weight:800;margin:2px 0 4px;">Suggestions (last 7 days)</div>' + tips : ''}
+      <div style="margin-top:8px;">${rows || '<div class="empty">No queries recorded yet.</div>'}</div></div>`;
+  }
+  // ---------- QUERY BOOST (after Message Doctor): who converts queries best → who should get the most queries ----------
+  function renderQb() {
+    const box = $('p-qb'); if (!box) return;
+    const L = T && T.leaders;
+    if (!L || !L.today) { box.innerHTML = '<div class="card"><div class="empty">No query data yet.</div></div>'; return; }
+    const V = L[LV] || L.today, min = L.min || 5;
+    const best = (V.rows || []).filter(r => r.rank != null && r.conv > 0 && r.queries >= min).sort((a, b) => b.conv - a.conv).slice(0, 5);
+    const sum = best.reduce((x, r) => x + r.conv, 0);
+    const split = best.map(r => Math.round(sum > 0 ? r.conv / sum * 100 : 0));
+    if (split.length) split[0] += 100 - split.reduce((x, n) => x + n, 0);          // the shares add up to exactly 100
+    const medal = (i) => ['🥇', '🥈', '🥉', '4', '5'][i];
+    const rows = best.map((r, i) => `<div class="ldr"><span class="rk">${medal(i)}</span><div class="nm"><b>${esc(r.name)}</b><div class="bar"><i style="width:${Math.min(100, r.conv * 2)}%"></i></div></div><div class="cv"><b class="ok">${r.conv}%</b><small>${r.orders} orders / ${r.queries} queries</small></div><div class="cv" style="min-width:74px;"><b>${split[i]}</b><small>of next 100</small></div></div>`).join('');
+    box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🎯 Give the most queries to</h2>
+      <div class="sub">Best orders ÷ queries ${V === L.week ? 'in the last 7 days' : 'today'} · team ${V.team_conv != null ? V.team_conv + '%' : '—'}. People under ${min} queries are not ranked yet. <b>Suggestion only</b> — you assign the queries in <a href="assign_queries.html"><b>Assign Queries</b></a>.</div></div>
+      <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
+      ${rows ? '<div class="sub" style="font-weight:800;margin:6px 0 2px;">If you have 100 more queries to give, split them like this:</div>' + rows : '<div class="empty">Not enough queries yet — nobody has reached ' + min + ' queries.</div>'}</div>` + leadersCard();
+  }
+  window.setLV = (v) => { LV = v; renderQb(); };
   window.goTab = (k) => document.querySelector(`.ct-tab[data-t="${k}"]`).click();
 
   // ---------- ALERTS ----------

@@ -25,7 +25,7 @@
   };
 
   const css = `
-.sh-hero{position:relative; overflow:hidden; border-radius:22px; padding:18px 18px 16px; margin-bottom:14px; color:#fff; background:linear-gradient(135deg,#111827 0%,#1f2937 60%,#312e81 130%); box-shadow:0 12px 30px rgba(17,24,39,.22);}
+.sh-hero{position:relative; overflow:hidden; border-radius:18px; padding:12px 14px 11px; margin-bottom:8px; color:#fff; background:linear-gradient(135deg,#111827 0%,#1f2937 60%,#312e81 130%); box-shadow:0 12px 30px rgba(17,24,39,.22);}
 .sh-hero.tone-win{background:linear-gradient(135deg,#065f46 0%,#047857 55%,#0f766e 130%);}
 .sh-hero.tone-go{background:linear-gradient(135deg,#7c2d12 0%,#c2410c 55%,#db2777 140%);}
 .sh-hero.tone-ting{background:linear-gradient(135deg,#78350f 0%,#b45309 60%,#9a3412 140%);}
@@ -36,50 +36,68 @@
 .sh-chip.warn{background:#f59e0b; border-color:#f59e0b; color:#451a03;} .sh-chip.ok{background:rgba(34,197,94,.22); border-color:rgba(134,239,172,.5);}
 .sh-snd{border:0; background:rgba(255,255,255,.14); color:#fff; border-radius:99px; width:30px; height:30px; padding:0; min-height:0; cursor:pointer; font-size:14px; line-height:1;}
 .sh-row{display:flex; align-items:center; gap:8px;}
-.sh-emoji{font-size:38px; line-height:1; margin:10px 0 2px; display:inline-block; position:relative; z-index:1;}
-.sh-head{font-size:21px; line-height:1.2; font-weight:900; margin:4px 0 4px; letter-spacing:-.01em; position:relative; z-index:1;}
-.sh-sub{font-size:13.5px; line-height:1.45; opacity:.92; margin:0; position:relative; z-index:1;}
+.sh-emoji{font-size:26px; line-height:1; margin:5px 0 0; display:inline-block; position:relative; z-index:1;}
+.sh-head{font-size:17px; line-height:1.2; font-weight:900; margin:2px 0 3px; letter-spacing:-.01em; position:relative; z-index:1;}
+.sh-sub{font-size:12px; line-height:1.4; opacity:.92; margin:0; position:relative; z-index:1;}
 .sh-sub b{color:#fde68a;}
-.sh-bar{position:relative; height:14px; border-radius:9px; background:rgba(255,255,255,.2); margin:16px 0 4px; z-index:1;}
+.sh-bar{position:relative; height:10px; border-radius:7px; background:rgba(255,255,255,.2); margin:13px 0 3px; z-index:1;}
 .sh-bar i{position:absolute; left:0; top:0; bottom:0; border-radius:9px; background:linear-gradient(90deg,#fde68a,#fbbf24); transition:width .9s cubic-bezier(.2,.8,.2,1);}
 .sh-bar u{position:absolute; top:-5px; bottom:-5px; width:3px; margin-left:-1px; background:#fff; border-radius:2px; text-decoration:none; opacity:.9;}
 .sh-bar s{position:absolute; right:-2px; top:-22px; font-size:10.5px; font-weight:900; text-decoration:none; background:#fde68a; color:#78350f; border-radius:99px; padding:1px 7px;}
 .sh-bl{display:flex; justify-content:space-between; gap:8px; font-size:11.5px; opacity:.9; position:relative; z-index:1;}
-.sh-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; position:relative; z-index:1;}
-.sh-mini div{background:rgba(255,255,255,.12); border-radius:12px; padding:8px 10px; font-size:11px; opacity:.98;}
-.sh-mini b{display:block; font-size:16px; font-weight:900;}
-.sh-quests{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
-.sh-q{background:#fff; border:1px solid var(--line,#e5e7eb); border-radius:18px; padding:14px 14px 13px; min-width:0; position:relative; overflow:hidden;}
+.sh-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; position:relative; z-index:1;}
+.sh-mini div{background:rgba(255,255,255,.12); border-radius:10px; padding:5px 8px; font-size:10.5px; opacity:.98;}
+.sh-mini b{display:block; font-size:14px; font-weight:900;}
+.sh-quests{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;}
+.sh-q{background:#fff; border:1px solid var(--line,#e5e7eb); border-radius:14px; padding:9px 11px 9px; min-width:0; position:relative; overflow:hidden;}
 .sh-q.done{border-color:#86efac; background:linear-gradient(180deg,#f0fdf4,#fff);}
 .sh-q.near{border-color:#fdba74; background:linear-gradient(180deg,#fff7ed,#fff); box-shadow:0 0 0 3px rgba(251,146,60,.14);}
-.sh-qh{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:#334155;}
+.sh-qh{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; color:#334155;}
 .sh-qh em{margin-left:auto; font-style:normal; font-size:11px; font-weight:900; border-radius:99px; padding:2px 9px; background:#f1f5f9; color:#475569; white-space:nowrap;}
 .sh-q.done .sh-qh em{background:#dcfce7; color:#166534;} .sh-q.near .sh-qh em{background:#ffedd5; color:#9a3412;}
-.sh-qbig{font-size:19px; line-height:1.2; font-weight:900; margin:8px 0 8px; color:#0f172a;}
-.sh-qbar{height:9px; border-radius:6px; background:#e2e8f0; overflow:hidden;} .sh-qbar i{display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,#fb923c,#f97316); transition:width .9s cubic-bezier(.2,.8,.2,1);}
+.sh-qbig{font-size:15px; line-height:1.2; font-weight:900; margin:5px 0 6px; color:#0f172a;}
+.sh-qbar{height:7px; border-radius:6px; background:#e2e8f0; overflow:hidden;} .sh-qbar i{display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,#fb923c,#f97316); transition:width .9s cubic-bezier(.2,.8,.2,1);}
 .sh-q.done .sh-qbar i{background:linear-gradient(90deg,#4ade80,#16a34a);}
-.sh-segs{display:flex; gap:4px;} .sh-segs i{flex:1; height:9px; border-radius:5px; background:#e2e8f0; min-width:6px; transition:background .4s;} .sh-segs i.on{background:linear-gradient(90deg,#4ade80,#16a34a);}
-.sh-qs{font-size:12px; color:#64748b; line-height:1.45; margin-top:8px;} .sh-qs b{color:#0f172a;}
+.sh-segs{display:flex; gap:4px;} .sh-segs i{flex:1; height:7px; border-radius:5px; background:#e2e8f0; min-width:6px; transition:background .4s;} .sh-segs i.on{background:linear-gradient(90deg,#4ade80,#16a34a);}
+.sh-qs{font-size:11px; color:#64748b; line-height:1.4; margin-top:5px;} .sh-qs b{color:#0f172a;}
 .sh-qw{margin-top:8px; font-size:11.5px; line-height:1.4; color:#9a3412; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:6px 9px;}
 .sh-q.done .sh-qw{color:#166534; background:#f0fdf4; border-color:#bbf7d0;}
 #shOffer{margin-bottom:0;}
 #shOffer #foBanner{margin-bottom:14px;}
 .sh-price{padding:14px 16px 12px; margin-bottom:14px; border-radius:18px;}
 .sh-ph{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;} .sh-ph h2{margin:0; font-size:15px;} .sh-ph span{font-size:11.5px; color:var(--muted,#64748b);}
-.sh-chips{display:flex; gap:8px; overflow-x:auto; padding:10px 2px 6px; scrollbar-width:none; -webkit-overflow-scrolling:touch;} .sh-chips::-webkit-scrollbar{display:none;}
-.sh-pc{flex:0 0 auto; min-width:132px; border-radius:14px; padding:9px 12px; background:#f8fafc; border:1px solid #e2e8f0;}
-.sh-pc.hot{background:linear-gradient(135deg,#fff7ed,#ffedd5); border-color:#fdba74;}
-.sh-pc small{display:block; font-size:11px; font-weight:800; color:#475569;} .sh-pc b{display:block; font-size:18px; font-weight:900; color:#0f172a; margin:1px 0;} .sh-pc span{font-size:11px; color:#64748b;} .sh-pc span u{text-decoration:none; font-weight:800; color:#16a34a;}
-.sh-tw{overflow-x:auto; margin:6px -4px 0; -webkit-overflow-scrolling:touch;}
-.sh-tbl{width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; min-width:430px;}
-.sh-tbl th{font-size:10.5px; font-weight:900; text-align:right; padding:6px 8px; color:#fff; white-space:nowrap;}
-.sh-tbl th:first-child{text-align:left; color:#64748b; background:#fff;}
-.sh-tbl td{padding:7px 8px; text-align:right; border-top:1px solid #f1f5f9; white-space:nowrap; font-variant-numeric:tabular-nums;}
-.sh-tbl td:first-child{text-align:left; font-weight:800; color:#0f172a; position:sticky; left:0; background:#fff; white-space:normal; min-width:112px;}
-.sh-tbl tr.sep td{border-top:2px solid #e2e8f0;}
-.sh-tbl tr.fair td{background:#fff7ed;} .sh-tbl tr.fair td:first-child{background:#fff7ed;}
 .sh-more{display:block; width:100%; margin-top:6px; border:0; background:#f1f5f9; color:#334155; border-radius:11px; padding:8px; font-weight:800; font-size:12.5px; cursor:pointer; min-height:0;}
 .sh-fn{font-size:11.5px; color:#64748b; line-height:1.5; margin-top:8px;} .sh-fn a{font-weight:800;}
+.sh-calc{margin-top:12px; border-top:1px dashed #cbd5e1; padding-top:10px;}
+.sh-calc h3{margin:0 0 8px; font-size:14px;}
+.sh-md{display:flex; gap:6px; margin-bottom:8px;} .sh-md button{flex:1; border:1px solid #e2e8f0; background:#f8fafc; color:#334155; border-radius:10px; padding:7px 4px; font-weight:800; font-size:12.5px; min-height:0; cursor:pointer;} .sh-md button.on{background:#0f172a; color:#fff; border-color:#0f172a;}
+.sh-in{display:flex; gap:8px;} .sh-in label{flex:1; font-size:11px; font-weight:800; color:#64748b; display:block;} .sh-in input,.sh-in select{width:100%; margin-top:3px; padding:8px 9px; border:1px solid #cbd5e1; border-radius:10px; font-size:15px; font-weight:800; box-sizing:border-box; background:#fff;}
+.sh-sz{display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 0;} .sh-sz button{border:1px solid #e2e8f0; background:#f8fafc; border-radius:99px; padding:4px 10px; font-size:12px; font-weight:800; color:#334155; min-height:0; cursor:pointer;} .sh-sz button.on{background:#dbeafe; border-color:#93c5fd; color:#1e40af;}
+.sh-ch{display:flex; flex-wrap:wrap; gap:5px; margin:8px 0;} .sh-ch label{display:inline-flex; align-items:center; gap:4px; border:1px solid #e2e8f0; background:#f8fafc; border-radius:99px; padding:4px 10px; font-size:12px; font-weight:800; color:#334155; cursor:pointer;} .sh-ch label.on{background:#dcfce7; border-color:#86efac; color:#166534;} .sh-ch input{margin:0; width:auto;}
+.sh-res{border-radius:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #bbf7d0; margin-top:6px;} .sh-res.lo{background:#fffbeb; border-color:#fde68a;} .sh-res.bad{background:#fef2f2; border-color:#fecaca; color:#991b1b;} .sh-res.na{background:#f1f5f9; border-color:#e2e8f0; color:#475569;}
+.sh-res .big{font-size:20px; font-weight:900; line-height:1.2;} .sh-res .why{font-size:11.5px; color:#475569; margin-top:4px; line-height:1.45;} .sh-res .up{margin-top:6px; font-size:12.5px; font-weight:700; color:#166534; background:#fff; border-radius:8px; padding:5px 8px;}
+.sh-nt{font-size:12px; line-height:1.45; border-radius:10px; padding:6px 9px; margin-top:6px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412;} .sh-nt.ok{background:#f0fdf4; border-color:#bbf7d0; color:#166534;}
+.sh-calc{margin-top:8px; padding-top:7px;} .sh-calc h3{font-size:13px; margin:0 0 5px;}
+.sh-md{gap:5px; margin-bottom:5px;} .sh-md button{padding:5px 3px; font-size:11.5px; border-radius:9px;}
+.sh-in{gap:6px;} .sh-in label{font-size:10px;} .sh-in input,.sh-in select{margin-top:2px; padding:5px 8px; font-size:14px; border-radius:9px;}
+.sh-sz{gap:4px; margin-top:5px;} .sh-sz button{padding:2px 8px; font-size:11px;}
+.sh-ch{gap:4px; margin:5px 0;} .sh-ch label{padding:2px 8px; font-size:11px;}
+.sh-res{padding:6px 9px; border-radius:10px; margin-top:4px;} .sh-res .big{font-size:16px;} .sh-res .why{font-size:10.5px; margin-top:2px;} .sh-res .up{font-size:11.5px; margin-top:4px; padding:3px 7px;}
+.sh-nt{font-size:11px; padding:4px 8px; margin-top:4px; border-radius:9px;}
+.sh-dt{margin-top:5px;} .sh-dt summary{cursor:pointer; font-size:11.5px; font-weight:800; color:#334155; padding:4px 2px; list-style:none;} .sh-dt summary::-webkit-details-marker{display:none;} .sh-dt summary::after{content:' ▾'; color:#64748b;} .sh-dt[open] summary::after{content:' ▴';}
+.sh-calc .sh-ct{margin-top:4px !important;} .sh-calc .sh-ct th,.sh-calc .sh-ct td{padding:3px 7px !important; font-size:11.5px !important;}
+/* 📸 story strip: 5 bubbles at the very top, tap one → the page scrolls straight to that section */
+.sh-story{display:flex; gap:6px; justify-content:space-between; margin:0 0 8px; max-width:560px; overflow-x:auto; scrollbar-width:none;} .sh-story::-webkit-scrollbar{display:none;}
+.sh-sb{flex:1 0 54px; text-align:center; background:none; border:0; padding:0; cursor:pointer; min-height:0; font-family:inherit; color:#334155;}
+.sh-sb .ring{width:54px; height:54px; border-radius:50%; margin:0 auto 3px; padding:3px; background:conic-gradient(#f97316,#ec4899,#f59e0b,#f97316); position:relative; transition:transform .15s;}
+.sh-sb:active .ring{transform:scale(.92);}
+.sh-sb.done .ring{background:linear-gradient(135deg,#4ade80,#15803d);} .sh-sb.seen .ring{background:#cbd5e1;}
+.sh-sb .in{width:100%; height:100%; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; line-height:1; border:2px solid #fff;}
+.sh-sb .bd{position:absolute; right:-5px; top:-4px; min-width:20px; height:20px; border-radius:10px; background:#111827; color:#fff; font-size:10px; font-weight:900; display:flex; align-items:center; justify-content:center; padding:0 5px; border:2px solid #fff; white-space:nowrap;}
+.sh-sb.done .bd{background:#16a34a;}
+.sh-sb .lb{display:block; font-size:11px; font-weight:800;}
+.sh-flash{animation:shFlash 1.3s ease-out;} @keyframes shFlash{0%{box-shadow:0 0 0 0 rgba(249,115,22,.65);}100%{box-shadow:0 0 0 16px rgba(249,115,22,0);}}
+#shHero,#shCode,#chatCard,#rateCard,#shLead,#shOffer,#shPrice{scroll-margin-top:10px;}
 /* the big bottom Allocate button */
 .sh-ab{position:fixed; left:0; right:0; bottom:0; z-index:60; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.92) 40%); pointer-events:none;}
 .sh-ab button{pointer-events:auto; width:100%; max-width:720px; margin:0 auto; display:flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:18px; padding:15px 18px; min-height:56px; font-size:16px; font-weight:900; color:#fff; background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 12px 28px rgba(234,88,12,.4); cursor:pointer;}
@@ -116,10 +134,10 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-cf{position:fixed; inset:0; z-index:1150; pointer-events:none;}
 @media (max-width:520px){
   .sh-quests{grid-template-columns:1fr;}
-  .sh-head{font-size:19px;} .sh-hero{padding:16px 15px 14px; border-radius:20px;}
+  .sh-head{font-size:16px;} .sh-hero{padding:11px 12px 10px; border-radius:16px;}
 }
 
-.sh-mis{display:grid; gap:12px; margin-bottom:14px;}
+.sh-mis{display:grid; gap:8px; margin-bottom:8px;}
 .sh-meet{background:linear-gradient(135deg,#7f1d1d,#b91c1c); color:#fff; border-radius:18px; padding:14px 16px; box-shadow:0 6px 18px rgba(185,28,28,.25);}
 .sh-meet b{display:block; font-size:15px; margin-bottom:3px;} .sh-meet p{margin:0; font-size:13px; line-height:1.45; opacity:.95;}
 .sh-ting{background:#fff7ed; border:1px solid #fed7aa; border-radius:16px; padding:11px 14px; display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.45; color:#7c2d12;}
@@ -142,6 +160,43 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-pop .row button{background:#16a34a; color:#fff; padding:6px 12px;}
 .sh-pop .main{display:block; width:100%; background:#16a34a; color:#fff; margin-top:12px; padding:12px; border-radius:12px; font-size:15px;}
 .sh-pop .later{display:block; width:100%; background:transparent; color:#64748b; margin-top:6px; border:1px solid #e2e8f0; border-radius:12px; padding:10px;}
+.sh-lad{margin-top:6px; border:1px solid #fed7aa; background:#fff7ed; border-radius:10px; padding:4px 6px 3px;} .sh-q.done .sh-lad{border-color:#bbf7d0; background:#f0fdf4;}
+.sh-lt{font-size:10.5px; font-weight:800; color:#9a3412; margin:0 2px 4px; line-height:1.3;} .sh-q.done .sh-lt{color:#166534;}
+.sh-ls{display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:8px; padding:2px 6px; border-radius:8px; font-size:11.5px; color:#475569;}
+.sh-ls span{font-weight:900; color:#0f172a; font-variant-numeric:tabular-nums;} .sh-ls b{font-weight:900; font-size:11px; color:#9a3412; background:#ffedd5; border-radius:99px; padding:0 8px;}
+.sh-ls small{grid-column:1/-1; font-size:10.5px; color:#9a3412; font-weight:700; margin-top:-1px;} .sh-ls small:empty{display:none;}
+.sh-ls.on{opacity:.95;} .sh-ls.on span{color:#166534;} .sh-ls.on b{background:#dcfce7; color:#166534;} .sh-ls.on small{color:#166534;}
+.sh-ls.next{background:#fff; box-shadow:0 0 0 2px #fb923c inset;}
+.sh-ls:not(.on):not(.next){opacity:.72;}
+.sh-cbig{display:flex; align-items:center; gap:10px; margin:4px 0 6px;} .sh-cbig b{font-size:34px; line-height:1; font-weight:900; color:#ea580c; min-width:44px; text-align:center; font-variant-numeric:tabular-nums;}
+.sh-cbig span{font-size:14px; line-height:1.15; font-weight:900; color:#0f172a;} .sh-cbig span small{display:block; font-size:12px; font-weight:700; color:#64748b; margin-top:2px;}
+.sh-q.near .sh-cbig b{color:#dc2626;} .sh-q.done .sh-cbig b{color:#16a34a;}
+.sh-sr input{width:100%; border:1.5px solid #cbd5e1; border-radius:11px; padding:8px 11px; font-size:13px; background:#fff; margin-top:9px; min-height:0;}
+.sh-sr input:focus{outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15);}
+.sh-fc{display:flex; gap:5px; margin:8px 0 4px; overflow-x:auto; scrollbar-width:none;} .sh-fc::-webkit-scrollbar{display:none;}
+.sh-fc span{flex:0 0 auto; font-size:11px; font-weight:800; border-radius:99px; padding:4px 11px; background:#f1f5f9; color:#475569; cursor:pointer;} .sh-fc span.on{background:#0f172a; color:#fff;}
+.sh-slides{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; margin:2px -2px 0;} .sh-slides::-webkit-scrollbar{display:none;}
+.sh-sl{flex:0 0 100%; scroll-snap-align:center; position:relative; padding:0 2px; min-width:0;} .sh-sb{max-height:44vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:12px; background:#fff; -webkit-overflow-scrolling:touch;}
+.sh-zm{position:absolute; right:10px; bottom:10px; z-index:3; width:28px; height:28px; min-height:0; border:0; border-radius:50%; background:rgba(15,23,42,.82); color:#fff; font-size:13px; cursor:pointer; padding:0;}
+.sh-ct, .card .sh-ct.no-stack{display:table !important; min-width:0 !important; width:100%;} .sh-ct{border-collapse:collapse; table-layout:fixed; font-size:10px; font-variant-numeric:tabular-nums;} .sh-ct th{position:sticky; top:0; z-index:2; color:#fff; background:#334155; font-size:9.5px; font-weight:900; padding:5px 1px; text-align:center;}
+.sh-ct th:first-child{text-align:left; padding-left:7px; width:23%;} .sh-ct td{text-align:center; padding:4px 1px; border-top:1px solid #f1f5f9; white-space:nowrap;} .sh-ct td:first-child{text-align:left; font-weight:800; padding-left:7px; white-space:normal; color:#0f172a;}
+.sh-ct tbody tr:nth-child(even) td{background:#f8fafc;}
+.sh-ct.big{font-size:13px;} .sh-ct.big th{font-size:12px; padding:8px 2px;} .sh-ct.big td{padding:8px 2px;}
+.sh-dots{display:flex; justify-content:center; gap:6px; margin-top:7px;} .sh-dots i{width:7px; height:7px; border-radius:50%; background:#cbd5e1;} .sh-dots i.on{background:#0f172a; width:18px; border-radius:6px;}
+.sh-zoom{position:fixed; inset:0; z-index:10050; background:rgba(15,23,42,.92); display:flex; flex-direction:column; padding:12px;} .sh-zoom .zb{display:flex; justify-content:space-between; align-items:center; color:#fff; font-size:14px; margin-bottom:8px;}
+.sh-zoom .zx{width:34px; height:34px; border:0; border-radius:50%; background:#fff; color:#0f172a; font-size:15px; font-weight:900; min-height:0; padding:0; cursor:pointer;} .sh-zoom .zs{flex:1; overflow:auto; background:#fff; border-radius:14px; -webkit-overflow-scrolling:touch;}
+.sh-lead{padding:9px 11px 7px; margin-bottom:8px; border-radius:14px;}
+.sh-lt2{display:flex; gap:4px;} .sh-lt2 span{font-size:11px; font-weight:800; border-radius:99px; padding:3px 10px; background:#f1f5f9; color:#475569; cursor:pointer;} .sh-lt2 span.on{background:#0f172a; color:#fff;}
+.sh-lr{display:grid; grid-template-columns:26px 1fr auto; gap:8px; align-items:center; padding:6px 6px; border-radius:11px; font-size:12.5px;} .sh-lr.me{background:#eef2ff; box-shadow:0 0 0 1.5px #a5b4fc inset;}
+.sh-lr .rk{text-align:center; font-weight:900; color:#64748b;} .sh-lr .nm b{font-weight:800; color:#0f172a;} .sh-lr .nm em{font-style:normal; font-size:10px; font-weight:800; color:#b45309; background:#fef3c7; border-radius:99px; padding:1px 7px;}
+.sh-lr .bar{height:5px; border-radius:4px; background:#e2e8f0; margin-top:3px; overflow:hidden;} .sh-lr .bar i{display:block; height:100%; background:linear-gradient(90deg,#4ade80,#16a34a);}
+.sh-lr .cv{text-align:right;} .sh-lr .cv b{display:block; font-size:14px; font-weight:900; color:#0f172a;} .sh-lr .cv small{font-size:10px; color:#64748b;}
+/* phones: everything on My Sales Home about 20% smaller (text, cards, notifications) */
+@media (max-width:640px){
+  #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
+  .sh-toast{zoom:.8; width:min(440px,calc((100vw - 24px) / .8));}
+  .sh-zoom .zb, .sh-zoom .zs{zoom:.9;}
+}
 @media (min-width:1100px){ .sh-quests{grid-template-columns:1fr 1fr;} }
 `;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -155,7 +210,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   // ------------------------------------------------------------------ the moment: one cheer for right now
   // Never red, never "you failed": ahead = green, close = a 🎁 hook, behind = a friendly ⏰ "ting ting" with the exact next step.
   function mood(d) {
-    const m = d.me || {}, G = d.goal || { mode: 'none' }, T = Number(m.target) || 0, bonus = Number(d.bonus) || 0, sales = Number(m.sales) || 0;
+    const m = d.me || {}, G = d.goal || { mode: 'none' }, T = Number(m.target) || 0, sales = Number(m.sales) || 0, bonus = (T > 0 && sales >= T && Number(m.bonus_now) > 0) ? Number(m.bonus_now) : (Number(d.bonus) || 0);
     const tk = Number(m.ticket) > 0 ? Number(m.ticket) : (Number((d.team || {}).avg_ticket) > 0 ? Number(d.team.avg_ticket) : 1500);
     const left = T > 0 ? Math.max(0, T - sales) : 0, away = T > 0 && left > 0 ? Math.max(1, Math.ceil(left / tk)) : 0;
     const first = String(m.name || '').trim().split(/\s+/)[0] || '';
@@ -220,7 +275,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
         <div class="sh-qbig">${done ? 'Target done — bonus unlocked!' : plural(md.away, 'order') + ' to go'}</div>
         <div class="sh-qbar"><i style="width:${pct}%"></i></div>
         <div class="sh-qs">${rs(md.sales)} of <b>${rs(md.T)}</b>${done ? '' : ' · ' + rs(md.left) + ' left'}</div>
-        ${md.bonus > 0 ? `<div class="sh-qw">${done ? `🎁 <b>+${md.bonus}%</b> extra on every order you add today` : `🎁 Finish it → <b>+${md.bonus}% extra on EVERY order</b> today${near ? ' — so close!' : ''}`}</div>` : ''}</div>`);
+        ${ladderHtml(m, md, done)}</div>`);
     }
     const pctC = Number(m.code_pct) || 0;
     if (pctC > 0) {
@@ -231,14 +286,15 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
         : ok ? `<b>${have}</b> of ${plural(n, 'order')} have a code — the code goal is done 🎉`
         : `<b>${have}</b> of <b>${need}</b> codes done (${Math.round(pctC)}% of ${plural(n, 'order')}). Add a code to any <b>${plural(left, 'order')}</b>.`;
       const warn = !ok && n > 0 && left > 0 ? `<div class="sh-qw">${Number(m.code_lost) > 0 ? `💰 About <b>${rs(m.code_lost)}</b> more commission is yours once you get there` : '💰 Then every order pays full commission'}${Number(m.nocode) > 0 ? ` · ⚠ ${plural(m.nocode, 'order')} without a code` : ''}</div>` : (ok ? '<div class="sh-qw">✅ Nothing more to do here — new orders still count with or without a code today</div>' : '');
-      q.push(`<div class="sh-q ${ok ? 'done' : left > 0 && left <= 2 && n > 0 ? 'near' : ''}"><div class="sh-qh"><span>🔑</span>Code goal<em>${n === 0 ? Math.round(pctC) + '% rule' : ok ? 'DONE ✅' : have + ' / ' + need}</em></div>
-        <div class="sh-qbig">${big}</div>${segs}<div class="sh-qs">${note}</div>${warn}</div>`);
+      q.push(`<div id="shCode" class="sh-q ${ok ? 'done' : left > 0 && left <= 2 && n > 0 ? 'near' : ''}"><div class="sh-qh"><span>🔑</span>Code goal<em>${n === 0 ? Math.round(pctC) + '% rule' : ok ? 'DONE ✅' : have + ' / ' + need}</em></div>
+        ${n > 0 && !ok ? `<div class="sh-cbig"><b>${left}</b><span>${left === 1 ? 'code' : 'codes'} left<small>${have} of ${need} codes done</small></span></div>` : `<div class="sh-qbig">${big}</div>`}${segs}<div class="sh-qs">${note}</div>${warn}</div>`);
     }
     $('shQuests').innerHTML = q.join('');
     $('shQuests').style.display = q.length ? '' : 'none';
 
     // celebrate / nudge when the moment changes (once per change)
     const code = pctC > 0 ? (m.code_ok ? 'ok' : 'l' + (m.code_left || 0)) : '';
+    paintStory();
     const key = md.key + '|' + code;
     if (key !== S.lastKey) {
       const wasFirst = S.first; S.first = false;
@@ -282,6 +338,17 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
       if (f < 170) requestAnimationFrame(loop); else cv.remove();
     })();
   }
+  // 🎁 The bonus ladder, in rupees (not percentages): "reach ₹13,000 sales → +30% extra on EVERY order today". Steps come from the server (m.ladder).
+  function ladderHtml(m, md, done) {
+    const L = Array.isArray(m.ladder) ? m.ladder : [];
+    if (!L.length) return md.bonus > 0 ? `<div class="sh-qw">${done ? `🎁 <b>+${md.bonus}%</b> extra on every order you add today` : `🎁 Finish it → <b>+${md.bonus}% extra on EVERY order</b> today`}</div>` : '';
+    const sales = Number(md.sales) || 0, now = Number(m.bonus_now) || 0;
+    const rows = L.map((x, i) => {
+      const next = !x.hit && (i === 0 || L[i - 1].hit);
+      return `<div class="sh-ls ${x.hit ? 'on' : ''} ${next ? 'next' : ''}"><span>${x.hit ? '✅' : next ? '👉' : '🔒'} ${rs(x.sales)}</span><b>+${Number(x.bonus)}% extra</b><small>${x.hit ? 'unlocked' : next ? rs(Math.max(0, x.sales - sales)) + ' more sales to unlock' : ''}</small></div>`;
+    }).join('');
+    return `<div class="sh-lad"><div class="sh-lt">${done && now > 0 ? `🎁 You earn <b>+${now}%</b> extra on every order today — reach the next number for more` : '🎁 Reach this sales number → get this extra commission on EVERY order today'}</div>${rows}</div>`;
+  }
   function moment(md, m, wasFirst, prevKey) {
     const day = (S.coach && S.coach.business_day) || '';
     const now = Date.now();
@@ -296,23 +363,240 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   }
 
   // ------------------------------------------------------------------ 💲 my price chart
-  const TIER = ['7%', '6.5%', '6%', '5.5%', '2.8%'], TIERC = ['#15803d', '#16a34a', '#65a30d', '#d97706', '#b45309'];
+  const TIERC = ['#15803d', '#16a34a', '#65a30d', '#d97706', '#b45309', '#9a3412'];
+  // 💲 Price charts as two "photos" you swipe one by one: 1 = ML size prices (10…1000 ml), 2 = shower gel / attar / perfume combo prices.
+  // Shrunk to fit the phone (no sideways scrolling); the search box filters both; tap 🔍 to open one big.
+  const PQ = { q: '', slide: 0 };
+  const plabel = (r) => r.name.replace(/shower gel/g, 'gel').replace(/\bgel\b/g, 'shower gel').replace(/\bor attar\b/, '/ attar').replace(/\bshower gel or\b/, 'shower gel /');
+  const nfmt = (v) => Math.round(Number(v) || 0).toLocaleString('en-IN');
+  function chartRows(kind) {
+    const qs = PQ.q.toLowerCase().split(/[\s,+]+/).filter(Boolean);
+    if (kind === 'ml') {
+      const c = S.mlChart; if (!c || !c.rows) return null;
+      const L = qs.length ? c.rows.filter((r) => qs.every((t) => /^\d+$/.test(t) ? String(r.ml).indexOf(t) === 0 : (t === 'ml' || t === 'perfume' || t === 'size'))) : c.rows;
+      return { head: ['ML'].concat((c.cols || []).map((x) => x + '%')), rows: L.map((r) => [r.ml + ' ml'].concat(r.p.slice(0, (c.cols || []).length).map(nfmt))), n: (c.cols || []).length };
+    }
+    const c = S.combo; if (!c || !c.rows) return null;
+    const L = qs.length ? c.rows.filter((r) => {
+      const hay = (plabel(r) + ' ' + (r.group || '') + (r.gel ? ' gel shower' : '') + (r.attar ? ' attar' : '') + (r.perf ? ' perfume' : '') + ' combo').toLowerCase();
+      return qs.every((t) => hay.indexOf(t) >= 0 || (/^\d+$/.test(t) && (String(r.gel) === t || String(r.attar) === t || String(r.perf) === t)));
+    }) : c.rows;
+    return { head: ['Combo', '7%', '6.5%', '6%', '5.5%', '2.8%'], rows: L.map((r) => [plabel(r)].concat(r.p.map(nfmt))), n: 5 };
+  }
+  function chartHtml(kind, big) {
+    const d = chartRows(kind); if (!d) return '<div class="sh-fn" style="padding:14px 4px">Chart not available.</div>';
+    if (!d.rows.length) return '<div class="sh-fn" style="padding:14px 4px;text-align:center">Nothing like that here — try the other photo.</div>';
+    return `<table class="sh-ct no-stack ${big ? 'big' : ''}"><thead><tr>${d.head.map((h, i) => `<th ${i ? `style="background:${TIERC[Math.min(i - 1, 5)]}"` : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${d.rows.map((r) => `<tr>${r.map((x, i) => `<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  }
+  const PH = [['📷 1 · ML sizes', 'ml', 'Price for each size — sell at or above → earn that %'], ['📷 2 · Shower gel & attar', 'combo', '1 / 2 / 3 shower gel, attar, perfume combos']];
+  function paintPriceList() {
+    const box = $('shPrice'); if (!box || !box.dataset.init) return;
+    PH.forEach((p, i) => { const el = $('shSl' + i); if (el) el.querySelector('.sh-sb').innerHTML = chartHtml(p[1], false); });
+    const sl = $('shSlides'); if (sl) sl.scrollTo({ left: PQ.slide * sl.clientWidth, behavior: 'auto' });
+    document.querySelectorAll('#shTabs [data-sl]').forEach((t) => t.classList.toggle('on', Number(t.dataset.sl) === PQ.slide));
+    const cap = $('shCap'); if (cap) cap.textContent = PH[PQ.slide][2];
+  }
+  function goSlide(i, smooth) {
+    PQ.slide = Math.max(0, Math.min(PH.length - 1, i));
+    const sl = $('shSlides'); if (sl) sl.scrollTo({ left: PQ.slide * sl.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    document.querySelectorAll('#shTabs [data-sl]').forEach((t) => t.classList.toggle('on', Number(t.dataset.sl) === PQ.slide));
+    const cap = $('shCap'); if (cap) cap.textContent = PH[PQ.slide][2];
+  }
+  function zoomChart(i) {
+    const o = document.createElement('div'); o.className = 'sh-zoom';
+    o.innerHTML = `<div class="zb"><b>${esc(PH[i][0])}</b><button type="button" class="zx" aria-label="Close">✕</button></div><div class="zs">${chartHtml(PH[i][1], true)}</div>`;
+    o.onclick = (e) => { if (e.target.closest('.zx') || e.target === o) o.remove(); };
+    document.body.appendChild(o);
+  }
+
+  // ------------------------------------------------------------------ 🧮 check a price (ML sizes + shower gel / combo), inside the price card
+  const CQ = { mode: 'ml', ml: 250, price: '', free: false, code: true, pre: false, hit: false, over: 0, combo: 0 };
+  try { Object.assign(CQ, JSON.parse(localStorage.getItem('hrms_mlprice') || '{}')); } catch (e) { /* defaults */ }
+  const cKeep = () => { try { localStorage.setItem('hrms_mlprice', JSON.stringify(CQ)); } catch (e) { /* not kept */ } };
+  const inr = (v) => '₹' + Math.round(Number(v) || 0).toLocaleString('en-IN');
+  const pc = (v) => String(Math.round(Number(v) * 100) / 100) + '%';
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const comboMatches = () => {
+    const c = S.combo; if (!c || !c.rows) return [];
+    const L = chartRows('combo'); const names = L ? L.rows.map((r) => r[0]) : [];
+    const sel = c.rows.map((r, i) => ({ r, i })).filter((x) => names.indexOf(plabel(x.r)) >= 0);
+    return sel.length ? sel : c.rows.map((r, i) => ({ r, i }));
+  };
+  // Today's target, automatic: this order is added to today's sales so far; reaching the target gives the extra %, and each higher step (+30/40/60/100% over) gives more.
+  function autoDay(price) {
+    const m = (S.coach && S.coach.me) || {}, T = Number(m.target) || 0, sales = Number(m.sales) || 0;
+    if (!(T > 0)) return { T: 0, sales, after: sales, hit: false, over: null };
+    const after = sales + (Number(price) > 0 ? Number(price) : 0), hit = after + 1e-6 >= T;
+    return { T, sales, after, hit, over: hit ? (after / T - 1) * 100 : null };
+  }
+  function dayLine(price) {
+    const a = autoDay(price); if (!(a.T > 0)) return '';
+    const b = a.hit ? MLSLAB.bonusFor(S.mlChart, a.over) : 0;
+    return `<div class="sh-nt ${a.hit ? 'ok' : ''}">🎯 Today ${inr(a.sales)} of ${inr(a.T)}${price > 0 ? ` · with this order ${inr(a.after)}` : ''} → ${a.hit ? `<b>+${b}% extra on every order today</b>` : `${inr(Math.max(0, a.T - a.after))} more to reach the target`}</div>`;
+  }
+  function calcMl() {
+    const CH = S.mlChart, base = Number(CQ.ml) || 0, ml = base + (CQ.free ? 10 : 0), price = Number(CQ.price) || 0;
+    const row = MLSLAB.rowFor(CH, ml);
+    if (!(base > 0)) return '<div class="sh-res na"><div class="big">Type the total ML</div></div>';
+    if (!row) return `<div class="sh-res na"><div class="big">${ml} ml is not in the chart</div><div class="why">The chart covers ${CH.rows[0].ml}–${CH.rows[CH.rows.length - 1].ml} ml. Other sizes earn the normal commission.</div></div>`;
+    const C = MLSLAB.preview(CH), com = (m, p) => MLSLAB.orderCom(C, { ml: m, amt: p, pre: CQ.pre, code: CQ.code ? 'X' : '' }, autoDay(p).hit, autoDay(p).over);
+    if (!(price > 0)) return dayLine(0) + '<div class="sh-res na"><div class="big">Type the customer price</div><div class="why">Or tap a price in the list below.</div></div>' + mlLines(CH, row, ml, null, com);
+    const r = com(ml, price); if (!r) return '<div class="sh-res na"><div class="big">No slab for this</div></div>';
+    let up = '';
+    for (let j = row.p.length - 1; j >= 0; j--) {          // next higher column above this price
+      const p = Math.ceil(row.p[j] * (CQ.pre ? 1 - Number(CH.prepaid) / 100 : 1) / 10) * 10;
+      if (row.p[j] > r.look + 0.5) { const x = com(ml, p); if (x && x.v > r.v + 0.5) up = `Sell at <b>${inr(p)}</b> → ${pc(x.pct)} = <b>${inr(x.v)}</b> (+${inr(x.v - r.v)})`; break; }
+    }
+    let h = dayLine(price) + `<div class="sh-res ${r.overMax ? 'bad' : r.pct < 2 ? 'lo' : ''}"><div class="big">${pc(r.pct)} = ${inr(r.v)}</div><div class="why">${r.steps.map(esc).join('<br>')}</div>${up ? `<div class="up">${up}</div>` : ''}</div>`;
+    const x = MLSLAB.extraByPrice(CH, ml, price, CQ.pre);
+    if (x) h += x.extra > 0.05
+      ? `<div class="sh-nt">🎁 <b>${r1(x.extra)} ml extra</b> (${inr(x.value)}) — ${inr(x.look)} pays for ${r1(x.paid)} ml at ₹${x.per.toFixed(2)}/ml.</div>`
+      : `<div class="sh-nt ok">0 ml extra — ${inr(x.look)} is the chart price (${inr(x.chart)}) or more.</div>`;
+    const maxd = Number(CH.maxdisc) || 0, maxAll = CH.maxdisc_for === 'all';
+    if (maxd > 0 && CQ.code && !maxAll) h += `<div class="sh-nt ok">With a code there is no discount limit (${r.disc}% off). Without a code, more than ${maxd}% off pays nothing.</div>`;
+    else if (maxd > 0) {
+      const minPay = Math.ceil(row.p[0] * (1 - maxd / 100));
+      h += r.overMax ? `<div class="sh-nt" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">⛔ ${inr(price)} is <b>${r.disc}% off</b> (chart ${inr(row.p[0])}) — more than ${maxd}% max → <b>no commission</b>. Lowest price that still earns: <b>${inr(minPay)}</b>.</div>`
+        : `<div class="sh-nt ok">${r.disc}% off · max ${maxd}% (lowest price ${inr(minPay)})</div>`;
+    }
+    if (!CQ.free) { const rf = com(base + 10, price); if (rf && rf.v < r.v - 0.5) h += `<div class="sh-nt">⚠ Giving 10 ml free at ${inr(price)} counts as ${base + 10} ml → <b>${pc(rf.pct)} = ${inr(rf.v)}</b> instead of ${inr(r.v)} (−${inr(r.v - rf.v)}).</div>`; }
+    return h + mlLines(CH, row, ml, r.look, com);
+  }
+  // Every price of this size with what it earns (tap a row to try that price).
+  function mlLines(CH, row, ml, look, com) {
+    const rows = row.p.map((p, j) => { const pay = Math.round(p * (CQ.pre ? 1 - Number(CH.prepaid) / 100 : 1)), r = com(ml, pay); return `<tr data-p="${pay}"${look != null && Math.abs(look - p) <= 0.5 ? ' class="me"' : ''}><td>${inr(pay)}</td><td>${r ? pc(r.pct) : '—'}</td><td><b>${r ? inr(r.v) : '—'}</b></td></tr>`; });
+    const lp = Math.round(row.p[row.p.length - 1] * (CQ.pre ? 1 - Number(CH.prepaid) / 100 : 1));
+    const lr = Number(CH.floor) > 0 ? com(ml, lp - 1) : null;
+    rows.push(lr && lr.pct > 0 ? `<tr><td>below ${inr(lp)}</td><td>${pc(lr.pct)}</td><td>${pc(lr.pct)} of price</td></tr>` : `<tr><td>below ${inr(lp)}</td><td>0%</td><td>₹0</td></tr>`);
+    return `<details class="sh-dt"><summary>All prices for ${ml} ml</summary><table class="sh-ct no-stack"><thead><tr><th>${ml} ml price</th><th>%</th><th>You earn</th></tr></thead><tbody>${rows.join('')}</tbody></table></details>`;
+  }
+  function calcCombo() {
+    const c = S.combo, r = c.rows[Number(CQ.combo)] || c.rows[0], price = Number(CQ.price) || 0, cols = [7, 6.5, 6, 5.5, 2.8];
+    const nc = S.mlChart && Number(S.mlChart.nocode) > 0 ? Number(S.mlChart.nocode) : 100;
+    const rows = r.p.map((p, j) => `<tr data-p="${p}"${price && j === r.p.findIndex((q) => price >= q - 0.5) ? ' class="me"' : ''}><td>${inr(p)}</td><td>${cols[j]}%</td><td><b>${inr(p * cols[j] / 100)}</b></td></tr>`).join('');
+    const tbl = `<details class="sh-dt"><summary>All prices for this combo</summary><table class="sh-ct no-stack"><thead><tr><th>${esc(plabel(r))}</th><th>%</th><th>You earn</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+    if (!(price > 0)) return '<div class="sh-res na"><div class="big">Type the customer price</div><div class="why">Or tap a price in the list below.</div></div>' + tbl;
+    let j = r.p.findIndex((q) => price >= q - 0.5); if (j < 0) j = r.p.length - 1;
+    const pct = cols[j], full = price * pct / 100, code = CQ.code ? full : full * nc / 100;
+    let up = ''; if (j > 0) up = `Sell at <b>${inr(r.p[j - 1])}</b> → ${cols[j - 1]}% = <b>${inr((CQ.code ? 1 : nc / 100) * r.p[j - 1] * cols[j - 1] / 100)}</b> (+${inr((CQ.code ? 1 : nc / 100) * r.p[j - 1] * cols[j - 1] / 100 - code)})`;
+    const lowest = price < r.p[r.p.length - 1] - 0.5;
+    return `<div class="sh-res ${pct < 5 ? 'lo' : ''}"><div class="big">${pct}% = ${inr(code)}</div><div class="why">${esc(plabel(r))} · ${inr(price)}${lowest ? ' is below the last price → lowest ' + pct + '%' : ' → ' + pct + '%'}${CQ.code ? '' : ' · no code → ' + nc + '% of it'}</div>${up ? `<div class="up">${up}</div>` : ''}</div>` + tbl;
+  }
+  function paintCalc() {
+    const box = $('shCalc'); if (!box) return;
+    const hasMl = S.mlChart && S.mlChart.rows && S.mlChart.rows.length, hasCombo = S.combo && S.combo.rows && S.combo.rows.length;
+    if (!hasMl && !hasCombo) { box.innerHTML = ''; return; }
+    if (CQ.mode === 'combo' && !hasCombo) CQ.mode = 'ml'; if (CQ.mode === 'ml' && !hasMl) CQ.mode = 'combo';
+    const ml = CQ.mode === 'ml';
+    const sizes = ml ? S.mlChart.rows.map((r) => r.ml).filter((m) => m % 50 === 0) : [];
+    const opts = ml ? '' : comboMatches().map((x) => `<option value="${x.i}" ${Number(CQ.combo) === x.i ? 'selected' : ''}>${esc(plabel(x.r))}</option>`).join('');
+    box.innerHTML = `<h3>🧮 Check a price</h3>
+      <div class="sh-md">${hasMl ? `<button type="button" data-md="ml" class="${ml ? 'on' : ''}">ML size</button>` : ''}${hasCombo ? `<button type="button" data-md="combo" class="${ml ? '' : 'on'}">Shower gel / attar</button>` : ''}</div>
+      <div class="sh-in">${ml ? `<label>Total ML<input id="cMl" type="number" inputmode="numeric" min="1" value="${esc(CQ.ml)}"></label>` : `<label>Combo<select id="cCb">${opts}</select></label>`}
+        <label>Customer price ₹<input id="cPr" type="number" inputmode="numeric" min="0" placeholder="e.g. 2700" value="${esc(CQ.price)}"></label></div>
+      ${ml ? `<div class="sh-sz">${sizes.map((m) => `<button type="button" data-ml="${m}" class="${Number(CQ.ml) === m ? 'on' : ''}">${m}</button>`).join('')}</div>` : ''}
+      <div class="sh-ch">${ml ? `<label class="${CQ.free ? 'on' : ''}"><input type="checkbox" data-k="free" ${CQ.free ? 'checked' : ''}>+10 ml free</label>` : ''}<label class="${CQ.code ? 'on' : ''}"><input type="checkbox" data-k="code" ${CQ.code ? 'checked' : ''}>Code</label>${ml ? `<label class="${CQ.pre ? 'on' : ''}"><input type="checkbox" data-k="pre" ${CQ.pre ? 'checked' : ''}>Prepaid</label>` : ''}</div>
+      <div id="shCo"></div>`;
+    paintCalcOut();
+  }
+  function paintCalcOut() {
+    const o = $('shCo'); if (!o) return;
+    try { o.innerHTML = CQ.mode === 'ml' ? calcMl() : calcCombo(); } catch (e) { o.innerHTML = '<div class="sh-res na"><div class="big">Could not work this out</div></div>'; }
+  }
+  function initCalc() {
+    const box = $('shCalc'); if (!box || box.dataset.init) return; box.dataset.init = '1';
+    box.addEventListener('click', (e) => {
+      const m = e.target.closest('[data-md]'); if (m) { CQ.mode = m.dataset.md; cKeep(); paintCalc(); return; }
+      const z = e.target.closest('[data-ml]'); if (z) { CQ.ml = Number(z.dataset.ml); cKeep(); paintCalc(); return; }
+      const t = e.target.closest('tr[data-p]'); if (t) { CQ.price = t.dataset.p; cKeep(); const i = $('cPr'); if (i) i.value = CQ.price; paintCalcOut(); }
+    });
+    box.addEventListener('input', (e) => {
+      if (e.target.id === 'cMl') { CQ.ml = e.target.value; box.querySelectorAll('[data-ml]').forEach((b) => b.classList.toggle('on', Number(b.dataset.ml) === Number(CQ.ml))); }
+      else if (e.target.id === 'cPr') CQ.price = e.target.value; else return;
+      cKeep(); paintCalcOut();
+    });
+    box.addEventListener('change', (e) => {
+      if (e.target.id === 'cCb') { CQ.combo = Number(e.target.value); cKeep(); paintCalcOut(); return; }
+      const k = e.target.dataset && e.target.dataset.k; if (!k) return;
+      CQ[k] = e.target.checked; e.target.closest('label').classList.toggle('on', e.target.checked); cKeep(); paintCalcOut();
+    });
+  }
   function paintPrice() {
-    const box = $('shPrice'), c = S.combo;
-    if (!c || !c.rows || !c.rows.length) { box.style.display = 'none'; return; }
-    const rows = c.rows, inr = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
-    const label = (r) => r.name.replace(/ gel/g, ' shower gel').replace(/\bor attar\b/, '/ attar').replace(/\bshower gel or\b/, 'shower gel /');
-    const pick = [[1, 0, 1], [2, 0, 2], [3, 0, 0], [2, 0, 0], [1, 1, 1]].map(([g, a, p]) => rows.find((r) => r.gel === g && r.attar === a && r.perf === p)).filter(Boolean);
-    const chips = pick.map((r, i) => `<div class="sh-pc ${i < 2 ? 'hot' : ''}"><small>${esc(label(r))}</small><b>${inr(r.p[0])}</b><span>= <u>7%</u> · ${inr(r.p[2])} = <u>6%</u></span></div>`).join('');
-    const shown = box.dataset.all === '1' ? rows : rows.slice(0, 6);
-    const body = shown.map((r, i) => `<tr class="${i && r.group !== shown[i - 1].group ? 'sep' : ''} ${r.gel === 3 && !r.attar && !r.perf ? 'fair' : ''}"><td>${esc(label(r))}</td>${r.p.map((v) => `<td>${inr(v)}</td>`).join('')}</tr>`).join('');
-    box.innerHTML = `<div class="sh-ph"><h2>💲 My price chart</h2><span>Sell at or above a price → earn that %</span></div>
-      <div class="sh-chips">${chips}</div>
-      <div class="sh-tw"><table class="sh-tbl"><thead><tr><th>Combo</th>${TIER.map((t, i) => `<th style="background:${TIERC[i]}">${t}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
-      ${rows.length > 6 ? `<button type="button" class="sh-more" id="shMore">${box.dataset.all === '1' ? 'Show fewer ▴' : 'Show all ' + rows.length + ' combos ▾'}</button>` : ''}
-      <div class="sh-fn">Shower gel and attar sell at the same prices. A price below the last column earns no commission. <a href="ml_price.html">ML size price check →</a></div>`;
+    const box = $('shPrice');
+    const hasMl = S.mlChart && S.mlChart.rows && S.mlChart.rows.length, hasCombo = S.combo && S.combo.rows && S.combo.rows.length;
+    if (!hasMl && !hasCombo) { box.style.display = 'none'; return; }
+    if (!box.dataset.init) {
+      box.dataset.init = '1';
+      box.innerHTML = `<div class="sh-ph"><h2>💲 Price charts</h2><span id="shCap"></span></div>
+        <div class="sh-sr"><input type="search" id="shPq" placeholder="Search: 150, 100 ml, shower gel, attar…" autocomplete="off" aria-label="Search price"></div>
+        <div class="sh-fc" id="shTabs">${PH.map((p, i) => `<span data-sl="${i}" class="${i ? '' : 'on'}">${p[0]}</span>`).join('')}</div>
+        <div class="sh-slides" id="shSlides">${PH.map((p, i) => `<div class="sh-sl" id="shSl${i}"><button type="button" class="sh-zm" data-z="${i}" title="Open big" aria-label="Open big">🔍</button><div class="sh-sb"></div></div>`).join('')}</div>
+        <div class="sh-dots" id="shDots">${PH.map((p, i) => `<i data-sl="${i}" class="${i ? '' : 'on'}"></i>`).join('')}</div>
+        <div class="sh-calc" id="shCalc"></div>
+        <div class="sh-fn">Swipe ◀ ▶ for the next photo. Below the last price earns no commission.</div>`;
+      initCalc();
+      $('shPq').oninput = (e) => {
+        PQ.q = e.target.value;
+        const t = PQ.q.toLowerCase();
+        if (/gel|attar|perfume|combo|mix/.test(t)) PQ.slide = 1; else if (/\d/.test(t)) PQ.slide = 0;      // jump to the photo that has it
+        paintPriceList();
+        if (CQ.mode === 'combo') { const cb = comboMatches(); if (cb.length && !cb.some((x) => x.i === Number(CQ.combo))) CQ.combo = cb[0].i; paintCalc(); }
+      };
+      $('shTabs').onclick = (e) => { const t = e.target.closest('[data-sl]'); if (t) goSlide(Number(t.dataset.sl), true); };
+      $('shPrice').addEventListener('click', (e) => { const z = e.target.closest('[data-z]'); if (z) zoomChart(Number(z.dataset.z)); });
+      let tm = null;
+      $('shSlides').addEventListener('scroll', () => {            // swipe → keep tabs / dots in step
+        clearTimeout(tm); tm = setTimeout(() => {
+          const sl = $('shSlides'), i = Math.round(sl.scrollLeft / Math.max(1, sl.clientWidth));
+          if (i !== PQ.slide) { PQ.slide = i; document.querySelectorAll('#shTabs [data-sl], #shDots [data-sl]').forEach((t) => t.classList.toggle('on', Number(t.dataset.sl) === i)); const cap = $('shCap'); if (cap) cap.textContent = PH[i][2]; }
+        }, 60);
+      }, { passive: true });
+    }
     box.style.display = '';
-    const mb = $('shMore'); if (mb) mb.onclick = () => { box.dataset.all = box.dataset.all === '1' ? '0' : '1'; paintPrice(); };
+    paintPriceList();
+    paintCalc();
+    document.querySelectorAll('#shDots [data-sl]').forEach((t) => t.classList.toggle('on', Number(t.dataset.sl) === PQ.slide));
+  }
+
+
+  // ------------------------------------------------------------------ 📸 story strip (jump to a section)
+  const vis = (e) => (e && e.style.display !== 'none' ? e : null);
+  const STORY = [
+    { k: 'target', e: '🎯', l: 'Target', el: () => vis($('shHero')) || vis($('shQuests')) },
+    { k: 'code', e: '🔑', l: 'Code', el: () => $('shCode') || vis($('shQuests')) },
+    { k: 'chat', e: '💬', l: 'Chat', el: () => vis($('chatCard')) || document.querySelector('#shMis .sh-mgrid') },
+    { k: 'rating', e: '⭐', l: 'Rating', el: () => vis($('rateCard')) },
+    { k: 'top', e: '🏆', l: 'Top 5', el: () => vis($('shLead')) },
+  ];
+  const seenKey = () => 'sh_story_' + ((S.coach && S.coach.business_day) || 'x');
+  const seenSet = () => { try { return JSON.parse(store.get(seenKey()) || '{}'); } catch (e) { return {}; } };
+  function storyInfo(k) {
+    const m = (S.coach && S.coach.me) || {}, ct = (S.ct && S.ct.me) || {}, pr = ct.proof || {};
+    if (k === 'target') { const T = Number(m.target) || 0, sa = Number(m.sales) || 0; return T > 0 ? (sa >= T ? { bd: '✓', done: 1 } : { bd: Math.round(sa / T * 100) + '%' }) : { bd: '' }; }
+    if (k === 'code') { if (!(Number(m.code_pct) > 0)) return { bd: '' }; return m.code_ok ? { bd: '✓', done: 1 } : { bd: (Number(m.code_left) || 0) + ' left' }; }
+    if (k === 'chat') { const n = (Number(pr.orders_no_chat) || 0) + (Number(pr.pending_queries) || 0); return n > 0 ? { bd: String(n) } : { bd: '✓', done: 1 }; }
+    if (k === 'rating') return { bd: S.rating != null ? Number(S.rating).toFixed(1) : '' };
+    if (k === 'top') return { bd: S.myRank ? '#' + S.myRank : '' };
+    return { bd: '' };
+  }
+  let storyHtml = '';
+  function paintStory() {
+    let box = $('shStory');
+    if (!box) { const rc = $('rateCard'); if (!rc || !rc.parentNode) return; box = document.createElement('div'); box.id = 'shStory'; rc.parentNode.insertBefore(box, rc); }
+    if (!S.coach || !S.coach.me) return;
+    const seen = seenSet();
+    const html = '<div class="sh-story">' + STORY.map((x) => { const i = storyInfo(x.k); return `<button type="button" class="sh-sb ${i.done ? 'done' : ''} ${seen[x.k] ? 'seen' : ''}" data-st="${x.k}" aria-label="${x.l}"><div class="ring"><div class="in">${x.e}</div>${i.bd ? `<span class="bd">${esc(i.bd)}</span>` : ''}</div><span class="lb">${x.l}</span></button>`; }).join('') + '</div>';
+    if (html === storyHtml) return; storyHtml = html; box.innerHTML = html;
+    if (!box.dataset.init) {
+      box.dataset.init = '1';
+      box.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-st]'); if (!b) return;
+        const x = STORY.find((y) => y.k === b.dataset.st), el = x && x.el(); if (!el) return;
+        const sn = seenSet(); sn[x.k] = 1; store.set(seenKey(), JSON.stringify(sn)); storyHtml = ''; paintStory();
+        el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        el.classList.remove('sh-flash'); void el.offsetWidth; el.classList.add('sh-flash'); setTimeout(() => el.classList.remove('sh-flash'), 1400);
+      });
+    }
   }
 
   // ------------------------------------------------------------------ allocation pop-up
@@ -385,9 +669,10 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     const out = [];
     // 1) meet admin (stays until Admin / HR / a named person presses Resolved)
     (d.alerts || []).filter((a) => a.meet).forEach((a) => out.push(`<div class="sh-meet"><b>🤝 Please meet Admin</b><p>${esc(a.gu || a.title)}</p></div>`));
-    if (d.nudge) out.push(`<div class="sh-ting"><span class="e">🌱</span><div><b>${esc(d.nudge.title)}</b>${esc(d.nudge.gu)}</div></div>`);
-    // 2) friendly warnings ("ting ting")
-    (d.alerts || []).filter((a) => !a.meet && a.kind !== 'idea_rigid').slice(0, 3).forEach((a) => out.push(`<div class="sh-ting ${a.sev === 'info' ? 'good' : ''}"><span class="e">${a.sev === 'info' ? '👍' : '⏰'}</span><div><b>${esc(a.title)}</b>${esc(a.gu || a.body || '')}</div></div>`));
+    // 2) friendly warning ("ting ting") — ONE at most (the most important); the learning nudge only when there is no warning
+    const tings = (d.alerts || []).filter((a) => !a.meet && a.kind !== 'idea_rigid').slice(0, 1);
+    if (!tings.length && d.nudge) out.push(`<div class="sh-ting"><span class="e">🌱</span><div><b>${esc(d.nudge.title)}</b>${esc(d.nudge.gu)}</div></div>`);
+    tings.forEach((a) => out.push(`<div class="sh-ting ${a.sev === 'info' ? 'good' : ''}"><span class="e">${a.sev === 'info' ? '👍' : '⏰'}</span><div><b>${esc(a.title)}</b>${esc(a.gu || a.body || '')}</div></div>`));
     // 3) missions
     const tiles = [];
     const steps = cfg.steps || [2600, 2700];
@@ -460,9 +745,34 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     bd.querySelectorAll('.row button').forEach((b) => { b.onclick = () => { const [src, oid] = String(b.dataset.k).split('|'); bd.remove(); if (window.Convo) Convo.open({ kind: 'order', source: src, order_id: oid, order_name: b.dataset.n, onChange: () => loadMissions() }); }; });
     const pl = bd.querySelector('#shPopLost'); if (pl) pl.onclick = () => { bd.remove(); if (window.Convo) Convo.open({ kind: 'lost', onChange: () => loadMissions() }); };
   }
+  // ------------------------------------------------------------------ 🏁 query → order ranking (everyone in Sales sees the same list)
+  const LD = { view: 'today' };
+  function paintLeaders() {
+    const L = S.ct && S.ct.leaders; if (!L) return;
+    let box = $('shLead');
+    if (!box) { box = document.createElement('section'); box.id = 'shLead'; box.className = 'card sh-lead'; const pr = $('shPrice'); if (!pr || !pr.parentNode) return; pr.parentNode.insertBefore(box, pr); box.addEventListener('click', (e) => { const t = e.target.closest('[data-lv]'); if (t) { LD.view = t.dataset.lv; paintLeaders(); } }); }
+    const V = L[LD.view] || L.today; if (!V || !V.rows || !V.rows.length) { box.style.display = 'none'; return; }
+    const me = Number(L.me) || 0, min = Number(L.min) || 5, tc = V.team_conv;
+    const medal = (r) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    // Top 5 only (nobody else's full list) + my own row when I am outside the top 5
+    const act = V.rows.filter((r) => r.queries > 0 || r.orders > 0);
+    const top = act.filter((r) => r.rank != null && r.rank <= 5);
+    const mine = act.find((r) => r.id === me);
+    const show = top.slice(); if (mine && show.indexOf(mine) < 0) show.push(mine);
+    const rows = show.map((r) => {
+      const ok = r.rank != null, w = ok && r.conv != null ? Math.min(100, r.conv * 2) : 0;
+      return `<div class="sh-lr ${r.id === me ? 'me' : ''}"><span class="rk">${ok ? medal(r.rank) : '·'}</span><div class="nm"><b>${esc(r.name)}${r.id === me ? ' (you)' : ''}</b>${r.first ? ' <em>⚡ first order ' + esc(r.first_order || '') + '</em>' : ''}<div class="bar"><i style="width:${w}%"></i></div></div><div class="cv"><b>${r.conv != null ? Math.round(r.conv) + '%' : '—'}</b><small>${ok ? r.orders + ' / ' + r.queries : 'not ranked yet'}</small></div></div>`;
+    }).join('');
+    const myRank = mine && mine.rank != null ? mine.rank : null;
+    S.myRank = myRank;
+    box.innerHTML = `<div class="sh-ph"><h2>🏆 Top 5 ${LD.view === 'week' ? 'this week' : 'today'}</h2><div class="sh-lt2"><span data-lv="today" class="${LD.view === 'today' ? 'on' : ''}">Today</span><span data-lv="week" class="${LD.view === 'week' ? 'on' : ''}">7 days</span></div></div>
+      <div class="sh-fn" style="margin:2px 0 4px">Orders ÷ queries · team <b>${tc != null ? tc + '%' : '—'}</b>${myRank && myRank > 5 ? ' · you are #' + myRank + ' — climb! 🚀' : ''}</div>${rows}`;
+    box.style.display = '';
+  }
+
   async function loadMissions() {
     try { S.ct = await api.get('ct.my'); } catch (e) { return; }
-    paintMissions();
+    paintMissions(); paintLeaders(); paintStory();
     const pu = S.ct && S.ct.popup;
     if (pu && pu.kind === 'proof' && !S.open && !document.querySelector('.cvx')) { chime(); proofPopup(pu); }
   }
@@ -470,15 +780,18 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   // ------------------------------------------------------------------ data
   async function loadExtras() {
     api.get('attendance.today').then((d) => { S.punch = d && d.attendance ? d.attendance : {}; paint(); }).catch(() => {});
-    api.get('combo_price.get').then((d) => { S.combo = d && d.chart; paintPrice(); }).catch(() => { $('shPrice').style.display = 'none'; });
+    Promise.all([api.get('combo_price.get').catch(() => null), api.get('ml_slab.get').catch(() => null)]).then(([c, m]) => {
+      S.combo = c && c.chart; S.mlChart = m && m.chart; paintPrice();
+    }).catch(() => { $('shPrice').style.display = 'none'; });
     setTimeout(loadMissions, 600);
     setInterval(() => { if (!document.hidden) loadMissions(); }, 5 * 60 * 1000);
+    setInterval(() => { if (!document.hidden) paintStory(); }, 4000);      // the chat card arrives from another script — keep the bubbles in step
     api.get('me.flags').then((d) => { S.canAlloc = (d.permissions || []).indexOf('allocation') > -1; initAlloc(); }).catch(() => {});
   }
 
   window.SalesHome = {
     setCoach(d) { S.coach = d; paint(); },
-    setRating(v) { S.rating = v; paint(); },
+    setRating(v) { S.rating = v; paint(); paintStory(); },
     onRefresh: null,
     refreshMissions: () => loadMissions(),
     open: () => S.openSheet && S.openSheet(),

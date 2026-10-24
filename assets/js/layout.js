@@ -217,7 +217,7 @@ function renderSidebarCore(active) {
     excel_files: [['excel_files.html', 'Excel Files', 'excel']],
     assign_queries: [['assign_queries.html', 'Assign Queries', 'assign_queries']],
     salary: [['salary.html', 'Salary', 'salary']],
-    commission: [['commission.html', 'Commission', 'commission'], ['ml_price.html', 'ML Price Check', 'ml_price']],
+    commission: [['commission.html', 'Commission', 'commission']],
     commission_rules: [['commission_rules.html', 'Commission Rules', 'commission_rules']],
     penalties: [['penalties.html', 'Penalties', 'penalties']],
     agreements: [['agreements.html', 'Agreements', 'agreements']],
@@ -288,7 +288,7 @@ function renderSidebarCore(active) {
     // Pages every employee may open. Anything else is hidden immediately —
     // before its own script can show admin data — until me.flags confirms
     // the Employee role was granted that module on the Roles page.
-    const EMPLOYEE_PAGES = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements', 'my_sales', 'orders', 'ml_price'];
+    const EMPLOYEE_PAGES = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements', 'my_sales', 'orders'];
     const needsCheck = !EMPLOYEE_PAGES.includes(active);
     if (needsCheck) { document.documentElement.style.visibility = 'hidden'; setTimeout(() => { document.documentElement.style.visibility = ''; }, 6000); }
 
@@ -317,7 +317,7 @@ function renderSidebarCore(active) {
       const perms = d.permissions || [];
       const grantedActives = perms.flatMap(p => (PAGES_FOR_PERM[p] || []).map(def => def[2]));
       const allowed = ['attendance', 'leave', 'my_salary', 'my_penalties', 'my_agreements'].concat(grantedActives);
-      if (d.is_sales) allowed.push('my_sales', 'orders', 'ml_price');
+      if (d.is_sales) allowed.push('my_sales', 'orders');
       // Home page after login: sales people open My Sales (their numbers, rating, offer); everyone else opens Attendance. Remembered for index.html.
       try { localStorage.setItem('hrms_home', d.is_sales ? 'my_sales.html' : 'attendance.html'); } catch (e) { /* private mode */ }
       // replace(): the refused page never enters the history, so the back
@@ -332,8 +332,7 @@ function renderSidebarCore(active) {
         if (d.is_sales) {
           links += `
         <a href="my_sales.html" class="${linkClass('my_sales')}">My Sales</a>
-        <a href="orders.html" class="${linkClass('orders')}">My Orders</a>
-        <a href="ml_price.html" class="${linkClass('ml_price')}">ML Price Check</a>`;
+        <a href="orders.html" class="${linkClass('orders')}">My Orders</a>`;
         }
         if (d.has_salary) {
           links += `
@@ -395,7 +394,6 @@ function renderSidebarCore(active) {
       ['salary.html', 'Salary', 'salary'],
       ['commission.html', 'Commission', 'commission'],
       ['commission_rules.html', 'Commission Rules', 'commission_rules'],
-      ['ml_price.html', 'ML Price Check', 'ml_price'],
       ['penalties.html', 'Penalties', 'penalties'],
       ['agreements.html', 'Agreements', 'agreements'],
     ]},
@@ -526,7 +524,7 @@ const RAIL_ICON_FOR = {
   dashboard: 'home', control_tower: 'tower', orders: 'bag', order_allocation: 'split', order_codes: 'tag', retail_shops: 'shop', retail_inventory: 'folder',
   attendance_admin: 'clock', attendance: 'clock', offices: 'pin', targets: 'target', order_targets: 'cart',
   performance: 'chart', detailed_report: 'sheet', store_analytics: 'chart', assign_queries: 'query', salary: 'wallet', my_salary: 'wallet', commission: 'percent',
-  commission_rules: 'sliders', ml_price: 'percent', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
+  commission_rules: 'sliders', penalties: 'alert', my_penalties: 'alert', agreements: 'file', my_agreements: 'file',
   departments: 'building', employees: 'users', documents: 'folder', whatsapp_groups: 'chat', excel_files: 'sheet',
   ex_employees: 'userx', history: 'history', approvals: 'check', users: 'user', roles: 'lock', my_sales: 'cart', leave: 'calendar', leave_requests: 'calendar',
 };

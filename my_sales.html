@@ -44,19 +44,21 @@
   .cch .mo{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:12px; padding-top:10px; border-top:1px solid var(--line); font-size:12px; color:var(--muted);} .cch .mo > b{color:var(--ink); width:100%;} .cch .mo span b{color:var(--ink);}
   .rtc .hd{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;} .rtc .hd h2{margin:0;}
   .rtc .tabs{display:flex; gap:4px;} .rtc .tabs button{width:auto; min-height:0; border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:99px; padding:4px 11px; font-size:12px; font-weight:800; cursor:pointer;} .rtc .tabs button.on{background:#111827; color:#fff; border-color:#111827;}
-  .rtc .top{display:flex; align-items:center; gap:12px; margin:10px 0 4px; flex-wrap:wrap;}
+  .rtc .top{display:flex; align-items:center; gap:10px; margin:6px 0 2px; flex-wrap:wrap;}
   .rtc .rg{width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;}
   .rtc .rg span{background:var(--surface,#fff); width:66px; height:66px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:900; font-size:22px; line-height:1;}
   .rtc .rg small{font-size:9.5px; color:var(--muted); font-weight:800; margin-top:3px; letter-spacing:.04em;}
   .rtc .rg.s{width:60px; height:60px;} .rtc .rg.s span{width:48px; height:48px; font-size:16px;}
   .rtc .lbp{display:inline-block; border-radius:99px; padding:3px 10px; font-size:12px; font-weight:800; background:#dcfce7; color:#166534;}
   .rtc .meta{font-size:12px; color:var(--muted); margin-top:4px; line-height:1.5;}
-  .rtc .spark{display:flex; align-items:flex-end; gap:3px; height:42px; margin-top:8px;} .rtc .spark i{flex:1; border-radius:3px 3px 0 0; background:#86efac; position:relative;} .rtc .spark i.lo{background:#fdba74;} .rtc .spark i.t{background:#16a34a;}
-  .rtc .pt{display:grid; grid-template-columns:132px 1fr 32px; gap:8px; align-items:center; font-size:12.5px; margin-top:7px;}
+  .rtc .spark{display:flex; align-items:flex-end; gap:3px; height:24px; margin-top:5px;} .rtc .spark i{flex:1; border-radius:3px 3px 0 0; background:#86efac; position:relative;} .rtc .spark i.lo{background:#fdba74;} .rtc .spark i.t{background:#16a34a;}
+  .rtc .pt{display:grid; grid-template-columns:132px 1fr 32px; gap:8px; align-items:center; font-size:12px; margin-top:4px;}
   .rtc .pt .bar{height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden;} .rtc .pt .bar i{display:block; height:100%; border-radius:6px;}
   .rtc .pt small{grid-column:1/-1; margin-top:-4px; font-size:11px; color:#9a3412;}
   .rtc .pt.na b{color:var(--muted); font-weight:600;}
-  @media (max-width:520px){ .rtc .pt{grid-template-columns:112px 1fr 30px;} .rtc .rg{width:74px; height:74px;} .rtc .rg span{width:58px; height:58px; font-size:19px;} }
+  @media (max-width:640px){ .rtc{zoom:.72;} }
+  .rtc .rmore{display:block; width:100%; margin-top:8px; border:0; background:#f1f5f9; color:#334155; border-radius:10px; padding:6px; font-weight:800; font-size:12px; cursor:pointer; min-height:0;}
+  @media (max-width:520px){ .rtc .pt{grid-template-columns:112px 1fr 30px;} .rtc .rg{width:62px; height:62px;} .rtc .rg span{width:48px; height:48px; font-size:17px;} .rtc .rg.s{width:50px; height:50px;} .rtc .rg.s span{width:38px; height:38px; font-size:14px;} }
   .chc .hd{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;}
   .chc .hd h2{margin:0;}
   .chc .lb{border:1px dashed #f87171; background:#fff; color:#b91c1c; border-radius:99px; padding:6px 12px; font-size:12.5px; font-weight:800; cursor:pointer;}
@@ -125,6 +127,19 @@
   .stat-card .value.wait{color:#9ca3af; font-weight:600;}
   @media (max-width:520px){ .stat-card .sub{font-size:10px;} }
   @media (max-width:520px){ .qc{gap:8px;} .qc .qb{padding:10px;} .qc .qn{font-size:24px;} .qc .ln{flex-direction:column; gap:0;} }
+  /* Priority order on phones and desktop: stories → rating → target → chat coach → top 5 → code / ticket / mix → numbers → offer → price charts.
+     #shHome and #shMis only group things, so they are display:contents and every card is ordered here. */
+  .ms-flow{display:flex; flex-direction:column;}
+  .ms-flow > *{order:20;}
+  .ms-flow > #alertBox{order:0;} #shStory{order:1;} #rateCard{order:2;}
+  #shHome, #shMis{display:contents;}
+  #shHome > *{order:19;}
+  #shHero{order:3;} #shQuests{order:4;}
+  #shMis > .sh-meet{order:5;} #chatCard{order:6;} #shLead{order:7;}
+  #shMis > .sh-ting{order:8;} #shMis > .sh-mgrid{order:9;} #shMis > :not(.sh-meet):not(.sh-ting):not(.sh-mgrid){order:10;}
+  #coachCard{order:11;} #otWrap{order:12;} #statGrid{order:13;} #qcCard{order:14;} #detailCard{order:15;} #arCard{order:16;}
+  #shOffer{order:17;} #shPrice{order:18;}
+  @media (max-width:640px){ #chatCard, #coachCard, #otWrap, #statGrid, #qcCard, #detailCard, #arCard{zoom:.8;} }
 </style>
 </head>
 <body>
@@ -132,8 +147,12 @@
   <div id="sidebar"></div>
   <main class="main">
     <div class="topbar"><h1>My Sales</h1></div>
-    <div class="content">
+    <div class="content ms-flow">
       <div id="alertBox"></div>
+      <!-- 📸 story strip (sales_home.js): 5 bubbles — tap one and the page scrolls to that section -->
+      <div id="shStory"></div>
+      <!-- ⭐ My Rating sits at the very top (Code and Community lead the list) -->
+      <div class="card cch rtc" id="rateCard" style="display:none;"></div>
       <!-- Sales Home (assets/js/sales_home.js): cheer hero · missions (target + code goal) · the ONE orange offer card · price chart · bottom "Allocate order" button -->
       <div id="shHome">
         <section class="sh-hero" id="shHero" style="display:none;"></section>
@@ -141,7 +160,6 @@
         <div id="shOffer"></div>
         <section class="card sh-price" id="shPrice" style="display:none;"></section>
       </div>
-      <div class="card cch rtc" id="rateCard" style="display:none;"></div>
       <div class="card cch" id="coachCard" style="display:none;"></div>
       <div class="card cch chc" id="chatCard" style="display:none;"></div>
 
@@ -184,11 +202,11 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261024a"></script>
+<script src="assets/js/ml_slab.js?v=261024b"></script>
 <script>window.FO_MOUNT = document.getElementById('shOffer');</script>
 <script src="assets/js/flash_offer.js?v=261024b"></script>
-<script src="assets/js/sales_home.js?v=261024b"></script>
-<script src="assets/js/convo.js?v=261024a"></script>
+<script src="assets/js/sales_home.js?v=261024j"></script>
+<script src="assets/js/convo.js?v=261024b"></script>
 <script>
   guardPage();
   renderSidebar('my_sales');
@@ -344,6 +362,11 @@
     const cell = (CM.idx[o.rk] || {})[o.day];
     return !!cell && cell.ach >= t;
   }
+  // How far above the day's target the sales are, in % (0 = just reached) — the over-target bonus steps (+30% → 30% extra …) use it.
+  function slabOver(o) {
+    const t = Number(((CM.target || {})[o.rk] || {})[o.day] || 0), cell = (CM.idx[o.rk] || {})[o.day];
+    return t > 0 && cell ? (cell.ach / t - 1) * 100 : null;
+  }
   // One row ('' = all panels, 'tm4u' = the TM4U row) over a set of days.
   function aggRow(rk, days, useManual) {
     let ach = 0, n = 0, pre = 0, eff = 0, flat = 0, target = 0;
@@ -368,7 +391,7 @@
       orders.forEach((o) => {
         // ⚡ Flash Offer: this size sold inside the offer's hours → the offer's flat % (price not compared); wins over the slab
         const f = CM.flash.length ? MLSLAB.flashFor(CM.flash, o.ml, o.created) : null;
-        const s = f ? MLSLAB.flashCom(f, o) : (MLSLAB.on(CM.slab) ? MLSLAB.orderCom(CM.slab, Object.assign({ emp: CM.slab.me }, o), slabHit(o)) : null);   // 📅 special days for me
+        const s = f ? MLSLAB.flashCom(f, o) : (MLSLAB.on(CM.slab) ? MLSLAB.orderCom(CM.slab, Object.assign({ emp: CM.slab.me }, o), slabHit(o), slabOver(o)) : null);   // 📅 special days for me
         if (!s) return;
         const p = ctx ? calcPrice(o, ctx) : o;
         amount += s.v - (c ? c.rate * p.eff / 100 + p.flat : 0); slabN++;
@@ -575,7 +598,7 @@
       note.innerHTML = sl >= t ? `Done — <b>${inr(sl - t)}</b> above the target.`
         : (ot && ot.hours_left > 0 ? `Need <b>${inr(t - sl)} more</b> in <b>${ot.hours_left} hour${ot.hours_left === 1 ? '' : 's'}</b> (about <b>${inr(Math.ceil((t - sl) / ot.hours_left))} / hour</b>).` : `<b>${inr(t - sl)}</b> to go today.`);
     }
-    sub.innerHTML = ot ? `Orders <b>${Number(ot.achieved) || 0}</b>${Number(ot.target) > 0 ? ' of <b>' + Number(ot.target) + '</b>' : ''} · Query <b>${Number(ot.query) || 0}</b> · Campaign <b>${Number(ot.campaign) || 0}</b>${ot.last_update ? ' · Last update <b>' + otTime(ot.last_update) + '</b>' : ''}` : '';
+    sub.innerHTML = ot ? `Orders <b>${Number(ot.achieved) || 0}</b>${Number(ot.target) > 0 ? ' of <b>' + Number(ot.target) + '</b>' : ''} · Query <b>${Number(ot.query) || 0}</b> · Community / campaign <b>${Number(ot.campaign) || 0}</b>${ot.last_update ? ' · Last update <b>' + otTime(ot.last_update) + '</b>' : ''}` : '';
   }
   async function loadTarget() {
     let d = null;
@@ -629,8 +652,8 @@
     box.style.display = '';
   }
 
-  // ---------- My Rating (top): one mix rating out of 10 from ten parts — today (live) and this month — with the biggest lift ----------
-  const RT = { d: null, view: 'today' };
+  // ---------- My Rating (top): one mix rating out of 10 from eleven parts (Code and Community first) — today (live) and this month — with the biggest lift ----------
+  const RT = { d: null, view: 'today', all: false };
   const rtCol = (v) => v >= 8 ? '#16a34a' : v >= 6.5 ? '#22c55e' : '#f59e0b';          // never red for the salesperson
   const rtRing = (v, cls, sub) => `<div class="rg ${cls || ''}" style="background:conic-gradient(${v == null ? '#e2e8f0' : rtCol(v)} ${v == null ? 0 : v * 10}%, #e2e8f0 0)"><span>${v == null ? '—' : Number(v).toFixed(1)}${sub ? `<small>${sub}</small>` : ''}</span></div>`;
   async function loadRating() {
@@ -652,11 +675,13 @@
         <div class="meta">${d.yesterday != null && tv != null ? `ગઈકાલ ${fmt(d.yesterday)} → આજે ${fmt(tv)}${arrow}<br>` : ''}${d.last_month != null && mv != null ? `Last month ${fmt(d.last_month)} → this month ${fmt(mv)}${mv > d.last_month ? ' 📈' : ''}<br>` : ''}${d.best != null ? `Personal best ${fmt(d.best)} (${ce(String(d.best_day).slice(8, 10) + '/' + String(d.best_day).slice(5, 7))})` : ''}</div></div></div>`;
     if ((d.trend || []).length > 1) h += `<div class="spark">${d.trend.map((t, i) => `<i class="${i === d.trend.length - 1 ? 't' : t.score < 6 ? 'lo' : ''}" style="height:${Math.max(6, t.score / mx * 100)}%" title="${ce(t.day)}: ${fmt(t.score)}"></i>`).join('')}</div><div class="meta">Last ${d.trend.length} days</div>`;
     if (cur) {
-      h += Object.keys(P).map((k) => {
+      const keys = Object.keys(P), SHOW = 4;
+      h += keys.map((k, i) => {
+        if (!RT.all && i >= SHOW) return '';
         const v = cur.parts[k];
         if (v == null) return `<div class="pt na"><span>${P[k].icon} ${ce(P[k].label)}</span><div class="bar"></div><b>—</b></div>`;
         return `<div class="pt"><span>${P[k].icon} ${ce(P[k].label)}</span><div class="bar"><i style="width:${v * 10}%; background:${rtCol(v)}"></i></div><b>${fmt(v)}</b>${v < 7 && cur.notes && cur.notes[k] ? `<small>🎯 ${ce(cur.notes[k])}</small>` : ''}</div>`;
-      }).join('');
+      }).join('') + (keys.length > SHOW ? `<button type="button" class="rmore" data-rall="1">${RT.all ? 'Show fewer ▴' : 'Show all ' + keys.length + ' parts ▾'}</button>` : '');
       const I = cur.insight || {};
       if ((I.strong || []).length) h += `<div class="tp win"><span class="e">✅</span><div><b>Strongest</b>${I.strong.map((k) => ce(P[k].label) + ' ' + fmt(cur.parts[k])).join(' · ')}</div></div>`;
       if (I.lift) h += `<div class="tp focus"><span class="e">🚀</span><div><b>Biggest lift: ${ce(P[I.lift.k].label)} ${fmt(I.lift.from)} → ${I.lift.to} = rating +${I.lift.gain} → ${fmt(Math.min(10, cur.score + I.lift.gain))}</b>${ce(I.lift.fix || '')}</div></div>`;
@@ -665,7 +690,7 @@
     box.innerHTML = h; box.style.display = '';
     if (window.SalesHome) SalesHome.setRating(tv != null ? tv : mv);
   }
-  document.getElementById('rateCard').addEventListener('click', (e) => { const b = e.target.closest('[data-rtv]'); if (b) { RT.view = b.dataset.rtv; renderRating(); } });
+  document.getElementById('rateCard').addEventListener('click', (e) => { const b = e.target.closest('[data-rtv]'); if (b) { RT.view = b.dataset.rtv; renderRating(); return; } if (e.target.closest('[data-rall]')) { RT.all = !RT.all; renderRating(); } });
 
   // ---------- Chat coach: the AI reviews of my WhatsApp chats / calls (assets/js/convo.js), my skills next to the top sellers', the team playbook ----------
   async function loadChat() {

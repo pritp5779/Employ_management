@@ -241,7 +241,7 @@
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
-<script src="assets/js/ml_slab.js?v=261024a"></script>
+<script src="assets/js/ml_slab.js?v=261024b"></script>
 <script>window.FO_ADMIN = true;</script>
 <script src="assets/js/flash_offer.js?v=261024a"></script>
 <script>
@@ -802,6 +802,12 @@
     const cell = (IDX[o.emp + '|' + o.rk] || {})[o.day];
     return !!cell && cell.ach >= t;
   }
+  // % above the day's target (0 = just reached): the over-target bonus steps (+30% → 30% extra, +40%, +60%, +100%) use it.
+  function slabOver(o) {
+    const e = EMPS.find((x) => x.employee_id === o.emp);
+    const t = Number(((((e || {}).target || {})[o.rk]) || {})[o.day] || 0), cell = (IDX[o.emp + '|' + o.rk] || {})[o.day];
+    return t > 0 && cell ? (cell.ach / t - 1) * 100 : null;
+  }
   // null = the slab does not decide this order (switched off, no ML, size outside the chart, or a fixed commission / code-mix rule pays the person).
   // 70% code rule: once enough of a person's orders of a day carry a code, every order of that day pays full (o.codeOk). Worked out once per order list / chart.
   let CODE_DONE = { s: null, o: null };
@@ -818,7 +824,7 @@
     const f = FLASH.length ? MLSLAB.flashFor(FLASH, o.ml, o.created) : null;
     if (f) return MLSLAB.flashCom(f, o);
     if (!MLSLAB.on(SLAB)) return null;
-    return MLSLAB.orderCom(SLAB, o, slabHit(o));
+    return MLSLAB.orderCom(SLAB, o, slabHit(o), slabOver(o));
   }
   // An order whose commission was set by hand (₹ / rate) pays exactly that; noOv = what it would earn by the rules alone.
   function comOf(o, aggs, ok, noOv) {
