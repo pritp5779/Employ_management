@@ -239,9 +239,9 @@
 <script src="assets/js/config.js?v=260928b"></script>
 <script src="assets/js/api.js?v=260928b"></script>
 <script src="assets/js/layout.js?v=260928b"></script>
-<script src="assets/js/ml_slab.js?v=261023s"></script>
+<script src="assets/js/ml_slab.js?v=261024a"></script>
 <script>window.FO_ADMIN = true;</script>
-<script src="assets/js/flash_offer.js?v=261023a"></script>
+<script src="assets/js/flash_offer.js?v=261024a"></script>
 <script>
   // Embed mode: the Orders page opens this page in a hidden frame (commission.html?embed=1&from=..&to=..) and reads the finished numbers,
   // so both pages always show exactly the same commission.
@@ -260,7 +260,7 @@
   // A day runs from its start time (default 10:00) to the next day's start, so "Today" is the day running now.
   let DAY_START = ['10:00', '10:00', '10:00', '10:00', '10:00', '10:00', '10:00'];
   // The rule lists do not depend on the date, so they start loading right away — in parallel with the day timing and the orders.
-  const PRE = { rules: api.get('commission_rules.list'), codeList: api.get('commission_rules.code_list'), manual: api.get('commission_rules.manual_list'), slab: api.get('ml_slab.get') };
+  const PRE = { rules: api.get('commission_rules.list'), codeList: api.get('commission_rules.code_list'), manual: api.get('commission_rules.manual_list'), slab: api.get('ml_slab.get'), flash: api.get('flash_offer.get') };
   Object.keys(PRE).forEach((k) => PRE[k].catch(() => {}));
   const timingReady = api.get('day_timing.get').then((d) => { if (Array.isArray(d.start) && d.start.length === 7) DAY_START = d.start; }).catch(() => {});
   const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -285,6 +285,7 @@
   let TODAY = '', FROM = '', TO = '', MSTART = '', RFROM = '', RTO = '', DAYS = [];   // FROM..TO = what is loaded; RFROM..RTO = the Monthly date range; DAYS = days of that range
   let PAGING = true;                                  // NEW: pagination ON / OFF (manual switch)
   let SLAB = null;        // ML price slab chart (Commission Rules → ML price slab), see assets/js/ml_slab.js
+  let FLASH = [];         // ⚡ every Flash Offer (its hours + sizes + %): an order of an offer's size inside its hours pays the offer's flat % (MLSLAB.flashFor)
   const NEW = { mix: [], fixed: [], star: [], panel: [] };                 // NEW: manual rules (code-mix rule, fixed-by-count plans)
   let EMPS = [];          // from commission_page.days: employee, role, target[rowKey][date], status[date]
   let ORD = [];           // orders that count toward commission
@@ -609,11 +610,11 @@
       }
     }
     // NEW — ML price slab: each order with a known total ML pays its slab % (see slabFor); the rest keep what they earn above.
-    if (n > 0 && window.MLSLAB && MLSLAB.on(SLAB)) {
+    if (n > 0 && window.MLSLAB && (MLSLAB.on(SLAB) || FLASH.length)) {
       if (!c) c = { rate: 0, amount: 0, steps: [], held: 0, ticket, prepaidPct: prePct, overPct: 0, hit: false };
       if (!c.steps) c.steps = [];
       const tmp = {}; tmp[row.emp.employee_id + '|' + row.rk] = { c, pm, gates };
-      let dS = 0, nS = 0, vS = 0, aS = 0, capN = 0, ncN = 0, bnN = 0;
+      let dS = 0, nS = 0, vS = 0, aS = 0, capN = 0, ncN = 0, bnN = 0, flN = 0;
       orders.forEach((o) => {
         if (panelRuleFor(o, gateOk) || fixedFor(o, gateOk)) return;
         const r = comOfAuto(o, tmp, gateOk);
@@ -621,13 +622,13 @@
         dS += r.v - comOfAuto(o, tmp, gateOk, true).v; nS++; vS += r.v; aS += o.amt;
         if (r.slab.steps.some((t) => t.indexOf('target incomplete') > -1)) capN++;
         if (r.slab.bonus) bnN++;
-        if (!o.code) ncN++;
+        if (r.slab.flash) flN++; else if (!o.code) ncN++;
       });
       if (nS) {
         c.amount += dS;
         c.slab = { n: nS, all: nS === n, v: vS, amt: aS, pct: aS > 0 ? vS / aS * 100 : 0, capN, ncN };
         if (nS === n) { c.slabBadge = fmtN(Math.round(c.slab.pct * 100) / 100) + '% ML'; c.held = 0; c.adj = false; }
-        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${bnN ? ` · ${bnN} with +${fmtN(SLAB.bonus)}% bonus (target achieved)` : ''}${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart / outside the slab dates) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
+        c.steps.push({ label: 'ML price slab', detail: `${nS} order${nS === 1 ? '' : 's'} paid by size + price (avg ${fmtN(Math.round(c.slab.pct * 100) / 100)}%)${flN ? ` · ${flN} on a ⚡ Flash Offer (its own %)` : ''}${bnN ? ` · ${bnN} with +${fmtN(SLAB.bonus)}% bonus (target achieved)` : ''}${capN ? ` · ${capN} capped at ${fmtN(SLAB.cap)}% (target incomplete)` : ''}${ncN ? ` · ${ncN} without code → ${fmtN(SLAB.nocode)}%` : ''}${nS < n ? ` · ${n - nS} other order${n - nS === 1 ? '' : 's'} (no ML / size not in the chart / outside the slab dates) keep the normal commission` : ''}`, value: (dS < 0 ? '−' : '+') + inr(Math.abs(dS)) });
       }
     }
     // NEW — an order whose commission was set by hand pays exactly that (₹ amount, or a rate on the order), whatever it would have earned above
@@ -801,9 +802,13 @@
   }
   // null = the slab does not decide this order (switched off, no ML, size outside the chart, or a fixed commission / code-mix rule pays the person).
   function slabFor(o, aggs) {
-    if (!window.MLSLAB || !MLSLAB.on(SLAB) || o.ml == null) return null;
+    if (!window.MLSLAB || o.ml == null || !(MLSLAB.on(SLAB) || FLASH.length)) return null;
     const A = aggs && aggs[o.emp + '|' + o.rk], c = A && A.c;
     if (c && (c.fixedPlan || (c.mix && c.mix.mode !== 'full' && inWin(c.mix.win, o.day)))) return null;
+    // ⚡ Flash Offer: this size, sold inside the offer's hours → the offer's flat % (price not compared); wins over the slab, works with the chart off.
+    const f = FLASH.length ? MLSLAB.flashFor(FLASH, o.ml, o.created) : null;
+    if (f) return MLSLAB.flashCom(f, o);
+    if (!MLSLAB.on(SLAB)) return null;
     return MLSLAB.orderCom(SLAB, o, slabHit(o));
   }
   // An order whose commission was set by hand (₹ / rate) pays exactly that; noOv = what it would earn by the rules alone.
@@ -824,6 +829,10 @@
     }
     // NEW — ML price slab: wins over the normal slab rate and the order-code rules (it has its own "no code" cut); a rating rule still cuts it.
     const sl = noSlab ? null : slabFor(o, aggs);
+    if (sl && sl.flash) {
+      const sm = starMul(o), v = sl.v * (sm ? sm.r.pay / 100 : 1);
+      return { v, note: '⚡ Flash offer · ' + sl.ml + ' ml · ' + fmtN(sl.base) + '%' + (o.code ? '' : ' → ' + fmtN(sl.pct) + '% (no code)') + (sm ? ' · ' + starTxt(o.stars) + ' rating cut' : ''), cls: v < 0.005 ? 'z' : 'sl', slab: sl };
+    }
     if (sl) {
       const sm = starMul(o), v = sl.v * (sm ? sm.r.pay / 100 : 1);
       const why = [];
@@ -837,7 +846,7 @@
     }
     return comStar(o, aggs);
   }
-  const shNote = (o, aggs) => panelRuleFor(o, gateFn(o, aggs)) ? 'panel rule' : fixedFor(o, gateFn(o, aggs)) ? 'fixed rule' : slabFor(o, aggs) ? 'ML slab' : byRating(o, aggs) ? 'by rating' : '';
+  const shNote = (o, aggs) => panelRuleFor(o, gateFn(o, aggs)) ? 'panel rule' : fixedFor(o, gateFn(o, aggs)) ? 'fixed rule' : slabFor(o, aggs) ? (slabFor(o, aggs).flash ? 'flash offer' : 'ML slab') : byRating(o, aggs) ? 'by rating' : '';
   const byRating = (o, aggs) => !!starMul(o) && starBase(o, aggs).replaces && starBase(o, aggs).v > 0;
   const comCell = (r) => `<b class="${r.cls === 'z' ? 'zero' : ''}">${inr(r.v)}</b>${r.note ? `<div class="cn ${r.cls}">${esc(r.note)}</div>` : ''}`;
   const priceIn = (aggs, o) => { const A = aggs[o.emp + '|' + o.rk]; return { p: (A && A.pm && A.pm[o.key]) || o, rate: A && A.c ? (A.c.rate || 0) : 0 }; };
@@ -1256,7 +1265,7 @@
     opts = opts || {};
     const id = ++loadId;
     const statics = FIRST_LOAD || !!opts.fresh;
-    const S = FIRST_LOAD ? PRE : (statics ? { rules: api.get('commission_rules.list'), codeList: api.get('commission_rules.code_list'), manual: api.get('commission_rules.manual_list'), slab: api.get('ml_slab.get') } : null);
+    const S = FIRST_LOAD ? PRE : (statics ? { rules: api.get('commission_rules.list'), codeList: api.get('commission_rules.code_list'), manual: api.get('commission_rules.manual_list'), slab: api.get('ml_slab.get'), flash: api.get('flash_offer.get') } : null);
     FIRST_LOAD = false;
     READY = false; openKey = null; alertBox.innerHTML = '';
     await timingReady;
@@ -1276,6 +1285,7 @@
     const shOf = (sh) => (sh && sh.shares && !Array.isArray(sh.shares)) ? sh.shares : {};
     const pRules = S ? S.rules.then((d) => { RULES = d.rules || []; }, () => { RULES = null; }) : Promise.resolve();
     const pSlab = S ? S.slab.then((d) => { SLAB = (d && d.chart) || null; }, () => { SLAB = null; }) : Promise.resolve();
+    const pFlash = S ? S.flash.then((d) => { FLASH = (d && (d.all || d.history)) || []; }, () => { FLASH = []; }) : Promise.resolve();
     const pCode = S
       ? Promise.all([S.codeList, pShares]).then(([r, sh]) => { CODE = { on: !!r.on, rules: r.rules || [], shares: shOf(sh), ok: true }; }, () => { CODE = { on: false, rules: [], shares: {}, ok: false }; })
       : pShares.then((sh) => { CODE.shares = shOf(sh); }, () => { /* keep the shares we have */ });
@@ -1285,7 +1295,7 @@
     const pManual = S ? S.manual.then((d) => setManual(d), () => { NEW.ok = false; NEW.mix = []; NEW.fixed = []; NEW.star = []; NEW.panel = []; }) : Promise.resolve();
     try {
       const [dd, od] = await Promise.all([pDays, pOrders]);
-      await pRules; await pCode; await pManual; await pMan; await pDayMan; await pSlab;
+      await pRules; await pCode; await pManual; await pMan; await pDayMan; await pSlab; await pFlash;
       if (id !== loadId) return;
       EMPS = dd.employees || [];
       if (dd.today && dd.today !== TODAY) { /* server and browser disagree on the day: keep the browser's */ }
@@ -1375,7 +1385,7 @@
         else if (c && c.fixedPlan) { k = 'fixed'; label = 'Fixed ' + c.fixedPlan.badge; }
         else if (fixedFor(o, gf)) { const fp = fixedFor(o, gf); k = 'fixed'; label = 'Fixed ' + payBadge(fp.mode, fp.per); }
         else if (c && c.mix && c.mix.mode !== 'full') { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · ' + c.mix.badge; }
-        else if (r.slab) { k = 'slab'; label = 'ML price slab'; }
+        else if (r.slab) { k = 'slab'; label = r.slab.flash ? '⚡ Flash offer' : 'ML price slab'; }
         else if (starMul(o)) { k = 'star'; const sm = starMul(o); label = starTxt(o.stars) + ' · ' + (sm.r.label || 'rating rule'); }
         else if (c && c.mix) { k = 'mix'; label = (c.mix.label || 'Code mix rule') + ' · full commission'; }
         else if (Math.abs(r.v - full) > 0.005) { k = 'code'; label = (r.note || '').split(' · ')[0] || TAGN.code; }

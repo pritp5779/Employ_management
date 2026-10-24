@@ -151,5 +151,31 @@
     return { chart: cp, per, look, paid, extra: Math.round(extra * 10) / 10, value: Math.max(0, cp - look) };
   }
 
-  window.MLSLAB = { rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, on: (c) => !!(c && Number(c.on)) };
+  /**
+   * ⚡ Flash Offer (same rule as api.php flash_offer_pct_for / coach_day): an order whose TOTAL ML is one of an offer's sizes and that was
+   * placed inside the offer's hours pays the offer's own flat % — whatever the order's price is — instead of the slab. No code → the
+   * offer's own no-code share of it (nocode 50 = half: 6% → 3%). No cap / daily bonus / floor.
+   * offers = every offer { id, items:[{ml,price}], pct, nocode, started_at, ends_at, note } (api: flash_offer.get → all); created = the order's time.
+   * flashFor() returns { pct, nocode, id, note } or null; flashCom() prices one order with it (same shape as orderCom()).
+   */
+  function flashFor(offers, ml, created) {
+    ml = Math.round(Number(ml));
+    if (!(ml > 0) || !created || !offers || !offers.length) return null;
+    const cs = String(created), t = new Date(/^\d{4}-\d\d-\d\d \d/.test(cs) ? cs.replace(' ', 'T') : cs).getTime();
+    if (isNaN(t)) return null;
+    for (let i = 0; i < offers.length; i++) {
+      const x = offers[i];
+      const s = new Date(String(x.started_at || '').replace(' ', 'T')).getTime(), e = new Date(String(x.ends_at || '').replace(' ', 'T')).getTime();
+      if (isNaN(s) || isNaN(e) || t < s || t > e) continue;
+      if ((x.items || []).some((it) => Math.round(Number(it.ml)) === ml)) return { pct: Number(x.pct) || 0, nocode: x.nocode == null || x.nocode === '' ? 50 : Number(x.nocode), id: String(x.id || ''), note: x.note || '' };
+    }
+    return null;
+  }
+  function flashCom(f, o) {
+    const amt = Number(o.amt) || 0, pct = f.pct * (o.code ? 1 : f.nocode / 100);
+    const steps = ['⚡ flash offer · ' + Number(o.ml) + ' ml → ' + r2(f.pct) + '%' + (o.code ? '' : ' → no code: ' + r2(pct) + '%')];
+    return { v: amt * pct / 100, pct: r2(pct), base: r2(f.pct), steps, ml: Number(o.ml), look: amt, disc: 0, overMax: false, bonus: false, special: null, flash: true };
+  }
+
+  window.MLSLAB = { rowFor, pctOf, orderCom, forDay, specialsOn, parts, preview, isPre, extraByPrice, activeOn, datesTxt, flashFor, flashCom, on: (c) => !!(c && Number(c.on)) };
 })();

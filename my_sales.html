@@ -167,8 +167,8 @@
 <script src="assets/js/config.js?v=2"></script>
 <script src="assets/js/api.js?v=2"></script>
 <script src="assets/js/layout.js?v=3"></script>
-<script src="assets/js/ml_slab.js?v=261023s"></script>
-<script src="assets/js/flash_offer.js?v=261023a"></script>
+<script src="assets/js/ml_slab.js?v=261024a"></script>
+<script src="assets/js/flash_offer.js?v=261024a"></script>
 <script src="assets/js/convo.js?v=261022b"></script>
 <script>
   guardPage();
@@ -201,7 +201,7 @@
   // ---------- Month figures and commission ----------
   // Worked out here from this employee's own orders and the commission rules — the same calculation as the Commission page
   // (slab rate by target / ticket size / prepaid share, then the order-code rules), so the numbers match what Admin sees.
-  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {}, slab: null };
+  const CM = { rules: null, code: { on: false, rules: [], shares: {} }, target: {}, status: {}, idx: {}, ord: [], manual: {}, slab: null, flash: [] };
   const STORE_TO_GROUP = { tmperfumehouse: 'tmph' };
   // ---------- Panels: a person on 2+ panels has a separate target (and sales) in each ----------
   const PN = { list: [], sel: '', tgt: {}, labels: {}, sales: {}, today: '', repaint: null };
@@ -307,7 +307,7 @@
       if (day < from || day > to) return;
       const rk = o.house === 'tm4u' ? 'tm4u' : '';
       const amt = Number(o.total || 0), pre = isPre(o.financial_status);
-      const x = { key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', code: o.code || '', amt, pre, ml: o.ml == null ? null : Number(o.ml), day, rk };
+      const x = { key: (o.store_key || o.source || '') + ':' + o.id, house: o.house || STORE_TO_GROUP[o.store_key] || '', code: o.code || '', amt, pre, ml: o.ml == null ? null : Number(o.ml), day, rk, created: o.created_at };
       const p = calcPrice(x); x.eff = p.eff; x.flat = p.flat;
       CM.ord.push(x);
       const cell = ((CM.idx[rk] = CM.idx[rk] || {})[day] = CM.idx[rk][day] || { ach: 0, n: 0, pre: 0, eff: 0, flat: 0, orders: [] });
@@ -342,10 +342,12 @@
     if (man) return { ach, n, target, rate: man.rate, amount: man.amount, rated: true, manual: true };
     let amount = c ? c.rate * eff / 100 + flat : 0, slabN = 0;
     // ML price slab (same as the Commission page): an order with a known total ML pays its slab % instead of the normal rate.
-    if (window.MLSLAB && MLSLAB.on(CM.slab)) {
+    if (window.MLSLAB && (MLSLAB.on(CM.slab) || CM.flash.length)) {
       const ctx = c && hasCond() ? { hit: c.hit, ticket: c.ticket } : undefined;
       orders.forEach((o) => {
-        const s = MLSLAB.orderCom(CM.slab, Object.assign({ emp: CM.slab.me }, o), slabHit(o));   // 📅 special days for me
+        // ⚡ Flash Offer: this size sold inside the offer's hours → the offer's flat % (price not compared); wins over the slab
+        const f = CM.flash.length ? MLSLAB.flashFor(CM.flash, o.ml, o.created) : null;
+        const s = f ? MLSLAB.flashCom(f, o) : (MLSLAB.on(CM.slab) ? MLSLAB.orderCom(CM.slab, Object.assign({ emp: CM.slab.me }, o), slabHit(o)) : null);   // 📅 special days for me
         if (!s) return;
         const p = ctx ? calcPrice(o, ctx) : o;
         amount += s.v - (c ? c.rate * p.eff / 100 + p.flat : 0); slabN++;
@@ -376,11 +378,13 @@
       const to = d.business_day, from = to.slice(0, 8) + '01';
       // Already started when the page opened (see PRE below); asked again only if the business day turned out different.
       const same = (await PRE.to) === to;
-      const [cm, od, tm] = await Promise.all([
+      const [cm, od, tm, fo] = await Promise.all([
         same ? PRE.cm : api.get('my.commission'),
         same ? PRE.od : api.get('shopify.orders', { date_from: from, date_to: to, lite: 1 }),
         PRE.tm,
+        api.get('flash_offer.get').catch(() => null),
       ]);
+      CM.flash = (fo && (fo.all || fo.history)) || [];
       if (cm.applicable === false) {      // not a sales role: no commission
         document.getElementById('tComCard').remove(); document.getElementById('mComCard').remove();
         fallbackMonth();

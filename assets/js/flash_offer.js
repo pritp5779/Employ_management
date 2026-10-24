@@ -1,6 +1,6 @@
 /**
  * ⚡ Flash Offer — a short, time-boxed price promotion. Admin picks a few size+price combos and how many hours it runs
- * (Commission Rules page, window.FO_ADMIN = true); any order of exactly that size at exactly that price, sold inside those
+ * (Commission Rules page, window.FO_ADMIN = true); any order of that size (matched by total ML, price not compared), sold inside those
  * hours, earns a flat commission % (api_alloc.php: flash_offer_pct_for(), used inside coach_day()). My Sales and Order
  * Allocation (window.FO_ADMIN unset) show a live-countdown banner instead — big by default, or window.FO_SIZE = 'slim' for a
  * one-line strip. Saved through flash_offer.start / flash_offer.stop, read through flash_offer.get.
@@ -175,7 +175,7 @@
     const hist = ((DATA && DATA.history) || []).filter((x) => !runIds.includes(String(x.id))).slice(0, 8);
     r.innerHTML = `
       <h3>⚡ Flash Offer <span class="st ${runs.length ? 'on' : 'off'}">${runs.length ? 'Running' + (runs.length > 1 ? ' (' + runs.length + ')' : '') : 'Not running'}</span></h3>
-      <p class="rsub">A short price promotion: pick a few size + price combos and how many hours it runs. Any order of exactly that size, sold at exactly that price, inside those hours, earns this flat % instead of the ML price slab (no cap, no daily bonus, no floor) — an order without a code pays the "WITHOUT A CODE" % of that flat rate below (50 = half, e.g. 6% → 3%), its own number, separate from the main ML slab chart's nocode%. Several offers can run at once — each on its own sizes, so a size+price already in a running offer can't be reused until that offer stops. Shown with a live countdown on My Sales and Order Allocation. Orders sold inside the hours keep their % for good, even after it ends.</p>
+      <p class="rsub">A short price promotion: pick a few size + price combos and how many hours it runs. Any order of that size (total ML — the order price is not compared), placed inside those hours, earns this flat % instead of the ML price slab (no cap, no daily bonus, no floor) — an order without a code pays the "WITHOUT A CODE" % of that flat rate below (50 = half, e.g. 6% → 3%), its own number, separate from the main ML slab chart's nocode%. Several offers can run at once — each on its own sizes, so a size already in a running offer can't be reused until that offer stops. Shown with a live countdown on My Sales and Order Allocation. Orders sold inside the hours keep their % for good, even after it ends.</p>
       <div id="foMsg" class="msg"></div>
       ${runs.map((run) => `
       <div class="run">
