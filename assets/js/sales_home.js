@@ -102,6 +102,7 @@
 .sh-now .dot{position:absolute; top:11px; width:14px; height:14px; border-radius:50%; background:#14532d; border:2px solid #86efac; transform:translateX(-50%);} .sh-now .dot.on{background:#4ade80; border-color:#fff;} .sh-now .dot.next{background:#fff; border-color:#fb923c;}
 .sh-now .nb{position:absolute; top:-2px; transform:translateX(-50%); background:#fff; color:#14532d; font-size:10.5px; font-weight:900; border-radius:99px; padding:0 7px; line-height:15px; white-space:nowrap; z-index:2;}
 .sh-now .st{display:grid; gap:2px; text-align:center; margin-top:6px;} .sh-now .st div{font-size:10px; font-weight:800; line-height:1.35; padding:3px 0; border-radius:9px; font-variant-numeric:tabular-nums;} .sh-now .st b{display:block; font-size:11px;} .sh-now .st small{display:block; opacity:.85; font-weight:700;}
+.sh-now .tgl{font-size:12.5px; font-weight:800; margin:2px 0 6px; text-align:center;} .sh-now .tgl b{font-size:14px;} .sh-now .st .cp{display:block; font-style:normal; font-size:8.5px; font-weight:900; letter-spacing:.04em; opacity:.85; text-transform:uppercase;} .sh-now .st div:first-child .cp{color:#fde68a; opacity:1;}
 .sh-now .st .on{color:#bbf7d0;} .sh-now .st .next{color:#fff; background:rgba(255,255,255,.16);} .sh-now .st div:not(.on):not(.next){opacity:.8;}
 .sh-now .ms{margin-top:8px; font-size:12.5px; font-weight:700; text-align:center;} .sh-now .ms b{color:#bbf7d0;}
 .sh-now .rl{margin-top:7px; font-size:10.5px; line-height:1.45; opacity:.82; text-align:center;} .sh-now .rl b{color:#dcfce7;}
@@ -289,7 +290,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
       f = Math.max(0, Math.min(100, f));
       const nx = L.findIndex((x) => !x.hit);
       const dots = L.map((x, i) => `<i class="dot ${x.hit ? 'on' : i === nx ? 'next' : ''}" style="left:${pos(i)}%"></i>`).join('');
-      const labs = L.map((x, i) => `<div class="${x.hit ? 'on' : i === nx ? 'next' : ''}"><b>${x.hit ? '✅' : i === nx ? '👉' : '🔒'} ${kfmt(x.sales)}</b>${hasRs ? rs(x.total) : (Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : 'Target')}${hasRs && Number(x.bonus) > 0 ? `<small>+${Number(x.bonus)}%</small>` : ''}</div>`).join('');
+      const labs = L.map((x, i) => `<div class="${x.hit ? 'on' : i === nx ? 'next' : ''}"><em class="cp">${i === 0 ? '🎯 TARGET' : (T > 0 ? '+' + Math.round((x.sales / T - 1) * 100) + '% over' : '')}</em><b>${x.hit ? '✅' : i === nx ? '👉' : '🔒'} ${kfmt(x.sales)}</b>${hasRs ? rs(x.total) : (Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : 'Target')}${hasRs && Number(x.bonus) > 0 ? `<small>+${Number(x.bonus)}%</small>` : ''}</div>`).join('');
       let msg;
       if (nx < 0) msg = '🏆 <b>Every step unlocked</b> — you are at the top level. Keep stacking!';
       else {
@@ -302,7 +303,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
         const eg = hasRs ? (L[nx >= 0 ? nx : n - 1]) : null, rate = Number(m.avg_pct) || 0;
         rule = `<div class="rl">How it's counted: your normal commission on every order <b>+ ${L.filter((x) => Number(x.bonus) > 0).map((x) => Number(x.bonus) + '% at ' + kfmt(x.sales)).join(' · + ')}</b> of it.${eg && rate > 0 ? ` e.g. ${rs(eg.sales)} × ${rate}% = ${rs(eg.base)} → +${Number(eg.bonus)}% = <b>${rs(eg.total)}</b>` : ''}</div>`;
       }
-      track = `<hr><div class="tk"><span class="nb" style="left:${Math.max(7, Math.min(93, f))}%">${rs(sales)}</span><div class="rail"></div><div class="fill" style="width:${f}%"></div>${dots}</div><div class="st" style="grid-template-columns:repeat(${n},1fr)">${labs}</div><div class="ms">${msg}</div>${rule}`;
+      track = `<hr>${T > 0 ? `<div class="tgl">🎯 Your target <b>${rs(T)}</b> · ${sales >= T ? 'done ✅' : rs(Math.max(0, T - sales)) + ' to go'}</div>` : ''}<div class="tk"><span class="nb" style="left:${Math.max(7, Math.min(93, f))}%">${rs(sales)}</span><div class="rail"></div><div class="fill" style="width:${f}%"></div>${dots}</div><div class="st" style="grid-template-columns:repeat(${n},1fr)">${labs}</div><div class="ms">${msg}</div>${rule}`;
     }
     box.className = 'sh-now'; box.style.display = '';
     box.innerHTML = nums + track;
