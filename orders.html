@@ -244,6 +244,10 @@
   .em .el1{display:flex; align-items:center; min-height:20px;}
   .em .el1 .es-ec{display:inline; margin:0 0 0 8px;}
   .em .el2{display:flex; align-items:center; margin-top:5px;}
+  .em .el3{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;}
+  .hch{font-size:10px; font-weight:700; color:var(--c); border:1px solid var(--c); border-radius:9px; padding:0 7px; line-height:16px; background:#fff;}
+  .hsplit{display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:5px; font-size:11.5px; font-weight:600; opacity:.95;} .hsplit .hs{display:inline-flex; align-items:center; gap:5px;} .hsplit .hs i{width:8px; height:8px; border-radius:50%; display:inline-block; box-shadow:0 0 0 1.5px #fff;}
+  .tgt-chip.tot{font-size:14px;} .tgt-parts{margin-top:4px; display:grid; gap:3px;} .tgt-ln{display:flex; align-items:center; justify-content:space-between; gap:8px;} .tgt-ln small{font-size:10.5px; font-weight:700; color:var(--muted);} .tgt-ln .tgt-chip{padding:2px 7px; font-size:12px;}
   .em .el2 .es-tm{font-size:12px; font-weight:700;}
   body.es-dragging,body.es-dragging *{cursor:grabbing !important; user-select:none; -webkit-user-select:none;}
   .es-dragcatch{position:fixed; top:0; right:0; bottom:0; left:0; z-index:9999; touch-action:none; background:transparent;}
@@ -3153,7 +3157,7 @@
   // Community: one number per employee, typed by hand on a one-day view (✎ Write). A range adds up the typed days.
   let esCuEdit = '';         // "employee id|panel" being typed in
   function esCu(e) {
-    const key = e.id + '|' + e.b, man = (e.cmd || 0) > 0, can = esCanEdit() && e.real && teamData && teamData.single, d = `data-id="${e.id}" data-b="${e.b}"`;
+    const cb = e.cb || e.b, key = e.id + '|' + cb, man = (e.cmd || 0) > 0, can = esCanEdit() && e.real && teamData && teamData.single, d = `data-id="${e.id}" data-b="${cb}"`;
     if (can && esCuEdit === key) {
       const cur = ((teamData.community_manual || {})[key] || {})[teamData.from] || null;
       return `<div class="cu-edit"><input type="number" id="esCuY" min="0" max="9999" inputmode="numeric" value="${cur ? cur.yes : ''}" placeholder="0" aria-label="Community">` +
@@ -3168,7 +3172,7 @@
     if (!e.ord) return '<span class="es-sl">—</span>';
     const n = e[k + 'n'] || 0, v = e[k + 't'] || 0;
     const inner = `<b>${n}</b><small>${n ? esInr(v) : 'none'}</small>`;
-    return e.real && n > 0 ? `<a href="#" class="es-tm" data-lk="${k}" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${inner}</a>` : `<span class="es-tm${n ? '' : ' z'}">${inner}</span>`;
+    return e.real && n > 0 ? `<a href="#" class="es-tm" data-lk="${k}" data-n="${esEsc(e.n)}" data-b="${esPb(e)}" title="Show these orders">${inner}</a>` : `<span class="es-tm${n ? '' : ' z'}">${inner}</span>`;
   }
   function esCuTot(t) {
     return (t.cmd || 0) > 0 ? `<span class="es-cu"><b>${t.cy}</b></span>` : '<span class="es-sl">—</span>';
@@ -3311,6 +3315,50 @@
   }
   function slot0() { return { coll: 0, ord: 0, qo: 0, qc: 0, ko: 0, kc: 0, cod: 0, codPaid: 0, pre: 0, pon: 0, pot: 0, pobn: 0, pobt: 0, poan: 0, poat: 0, cy: 0, cmd: 0, t1n: 0, t1t: 0, t2n: 0, t2t: 0, t3n: 0, t3t: 0, col: [0, 0, 0, 0] }; }
 
+  // ---- ONE ROW PER PERSON. Somebody who sells for two houses (TM Perfume House + TM Shower Gel …) is one row with everything added up.
+  // The row keeps its `parts` (the house by house numbers) so the target of each house can still be changed, and the house chips show under the name.
+  const ES_SUM = ['coll', 'ord', 'qo', 'qc', 'ko', 'kc', 'cod', 'codPaid', 'pre', 'pon', 'pot', 'pobn', 'pobt', 'poan', 'poat', 'cy', 'cmd', 't1n', 't1t', 't2n', 't2t', 't3n', 't3t', 'q', 'k', 'tot', 'tg'];
+  const PANEL_SHORT = { tmph: 'TM Perfume', tm4u: 'TM4U', tmsg: 'Shower Gel', none: 'No panel' };
+  const PANEL_COLOR = {}; PANELS.forEach(p => { PANEL_COLOR[p[0]] = p[2]; });
+  const esPb = (e) => e.b === 'all' ? '' : e.b;                  // the panel a click should narrow the order list to ('' = every panel)
+  function esMerge(rows) {
+    const byId = new Map(), out = [], un = [];
+    rows.forEach(e => { if (!e.real) un.push(e); else { if (!byId.has(e.id)) byId.set(e.id, []); byId.get(e.id).push(e); } });
+    const rem = (teamData && teamData.remarks && !Array.isArray(teamData.remarks)) ? teamData.remarks : {};
+    byId.forEach(list => {
+      const tgOk = (x) => PANEL_GK[x.b] !== undefined;
+      const prim = list.slice().sort((a, b) => (tgOk(b) ? 1 : 0) - (tgOk(a) ? 1 : 0) || b.coll - a.coll)[0];
+      const m = Object.assign({}, prim, { b: 'all', pb: prim.b });
+      ES_SUM.forEach(f => { m[f] = list.reduce((a, x) => a + (Number(x[f]) || 0), 0); });
+      m.col = [0, 0, 0, 0]; list.forEach(x => x.col.forEach((v, i) => { m.col[i] += v; }));
+      const on = list.reduce((a, x) => a + (x.or[1] || 0), 0);
+      m.or = on ? [list.reduce((a, x) => a + x.or[0] * (x.or[1] || 0), 0) / on, on] : [0, 0];
+      m.abd = Math.max(0, ...list.map(x => x.abd || 0)); m.lvd = Math.max(0, ...list.map(x => x.lvd || 0));
+      const tp = list.filter(tgOk);
+      m.ab = tp.length > 0 && tp.every(x => x.ab);
+      m.parts = list.map(x => ({ b: x.b, tg: x.tg, tsrc: x.tsrc, how: x.how, shared: x.shared, ab: x.ab, abd: x.abd || 0, lvd: x.lvd || 0, coll: x.coll, ord: x.ord }));
+      m.tsrc = tp.length === 1 ? tp[0].tsrc : (tp.some(x => x.tsrc === 'manual') ? 'manual' : prim.tsrc); m.how = tp.length === 1 ? tp[0].how : '';
+      m.rb = (list.find(x => rem[x.id + '|' + x.b]) || prim).b;         // remark and Community number are saved under one house
+      m.cb = (list.find(x => x.cmd > 0) || prim).b;
+      const cms = list.map(x => x.cm).filter(Boolean);
+      if (cms.length) {
+        const coll = cms.reduce((a, c) => a + (c.coll || 0), 0), tags = new Map();
+        cms.forEach(c => (c.tags || []).forEach(t => { const k = t.k + '|' + t.l, o = tags.get(k) || { k: t.k, l: t.l, n: 0, d: 0 }; o.n += t.n || 0; o.d += t.d || 0; tags.set(k, o); }));
+        m.cm = { amt: cms.reduce((a, c) => a + (c.amt || 0), 0), coll, n: cms.reduce((a, c) => a + (c.n || 0), 0), rate: coll > 0 ? cms.reduce((a, c) => a + (c.rate || 0) * (c.coll || 0), 0) / coll : 0, tags: [...tags.values()] };
+      } else m.cm = null;
+      out.push(m);
+    });
+    if (un.length) {
+      const u = Object.assign({}, un[0], { b: 'all' });
+      ES_SUM.forEach(f => { u[f] = un.reduce((a, x) => a + (Number(x[f]) || 0), 0); });
+      u.col = [0, 0, 0, 0]; un.forEach(x => x.col.forEach((v, i) => { u.col[i] += v; }));
+      out.push(u);
+    }
+    return out;
+  }
+  // The rows of one block: 'all' = everybody once, otherwise that house only.
+  const esRowsFor = (b) => b === 'all' ? esMerge(esRows().filter(e => panelAllowed(e.b))) : esRows().filter(e => e.b === b);
+
   // The employees of one panel in the order picked in the Sort box. "My order" is the one set by drag and drop.
   function esSortRows(real, s, panel) {
     // Absent employees go to the bottom (keeping the chosen sort inside each part); WFH / leave count as not absent.
@@ -3354,6 +3402,22 @@
   // ---- Target cell (same look as the Targets page) and Collection cell (Query / Campaign / Other bar)
   let esEditTg = '';      // "employee id|panel" of the target being typed
   function esTgtCell(e) {
+    if (e.b === 'all') {          // one row for a person: the targets of all their houses added up, each house still editable
+      if (!e.real) return '<span class="es-sl">—</span>';
+      const ps = (e.parts || []).filter(p => PANEL_GK[p.b] !== undefined);
+      if (!ps.length) return '<span class="es-sl">—</span>';
+      if (ps.length === 1) return esTgtCell(Object.assign({}, e, ps[0], { b: ps[0].b, parts: null }));
+      const can = esCanEdit();
+      if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">Absent — target not counted</div>`;
+      const lines = ps.map(p => {
+        const d = `data-id="${e.id}" data-b="${p.b}"`, v = p.ab ? 0 : p.tg;
+        if (can && esEditTg === e.id + '|' + p.b) return `<div class="tgt-ln"><small>${PANEL_SHORT[p.b]}</small><span class="tgt-edit"><input type="number" id="esTgIn" min="0" step="100" value="${p.tsrc === 'manual' ? p.tg : ''}" placeholder="Daily target"><button class="ok" data-tg="save" ${d}>✓</button><button data-tg="x" ${d}>✕</button></span></div>`;
+        return `<div class="tgt-ln"><small style="color:${PANEL_COLOR[p.b]}">${PANEL_SHORT[p.b]}</small>` +
+          (can ? `<span class="tgt-chip ${v > 0 ? '' : 'empty'}" data-tg="edit" ${d} title="Click to set this house by hand">${v > 0 ? esInr(v) : 'Set'} ✎</span>` : `<span class="tgt-chip ro">${esInr(v)}</span>`) + '</div>';
+      }).join('');
+      const note = (e.abd > 0 ? `<div class="tgt-how">${e.abd} absent day${e.abd === 1 ? '' : 's'} not counted</div>` : '') + (e.lvd > 0 ? `<div class="tgt-how">${e.lvd} leave day${e.lvd === 1 ? '' : 's'} not counted</div>` : '');
+      return `<span class="tgt-chip ro tot"><b>${e.tg > 0 ? esInr(e.tg) : '—'}</b></span><div class="tgt-parts">${lines}</div>${note}`;
+    }
     if (!e.real || PANEL_GK[e.b] === undefined) return '<span class="es-sl">—</span>';     // "No panel" has no target
     const can = esCanEdit(), d = `data-id="${e.id}" data-b="${e.b}"`;
     if (e.ab) return `<span class="tgt-chip ro">${esInr(0)}</span><div class="tgt-how">${esEsc(e.how || 'Absent — target not counted')}</div>`;
@@ -3379,7 +3443,7 @@
   // A count that opens the orders behind it (this person's all / query / campaign orders in this panel).
   function esLk(e, v, n, bold) {
     const t = bold ? '<b>' + n + '</b>' : String(n);
-    return e.real && n > 0 ? `<a href="#" class="es-lk" data-lk="${v}" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${t}</a>` : t;
+    return e.real && n > 0 ? `<a href="#" class="es-lk" data-lk="${v}" data-n="${esEsc(e.n)}" data-b="${esPb(e)}" title="Show these orders">${t}</a>` : t;
   }
   // The inside of a cell (no <td>), so the same value can sit in a table cell, in the one Target & Orders box or on a phone card.
   const esCv = (e, tot, abs) => (k) => (tot ? esFoot(k, e) : esCell(k, e, abs)).replace(/^<td[^>]*>/, '').replace(/<\/td>$/, '');
@@ -3423,11 +3487,11 @@
       else { const avg = e.ord > 0 ? e.coll / e.ord : 0; h += `<div class="tb3">🎯 Pending target <span class="pk bad">${esInr(left)} left</span>${avg > 0 ? `<span>· ~${Math.ceil(left / avg)} order${Math.ceil(left / avg) === 1 ? '' : 's'}</span>` : ''}</div>`; }
     }
     if (window.Convo) {
-      const mine = scopedOrders().filter((o) => ocvOk(o) && o.salesman === e.n && panelOf(o) === e.b);
+      const mine = scopedOrders().filter((o) => ocvOk(o) && o.salesman === e.n && (e.b === 'all' || panelOf(o) === e.b));
       const c = ESCV.calls[e.id];
       if (mine.length || (c && c.required)) {
         const done = mine.filter((o) => ocvDone(OCV[ocvKey(o)])).length, pend = mine.length - done;
-        h += `<div class="tb3">📎 Chat proof ${pend ? `<a href="#" class="pk pd" data-proof="1" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show these orders">${pend} pending</a>` : `<span class="pk z">0 pending</span>`}<span class="pk ok">${done} done</span>`
+        h += `<div class="tb3">📎 Chat proof ${pend ? `<a href="#" class="pk pd" data-proof="1" data-n="${esEsc(e.n)}" data-b="${esPb(e)}" title="Show these orders">${pend} pending</a>` : `<span class="pk z">0 pending</span>`}<span class="pk ok">${done} done</span>`
           + (c && (c.required || c.uploaded) ? ` · 📞 Calls <span class="pk ${c.uploaded >= c.required ? 'ok' : 'cl'}">${c.uploaded} / ${c.required}</span>` : '') + `</div>`;
       }
     }
@@ -3494,26 +3558,28 @@
   // The Employee block: name (+ code) on top, under it ONE line with status, time, Auto/Manual and the edit button.
   function esEmp(e, label, abs) {
     const nm = e.real
-      ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" data-b="${e.b}" title="Show this person's orders in ${esEsc(label)}"><b>${esEsc(e.n)}</b></a>`
+      ? `<i class="es-dot ${abs ? 'x' : 'o'}"></i><a href="#" class="es-nm" data-n="${esEsc(e.n)}" data-b="${esPb(e)}" title="Show this person's orders in ${esEsc(label)}"><b>${esEsc(e.n)}</b></a>`
       : `<i class="es-dot n"></i><b>${esEsc(e.n)}</b>`;
-    return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${e.real ? `<div class="el2">${esStatus(e)}</div>${esRemark(e)}` : ''}</div>`;
+    const hs = e.real && e.parts ? e.parts.filter(p => p.b !== 'none' || p.coll > 0 || e.parts.length === 1) : [];
+    const hc = hs.length > 1 ? `<div class="el3">${hs.map(p => `<span class="hch" style="--c:${PANEL_COLOR[p.b]}" title="${esEsc(PANEL_NAME[p.b])}: ${esInr(p.coll)}">${PANEL_SHORT[p.b]}</span>`).join('')}</div>` : '';
+    return `<div class="eb"><div class="el1">${nm}${e.real && e.c ? `<span class="es-ec">${esEsc(e.c)}</span>` : ''}</div>${hc}${e.real ? `<div class="el2">${esStatus(e)}</div>${esRemark(e)}` : ''}</div>`;
   }
   // ---- Remark: a note typed by hand under the employee (one per day, employee and panel); the writer's name follows it. One-day view only.
   let esRemEdit = '';        // "employee id|panel" being typed in
   function esRemark(e) {
     if (!teamData || !teamData.single) return '';
-    const key = e.id + '|' + e.b, r = (teamData.remarks || {})[key], can = esCanEdit();
+    const rb = e.rb || e.b, key = e.id + '|' + rb, r = (teamData.remarks || {})[key], can = esCanEdit();
     if (can && esRemEdit === key) {
       return `<div class="rm"><div class="rm-edit"><textarea id="esRemIn" maxlength="500" placeholder="Write a note…">${esEsc(r ? r.note : '')}</textarea><div class="row"><small>Saved with your name</small>` +
-        (r ? `<button type="button" class="del" data-rm="del" data-id="${e.id}" data-b="${e.b}">Delete</button>` : '') +
-        `<button type="button" data-rm="x">✕</button><button type="button" class="ok" data-rm="save" data-id="${e.id}" data-b="${e.b}">✓ Save</button></div></div></div>`;
+        (r ? `<button type="button" class="del" data-rm="del" data-id="${e.id}" data-b="${rb}">Delete</button>` : '') +
+        `<button type="button" data-rm="x">✕</button><button type="button" class="ok" data-rm="save" data-id="${e.id}" data-b="${rb}">✓ Save</button></div></div></div>`;
     }
     if (r && r.note) {
       let when = '';
       if (r.at) { const d = new Date(String(r.at).replace(' ', 'T')); if (!isNaN(d)) when = ' <small>· ' + d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) + '</small>'; }
-      return `<div class="rm"><span class="rm-note${can ? ' can' : ''}"${can ? ` data-rm="edit" data-id="${e.id}" data-b="${e.b}" title="Click to change"` : ''}>${esEsc(r.note)}${r.by ? `<b class="by">— ${esEsc(r.by)}${when}</b>` : ''}</span></div>`;
+      return `<div class="rm"><span class="rm-note${can ? ' can' : ''}"${can ? ` data-rm="edit" data-id="${e.id}" data-b="${rb}" title="Click to change"` : ''}>${esEsc(r.note)}${r.by ? `<b class="by">— ${esEsc(r.by)}${when}</b>` : ''}</span></div>`;
     }
-    return can ? `<div class="rm"><button type="button" class="rm-add" data-rm="edit" data-id="${e.id}" data-b="${e.b}">✎ Add remark</button></div>` : '';
+    return can ? `<div class="rm"><button type="button" class="rm-add" data-rm="edit" data-id="${e.id}" data-b="${rb}">✎ Add remark</button></div>` : '';
   }
   async function esRemSave(id, b, note) {
     if (!teamData || !teamData.single) return;
@@ -3537,7 +3603,7 @@
       renderTeamSheet();
     } catch (er) { alert(/unknown action/i.test(er.message || '') ? 'Your server api.php is old — upload the latest api.php' : er.message); }
   }
-  const PBX = (k) => '<button type="button" class="pbx" data-xl="panel:' + k + '" title="Download this panel as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button>';
+  const PBX = (k) => '<button type="button" class="pbx" data-xl="' + (k === 'all' ? 'view' : 'panel:' + k) + '" title="Download this panel as Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Excel</button>';
   // ---- the sheet as a table (computer) ...
   function esTableHtml(blocks, gs) {
     const ncol = 1 + gs.reduce((n, g) => n + ES_COLS[g.k].length, 0);
@@ -3592,8 +3658,20 @@
     setTimeout(esCvLoad, 0);      // chat proof / calls counts for the pending lines (re-draws once loaded)
     const gs = ES_GROUPS.filter(g => esOn[g.k]);
     const all = esRows(), people = new Set(), blocks = [];
-    PANELS.forEach(([k, label, color]) => {
-      if (!panelAllowed(k) || (panelPick && panelPick !== k)) return;
+    if (!panelPick) {
+      // ONE panel: everybody once, houses added up. Pick a house button above to look at that house alone.
+      const rows = esVisible(esRowsFor('all'));
+      if (rows.length) {
+        const t = esTotals(rows), real = rows.filter(e => e.real);
+        real.forEach(e => people.add(e.id));
+        const pc = esPct(t.coll, t.tg), bh = {};
+        all.forEach(e => { if (panelAllowed(e.b)) bh[e.b] = (bh[e.b] || 0) + e.coll; });
+        const split = PANELS.filter(p => bh[p[0]] > 0).map(p => `<span class="hs"><i style="background:${p[2]}"></i>${ocEsc(PANEL_SHORT[p[0]])} <b>${esInr(bh[p[0]])}</b></span>`).join('');
+        const stats = `${real.length} employee${real.length === 1 ? '' : 's'} · Collection <b>${esInr(t.coll)}</b> · Target <b>${t.tg ? esInr(t.tg) : '—'}</b>${pc !== null ? ' · <b>' + pc + '%</b>' : ''}${split ? `<span class="hsplit">${split}</span>` : ''}`;
+        blocks.push({ k: 'all', label: 'All panels', color: '#111827', rows, t, real, stats });
+      }
+    } else PANELS.forEach(([k, label, color]) => {
+      if (!panelAllowed(k) || panelPick !== k) return;
       const rows = esVisible(all.filter(e => e.b === k));
       if (!rows.length) return;
       const t = esTotals(rows), real = rows.filter(e => e.real);
@@ -3658,7 +3736,7 @@
   }
   // `vis` = the employees now showing in that block, top to bottom. The saved order keeps everyone who is hidden by the search / filter where they were.
   async function esMoved(b, id, vis) {
-    const full = esSortRows(esRows().filter(e => e.b === b && e.real), esEl('esSort').value, b).map(e => e.id);
+    const full = esSortRows(esRowsFor(b).filter(e => e.real), esEl('esSort').value, b).map(e => e.id);
     const i = vis.indexOf(id), prev = vis[i - 1], next = vis[i + 1];
     const rest = full.filter(x => x !== id);
     let at = rest.length;
@@ -3829,9 +3907,9 @@
 
   // ---------- Click a commission: which rules were applied (summary, then order by order) ----------
   function esCmOpen(id, b) {
-    const e = esRows().find(r => r.id === id && r.b === b), c = e && e.cm; if (!c) return;
+    const e = esRowsFor(b).find(r => r.id === id), c = e && e.cm; if (!c) return;
     const from = esEl('dateFrom').value, to = esEl('dateTo').value, nm = String(e.n || '').trim().toLowerCase();
-    const list = allOrders.filter(o => !o.cancelled && isCounted(o) && String(o.salesman || '').trim().toLowerCase() === nm && panelOf(o) === b).sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
+    const list = allOrders.filter(o => !o.cancelled && isCounted(o) && String(o.salesman || '').trim().toLowerCase() === nm && (b === 'all' || panelOf(o) === b)).sort((x, y) => String(x.created_at) < String(y.created_at) ? -1 : 1);
     const tags = c.tags || [], special = tags.reduce((a, t) => a + (t.k === 'panel' || t.k === 'fixed' || (t.k === 'mix' && !/full commission/.test(t.l)) ? t.n : 0), 0), slabN = Math.max(0, c.n - special);
     const sgn = (d) => (d < 0 ? '−' : '+') + esInr(Math.abs(d));
     const money = (v) => '₹' + (Math.round(v * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -3845,7 +3923,7 @@
     const rl = (chip, text, d) => `<div class="rl">${chip}<span class="n">${text}</span>${d ? `<span class="d ${d < 0 ? 'neg' : 'pos'}">${sgn(d)} vs normal</span>` : ''}</div>`;
     const rules = (slabN > 0 && c.rate > 0 ? rl(`<span class="cmt k-rate">${esPf(c.rate)} slab</span>`, `Base: ${slabN} order${slabN === 1 ? '' : 's'} start from the slab rate of ${esPf(c.rate)} (from this person's target, ticket size and prepaid share). The rules below then change some orders.`, 0) : '') +
       tags.map(t => rl(`<span class="cmt k-${t.k}">${esEsc(t.l)}</span>`, `${t.n} order${t.n === 1 ? '' : 's'}`, t.d)).join('');
-    esEl('cmTtl').textContent = 'Commission — ' + e.n + ' · ' + (PANEL_NAME[b] || '');
+    esEl('cmTtl').textContent = 'Commission — ' + e.n + ' · ' + (b === 'all' ? 'all panels' : (PANEL_NAME[b] || ''));
     esEl('cmSub').textContent = (from === to ? dateLabel(from) : dateLabel(from) + ' – ' + dateLabel(to)) + ' · live from the Commission page';
     esEl('cmBd').innerHTML = `<div class="big"><div class="or"><span>Commission</span><b>${money(c.amt)}</b></div><div><span>of collection</span><b>${c.coll > 0 ? esPf(c.amt / c.coll * 100) : '—'}</b></div><div><span>Collection</span><b>${esInr(c.coll)}</b></div><div><span>Orders</span><b>${c.n}</b></div></div>` +
       `<h4>Rules applied</h4>${rules || '<div class="rl"><span class="n">No special rule — every order paid at the normal slab rate.</span></div>'}` +
@@ -3985,6 +4063,12 @@
     function empSheet(keys, filtered) {
       const all = esRows(), aoa = [EMP_HEAD], bold = [];
       let grand = null; const gAcc = [];
+      if (filtered && keys.length > 1) {      // the "All panels" view: everybody once, houses added up
+        const rows = esVisible(esMerge(all.filter(e => keys.includes(e.b))));
+        rows.forEach(e => aoa.push(empLine(e, e.real && e.parts && e.parts.length > 1 ? e.parts.filter(p => p.b !== 'none' || p.coll > 0).map(p => PANEL_SHORT[p.b]).join(' + ') : (e.real ? PANEL_NAME[e.pb] : 'All panels'))));
+        if (rows.length) { aoa.push(totLine(esTotals(rows), 'All panels', 'GRAND TOTAL')); bold.push(aoa.length - 1); }
+        return { aoa, fmt: EMP_FMT, w: EMP_W, bold, filter: true };
+      }
       keys.forEach(k => {
         const lab = PANEL_NAME[k], pr = all.filter(e => e.b === k);
         const rows = filtered ? esVisible(pr) : esSortRows(pr.filter(e => e.real), esEl('esSort').value, k).concat(pr.filter(e => !e.real));

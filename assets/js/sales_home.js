@@ -119,6 +119,8 @@
 .sh-now .ms{margin-top:8px; font-size:12.5px; font-weight:700; text-align:center;} .sh-now .ms b{color:#bbf7d0;}
 .sh-now .rl{margin-top:7px; font-size:10.5px; line-height:1.45; opacity:.82; text-align:center;} .sh-now .rl b{color:#dcfce7;}
 @media (min-width:700px){.sh-now{padding:14px 14px 13px;} .sh-now .nn b{font-size:19px;} .sh-now .nn small{font-size:10px;} .sh-now .qg{font-size:13.5px;} .sh-now .lf b{font-size:19px;}}
+.sh-rmk{border-radius:16px; padding:11px 13px; margin-bottom:10px; border:1.5px solid #c7d2fe; background:linear-gradient(180deg,#eef2ff,#fff); color:#312e81;} .sh-rmk h4{margin:0 0 6px; font-size:13.5px; font-weight:900; display:flex; align-items:center; gap:6px;} .sh-rmk h4 em{font-style:normal; background:#4f46e5; color:#fff; border-radius:99px; font-size:11px; padding:1px 8px;}
+.sh-rmk .r{background:#fff; border:1px solid #e0e7ff; border-radius:12px; padding:8px 10px; margin-top:6px; font-size:13px; line-height:1.4; color:#1e1b4b;} .sh-rmk .r.new{border-color:#818cf8; box-shadow:0 0 0 2px #e0e7ff;} .sh-rmk .r small{display:block; margin-top:3px; font-size:11px; color:#6366f1; font-weight:700;} .sh-rmk .more{border:0; background:none; color:#4338ca; font-weight:800; font-size:12px; margin-top:6px; cursor:pointer; padding:4px 0; min-height:0;}
 .sh-lost{border-radius:16px; padding:11px 13px; margin-bottom:10px; display:flex; align-items:center; gap:10px; border:1.5px solid #fdba74; background:linear-gradient(180deg,#fff7ed,#fff); color:#7c2d12;} .sh-lost.ok{border-color:#86efac; background:linear-gradient(180deg,#f0fdf4,#fff); color:#14532d;}
 .sh-lost .ic{font-size:24px; line-height:1;} .sh-lost .tx{flex:1; min-width:0; font-size:12px; line-height:1.4;} .sh-lost .tx b{display:block; font-size:13.5px; font-weight:900;}
 .sh-lost button{border:0; border-radius:99px; background:#ea580c; color:#fff; font-weight:900; font-size:12.5px; padding:9px 14px; cursor:pointer; white-space:nowrap; min-height:0;}
@@ -230,7 +232,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-lr .cv{text-align:right;} .sh-lr .cv b{display:block; font-size:14px; font-weight:900; color:#0f172a;} .sh-lr .cv small{font-size:10px; color:#64748b;}
 /* phones: everything on My Sales Home about 20% smaller (text, cards, notifications) */
 @media (max-width:640px){
-  #shNow, #shLost, #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
+  #shNow, #shLost, #shRemarks, #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
   .sh-toast{zoom:.8; width:min(440px,calc((100vw - 24px) / .8));}
   .sh-zoom .zb, .sh-zoom .zs{zoom:.9;}
 }
@@ -376,11 +378,28 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     const ids = list.map((r) => r.id);
     bd.innerHTML = `<div class="sh-pop sh-rem" role="dialog" aria-modal="true"><h3>💬 ${list.length > 1 ? 'Remarks' : 'Remark'} from ${esc(list[0].from || 'your sales head')}</h3>${list.map((r) => `<div class="rb">${esc(r.body)}<small>${esc(r.from || '')}${r.at ? ' · ' + esc(r.at) : ''}</small></div>`).join('')}<button type="button" class="main" id="shRemOk">Got it 👍</button></div>`;
     document.body.appendChild(bd);
-    $('shRemOk').onclick = () => { bd.remove(); api.post('ct.remark_seen', { ids }).catch(() => {}); if (S.ct) S.ct.remarks = []; };
+    $('shRemOk').onclick = () => { bd.remove(); api.post('ct.remark_seen', { ids }).then(loadRemarkList).catch(() => {}); if (S.ct) S.ct.remarks = []; RMK.list.forEach((r) => { if (ids.indexOf(r.id) > -1) r.seen = true; }); paintRemarks(); };
+  }
+  // ------------------------------------------------------------------ 💬 My remarks: every remark from the sales head stays here (14 days), even after "Got it"
+  let RMK = { list: [], all: false };
+  async function loadRemarkList() {
+    try { const r = await api.get('ct.remark_all'); RMK.list = (r && r.remarks) || []; } catch (e) { return; }
+    paintRemarks();
+  }
+  function paintRemarks() {
+    let box = $('shRemarks');
+    if (!RMK.list.length) { if (box) box.style.display = 'none'; return; }
+    if (!box) { box = document.createElement('section'); box.id = 'shRemarks'; const a = $('shLost') || $('shNow'); if (!a || !a.parentNode) return; a.parentNode.insertBefore(box, a.nextSibling); }
+    const fmt = (t) => { const d = String(t || ''); return d.slice(8, 10) + '/' + d.slice(5, 7) + ' ' + d.slice(11, 16); };
+    const show = RMK.all ? RMK.list : RMK.list.slice(0, 3), nw = RMK.list.filter((r) => !r.seen).length;
+    box.className = 'sh-rmk'; box.style.display = '';
+    box.innerHTML = `<h4>💬 My remarks ${nw ? '<em>' + nw + ' new</em>' : ''}</h4>` + show.map((r) => `<div class="r${r.seen ? '' : ' new'}">${esc(r.body)}<small>${esc(r.from || 'Sales head')} · ${esc(fmt(r.at))}${r.seen ? '' : ' · tap Got it'}</small></div>`).join('') +
+      (RMK.list.length > 3 ? `<button type="button" class="more" id="shRmkMore">${RMK.all ? 'Show less' : 'Show all (' + RMK.list.length + ')'}</button>` : '');
+    const mo = $('shRmkMore'); if (mo) mo.onclick = () => { RMK.all = !RMK.all; paintRemarks(); };
   }
   async function checkRemarks() {
     if (document.hidden || document.querySelector('.sh-popbd')) return;
-    try { const r = await api.get('ct.remark_mine'); if (r && r.remarks && r.remarks.length) { chime(); remarkPopup(r.remarks); } } catch (e) { /* offline */ }
+    try { const r = await api.get('ct.remark_mine'); if (r && r.remarks && r.remarks.length) { chime(); remarkPopup(r.remarks); loadRemarkList(); } } catch (e) { /* offline */ }
   }
 
   function paint() {
@@ -974,7 +993,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 
   async function loadMissions() {
     try { S.ct = await api.get('ct.my'); } catch (e) { return; }
-    paintMissions(); paintLeaders(); paintStory();
+    paintMissions(); paintLeaders(); paintStory(); loadRemarkList();
     const rm = S.ct && S.ct.remarks;
     if (rm && rm.length && !S.open && !document.querySelector('.cvx')) { chime(); remarkPopup(rm); return; }      // a remark first — the proof pop-up comes at the next check
     const pu = S.ct && S.ct.popup;

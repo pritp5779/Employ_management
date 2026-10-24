@@ -65,6 +65,11 @@
   .rt-seg{display:flex; gap:6px; flex-wrap:wrap;} .rt-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0 4px;} .rt-sum div{background:#f6f7f9; border-radius:12px; padding:8px 10px;} .rt-sum b{display:block; font-size:19px; font-weight:900;} .rt-sum small{font-size:11px; color:var(--muted); font-weight:700;}
   .rt-p{border-top:1px solid var(--line);} .rt-p>summary{list-style:none; cursor:pointer; display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; padding:10px 4px;} .rt-p>summary::-webkit-details-marker{display:none;}
   .rt-sc{font-weight:900; font-size:15px; border-radius:99px; padding:2px 12px; background:#e5e7eb;} .rt-sc.g{background:#dcfce7; color:#166534;} .rt-sc.a{background:#fef3c7; color:#92400e;} .rt-sc.r{background:#fee2e2; color:#991b1b;}
+  .rt-qc{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; align-items:center;} .rt-qc span{font-size:11px; font-weight:800; border-radius:999px; padding:2px 9px; background:#eef2ff; color:#3730a3; white-space:nowrap;} .rt-qc .mn{background:#ecfdf5; color:#065f46;} .rt-qc .lo{background:#f1f5f9; color:#475569;} .rt-qc .lo.old{background:#fef3c7; color:#92400e;} .rt-qc .lo.none{background:#fee2e2; color:#991b1b;} .rt-qc .cv.g{background:#dcfce7; color:#166534;} .rt-qc .cv.a{background:#fef3c7; color:#92400e;} .rt-qc .cv.r{background:#fee2e2; color:#991b1b;}
+  .tg-pg{height:8px; border-radius:99px; background:#e5e7eb; overflow:hidden; position:relative; margin-top:6px; min-width:90px;} .tg-pg i{display:block; height:100%; border-radius:99px; background:#f59e0b; transition:width .4s;} .tg-pg.mid i{background:#3b82f6;} .tg-pg.ok i{background:linear-gradient(90deg,#16a34a,#22c55e);} .tg-pg.low i{background:#ef4444;}
+  .tg-ok{display:inline-block; margin-top:4px; font-size:11px; font-weight:900; color:#166534; background:#dcfce7; border-radius:99px; padding:1px 9px;} .tg-row{width:100%; margin-top:6px;} .tg-row .tg-t{display:flex; justify-content:space-between; font-size:11.5px; font-weight:800; color:#065f46;}
+  .rt-rb{border:1px solid #c7d2fe; background:#fff; color:#3730a3; border-radius:999px; font-size:11.5px; font-weight:800; padding:3px 11px; cursor:pointer; min-height:28px; width:auto;} .rt-rb:hover{background:#eef2ff;}
+  .qy-t{width:100%; border-collapse:collapse; font-size:13px;} .qy-t th{font-size:10.5px; text-transform:uppercase; color:var(--muted); text-align:left; padding:6px 6px; border-bottom:1px solid var(--line);} .qy-t td{padding:9px 6px; border-bottom:1px solid #f1f5f9; vertical-align:middle;} .qy-t td.n{text-align:right; font-variant-numeric:tabular-nums;} .qy-t th.n{text-align:right;} .card .qy-t{min-width:0;}
   .rt-lb{font-size:11.5px; color:var(--muted); font-weight:700;} .rt-body{padding:0 4px 10px 36px;}
   .rt-r{display:grid; grid-template-columns:1fr auto; column-gap:10px; padding:5px 0; border-top:1px dashed var(--line); font-size:13px;} .rt-r:first-child{border-top:0;} .rt-r .rn{font-weight:800;} .rt-r .rv{font-weight:900; text-align:right;}
   .rt-bar{grid-column:1/-1; height:5px; border-radius:4px; background:#e5e7eb; overflow:hidden; margin:3px 0;} .rt-bar i{display:block; height:100%;} .rt-bar i.g{background:#16a34a;} .rt-bar i.a{background:#f59e0b;} .rt-bar i.r{background:#ef4444;}
@@ -130,6 +135,17 @@
   .hs-t tr.now td{background:#fefce8; font-weight:800;} .hs-t tr.tot td{border-top:2px solid var(--line); font-weight:900; background:#f8fafc;}
   .hs-lg{display:flex; gap:4px 12px; flex-wrap:wrap; font-size:11px; font-weight:800; margin-top:6px;} .hs-lg i{display:inline-block; width:14px; height:4px; border-radius:3px; margin-right:4px; vertical-align:middle;}
   .card table.hs-t{min-width:0; width:100%;}
+  /* Today tab: Remarks section + collection check */
+  .rm-sec .rm-sum{display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 12px;} .rm-sec .rm-sum span{border-radius:999px; padding:5px 12px; font-size:12.5px; font-weight:800; background:#f1f5f9; color:#334155;} .rm-sec .rm-sum .g{background:#dcfce7; color:#166534;} .rm-sec .rm-sum .w{background:#fef3c7; color:#92400e;}
+  .rm-new{display:grid; grid-template-columns:200px 1fr auto; gap:8px; align-items:start;} .rm-new select,.rm-new textarea{width:100%; border:1px solid var(--line); border-radius:10px; padding:9px 11px; font:inherit; font-size:14px; background:#fff; min-height:44px;} .rm-new textarea{resize:vertical; min-height:44px;}
+  .rm-new .btn{width:auto; white-space:nowrap; min-height:44px;} .rm-qk{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px;} .rm-qk button{border:1px solid var(--line); background:#fff; border-radius:999px; padding:5px 11px; font-size:12px; font-weight:700; color:#334155; cursor:pointer; min-height:32px;} .rm-qk button:hover{background:#f8fafc;}
+  .rm-log{margin-top:14px;} .rm-log h3{font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:12px 0 6px;} .rm-it{display:grid; grid-template-columns:62px 130px 1fr auto; gap:10px; padding:9px 0; border-bottom:1px solid #f1f5f9; align-items:start; font-size:13.5px;} .rm-it .tm{color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums;} .rm-it .to{font-weight:800;} .rm-it .by{display:block; color:var(--muted); font-size:11.5px; font-weight:600;} .rm-it .st{font-size:11.5px; font-weight:800; border-radius:999px; padding:3px 10px; white-space:nowrap;} .rm-it .st.ok{background:#dcfce7; color:#166534;} .rm-it .st.wait{background:#fef3c7; color:#92400e;}
+  .rm-pp{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 4px;} .rm-pp span{font-size:11.5px; font-weight:700; background:#eef2ff; color:#3730a3; border-radius:999px; padding:3px 10px;}
+  @media (max-width:700px){ .rm-new{grid-template-columns:1fr;} .rm-new .btn{width:100%;} .rm-it{grid-template-columns:1fr auto; gap:4px 10px;} .rm-it .tm{grid-column:1; order:1;} .rm-it .st{grid-column:2; grid-row:1; order:2;} .rm-it .to{grid-column:1 / span 2; order:3;} .rm-it .bd{grid-column:1 / span 2; order:4;} }
+  .rc-box{margin-bottom:14px;} .rc-hd{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:2px 0 10px;} .rc-hd div{background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:10px 12px;} .rc-hd b{display:block; font-size:20px; font-weight:900; font-variant-numeric:tabular-nums;} .rc-hd small{font-size:10.5px; font-weight:800; text-transform:uppercase; color:var(--muted); letter-spacing:.04em;} .rc-hd .gap.ok b{color:#166534;} .rc-hd .gap.bad b{color:#b45309;}
+  .rc-k{display:grid; grid-template-columns:1fr auto auto; gap:2px 12px; padding:8px 0; border-top:1px solid #f1f5f9; font-size:13px; align-items:center;} .rc-k .nt{grid-column:1 / span 3; font-size:11.5px; color:var(--muted);} .rc-k b{font-variant-numeric:tabular-nums;} .rc-k details{grid-column:1 / span 3;} .rc-k summary{cursor:pointer; font-size:12px; color:#1d4ed8; font-weight:700; margin-top:2px;} .rc-k .ol{display:flex; justify-content:space-between; gap:10px; padding:4px 0; font-size:12.5px; border-bottom:1px dashed #e5e7eb;}
+  .rc-k .tag-w{color:#b45309;} .rc-ok{font-size:13px; color:#166534; font-weight:700; padding:6px 0;}
+
   .hs-c{padding:14px 14px 12px;}
   .hs-ch{width:100%; height:auto; display:block;}
   .hs-hw{overflow:auto; max-height:440px; margin-top:6px;} .hs-h th{position:sticky; top:0; background:#fff; z-index:1;} .hs-h td,.hs-h th{font-size:11px; padding:5px 4px;} .hs-h td.z{color:#cbd5e1;} .hs-h td.hi{background:#dcfce7; font-weight:800;} .hs-h td.lo{background:#fee2e2;} .hs-h td.fut{color:#cbd5e1; background:#f8fafc;} .hs-h tr.cur td:first-child{box-shadow:inset 3px 0 0 #f59e0b;}
@@ -220,7 +236,7 @@
     tab = b.dataset.t;
     document.querySelectorAll('.ct-tab').forEach(x => x.classList.toggle('on', x === b));
     ['focus', 'today', 'alerts', 'md', 'qb', 'rd', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
-    if (tab === 'today') loadHist();
+    if (tab === 'today') { loadHist(); if (RC) loadRecon(); loadRemToday(); }
     if (tab === 'focus') loadFocus();
     if (tab === 'qb') loadGive();
     if (tab === 'rd') loadRd();
@@ -306,6 +322,7 @@
         <td><b class="clq">${inr(e.qsales || 0)}</b> <span class="sub">${e.qo ?? 0} orders</span></td>
         <td><b class="clc">${inr(e.csales || 0)}</b> <span class="sub">${e.co ?? 0} orders</span></td>
         <td><b class="clt">${inr(e.sales || 0)}</b> <span class="sub">${e.orders ?? 0} orders</span></td>
+        <td style="min-width:130px;">${e.target ? tgBar(e.sales, e.target, e.pct != null ? Math.round(e.pct) : null) : '<span class="sub">no target</span>'}</td>
         <td>${e.queries ?? 0} <span class="sub">${e.conv != null ? '· ' + Math.round(e.conv) + '% conv' : ''}</span></td>
         <td><span class="pc ${tCls}">${inr(e.ticket)}</span> <span class="sub">clean ${inr(e.clean_ticket)}${tv.carried ? ' · carried by big order' : ''}${tv.need_next ? ' · next order ' + inr(tv.need_next) : ''}</span></td>
         <td><span class="pc ${e.code_ok ? 'ok' : 'warn'}">${codeTxt}</span> <span class="sub">${e.code_left > 0 ? e.code_left + ' more codes' : ''}</span></td>
@@ -315,13 +332,73 @@
       </tr>`;
     }).join('');
     const people = `<div class="card"><div class="card-head"><div><h2>Salespeople — ${esc(T.day)}</h2><div class="sub">Business day runs 10 AM → 10 AM. Updated ${esc((T.now || '').slice(11, 16))}.</div></div></div>
-      <div class="tbl-wrap people-tbl"><table class="ct"><thead><tr><th>Name</th><th>Query ₹</th><th>Campaign ₹</th><th>Total ₹</th><th>Queries</th><th>Ticket</th><th>Codes</th><th>DG+LG+WH</th><th>Proof</th><th>Status</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="10" class="empty">No sales team data for this day.</td></tr>'}${(T.emps || []).length ? `<tr class="cl-tot"><td>Team</td><td class="clq">${inr(qS)}</td><td class="clc">${inr(cS)}</td><td class="clt">${inr(tot)}</td><td>${t.queries ?? 0}</td><td>${inr(tk)}</td><td>${codeP == null ? '' : codeP.toFixed(0) + '%'}</td><td>${mixP.toFixed(0)}%</td><td></td><td></td></tr>` : ''}</tbody></table></div>
+      <div class="tbl-wrap people-tbl"><table class="ct"><thead><tr><th>Name</th><th>Query ₹</th><th>Campaign ₹</th><th>Total ₹</th><th>Target</th><th>Queries</th><th>Ticket</th><th>Codes</th><th>DG+LG+WH</th><th>Proof</th><th>Status</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="11" class="empty">No sales team data for this day.</td></tr>'}${(T.emps || []).length ? `<tr class="cl-tot"><td>Team</td><td class="clq">${inr(qS)}</td><td class="clc">${inr(cS)}</td><td class="clt">${inr(tot)}</td><td></td><td>${t.queries ?? 0}</td><td>${inr(tk)}</td><td>${codeP == null ? '' : codeP.toFixed(0) + '%'}</td><td>${mixP.toFixed(0)}%</td><td></td><td></td></tr>` : ''}</tbody></table></div>
       <div class="cl-ph"><div class="cl-pr cl-ph-h"><span>Name</span><span>Query ₹</span><span>Campaign ₹</span><span>Total ₹</span></div>${(T.emps || []).map(e => `<details class="cl-pr"><summary><span class="n">${esc(e.name)}<small>${e.orders ?? 0} orders · ${e.queries ?? 0} queries</small></span><span><b class="clq">${inr(e.qsales || 0)}</b><small>${e.qo ?? 0} orders</small></span><span><b class="clc">${inr(e.csales || 0)}</b><small>${e.co ?? 0} orders</small></span><span><b class="clt">${inr(e.sales || 0)}</b></span></summary>
-        <div class="cl-more">Ticket ${inr(e.ticket)} (clean ${inr(e.clean_ticket)}) · Codes ${e.code_rate == null ? '—' : Math.round(e.code_rate) + '%'}${e.code_left > 0 ? ' (' + e.code_left + ' more)' : ''} · Colour mix ${(e.mix || {}).pct == null ? '—' : Math.round(e.mix.pct) + '%'} · Proof ${((e.proof || {}).orders_no_chat || 0) + ((e.proof || {}).orders_no_call || 0) + ((e.proof || {}).pending_queries || 0) ? 'missing' : '✓ all'}${e.conv != null ? ' · conv ' + Math.round(e.conv) + '%' : ''}</div></details>`).join('')}
+        <div class="cl-more">${e.target ? tgBar(e.sales, e.target, e.pct != null ? Math.round(e.pct) : null) : ''}Ticket ${inr(e.ticket)} (clean ${inr(e.clean_ticket)}) · Codes ${e.code_rate == null ? '—' : Math.round(e.code_rate) + '%'}${e.code_left > 0 ? ' (' + e.code_left + ' more)' : ''} · Colour mix ${(e.mix || {}).pct == null ? '—' : Math.round(e.mix.pct) + '%'} · Proof ${((e.proof || {}).orders_no_chat || 0) + ((e.proof || {}).orders_no_call || 0) + ((e.proof || {}).pending_queries || 0) ? 'missing' : '✓ all'}${e.conv != null ? ' · conv ' + Math.round(e.conv) + '%' : ''}</div></details>`).join('')}
         ${(T.emps || []).length ? `<div class="cl-pr cl-ptot"><span class="n">Team</span><span><b class="clq">${inr(qS)}</b></span><span><b class="clc">${inr(cS)}</b></span><span><b class="clt">${inr(tot)}</b></span></div>` : ''}</div></div>`;
-    $('p-today').innerHTML = `<div class="cl-top">${coll}${tiles}</div><div id="histBox"></div>` + alerts + people;
-    renderHist();
+    $('p-today').innerHTML = `<div class="cl-top">${coll}${tiles}</div><div id="reconBox"></div><div id="histBox"></div><div id="remToday"></div>` + alerts + people;
+    renderHist(); renderRecon(); loadRemToday();
+  }
+
+  // ---------- Today tab → ✍️ Remarks: pick a person, write, send → it pops up on that person's My Sales. Below: every remark given (count, seen / not seen) ----------
+  let RTD = null;
+  const QK = ['Please send your chat proofs 📎', 'Great work today 👏', 'Call your pending customers 📞', 'Push the ticket size up 🎯'];
+  async function loadRemToday() {
+    try { RTD = await api.get('ct.remark_recent'); } catch (e) { RTD = { error: e.message }; }
+    renderRemToday();
+  }
+  function renderRemToday() {
+    const box = $('remToday'); if (!box) return;
+    const keepEmp = $('rtEmp') ? $('rtEmp').value : '', keepTxt = $('rtTxt') ? $('rtTxt').value : '';
+    if (!RTD || RTD.error) { box.innerHTML = `<div class="card rm-sec" style="margin-bottom:14px;"><div class="card-head"><div><h2>✍️ Remarks</h2></div></div><div class="empty">${esc(RTD ? RTD.error : 'Loading…')}</div></div>`; return; }
+    const emps = (T && T.emps) || [], list = RTD.remarks || [], td = RTD.today || { given: 0, seen: 0, unseen: 0, people: 0 };
+    const byP = {}; list.filter(x => x.today).forEach(x => { byP[x.name || nameOf(x.employee_id)] = (byP[x.name || nameOf(x.employee_id)] || 0) + 1; });
+    const item = (x) => `<div class="rm-it"><span class="tm">${esc(String(x.at).slice(5, 10) === String(list[0] && list[0].at || '').slice(5, 10) ? '' : String(x.at).slice(5, 10).split('-').reverse().join('/') + ' ')}${esc(String(x.at).slice(11, 16))}</span><span class="to">${esc(x.name || nameOf(x.employee_id))}<span class="by">from ${esc(x.from || '—')}</span></span><span class="bd">${esc(x.body)}</span>` +
+      (x.seen ? `<span class="st ok">✅ Seen ${esc(x.seen)}</span>` : '<span class="st wait">⏳ Not seen</span>') + '</div>';
+    const tdl = list.filter(x => x.today), old = list.filter(x => !x.today);
+    box.innerHTML = `<div class="card rm-sec" style="margin-bottom:14px;"><div class="card-head"><div><h2>✍️ Remarks</h2><div class="sub">Pick a person and write — it pops up on their <b>My Sales</b> until they tap <b>Got it</b>. You see here who has read it.</div></div></div>
+      <div class="rm-sum"><span>Given today <b>${td.given}</b></span><span>to <b>${td.people}</b> ${td.people === 1 ? 'person' : 'people'}</span><span class="g">✅ Seen <b>${td.seen}</b></span><span class="${td.unseen ? 'w' : 'g'}">⏳ Not seen <b>${td.unseen}</b></span></div>
+      ${Object.keys(byP).length ? '<div class="rm-pp">' + Object.keys(byP).map(n => `<span>${esc(n)} · ${byP[n]}</span>`).join('') + '</div>' : ''}
+      <div class="rm-new"><select id="rtEmp" aria-label="Person"><option value="">Choose a person…</option>${emps.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select>
+        <textarea id="rtTxt" rows="2" maxlength="400" placeholder="Write the remark…"></textarea><button type="button" class="btn" id="rtSend" disabled>📨 Send</button></div>
+      <div class="rm-qk">${QK.map((q, i) => `<button type="button" data-q="${i}">${esc(q)}</button>`).join('')}</div>
+      <div class="rm-log">${tdl.length ? '<h3>Given today</h3>' + tdl.map(item).join('') : '<div class="sub" style="padding:8px 0;">No remark given today yet.</div>'}${old.length ? '<h3>Earlier (last 3 days)</h3>' + old.map(item).join('') : ''}</div></div>`;
+    const sel = $('rtEmp'), tx = $('rtTxt'), go = $('rtSend');
+    sel.value = keepEmp; tx.value = keepTxt;
+    const chk = () => { go.disabled = !(Number(sel.value) > 0 && tx.value.trim().length >= 3); };
+    sel.onchange = chk; tx.oninput = chk; chk();
+    box.querySelectorAll('.rm-qk button').forEach(b => b.onclick = () => { tx.value = QK[Number(b.dataset.q)]; tx.focus(); chk(); });
+    go.onclick = async () => {
+      go.disabled = true;
+      try {
+        const id = Number(sel.value);
+        await api.post('ct.remark_send', { employee_id: id, text: tx.value.trim(), src: 'today' });
+        const who = nameOf(id).split(' ')[0];
+        sel.value = ''; tx.value = '';
+        showAlert('Remark sent — it shows on ' + who + '\'s My Sales.');
+        loadRemToday();
+      } catch (err) { showAlert(err.message, 'error'); chk(); }
+    };
+  }
+  // ---------- Today tab → 💰 Collection check: the tower number next to the Orders page number, and every order that makes them differ ----------
+  let RC = null;
+  async function loadRecon() {
+    try { RC = await api.get('ct.recon', T && T.day ? { date: T.day } : {}); } catch (e) { RC = { error: e.message }; }
+    renderRecon();
+  }
+  function renderRecon() {
+    const box = $('reconBox'); if (!box) return;
+    if (!RC) { box.innerHTML = ''; loadRecon(); return; }
+    if (!RC.kinds && !RC.error) { box.innerHTML = ''; return; }
+    if (RC.error) { box.innerHTML = /unknown action|not allowed/i.test(RC.error) ? '' : `<div class="card rc-box"><div class="sub">Collection check: ${esc(RC.error)}</div></div>`; return; }
+    const gap = Number(RC.gap || 0), wait = RC.kinds.find(k => k.key === 'tag_only') || { n: 0, amt: 0 };
+    const ks = RC.kinds.filter(k => k.key !== 'counted' && k.n > 0);
+    box.innerHTML = `<div class="card rc-box"><div class="card-head"><div><h2>💰 Collection check</h2><div class="sub">Same business day, same rule as the Orders page: an order counts once it is <b>allocated</b>. Cancelled orders are left out.</div></div></div>
+      <div class="rc-hd"><div><b>${inr(RC.tower)}</b><small>Sales tower</small></div><div><b>${inr(RC.orders_page)}</b><small>Orders page</small></div><div class="gap ${gap ? 'bad' : 'ok'}"><b>${gap ? inr(gap) : '✓ same'}</b><small>${gap ? 'Difference' : 'No difference'}</small></div></div>
+      ${wait.n ? `<div class="rc-ok tag-w">⏳ ${wait.n} order${wait.n === 1 ? '' : 's'} (${inr(wait.amt)}) carry a salesperson tag but are not allocated yet — allocate them and they count in both.</div>` : ''}
+      ${ks.length ? ks.map(k => `<div class="rc-k"><span>${esc(k.label)}</span><b>${k.n}</b><b class="${k.key === 'tag_only' ? 'tag-w' : ''}">${inr(k.amt)}</b><span class="nt">${esc(k.note)}</span>
+        <details><summary>Show orders${k.n > k.list.length ? ' (first ' + k.list.length + ')' : ''}</summary>${k.list.map(o => `<div class="ol"><span>${esc(o.name)} · ${esc(o.at)}${o.who ? ' · ' + esc(o.who) : ''}</span><b>${inr(o.amt)}</b></div>`).join('')}</details></div>`).join('') : '<div class="rc-ok">✅ Every order of this day is counted the same way on both screens.</div>'}</div>`;
   }
 
   // ---------- Query → order ranking: orders ÷ queries given (today + last 7 days), who ordered first, and who to give more queries to ----------
@@ -402,7 +479,7 @@
     return r.seen ? `<div class="rm-st ok">💬 “${esc(r.body)}” — ✅ <b>Seen by ${esc(who || r.name || pName(id))}</b> ${esc(r.seen)}</div>` : `<div class="rm-st wait">💬 “${esc(r.body)}” — ⏳ <b>not seen yet</b> · sent ${esc(String(r.at || '').slice(11, 16))}</div>`; };
   window.askRemark = (id, src) => { resEmp = id; resSrc = src || 'focus'; const rdSh = document.querySelector('.rd-bd'); if (rdSh) rdSh.remove();
     openRes('remark', '✍️ Send remark', pName(id), 'Your remark — it pops up on <b>' + esc(pName(id).split(' ')[0]) + '</b>\'s My Sales until she taps <b>Got it</b>', '📨 Send', 400); };
-  async function afterRemark() { await loadRem(); if (tab === 'rd') loadRd(); if (tab === 'focus') renderFocus(); if (tab === 'rt') renderRt(); }
+  async function afterRemark() { await loadRem(); if (tab === 'today') loadRemToday(); if (tab === 'rd') loadRd(); if (tab === 'focus') renderFocus(); if (tab === 'rt') renderRt(); }
   // ---------- RATINGS: every salesperson's rating, by person or by section, with the remarks ----------
   let RT = {}, RV = 'today', RM = 'person';
   async function loadRt() {
@@ -411,10 +488,33 @@
   }
   window.setRV = (v) => { RV = v; loadRt(); };
   window.setRM = (m) => { RM = m; renderRt(); };
+  // the progress line toward the target (sales ÷ target); green + 🎯 once the target is reached
+  const tgBar = (sales, target, pct) => { if (!target) return ''; const p = pct != null ? pct : Math.round(sales / target * 100), c = p >= 100 ? 'ok' : p >= 60 ? 'mid' : p >= 30 ? '' : 'low';
+    return `<div class="tg-row"><div class="tg-t"><span>🎯 ${inr(sales || 0)} of ${inr(target)}</span><span>${p}%${p >= 100 ? ' ✅' : ''}</span></div><div class="tg-pg ${c}"><i style="width:${Math.min(100, p)}%"></i></div>${p >= 100 ? '<span class="tg-ok">🎯 Target achieved' + (p > 100 ? ' · +' + inr(sales - target) : '') + '</span>' : ''}</div>`; };
+  // query-based view of one person: queries given, query orders, ratio (orders ÷ queries), and when the last order came
+  const qrow = (id) => { const L = T && T.leaders; if (!L) return null; const V = (RQ === 'week' ? L.week : L.today) || L.today; return ((V && V.rows) || []).find(r => Number(r.id) === Number(id)) || null; };
+  const lastTag = (id) => {
+    const e = ((T && T.emps) || []).find(x => Number(x.id) === Number(id));
+    if (!e || !e.last_order) return '<span class="lo none">🕒 no order yet today</span>';
+    const a = new Date(String(e.last_order).replace(' ', 'T')), b = new Date(String(T.now || '').replace(' ', 'T'));
+    let mins = isNaN(a) || isNaN(b) ? null : Math.max(0, Math.round((b - a) / 60000));
+    const ago = mins == null ? '' : mins < 60 ? mins + ' min ago' : Math.floor(mins / 60) + ' h ' + (mins % 60) + ' m ago';
+    return `<span class="lo${mins != null && mins >= 90 ? ' old' : ''}">🕒 last order ${esc(String(e.last_order).slice(11, 16))}${ago ? ' · ' + ago : ''}</span>`;
+  };
+  const qChips = (id, row) => {
+    const r = qrow(id), tc = T && T.leaders ? ((RQ === 'week' ? T.leaders.week : T.leaders.today) || {}).team_conv : null;
+    const q = r ? r.queries : 0, o = r ? r.orders : 0, cv = r && r.conv != null ? r.conv : null;
+    const cls = cv == null || tc == null ? '' : cv >= tc ? 'g' : cv >= tc * 0.6 ? 'a' : 'r';
+    const money = row ? `<span class="mn">💰 Sales ${inr(row.sales || 0)}</span><span class="mn">🎯 Target ${row.target ? inr(row.target) : '—'}${row.pct != null ? ' · ' + row.pct + '%' : ''}</span>` : '';
+    return `<div class="rt-qc">${money}<span>📞 ${q} quer${q === 1 ? 'y' : 'ies'} given</span><span>🛒 ${o} query order${o === 1 ? '' : 's'}</span><span class="cv ${cls}">${cv == null ? '— %' : cv + '% of queries'}</span>${lastTag(id)}</div>`;
+  };
+  let RQ = 'today';
+  window.setRQ = (v) => { RQ = v; renderRt(); };
+  const rbBtn = (id, first) => `<button type="button" class="rt-rb" onclick="event.preventDefault();event.stopPropagation();askRemark(${id},'rating')">✍️ Add remark${first ? ' · ' + esc(first) : ''}</button>`;
   function renderRt() {
     const D = RT[RV], box = $('p-rt'); if (!box) return;
     const seg = `<div class="rt-seg"><div class="ldseg">${[['today', 'Today'], ['month', 'This month'], ['last', 'Last month']].map(([k, l]) => `<button type="button" class="${RV === k ? 'on' : ''}" onclick="setRV('${k}')">${l}</button>`).join('')}</div>
-      <div class="ldseg">${[['person', 'By person'], ['section', 'By section']].map(([k, l]) => `<button type="button" class="${RM === k ? 'on' : ''}" onclick="setRM('${k}')">${l}</button>`).join('')}</div></div>`;
+      <div class="ldseg">${[['person', 'By person'], ['section', 'By section'], ['query', 'By query']].map(([k, l]) => `<button type="button" class="${RM === k ? 'on' : ''}" onclick="setRM('${k}')">${l}</button>`).join('')}</div></div>`;
     if (!D || D.error) { box.innerHTML = `<div class="card"><div class="card-head"><div><h2>⭐ Sales ratings</h2></div>${seg}</div><div class="empty">${esc(D ? D.error : 'No data')}</div></div>`; return; }
     const P = D.parts || {}, keys = Object.keys(P), rows = D.rows || [], tm = D.team || {};
     const cl = (v) => v == null ? '' : v >= 7 ? 'g' : v >= 5.5 ? 'a' : 'r';
@@ -425,13 +525,20 @@
     const sum = `<div class="rt-sum"><div><b>${tm.avg != null ? tm.avg : '—'}</b><small>Team average</small></div><div><b>${tm.strong || 0}</b><small>Strong (7+)</small></div><div><b>${tm.focus || 0}</b><small>Focus mode (&lt;5.5)</small></div><div><b style="font-size:14px;">${esc(wk)}</b><small>Weakest section</small></div></div>`;
     let body = '';
     if (!rows.length) body = '<div class="empty">No ratings yet for this period.</div>';
-    else if (RM === 'person') body = rows.map((r, i) => `<details class="rt-p"><summary><span class="rk" style="text-align:center;font-weight:900;color:var(--muted);">${['🥇', '🥈', '🥉'][i] || (i + 1)}</span><div><b>${esc(r.name)}</b><div class="rt-lb">${lab(r.score)}${r.prev != null && r.score != null ? ' · ' + (r.score >= r.prev ? '▲' : '▼') + ' ' + Math.abs(Math.round((r.score - r.prev) * 10) / 10) + ' vs before' : ''}${r.days ? ' · ' + r.days + ' days' : ''}</div></div><span class="rt-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span></summary>
+    else if (RM === 'query') {
+      const L = T && T.leaders, V = L ? ((RQ === 'week' ? L.week : L.today) || {}) : {}, tc = V.team_conv;
+      const list = rows.map(r => { const q = qrow(r.id); return { r, q: q ? q.queries : 0, o: q ? q.orders : 0, cv: q && q.conv != null ? q.conv : null }; }).sort((a, b) => (b.cv == null ? -1 : b.cv) - (a.cv == null ? -1 : a.cv) || b.q - a.q);
+      const cls = (cv) => cv == null || tc == null ? '' : cv >= tc ? 'g' : cv >= tc * 0.6 ? 'a' : 'r';
+      body = `<div class="rt-seg" style="margin:10px 0;"><div class="ldseg"><button type="button" class="${RQ === 'today' ? 'on' : ''}" onclick="setRQ('today')">Today</button><button type="button" class="${RQ === 'week' ? 'on' : ''}" onclick="setRQ('week')">7 days</button></div><span class="sub" style="align-self:center;">Rating by query = query orders ÷ queries given · team ${tc != null ? tc + '%' : '—'}</span></div>
+        <div class="tbl-wrap"><table class="qy-t no-stack"><thead><tr><th>Person</th><th class="n">Sales</th><th class="n">Target</th><th class="n">Queries given</th><th class="n">Query orders</th><th class="n">Rating by query</th><th>Last order</th><th></th></tr></thead><tbody>${list.map(x => `<tr><td><b>${esc(x.r.name)}</b><div class="rt-lb">overall ${x.r.score != null ? x.r.score : '—'}/10</div></td><td class="n"><b>${inr(x.r.sales || 0)}</b></td><td class="n">${x.r.target ? inr(x.r.target) : '—'}${tgBar(x.r.sales, x.r.target, x.r.pct)}</td><td class="n"><b>${x.q}</b></td><td class="n">${x.o}</td><td class="n"><span class="rt-qc" style="display:inline-flex;margin:0;"><span class="cv ${cls(x.cv)}">${x.cv == null ? '—' : x.cv + '%'}</span></span></td><td><span class="rt-qc" style="margin:0;">${lastTag(x.r.id)}</span></td><td>${rbBtn(x.r.id)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    else if (RM === 'person') body = rows.map((r, i) => `<details class="rt-p"><summary><span class="rk" style="text-align:center;font-weight:900;color:var(--muted);">${['🥇', '🥈', '🥉'][i] || (i + 1)}</span><div><b>${esc(r.name)}</b><div class="rt-lb">${lab(r.score)}${r.prev != null && r.score != null ? ' · ' + (r.score >= r.prev ? '▲' : '▼') + ' ' + Math.abs(Math.round((r.score - r.prev) * 10) / 10) + ' vs before' : ''}${r.days ? ' · ' + r.days + ' days' : ''}</div>${qChips(r.id, r)}${tgBar(r.sales, r.target, r.pct)}<div class="rt-qc">${rbBtn(r.id)}</div></div><span class="rt-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span></summary>
         <div class="rt-body">${keys.map(k => partRow(k, r)).join('')}${r.insight && r.insight.lift ? `<div class="rt-rm" style="background:#eff6ff;color:#1e40af;">💡 Biggest lift: ${esc((P[r.insight.lift.k] || {}).label || r.insight.lift.k)} ${r.insight.lift.from} → ${r.insight.lift.to} = +${r.insight.lift.gain} on the rating</div>` : ''}<div class="fc-b"><button type="button" class="btn secondary" onclick="askRemark(${r.id},'rating')">✍️ Send remark to ${esc(String(r.name).split(' ')[0])}</button></div>${remBox(r.id)}</div></details>`).join('');
     else body = keys.map(k => {
       const list = rows.filter(r => r.parts && r.parts[k] != null).sort((a, b) => a.parts[k] - b.parts[k]);
       const avg = (D.part_avg || {})[k];
       return `<details class="rt-p" open><summary><span>${P[k].icon}</span><div><b>${esc(P[k].label)}</b><div class="rt-lb">weight ${P[k].w}% · ${list.length} people · lowest first</div></div><span class="rt-sc ${cl(avg)}">${avg != null ? avg : '—'}</span></summary>
-        <div class="rt-body">${list.length ? list.map(r => `<div class="rt-r"><span class="rn">${esc(r.name)}</span><span class="rv">${r.parts[k]}</span><div class="rt-bar"><i class="${cl(r.parts[k])}" style="width:${Math.max(2, Math.min(100, r.parts[k] * 10))}%"></i></div>${r.notes && r.notes[k] ? `<div class="rt-rm">${esc(r.notes[k])}</div>` : ''}</div>`).join('') : '<div class="sub">Nobody has this one yet.</div>'}</div></details>`;
+        <div class="rt-body">${list.length ? list.map(r => `<div class="rt-r"><span class="rn">${esc(r.name)} <small style="color:var(--muted);font-weight:700;">· ${inr(r.sales || 0)} / ${r.target ? inr(r.target) : '—'}</small> ${rbBtn(r.id)}</span><span class="rv">${r.parts[k]}</span><div class="rt-bar"><i class="${cl(r.parts[k])}" style="width:${Math.max(2, Math.min(100, r.parts[k] * 10))}%"></i></div>${r.notes && r.notes[k] ? `<div class="rt-rm">${esc(r.notes[k])}</div>` : ''}</div>`).join('') : '<div class="sub">Nobody has this one yet.</div>'}</div></details>`;
     }).join('');
     box.innerHTML = `<div class="card"><div class="card-head"><div><h2>⭐ Sales ratings</h2><div class="sub">Every salesperson's rating out of 10 — the same ratings they see on My Sales, with the remarks. ${esc(D.period || '')}</div></div>${seg}</div>${sum}${body}</div>`;
   }
@@ -792,7 +899,7 @@
   $('btnRefresh').onclick = () => { loadTower(true); loadHist(); if (MD) loadMd(true); if (BM) loadBench(); };
   $('datePick').onchange = () => { loadTower(false); loadHist(); if (tab === 'qb') loadGive(); };
   loadTower(false); loadHist(); loadFocus(); loadRd();
-  setInterval(() => { if (!document.hidden && tab === 'today') loadHist(); }, 60000);      // the Last days panel is live: every minute
+  setInterval(() => { if (!document.hidden && tab === 'today') { loadHist(); loadRecon(); if (!document.activeElement || !/^(rtTxt|rtEmp)$/.test(document.activeElement.id)) loadRemToday(); } }, 60000);      // the Last days panel is live: every minute
   loadMd(false);
   setInterval(() => { if (!document.hidden && $('datePick').value === (T && T.today)) loadTower(false); }, 120000);
 </script>
