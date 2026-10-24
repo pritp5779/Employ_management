@@ -95,17 +95,34 @@
 .sh-sb .lb{display:block; font-size:11px; font-weight:800;}
 .sh-flash{animation:shFlash 1.3s ease-out;} @keyframes shFlash{0%{box-shadow:0 0 0 0 rgba(249,115,22,.65);}100%{box-shadow:0 0 0 16px rgba(249,115,22,0);}}
 #shNow,#shHero,#shCode,#chatCard,#rateCard,#shLead,#shOffer,#shPrice{scroll-margin-top:10px;}
-.sh-now{position:relative; background:linear-gradient(160deg,#14532d,#15803d); color:#fff; border-radius:18px; padding:13px 12px 11px; margin-bottom:10px; overflow:hidden; box-shadow:0 6px 18px rgba(20,83,45,.25);}
-.sh-now .nn{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; text-align:center;} .sh-now .nn b{display:block; font-size:17px; font-weight:900; font-variant-numeric:tabular-nums;} .sh-now .nn small{font-size:9.5px; opacity:.85; font-weight:800; text-transform:uppercase; letter-spacing:.03em;} .sh-now .nn .cm b{color:#bbf7d0;}
+.sh-now{position:relative; background:linear-gradient(160deg,#14532d,#15803d); color:#fff; border-radius:18px; padding:11px 10px 11px; margin-bottom:10px; overflow:hidden; box-shadow:0 6px 18px rgba(20,83,45,.25);}
+.sh-now .nn{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; text-align:center;}
+.sh-now .nn > div{background:rgba(255,255,255,.13); border-radius:10px; padding:6px 1px 5px; min-width:0;}
+.sh-now .nn b{display:block; font-size:13.5px; line-height:1.15; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:-.02em; white-space:nowrap;}
+.sh-now .nn small{display:block; margin-top:2px; font-size:7.5px; line-height:1.15; opacity:.88; font-weight:800; text-transform:uppercase; letter-spacing:.02em;}
+.sh-now .nn .cm b{color:#bbf7d0;} .sh-now .nn .cv b{color:#fde68a;}
+.sh-now .qg{margin-top:7px; background:rgba(255,255,255,.13); border-radius:10px; padding:6px 8px; text-align:center; font-size:12px; font-weight:800; line-height:1.35;} .sh-now .qg b{color:#fde68a;} .sh-now .qg.ok{background:rgba(187,247,208,.22);} .sh-now .qg.ok b{color:#bbf7d0;}
 .sh-now hr{border:0; border-top:1px solid rgba(255,255,255,.2); margin:10px 0 0;}
-.sh-now .tk{position:relative; height:26px; margin:6px 4px 0;} .sh-now .rail{position:absolute; left:0; right:0; top:15px; height:6px; border-radius:9px; background:rgba(255,255,255,.22);} .sh-now .fill{position:absolute; left:0; top:15px; height:6px; border-radius:9px; background:linear-gradient(90deg,#bbf7d0,#4ade80); transition:width .8s ease;}
+.sh-now .tt{margin-top:10px; background:rgba(255,255,255,.1); border-radius:12px; padding:8px 10px;} .sh-now .tt .th{font-size:12.5px; font-weight:800;} .sh-now .tt .th b{font-size:16px;} .sh-now .tt .th span{font-weight:700; opacity:.85; font-size:11px;}
+.sh-now .tt .pp{display:flex; gap:6px; flex-wrap:wrap; margin-top:5px;} .sh-now .tt .pp i{font-style:normal; font-size:10.5px; font-weight:800; background:rgba(255,255,255,.16); border-radius:99px; padding:2px 9px;}
+.sh-now .tb{position:relative; height:16px; border-radius:9px; background:rgba(255,255,255,.22); margin-top:10px; overflow:hidden;} .sh-now .tb i{position:absolute; left:0; top:0; bottom:0; border-radius:9px; background:linear-gradient(90deg,#86efac,#fde047); transition:width .8s ease;}
+.sh-now .tbl{display:flex; justify-content:space-between; gap:6px; font-size:11px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums;} .sh-now .tbl span:nth-child(2){opacity:.95;} .sh-now .tbl span:first-child,.sh-now .tbl span:last-child{opacity:.85;}
+.sh-now .lf{text-align:center; margin-top:8px;} .sh-now .lf > b{display:block; font-size:16px; font-weight:900; font-variant-numeric:tabular-nums;} .sh-now .lf span{font-size:11.5px; font-weight:700; opacity:.92;}
+.sh-now .lk{display:grid; gap:5px; margin-top:8px;} .sh-now .lk div{background:rgba(0,0,0,.16); border-radius:10px; text-align:center; padding:6px 2px 5px; font-size:11.5px; font-weight:900; line-height:1.3;} .sh-now .lk small{display:block; font-size:10.5px; font-weight:800; opacity:.9;}
+.sh-now .lk div.on{background:rgba(187,247,208,.28);} .sh-now .lk div.next{background:rgba(255,255,255,.2); box-shadow:0 0 0 1.5px #fde68a inset;}
+.sh-now .tk{position:relative; height:26px; margin:8px 4px 0;} .sh-now .rail{position:absolute; left:0; right:0; top:15px; height:6px; border-radius:9px; background:rgba(255,255,255,.22);} .sh-now .fill{position:absolute; left:0; top:15px; height:6px; border-radius:9px; background:linear-gradient(90deg,#bbf7d0,#4ade80); transition:width .8s ease;}
 .sh-now .dot{position:absolute; top:11px; width:14px; height:14px; border-radius:50%; background:#14532d; border:2px solid #86efac; transform:translateX(-50%);} .sh-now .dot.on{background:#4ade80; border-color:#fff;} .sh-now .dot.next{background:#fff; border-color:#fb923c;}
 .sh-now .nb{position:absolute; top:-2px; transform:translateX(-50%); background:#fff; color:#14532d; font-size:10.5px; font-weight:900; border-radius:99px; padding:0 7px; line-height:15px; white-space:nowrap; z-index:2;}
 .sh-now .st{display:grid; gap:2px; text-align:center; margin-top:6px;} .sh-now .st div{font-size:10px; font-weight:800; line-height:1.35; padding:3px 0; border-radius:9px; font-variant-numeric:tabular-nums;} .sh-now .st b{display:block; font-size:11px;} .sh-now .st small{display:block; opacity:.85; font-weight:700;}
-.sh-now .tgl{font-size:12.5px; font-weight:800; margin:2px 0 6px; text-align:center;} .sh-now .tgl b{font-size:14px;} .sh-now .st .cp{display:block; font-style:normal; font-size:8.5px; font-weight:900; letter-spacing:.04em; opacity:.85; text-transform:uppercase;} .sh-now .st div:first-child .cp{color:#fde68a; opacity:1;}
+.sh-now .st .cp{display:block; font-style:normal; font-size:8.5px; font-weight:900; letter-spacing:.04em; opacity:.85; text-transform:uppercase;} .sh-now .st div:first-child .cp{color:#fde68a; opacity:1;}
 .sh-now .st .on{color:#bbf7d0;} .sh-now .st .next{color:#fff; background:rgba(255,255,255,.16);} .sh-now .st div:not(.on):not(.next){opacity:.8;}
 .sh-now .ms{margin-top:8px; font-size:12.5px; font-weight:700; text-align:center;} .sh-now .ms b{color:#bbf7d0;}
 .sh-now .rl{margin-top:7px; font-size:10.5px; line-height:1.45; opacity:.82; text-align:center;} .sh-now .rl b{color:#dcfce7;}
+@media (min-width:700px){.sh-now{padding:14px 14px 13px;} .sh-now .nn b{font-size:19px;} .sh-now .nn small{font-size:10px;} .sh-now .qg{font-size:13.5px;} .sh-now .lf b{font-size:19px;}}
+.sh-lost{border-radius:16px; padding:11px 13px; margin-bottom:10px; display:flex; align-items:center; gap:10px; border:1.5px solid #fdba74; background:linear-gradient(180deg,#fff7ed,#fff); color:#7c2d12;} .sh-lost.ok{border-color:#86efac; background:linear-gradient(180deg,#f0fdf4,#fff); color:#14532d;}
+.sh-lost .ic{font-size:24px; line-height:1;} .sh-lost .tx{flex:1; min-width:0; font-size:12px; line-height:1.4;} .sh-lost .tx b{display:block; font-size:13.5px; font-weight:900;}
+.sh-lost button{border:0; border-radius:99px; background:#ea580c; color:#fff; font-weight:900; font-size:12.5px; padding:9px 14px; cursor:pointer; white-space:nowrap; min-height:0;}
+.sh-rem h3{margin:0 0 4px; font-size:16px;} .sh-rem .rb{background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:9px 11px; margin:8px 0; font-size:13.5px; line-height:1.5; color:#431407; white-space:pre-wrap; word-break:break-word;} .sh-rem .rb small{display:block; margin-top:4px; font-size:10.5px; color:#9a3412; font-weight:800;}
 @media (prefers-reduced-motion:reduce){.sh-now .fill{transition:none;}}
 /* 💥 BOOM — the full-screen celebration when the target (and each higher step) is reached */
 .sh-boom{position:fixed; inset:0; z-index:3000; display:flex; align-items:center; justify-content:center; padding:18px; background:radial-gradient(circle at 50% 45%,rgba(20,83,45,.86),rgba(2,12,6,.94) 70%); animation:bmIn .35s ease-out both; overflow:hidden; cursor:pointer;}
@@ -213,7 +230,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
 .sh-lr .cv{text-align:right;} .sh-lr .cv b{display:block; font-size:14px; font-weight:900; color:#0f172a;} .sh-lr .cv small{font-size:10px; color:#64748b;}
 /* phones: everything on My Sales Home about 20% smaller (text, cards, notifications) */
 @media (max-width:640px){
-  #shNow, #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
+  #shNow, #shLost, #shHero, #shQuests, #shMis > *, #shOffer, #shPrice, #shLead, #shStory, .sh-pop, .sh-ab button{zoom:.8;}
   .sh-toast{zoom:.8; width:min(440px,calc((100vw - 24px) / .8));}
   .sh-zoom .zb, .sh-zoom .zs{zoom:.9;}
 }
@@ -275,39 +292,95 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   function paintNow() {
     const box = $('shNow'); if (!box) return;
     const d = S.coach; if (!d || !d.me) { box.style.display = 'none'; return; }
-    const m = d.me, T = Number(m.target) || 0, sales = Number(m.sales) || 0;
+    const m = d.me, qi = d.qinfo || null, T = Number(m.target) || 0, sales = Number(m.sales) || 0;
     let L = Array.isArray(m.ladder) ? m.ladder.filter((x) => Number(x.sales) > 0) : [];
     if (!L.length && T > 0) L = [{ sales: T, bonus: Number(m.bonus) || 0, hit: sales >= T }];      // slab chart off: just the target
     const hasRs = L.length > 0 && L.every((x) => x.total != null);
-    const nums = `<div class="nn"><div><b data-cu="${Number(m.orders) || 0}">${Number(m.orders) || 0}</b><small>Orders</small></div><div><b data-cu="${Math.round(Number(m.ticket) || 0)}" data-rs="1">${rs(m.ticket)}</b><small>Ticket</small></div><div><b data-cu="${Math.round(sales)}" data-rs="1">${rs(sales)}</b><small>Sales</small></div><div class="cm"><b data-cu="${Math.round(Number(m.com_today) || 0)}" data-rs="1">${rs(m.com_today)}</b><small>Commission</small></div></div>`;
+    const q = qi ? Number(qi.queries) || 0 : 0, qo = qi ? Number(qi.query_orders) || 0 : (Number(m.orders) || 0), co = qi ? Number(qi.community_orders) || 0 : 0;
+    const conv = qi && qi.conv != null ? qi.conv + '%' : (q > 0 ? Math.round(qo / q * 100) + '%' : '—');
+    // 1) ONE line of 7 numbers: total queries · query orders · community orders · query→order % · ticket · total sales · total commission
+    const nums = `<div class="nn">
+      <div><b data-cu="${q}">${q}</b><small>Total queries</small></div>
+      <div><b data-cu="${qo}">${qo}</b><small>Query orders</small></div>
+      <div><b data-cu="${co}">${co}</b><small>Community orders</small></div>
+      <div class="cv"><b>${conv}</b><small>Query → order</small></div>
+      <div><b data-cu="${Math.round(Number(m.ticket) || 0)}" data-rs="1">${rs(m.ticket)}</b><small>Ticket</small></div>
+      <div><b data-cu="${Math.round(sales)}" data-rs="1">${rs(sales)}</b><small>Total sales</small></div>
+      <div class="cm"><b data-cu="${Math.round(Number(m.com_today) || 0)}" data-rs="1">${rs(m.com_today)}</b><small>Total commission</small></div></div>`;
+    // 2) query goal line
+    let qline = '';
+    if (qi) {
+      const gp = Number(qi.goal_pct) || 23, go = Number(qi.goal_orders) || 0, more = Number(qi.need_more) || 0;
+      if (q <= 0) qline = `<div class="qg">No queries given yet — they appear here the moment they are assigned</div>`;
+      else if (more <= 0) qline = `<div class="qg ok">✅ Query goal reached — <b>${qo}</b> orders from <b>${q}</b> queries (${gp}% goal)</div>`;
+      else qline = `<div class="qg">Need <b>${go}</b> query orders from <b>${q}</b> queries (${gp}%) — <b>${more} more</b></div>`;
+    }
+    // 3) ONE total (mixed) target
     let track = '';
-    if (L.length) {
-      const n = L.length, pos = (i) => (i + 0.5) / n * 100;
-      let f;
-      if (sales <= L[0].sales) f = sales / L[0].sales * pos(0);
-      else if (sales >= L[n - 1].sales) f = pos(n - 1) + Math.min(1, (sales - L[n - 1].sales) / L[n - 1].sales) * (100 - pos(n - 1));
-      else { f = 100; for (let i = 1; i < n; i++) if (sales <= L[i].sales) { f = pos(i - 1) + (sales - L[i - 1].sales) / (L[i].sales - L[i - 1].sales) * (pos(i) - pos(i - 1)); break; } }
-      f = Math.max(0, Math.min(100, f));
-      const nx = L.findIndex((x) => !x.hit);
-      const dots = L.map((x, i) => `<i class="dot ${x.hit ? 'on' : i === nx ? 'next' : ''}" style="left:${pos(i)}%"></i>`).join('');
-      const labs = L.map((x, i) => `<div class="${x.hit ? 'on' : i === nx ? 'next' : ''}"><em class="cp">${i === 0 ? '🎯 TARGET' : (T > 0 ? '+' + Math.round((x.sales / T - 1) * 100) + '% over' : '')}</em><b>${x.hit ? '✅' : i === nx ? '👉' : '🔒'} ${kfmt(x.sales)}</b>${hasRs ? rs(x.total) : (Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : 'Target')}${hasRs && Number(x.bonus) > 0 ? `<small>+${Number(x.bonus)}%</small>` : ''}</div>`).join('');
-      let msg;
-      if (nx < 0) msg = '🏆 <b>Every step unlocked</b> — you are at the top level. Keep stacking!';
-      else {
-        const x = L[nx], more = Math.max(0, x.sales - sales);
-        msg = nx === 0 && T > 0 ? `Only <b>${rs(more)}</b> more to hit your target${Number(x.bonus) > 0 ? ' → ' + (hasRs ? `commission jumps to <b>${rs(x.total)}</b>` : `<b>+${Number(x.bonus)}% extra</b> on every order`) + ' 🎁' : ''}`
-          : `Only <b>${rs(more)}</b> more → ${hasRs ? `commission jumps to <b>${rs(x.total)}</b>` : `<b>+${Number(x.bonus)}% extra</b> on every order`} 🎁`;
+    if (T > 0) {
+      const P = m.target_parts || {}, parts = [['perfume', 'Perfume'], ['gel', 'Shower gel'], ['tm4u', 'TM4U']].filter((k) => Number(P[k[0]]) > 0);
+      const chips = parts.length > 1 ? `<div class="pp">${parts.map((k) => `<i>${k[1]} ${rs(P[k[0]])}</i>`).join('')}</div>` : '';
+      const done = sales >= T, first = L[0] || null, rest = L.slice(1);
+      const head = `<div class="tt"><div class="th">🎯 Total target <b>${rs(T)}</b> <span>(one target, all products)</span></div>${chips}</div>`;
+      if (!done) {
+        // stage 1: the bar runs only to the target; the higher steps stay locked until it is reached
+        const f = Math.max(0, Math.min(100, sales / T * 100)), unlock = first && Number(first.bonus) > 0 ? `commission <b>+${Number(first.bonus)}%</b> unlocks` : 'your target bonus unlocks';
+        const lk = rest.length ? `<div class="lk" style="grid-template-columns:repeat(${rest.length},1fr)">${rest.map((x) => `<div>🔒 ${Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : ''}<small>${kfmt(x.sales)}</small></div>`).join('')}</div>` : '';
+        track = `<hr>${head}<div class="tb"><i style="width:${f}%"></i></div><div class="tbl"><span>₹0</span><span>${rs(sales)} done</span><span>🎯 ${rs(T)}</span></div>
+          <div class="lf"><b>${rs(Math.max(0, T - sales))} left for your target</b><span>Reach it → ${unlock} 🎁</span></div>${lk}`;
+      } else {
+        // stage 2: target done — the ladder opens (target + 20 / 30 / 40 / 60 / 100 %)
+        const n = L.length, pos = (i) => (i + 0.5) / n * 100;
+        let f;
+        if (sales <= L[0].sales) f = sales / L[0].sales * pos(0);
+        else if (sales >= L[n - 1].sales) f = pos(n - 1) + Math.min(1, (sales - L[n - 1].sales) / L[n - 1].sales) * (100 - pos(n - 1));
+        else { f = 100; for (let i = 1; i < n; i++) if (sales <= L[i].sales) { f = pos(i - 1) + (sales - L[i - 1].sales) / (L[i].sales - L[i - 1].sales) * (pos(i) - pos(i - 1)); break; } }
+        f = Math.max(0, Math.min(100, f));
+        const nx = L.findIndex((x) => !x.hit);
+        const dots = L.map((x, i) => `<i class="dot ${x.hit ? 'on' : i === nx ? 'next' : ''}" style="left:${pos(i)}%"></i>`).join('');
+        const labs = L.map((x, i) => `<div class="${x.hit ? 'on' : i === nx ? 'next' : ''}"><em class="cp">${i === 0 ? '🎯 TARGET' : '+' + Math.round((x.sales / T - 1) * 100) + '% over'}</em><b>${x.hit ? '✅' : i === nx ? '👉' : '🔒'} ${kfmt(x.sales)}</b>${hasRs ? rs(x.total) : (Number(x.bonus) > 0 ? '+' + Number(x.bonus) + '%' : 'Target')}${hasRs && Number(x.bonus) > 0 ? `<small>+${Number(x.bonus)}%</small>` : ''}</div>`).join('');
+        let msg;
+        if (nx < 0) msg = '🏆 <b>Every step unlocked</b> — you are at the top level. Keep stacking!';
+        else { const x = L[nx], more = Math.max(0, x.sales - sales); msg = `🏆 Target done! Only <b>${rs(more)}</b> more → ${hasRs ? `commission jumps to <b>${rs(x.total)}</b>` : `<b>+${Number(x.bonus)}% extra</b> on every order`} 🎁`; }
+        let rule = '';
+        if (L.some((x) => Number(x.bonus) > 0)) {
+          const eg = hasRs ? (L[nx >= 0 ? nx : n - 1]) : null, rate = Number(m.avg_pct) || 0;
+          rule = `<div class="rl">How it's counted: your normal commission on every order <b>+ ${L.filter((x) => Number(x.bonus) > 0).map((x) => Number(x.bonus) + '% at ' + kfmt(x.sales)).join(' · + ')}</b> of it.${eg && rate > 0 ? ` e.g. ${rs(eg.sales)} × ${rate}% = ${rs(eg.base)} → +${Number(eg.bonus)}% = <b>${rs(eg.total)}</b>` : ''}</div>`;
+        }
+        track = `<hr>${head}<div class="tk"><span class="nb" style="left:${Math.max(7, Math.min(93, f))}%">${rs(sales)}</span><div class="rail"></div><div class="fill" style="width:${f}%"></div>${dots}</div><div class="st" style="grid-template-columns:repeat(${n},1fr)">${labs}</div><div class="ms">${msg}</div>${rule}`;
       }
-      let rule = '';
-      if (L.some((x) => Number(x.bonus) > 0)) {
-        const eg = hasRs ? (L[nx >= 0 ? nx : n - 1]) : null, rate = Number(m.avg_pct) || 0;
-        rule = `<div class="rl">How it's counted: your normal commission on every order <b>+ ${L.filter((x) => Number(x.bonus) > 0).map((x) => Number(x.bonus) + '% at ' + kfmt(x.sales)).join(' · + ')}</b> of it.${eg && rate > 0 ? ` e.g. ${rs(eg.sales)} × ${rate}% = ${rs(eg.base)} → +${Number(eg.bonus)}% = <b>${rs(eg.total)}</b>` : ''}</div>`;
-      }
-      track = `<hr>${T > 0 ? `<div class="tgl">🎯 Your target <b>${rs(T)}</b> · ${sales >= T ? 'done ✅' : rs(Math.max(0, T - sales)) + ' to go'}</div>` : ''}<div class="tk"><span class="nb" style="left:${Math.max(7, Math.min(93, f))}%">${rs(sales)}</span><div class="rail"></div><div class="fill" style="width:${f}%"></div>${dots}</div><div class="st" style="grid-template-columns:repeat(${n},1fr)">${labs}</div><div class="ms">${msg}</div>${rule}`;
     }
     box.className = 'sh-now'; box.style.display = '';
-    box.innerHTML = nums + track;
+    box.innerHTML = nums + qline + track;
     box.querySelectorAll('[data-cu]').forEach((el) => countUp(el, Number(el.dataset.cu), el.dataset.rs ? rs : (v) => String(Math.round(v))));
+    paintLost(qi);
+  }
+
+  // ------------------------------------------------------------------ 📎 lost chats: queries that did NOT become an order need a chat screenshot + a call recording (Rudra follows up)
+  function paintLost(qi) {
+    let box = $('shLost');
+    if (!qi || !(Number(qi.lost_total) > 0)) { if (box) box.style.display = 'none'; return; }
+    if (!box) { box = document.createElement('section'); box.id = 'shLost'; const now = $('shNow'); if (!now || !now.parentNode) return; now.parentNode.insertBefore(box, now.nextSibling); }
+    const ns = Number(qi.lost_noshot) || 0, nc = Number(qi.lost_nocall) || 0, tot = Number(qi.lost_total) || 0;
+    if (ns + nc === 0) { box.className = 'sh-lost ok'; box.innerHTML = `<span class="ic">✅</span><div class="tx"><b>All lost chats uploaded</b>${tot} queries without an order — screenshots and recordings are in. Thank you!</div>`; box.style.display = ''; return; }
+    box.className = 'sh-lost';
+    box.innerHTML = `<span class="ic">📎</span><div class="tx"><b>Upload your lost chats</b>${tot} queries ended without an order · <b style="display:inline">${ns}</b> need a chat screenshot · <b style="display:inline">${nc}</b> need a call recording</div><button type="button" id="shLostGo">Upload</button>`;
+    box.style.display = '';
+    const go = $('shLostGo'); if (go) go.onclick = () => { if (window.Convo) Convo.open({ kind: 'lost', onChange: () => { loadMissions(); if (typeof window.SalesHome.onRefresh === 'function') window.SalesHome.onRefresh(); } }); };
+  }
+
+  // ------------------------------------------------------------------ 💬 remark from the sales head: pops up until "Got it"
+  function remarkPopup(list) {
+    if (!list || !list.length || document.querySelector('.sh-rem')) return;
+    const bd = document.createElement('div'); bd.className = 'sh-popbd';
+    const ids = list.map((r) => r.id);
+    bd.innerHTML = `<div class="sh-pop sh-rem" role="dialog" aria-modal="true"><h3>💬 ${list.length > 1 ? 'Remarks' : 'Remark'} from ${esc(list[0].from || 'your sales head')}</h3>${list.map((r) => `<div class="rb">${esc(r.body)}<small>${esc(r.from || '')}${r.at ? ' · ' + esc(r.at) : ''}</small></div>`).join('')}<button type="button" class="main" id="shRemOk">Got it 👍</button></div>`;
+    document.body.appendChild(bd);
+    $('shRemOk').onclick = () => { bd.remove(); api.post('ct.remark_seen', { ids }).catch(() => {}); if (S.ct) S.ct.remarks = []; };
+  }
+  async function checkRemarks() {
+    if (document.hidden || document.querySelector('.sh-popbd')) return;
+    try { const r = await api.get('ct.remark_mine'); if (r && r.remarks && r.remarks.length) { chime(); remarkPopup(r.remarks); } } catch (e) { /* offline */ }
   }
 
   function paint() {
@@ -902,6 +975,8 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
   async function loadMissions() {
     try { S.ct = await api.get('ct.my'); } catch (e) { return; }
     paintMissions(); paintLeaders(); paintStory();
+    const rm = S.ct && S.ct.remarks;
+    if (rm && rm.length && !S.open && !document.querySelector('.cvx')) { chime(); remarkPopup(rm); return; }      // a remark first — the proof pop-up comes at the next check
     const pu = S.ct && S.ct.popup;
     if (pu && pu.kind === 'proof' && !S.open && !document.querySelector('.cvx')) { chime(); proofPopup(pu); }
   }
@@ -914,6 +989,7 @@ body.sh-lock{overflow:hidden;} body.sh-lock #menuToggle{display:none !important;
     }).catch(() => { $('shPrice').style.display = 'none'; });
     setTimeout(loadMissions, 600);
     setInterval(() => { if (!document.hidden) loadMissions(); }, 5 * 60 * 1000);
+    setInterval(checkRemarks, 60 * 1000);                                    // a new remark shows up within a minute
     setInterval(() => { if (!document.hidden) paintStory(); }, 4000);      // the chat card arrives from another script — keep the bubbles in step
     api.get('me.flags').then((d) => { S.canAlloc = (d.permissions || []).indexOf('allocation') > -1; initAlloc(); }).catch(() => {});
   }

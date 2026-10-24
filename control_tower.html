@@ -17,7 +17,7 @@
   .ldr .bar{height:5px; border-radius:4px; background:#e5e7eb; margin-top:4px; overflow:hidden;} .ldr .bar i{display:block; height:100%; background:linear-gradient(90deg,#4ade80,#16a34a);}
   .ldr .cv{text-align:right;} .ldr .cv b{display:block; font-size:15px; font-weight:900;} .ldr .cv b.ok{color:#15803d;} .ldr .cv b.warn{color:#b45309;} .ldr .cv small{font-size:10.5px; color:var(--muted);}
   .ldt{border-radius:10px; padding:8px 11px; margin-top:6px; font-size:12.5px; line-height:1.45; background:#EEF2FF; color:#3730a3;} .ldt.coach{background:#FFF7ED; color:#9a3412;} .ldt b{display:block; font-size:13px;}
-  @media (max-width:640px){ #p-focus, #p-today, #p-alerts, #p-md, #p-rt, #qbTop, #qbBot, #aqCard, #p-bench, #p-set, #tabs{zoom:.8;} }
+  @media (max-width:640px){ #p-focus, #p-today, #p-alerts, #p-md, #p-rt, #p-qb, #p-rd, #p-bench, #p-set, #tabs{zoom:.8;} }
   .ct-tabs{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px;}
   .ct-tab{border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 16px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
   .ct-tab.on{background:var(--ink); color:#fff; border-color:var(--ink);}
@@ -83,7 +83,7 @@
   .fc-tw{overflow-x:auto;} .fc-tb{width:100%; border-collapse:collapse; font-size:13px; min-width:760px;} .fc-tb th{text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); letter-spacing:.04em; padding:6px 8px; border-bottom:2px solid var(--line);} .fc-tb td{padding:8px; border-bottom:1px solid #eef0f3; vertical-align:top;}
   .fc-tb tr.r td:first-child{box-shadow:inset 4px 0 0 #ef4444;} .fc-tb tr.a td:first-child{box-shadow:inset 4px 0 0 #f59e0b;} .fc-tb tr.g td:first-child{box-shadow:inset 4px 0 0 #22c55e;} .fc-tb .ln{margin-bottom:4px;}
   @media (max-width:640px){ .fc-sum{grid-template-columns:repeat(2,1fr);} }
-  .qsum{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:8px 0;} .qsum div{background:#f3f4f6; border-radius:12px; padding:8px 4px; text-align:center;} .qsum b{display:block; font-size:19px; font-weight:900;} .qsum small{font-size:9.5px; color:var(--muted); font-weight:800;}
+  .qsum{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:8px 0;} .qsum div{background:#f3f4f6; border-radius:12px; padding:8px 4px; text-align:center;} .qsum b{display:block; font-size:19px; font-weight:900;} .qsum small{font-size:9.5px; color:var(--muted); font-weight:800;}
   .qgrid{display:grid; grid-template-columns:repeat(6,1fr); gap:4px;} @media (min-width:700px){ .qgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:6px;} }
   .qsq{width:auto; min-height:0; border:0; border-radius:9px; padding:5px 2px; text-align:center; line-height:1.15; cursor:pointer; font-family:inherit;} .qsq b{display:block; font-size:13px; font-weight:900;} .qsq small{display:block; font-size:8.5px; font-weight:800; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
   .qsq.sel{outline:2px solid #111827; outline-offset:1px;} .qsq.g,.qdet.g{background:#dcfce7; color:#14532d;} .qsq.a,.qdet.a{background:#fef3c7; color:#78350f;} .qsq.r,.qdet.r{background:#fee2e2; color:#7f1d1d;} .qsq.na,.qdet.na{background:#f3f4f6; color:#6b7280;}
@@ -100,6 +100,27 @@
   .cl-pr{display:block; border-top:1px solid #f1f5f9; font-size:12px;} .cl-pr summary,.cl-ptot{display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:6px; align-items:center; padding:8px 0; cursor:pointer; list-style:none;} .cl-pr summary::-webkit-details-marker{display:none;}
   .cl-ph-h{display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:6px; padding:4px 0; font-size:9.5px; font-weight:900; color:var(--muted); text-transform:uppercase; border-top:0;}
   .cl-pr .n{font-weight:800; font-size:12.5px;} .cl-pr small{display:block; color:var(--muted); font-size:10px; font-weight:700;} .cl-more{font-size:11.5px; color:var(--muted); padding:0 0 8px; line-height:1.5;} .cl-ptot{border-top:2px solid var(--line); background:#f8fafc; cursor:default;}
+
+  /* Give queries (Query Boost) */
+  .gq-hrs{display:flex; gap:5px; overflow-x:auto; padding:4px 1px 8px; margin:6px 0 2px; -webkit-overflow-scrolling:touch;}
+  .gq-h{flex:none; min-width:46px; width:auto; min-height:0; border:1px solid var(--line); background:#fff; border-radius:11px; padding:4px 6px; text-align:center; font-family:inherit; cursor:pointer; line-height:1.15; color:var(--ink);} .gq-h b{display:block; font-size:12.5px; font-weight:900;} .gq-h small{display:block; font-size:9px; font-weight:800; color:var(--muted);}
+  .gq-h.on{background:#111827; color:#fff; border-color:#111827;} .gq-h.on small{color:#cbd5e1;} .gq-h.now{box-shadow:0 0 0 2px #f59e0b inset;} .gq-h.fut{opacity:.4; cursor:default;} .gq-h.has b{color:#15803d;} .gq-h.on.has b{color:#bbf7d0;}
+  .gq-r{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 2px; border-top:1px solid var(--line);} .gq-r:first-of-type{border-top:0;} .gq-r .nm b{font-weight:800; font-size:13.5px;} .gq-r .nm small{display:block; font-size:11px; color:var(--muted); font-weight:700;}
+  .gq-st{display:flex; align-items:center; gap:6px;} .gq-st button{width:38px; min-height:0; height:38px; border-radius:50%; border:1px solid var(--line); background:#fff; font-size:20px; font-weight:900; line-height:1; cursor:pointer; padding:0; color:var(--ink);} .gq-st button.pl{background:#16a34a; color:#fff; border-color:#16a34a;} .gq-st button:disabled{opacity:.35; cursor:default;}
+  .gq-st input{width:58px; height:38px; text-align:center; font-size:17px; font-weight:900; border:1px solid var(--line); border-radius:10px; padding:0; background:#fff; -moz-appearance:textfield;} .gq-st input::-webkit-outer-spin-button,.gq-st input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .gq-tot{display:flex; justify-content:space-between; gap:8px; font-size:12px; font-weight:800; color:var(--muted); padding:8px 2px 2px; border-top:2px solid var(--line); margin-top:4px;}
+  .gq-bh{display:grid; grid-template-columns:62px 1fr; gap:8px; padding:7px 2px; border-top:1px solid var(--line); font-size:12.5px; align-items:start;} .gq-bh:first-of-type{border-top:0;} .gq-bh b{font-weight:900;} .gq-bh .who{color:#4b5563; line-height:1.5;} .gq-bh .who i{font-style:normal; display:inline-block; background:#f1f5f9; border-radius:99px; padding:0 8px; margin:0 4px 3px 0; font-weight:700;}
+  /* Rudra */
+  .rd-sum{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0 6px;} .rd-sum div{background:#f6f7f9; border-radius:12px; padding:9px 10px;} .rd-sum b{display:block; font-size:22px; font-weight:900;} .rd-sum small{font-size:10.5px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.03em;}
+  .rd-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:12px 8px; margin-top:12px;}
+  .rd-c{width:auto; min-height:0; border:0; background:transparent; padding:0; text-align:center; font-family:inherit; cursor:pointer; color:var(--ink);} .rd-c .ci{width:58px; height:58px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:21px; font-weight:900; border:3px solid; position:relative;}
+  .rd-c.r .ci{background:#fee2e2; border-color:#ef4444; color:#991b1b;} .rd-c.a .ci{background:#fef9c3; border-color:#eab308; color:#854d0e;} .rd-c.g .ci{background:#dcfce7; border-color:#22c55e; color:#166534;}
+  .rd-c .ci em{position:absolute; right:-4px; top:-4px; font-style:normal; font-size:11px; background:#fff; border-radius:50%; width:19px; height:19px; line-height:19px; box-shadow:0 0 0 1px #e5e7eb;}
+  .rd-c small{display:block; margin-top:4px; font-size:11px; font-weight:800; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .rd-bd{position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:90; display:flex; align-items:flex-end; justify-content:center;} .rd-sh{background:#fff; width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:16px 16px 20px; max-height:88vh; overflow:auto;} @media (min-width:700px){ .rd-bd{align-items:center;} .rd-sh{border-radius:20px;} }
+  .rd-sh h3{margin:0 0 2px; font-size:18px;} .rd-k{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0;} .rd-k div{border-radius:12px; padding:8px 4px; text-align:center; background:#f3f4f6;} .rd-k b{display:block; font-size:20px; font-weight:900;} .rd-k small{font-size:9.5px; font-weight:800; color:var(--muted); text-transform:uppercase;} .rd-k .r{background:#fee2e2; color:#991b1b;} .rd-k .g{background:#dcfce7; color:#166534;}
+  .rd-act{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;} .rd-act .btn{flex:1 1 140px; width:auto;}
+  .rm-st{font-size:12px; border-radius:10px; padding:6px 10px; margin-top:8px; background:#f8fafc; border:1px solid var(--line); line-height:1.45; word-break:break-word;} .rm-st.ok{background:#f0fdf4; border-color:#bbf7d0; color:#166534;} .rm-st.wait{background:#fffbeb; border-color:#fde68a; color:#92400e;} .rm-st b{font-weight:800;}
   .empty{padding:26px; text-align:center; color:var(--muted); font-size:13.5px;}
   .big-ok{font-size:15px; font-weight:700; color:#16945a;}
   @media (max-width:820px){ .al{flex-wrap:wrap;} .al .act{margin-left:22px;} .ct-tile .v{font-size:23px;} }
@@ -124,6 +145,7 @@
         <button class="ct-tab" data-t="alerts">Alerts <span class="n" id="nAl" style="display:none;"></span></button>
         <button class="ct-tab" data-t="md">Message Doctor <span class="n" id="nMd" style="display:none;"></span></button>
         <button class="ct-tab" data-t="qb">🏁 Query Boost</button>
+        <button class="ct-tab" data-t="rd">🛡 Rudra <span class="n" id="nRd" style="display:none;"></span></button>
         <button class="ct-tab" data-t="rt">⭐ Ratings</button>
         <button class="ct-tab" data-t="bench">Benchmarks &amp; Ideas</button>
         <button class="ct-tab" data-t="set" id="tabSet" style="display:none;">Settings</button>
@@ -134,7 +156,8 @@
       <section id="p-alerts" style="display:none;"></section>
       <section id="p-md" style="display:none;"></section>
       <section id="p-rt" style="display:none;"></section>
-      <section id="p-qb" style="display:none;"><div id="qbTop"></div><div class="card" id="aqCard" style="margin-bottom:14px;"><div class="card-head"><div><h2>📋 Assign queries</h2><div class="sub">Give the queries here — the suggestion above and the assigning are in one place now.</div></div></div><iframe id="aqFrame" title="Assign queries" style="width:100%;border:0;display:block;min-height:420px;background:transparent;" loading="lazy"></iframe></div><div id="qbBot"></div></section>
+      <section id="p-qb" style="display:none;"><div id="qbBot"></div><div id="qbTop"></div><div id="qbGive"></div></section>
+      <section id="p-rd" style="display:none;"></section>
       <section id="p-bench" style="display:none;"></section>
       <section id="p-set" style="display:none;"></section>
     </div>
@@ -145,7 +168,7 @@
   <div class="modal" style="max-width:420px;">
     <h3 id="resTitle">Mark resolved</h3>
     <div class="sub" id="resSub" style="margin-bottom:10px;"></div>
-    <div class="field"><label for="resNote">Comment <b style="color:#dc2626;">(required)</b> — what did you do? e.g. "spoke to him, he will send proofs"</label><input type="text" id="resNote" maxlength="280" autocomplete="off"><div class="sub" id="resErr" style="color:#dc2626;font-weight:700;display:none;margin-top:6px;">Please write a comment (at least 3 letters) to mark this resolved.</div></div>
+    <div class="field"><label for="resNote" id="resLbl">Comment <b style="color:#dc2626;">(required)</b> — what did you do? e.g. "spoke to him, he will send proofs"</label><input type="text" id="resNote" maxlength="280" autocomplete="off"><div class="sub" id="resErr" style="color:#dc2626;font-weight:700;display:none;margin-top:6px;">Please write a comment (at least 3 letters) to mark this resolved.</div></div>
     <div class="actions">
       <button type="button" class="btn secondary" id="resCancel">Cancel</button>
       <button type="button" class="btn" id="resOk">✅ Resolved</button>
@@ -184,9 +207,10 @@
     const b = e.target.closest('.ct-tab'); if (!b) return;
     tab = b.dataset.t;
     document.querySelectorAll('.ct-tab').forEach(x => x.classList.toggle('on', x === b));
-    ['focus', 'today', 'alerts', 'md', 'qb', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
+    ['focus', 'today', 'alerts', 'md', 'qb', 'rd', 'rt', 'bench', 'set'].forEach(k => $('p-' + k).style.display = k === tab ? '' : 'none');
     if (tab === 'focus') loadFocus();
-    if (tab === 'qb') ensureAq();
+    if (tab === 'qb') loadGive();
+    if (tab === 'rd') loadRd();
     if (tab === 'rt') loadRt();
     if (tab === 'md' && !MD) loadMd(false);
     if (tab === 'bench' && !BM) loadBench();
@@ -302,9 +326,9 @@
         <div class="qbig"><b>${sel.orders}</b> query order${sel.orders === 1 ? '' : 's'} out of <b>${sel.queries}</b> quer${sel.queries === 1 ? 'y' : 'ies'} = <b>${sel.conv != null ? sel.conv + '%' : '—'}</b> <span class="mut">(team ${tc != null ? tc + '%' : '—'})</span></div>
         ${sel.comm ? '<div class="mut">+' + sel.comm + ' community order' + (sel.comm === 1 ? '' : 's') + ' — not counted</div>' : ''}${tip ? `<div class="ldt ${tip.kind}" style="margin-top:6px;"><b>${tip.kind === 'more' ? '📈 Give more queries' : '🎯 Coach first'}</b>${esc(tip.text)}</div>` : ''}</div>`; })() : '<div class="sub" style="margin-top:8px;">Tap a square to see that person.</div>';
     const tips = (L.tips || []).map(t => `<div class="ldt ${t.kind}"><b>${t.kind === 'more' ? '📈 Give more queries' : '🎯 Coach first'} — ${esc(t.name)}</b>${esc(t.text)}</div>`).join('');
-    return `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🏁 Query → order board</h2><div class="sub">Each square = one person: <b>query orders / queries</b>. Community / campaign orders are not counted. Suggestions only — you assign the queries.</div></div>
+    return `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🏁 Query → order board</h2><div class="sub">Each square = one person: <b>query orders / queries</b>. Community / campaign orders are not counted. Suggestions only — you give the queries below.</div></div>
       <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
-      <div class="qsum"><div><b>${to}/${tq}</b><small>QUERY ORDERS / QUERIES</small></div><div><b>${tc != null ? tc + '%' : '—'}</b><small>TEAM RATIO</small></div><div><b>${list.length}</b><small>PEOPLE WORKING</small></div></div>
+      <div class="qsum"><div><b>${to}/${tq}</b><small>QUERY ORDERS / QUERIES</small></div><div><b>${tc != null ? tc + '%' : '—'}</b><small>TEAM RATIO</small></div><div><b>${list.length}</b><small>PEOPLE WORKING</small></div><div><b>${(T.team && T.team.q_goal_pct) || (T.cfg && T.cfg.q_conv_goal) || 23}%</b><small>GOAL</small></div></div>
       ${sq ? '<div class="qgrid">' + sq + '</div>' : '<div class="empty">No queries recorded yet.</div>'}
       <div class="qlg"><span><i class="g"></i>at / above team</span><span><i class="a"></i>60–100% of team</span><span><i class="r"></i>under 60%</span><span><i class="na"></i>under ${min} queries</span></div>${det}
       ${tips ? '<div class="sub" style="font-weight:800;margin:12px 0 4px;">Suggestions (last 7 days)</div>' + tips : ''}</div>`;
@@ -315,7 +339,7 @@
   async function loadFocus() {
     if (!FO) $('p-focus').innerHTML = '<div class="card"><div class="empty">Getting today\'s focus ready…</div></div>';
     try { FO = await api.get('ct.focus'); } catch (e) { FO = { error: e.message }; }
-    renderFocus();
+    await loadRem(); renderFocus();
   }
   window.setFV = (v) => { FV = v; try { localStorage.setItem('ct_focus_view', v); } catch (e) {} renderFocus(); };
   function renderFocus() {
@@ -330,7 +354,8 @@
     const mv = (r) => r.prev != null && r.score != null ? (r.score >= r.prev ? '▲ ' : '▼ ') + Math.abs(Math.round((r.score - r.prev) * 10) / 10) + ' vs day before' : '';
     const prog = (r) => (r.progress || []).length ? `<div class="fc-lp">Last focus: ${(r.progress).map(p => `<span class="fc-imp ${p.state}">${esc(p.label)} ${p.from} → ${p.to} ${p.state === 'up' ? '✅ improved' : p.state === 'down' ? '⚠ went down' : '· same'}</span>`).join('')}</div>` : '';
     const done = (r) => r.done ? `<div class="fc-dn">✅ <b>${r.grp === 'praise' ? 'Praised' : 'Talked'}</b> by ${esc(r.done_by || 'someone')} · ${esc(String(r.done_at || '').slice(11, 16))} — <i>“${esc(r.note || '')}”</i></div>` : '';
-    const btns = (r) => r.done ? '' : `<div class="fc-b"><button type="button" class="btn" style="background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'} — add comment</button><button type="button" class="btn secondary" onclick="goTab('rt')">⭐ Ratings</button>${(r.items || []).some(i => i.k === 'conv') ? '<button type="button" class="btn secondary" onclick="goTab(\'qb\')">🏁 Query Boost</button>' : ''}</div>`;
+    const rmBtn = (r) => `<button type="button" class="btn secondary" onclick="askRemark(${r.id},'focus')">✍️ Remark</button>`;
+    const btns = (r) => r.done ? `<div class="fc-b">${rmBtn(r)}</div>${remBox(r.id)}` : `<div class="fc-b"><button type="button" class="btn" style="background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'} — add comment</button>${rmBtn(r)}<button type="button" class="btn secondary" onclick="goTab('rt')">⭐ Ratings</button>${(r.items || []).some(i => i.k === 'conv') ? '<button type="button" class="btn secondary" onclick="goTab(\'qb\')">🏁 Query Boost</button>' : ''}</div>${remBox(r.id)}`;
     const card = (r) => `<div class="fc-pc ${G[r.grp][2]}"><div class="fc-top"><div><b>${esc(r.name)}</b><span class="fc-up">${esc(mv(r))}</span></div><span class="fc-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span></div>
       ${(r.items || []).map(i => `<div class="fc-it"><span>${i.icon || ''}</span><div><div class="w">${esc(i.label)} — ${esc(i.why)}</div><div class="fc-do">Do: ${esc(i.do)}</div></div></div>`).join('')}${prog(r)}${done(r)}${btns(r)}</div>`;
     let body;
@@ -338,23 +363,37 @@
     else if (FV === 'cards') body = ['talk', 'check', 'praise'].map(g => { const l = rows.filter(r => r.grp === g); return l.length ? `<div class="fc-h ${G[g][2]}">${G[g][0]} ${G[g][1]} (${l.length})</div>` + l.map(card).join('') : ''; }).join('');
     else body = `<div class="fc-tw"><table class="fc-tb"><tr><th>Person</th><th>Yesterday</th><th>Work on</th><th>Why (yesterday's number)</th><th>What to say / do</th><th>Done</th></tr>${rows.map(r => `<tr class="${G[r.grp][2]}"><td><b>${esc(r.name)}</b></td><td><span class="fc-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span><div class="fc-up" style="margin:3px 0 0;">${esc(mv(r))}</div></td>
       <td>${(r.items || []).map(i => `<div class="ln">${i.icon || ''} ${esc(i.label)}</div>`).join('')}</td><td>${(r.items || []).map(i => `<div class="ln">${esc(i.why)}</div>`).join('')}${prog(r)}</td><td>${(r.items || []).map(i => `<div class="ln">${esc(i.do)}</div>`).join('')}</td>
-      <td>${r.done ? `<div class="fc-dn" style="margin:0;">✅ ${esc(r.done_by || '')} · ${esc(String(r.done_at || '').slice(11, 16))}<br><i>“${esc(r.note || '')}”</i></div>` : `<button type="button" class="btn" style="width:auto;min-height:0;padding:4px 12px;font-size:12px;background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'}</button>`}</td></tr>`).join('')}</table></div>`;
+      <td>${r.done ? `<div class="fc-dn" style="margin:0;">✅ ${esc(r.done_by || '')} · ${esc(String(r.done_at || '').slice(11, 16))}<br><i>“${esc(r.note || '')}”</i></div>` : `<button type="button" class="btn" style="width:auto;min-height:0;padding:4px 12px;font-size:12px;background:#166534;color:#fff;border-color:#166534;" onclick="askTalked(${r.id})">✅ ${r.grp === 'praise' ? 'Praised' : 'Talked'}</button>`} <button type="button" class="btn secondary" style="width:auto;min-height:0;padding:4px 10px;font-size:12px;margin-top:4px;" onclick="askRemark(${r.id},'focus')">✍️ Remark</button>${remBox(r.id)}</td></tr>`).join('')}</table></div>`;
     const wk = tm.weak ? `${esc(tm.weak.label)} (${tm.weak.avg})` : '—';
     box.innerHTML = `<div class="card"><div class="card-head"><div><h2>☀️ Focus for ${esc(dayTxt)}</h2><div class="sub">Built from yesterday's numbers · who to talk to and what to work on · <b>${tm.done || 0} of ${tm.total || 0} done</b></div></div>
       <div class="fc-seg"><div class="ldseg"><button type="button" class="${FV === 'cards' ? 'on' : ''}" onclick="setFV('cards')">Cards</button><button type="button" class="${FV === 'table' ? 'on' : ''}" onclick="setFV('table')">Table</button></div></div></div>
       <div class="fc-sum"><div><b>${tm.avg != null ? tm.avg : '—'}</b><small>Team rating yesterday</small></div><div><b style="font-size:14px;">${wk}</b><small>Team weak spot</small></div><div><b>${tm.talk || 0}</b><small>Talk first</small></div><div><b>${tm.praise || 0}</b><small>Praise today</small></div></div>${body}</div>`;
   }
-  let resMode = 'alert', resEmp = 0;
-  window.askTalked = (id) => {
-    resMode = 'focus'; resEmp = id; const r = ((FO && FO.rows) || []).find(x => x.id === id) || {};
-    $('resTitle').textContent = r.grp === 'praise' ? 'Mark praised' : 'Mark talked'; $('resSub').textContent = r.name || '';
+  let resMode = 'alert', resEmp = 0, resSrc = 'focus';
+  const RES_LBL = 'Comment <b style="color:#dc2626;">(required)</b> — what did you do? e.g. "spoke to him, he will send proofs"';
+  const RES_ERR = 'Please write a comment (at least 3 letters) to mark this resolved.';
+  // one small pop-up for three jobs: mark an alert resolved · mark a Focus card talked · send a remark
+  function openRes(mode, title, sub, lbl, okTxt, max) {
+    resMode = mode; $('resTitle').textContent = title; $('resSub').textContent = sub || '';
+    $('resLbl').innerHTML = lbl || RES_LBL; $('resOk').textContent = okTxt || '✅ Resolved'; $('resNote').maxLength = max || 280;
+    $('resErr').textContent = mode === 'remark' ? 'Write the remark first (at least 3 letters).' : RES_ERR;
     $('resNote').value = ''; $('resErr').style.display = 'none'; $('resOk').disabled = true; $('resModal').classList.add('open'); setTimeout(() => $('resNote').focus(), 50);
-  };
+  }
+  window.askTalked = (id) => { resEmp = id; const r = ((FO && FO.rows) || []).find(x => x.id === id) || {}; openRes('focus', r.grp === 'praise' ? 'Mark praised' : 'Mark talked', r.name || ''); };
+  // ---------- ✍️ REMARKS: the sales head writes a remark → it pops up on the salesperson's My Sales until she taps "Got it" → here it shows "Seen by <name> <time>" ----------
+  let REM = {};
+  async function loadRem() { try { const r = await api.get('ct.remark_recent'); REM = {}; (r.remarks || []).forEach(x => { if (!REM[x.employee_id]) REM[x.employee_id] = x; }); } catch (e) { /* older api.php */ } }
+  const pName = (id) => { const f = ((RD && RD.people) || []).find(x => x.id === id) || ((FO && FO.rows) || []).find(x => x.id === id) || ((RT[RV] && RT[RV].rows) || []).find(x => x.id === id); return (f && f.name) || nameOf(id); };
+  const remBox = (id, who) => { const r = REM[id]; if (!r) return '';
+    return r.seen ? `<div class="rm-st ok">💬 “${esc(r.body)}” — ✅ <b>Seen by ${esc(who || r.name || pName(id))}</b> ${esc(r.seen)}</div>` : `<div class="rm-st wait">💬 “${esc(r.body)}” — ⏳ <b>not seen yet</b> · sent ${esc(String(r.at || '').slice(11, 16))}</div>`; };
+  window.askRemark = (id, src) => { resEmp = id; resSrc = src || 'focus'; const rdSh = document.querySelector('.rd-bd'); if (rdSh) rdSh.remove();
+    openRes('remark', '✍️ Send remark', pName(id), 'Your remark — it pops up on <b>' + esc(pName(id).split(' ')[0]) + '</b>\'s My Sales until she taps <b>Got it</b>', '📨 Send', 400); };
+  async function afterRemark() { await loadRem(); if (tab === 'rd') loadRd(); if (tab === 'focus') renderFocus(); if (tab === 'rt') renderRt(); }
   // ---------- RATINGS: every salesperson's rating, by person or by section, with the remarks ----------
   let RT = {}, RV = 'today', RM = 'person';
   async function loadRt() {
     if (!RT[RV]) { $('p-rt').innerHTML = '<div class="card"><div class="empty">Loading ratings…</div></div>'; try { RT[RV] = await api.get('rating.team', { view: RV }); } catch (e) { RT[RV] = { error: e.message }; } }
-    renderRt();
+    await loadRem(); renderRt();
   }
   window.setRV = (v) => { RV = v; loadRt(); };
   window.setRM = (m) => { RM = m; renderRt(); };
@@ -373,7 +412,7 @@
     let body = '';
     if (!rows.length) body = '<div class="empty">No ratings yet for this period.</div>';
     else if (RM === 'person') body = rows.map((r, i) => `<details class="rt-p"><summary><span class="rk" style="text-align:center;font-weight:900;color:var(--muted);">${['🥇', '🥈', '🥉'][i] || (i + 1)}</span><div><b>${esc(r.name)}</b><div class="rt-lb">${lab(r.score)}${r.prev != null && r.score != null ? ' · ' + (r.score >= r.prev ? '▲' : '▼') + ' ' + Math.abs(Math.round((r.score - r.prev) * 10) / 10) + ' vs before' : ''}${r.days ? ' · ' + r.days + ' days' : ''}</div></div><span class="rt-sc ${cl(r.score)}">${r.score != null ? r.score : '—'}</span></summary>
-        <div class="rt-body">${keys.map(k => partRow(k, r)).join('')}${r.insight && r.insight.lift ? `<div class="rt-rm" style="background:#eff6ff;color:#1e40af;">💡 Biggest lift: ${esc((P[r.insight.lift.k] || {}).label || r.insight.lift.k)} ${r.insight.lift.from} → ${r.insight.lift.to} = +${r.insight.lift.gain} on the rating</div>` : ''}</div></details>`).join('');
+        <div class="rt-body">${keys.map(k => partRow(k, r)).join('')}${r.insight && r.insight.lift ? `<div class="rt-rm" style="background:#eff6ff;color:#1e40af;">💡 Biggest lift: ${esc((P[r.insight.lift.k] || {}).label || r.insight.lift.k)} ${r.insight.lift.from} → ${r.insight.lift.to} = +${r.insight.lift.gain} on the rating</div>` : ''}<div class="fc-b"><button type="button" class="btn secondary" onclick="askRemark(${r.id},'rating')">✍️ Send remark to ${esc(String(r.name).split(' ')[0])}</button></div>${remBox(r.id)}</div></details>`).join('');
     else body = keys.map(k => {
       const list = rows.filter(r => r.parts && r.parts[k] != null).sort((a, b) => a.parts[k] - b.parts[k]);
       const avg = (D.part_avg || {})[k];
@@ -382,12 +421,6 @@
     }).join('');
     box.innerHTML = `<div class="card"><div class="card-head"><div><h2>⭐ Sales ratings</h2><div class="sub">Every salesperson's rating out of 10 — the same ratings they see on My Sales, with the remarks. ${esc(D.period || '')}</div></div>${seg}</div>${sum}${body}</div>`;
   }
-  // ---------- Assign Queries lives HERE only (inside Query Boost) — the standalone page is just loaded in embed mode ----------
-  function ensureAq() { const f = $('aqFrame'); if (f && !f.getAttribute('src')) f.setAttribute('src', 'assign_queries.html?embed=1'); }
-  window.addEventListener('message', (ev) => {
-    if (ev.origin !== location.origin || !ev.data || typeof ev.data.aqh !== 'number') return;
-    const f = $('aqFrame'); if (f) f.style.height = Math.max(420, Math.min(6000, Math.ceil(ev.data.aqh) + 8)) + 'px';
-  });
   // ---------- QUERY BOOST (after Message Doctor): who converts queries best → who should get the most queries ----------
   function renderQb() {
     const box = $('qbTop'), bot = $('qbBot'); if (!box || !bot) return;
@@ -401,13 +434,100 @@
     const medal = (i) => ['🥇', '🥈', '🥉', '4', '5'][i];
     const rows = best.map((r, i) => `<div class="ldr" style="grid-template-columns:26px 1fr auto auto;"><span class="rk">${medal(i)}</span><div class="nm"><b>${esc(r.name)}</b><div class="bar"><i style="width:${Math.min(100, r.conv * 2)}%"></i></div></div><div class="cv"><b class="ok qo">${r.orders} / ${r.queries}</b><small>query orders / queries · ${r.conv}%</small>${r.comm ? '<span class="mut">+' + r.comm + ' community — not counted</span>' : ''}</div><div class="cv" style="min-width:74px;"><b>${split[i]}</b><small>of next 100</small></div></div>`).join('');
     box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🎯 Give the most queries to</h2>
-      <div class="sub">Best query orders ÷ queries ${V === L.week ? 'in the last 7 days' : 'today'} · team ${V.team_conv != null ? V.team_conv + '%' : '—'}. People under ${min} queries are not ranked yet. <b>Suggestion only</b> — assign the queries in <b>Assign queries</b> just below.</div></div>
+      <div class="sub">Best query orders ÷ queries ${V === L.week ? 'in the last 7 days' : 'today'} · team ${V.team_conv != null ? V.team_conv + '%' : '—'}. People under ${min} queries are not ranked yet. <b>Suggestion only</b> — give the queries in <b>Give queries</b> just below.</div></div>
       <div class="ldseg"><button type="button" class="${LV === 'today' ? 'on' : ''}" onclick="setLV('today')">Today</button><button type="button" class="${LV === 'week' ? 'on' : ''}" onclick="setLV('week')">7 days</button></div></div>
       ${rows ? '<div class="sub" style="font-weight:800;margin:6px 0 2px;">If you have 100 more queries to give, split them like this:</div>' + rows : '<div class="empty">Not enough queries yet — nobody has reached ' + min + ' queries.</div>'}</div>`;
     bot.innerHTML = leadersCard();
   }
   window.setLV = (v) => { LV = v; renderQb(); };
   window.goTab = (k) => document.querySelector(`.ct-tab[data-t="${k}"]`).click();
+
+
+  // ---------- 📋 GIVE QUERIES (inside Query Boost): ONE count per person — shower-gel and normal queries are the same thing, no house, no campaign ----------
+  let GQ = null, GQH = null, GQT = 0;
+  const hLab = (h) => h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h - 12) + 'p';
+  const hFull = (h) => (h % 12 === 0 ? 12 : h % 12) + ' ' + (h < 12 ? 'AM' : 'PM');
+  async function loadGive() {
+    if (!GQ) $('qbGive').innerHTML = '<div class="card"><div class="empty">Loading…</div></div>';
+    const day = $('datePick').value;
+    try { GQ = await api.get('qb.list', Object.assign({}, day ? { date: day } : {}, GQH != null ? { hour: GQH } : {})); } catch (e) { GQ = { error: e.message }; }
+    renderGive();
+  }
+  function renderGive() {
+    const box = $('qbGive'), D = GQ; if (!box) return;
+    if (!D || D.error) { box.innerHTML = `<div class="card"><div class="card-head"><div><h2>📋 Give queries</h2></div></div>${D && /unknown action/i.test(D.error || '') ? errHtml({ message: D.error }) : `<div class="empty">${esc(D ? D.error : 'No data')}</div>`}</div>`; return; }
+    const hrs = (D.hours || []).map(h => `<button type="button" class="gq-h${GQH === h.hour ? ' on' : ''}${h.now ? ' now' : ''}${h.future ? ' fut' : ''}${h.n > 0 ? ' has' : ''}" data-h="${h.hour}"${h.future ? ' disabled' : ''}><b>${hLab(h.hour)}</b><small>${h.n > 0 ? h.n : '·'}</small></button>`).join('');
+    const ppl = D.people || [];
+    const val = (p) => GQH == null ? p.queries : (p.hour || 0);
+    const rows = ppl.map(p => `<div class="gq-r"><div class="nm"><b>${esc(p.name)}</b><small>${GQH == null ? `${p.orders} query order${p.orders === 1 ? '' : 's'} · ${p.queries} quer${p.queries === 1 ? 'y' : 'ies'}` : `${hFull(GQH)} · day total ${p.queries}`}</small></div>
+      <div class="gq-st"><button type="button" data-a="m" data-id="${p.id}" ${val(p) <= 0 ? 'disabled' : ''} aria-label="One less">−</button><input type="number" inputmode="numeric" min="0" max="9999" value="${val(p)}" data-a="s" data-id="${p.id}" aria-label="Queries for ${esc(p.name)}"><button type="button" class="pl" data-a="p" data-id="${p.id}" aria-label="One more">+</button></div></div>`).join('');
+    const byHour = (D.hours || []).filter(h => h.n > 0).map(h => `<div class="gq-bh"><b>${hFull(h.hour)}</b><div class="who"><b>${h.n} quer${h.n === 1 ? 'y' : 'ies'}</b><br>${((D.by_emp || {})[String(h.hour)] || []).map(x => `<i>${esc(x.name.split(' ')[0])} ${x.n}</i>`).join('')}</div></div>`).join('')
+      + (D.earlier > 0 ? `<div class="gq-bh"><b>Earlier</b><div class="who"><b>${D.earlier} quer${D.earlier === 1 ? 'y' : 'ies'}</b><br><span class="sub">given before the hour log existed — no time saved</span></div></div>` : '');
+    box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>📋 Give queries</h2><div class="sub">One count per person — <b>shower gel and normal queries are the same</b>. Pick an hour to give for that hour, or <b>Whole day</b>. ${D.date !== D.biz_today ? '<b style="color:#b45309;">Editing ' + esc(D.date) + '</b>' : ''}</div></div></div>
+      <div class="gq-hrs"><button type="button" class="gq-h${GQH == null ? ' on' : ''}" data-h=""><b>Whole day</b><small>${D.total}</small></button>${hrs}</div>
+      ${rows || '<div class="empty">No sales people found.</div>'}
+      <div class="gq-tot"><span>Total queries given${GQH != null ? ' in ' + hFull(GQH) : ''}</span><b>${GQH == null ? D.total : ppl.reduce((x, p) => x + (p.hour || 0), 0)}</b></div></div>
+      <div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🕐 By hour — queries given</h2><div class="sub">Queries only · tap an hour above to give for it</div></div></div>${byHour || '<div class="empty">Nothing given yet today.</div>'}</div>`;
+  }
+  function gqSync() { clearTimeout(GQT); GQT = setTimeout(() => { loadGive(); loadTower(false); }, 900); }     // re-read the numbers + refresh the board above
+  async function gqDo(id, how, v) {
+    const p = ((GQ && GQ.people) || []).find(x => x.id === id); if (!p) return;
+    const day = $('datePick').value || (GQ && GQ.date), hour = GQH;
+    const old = { q: p.queries, h: p.hour };
+    try {
+      let r;
+      if (how === 's') { const n = Math.max(0, Math.min(9999, parseInt(v, 10) || 0)); r = await api.post('qb.set', { employee_id: id, value: n, date: day, hour }); }
+      else {
+        const cur = hour == null ? p.queries : (p.hour || 0); if (how === 'm' && cur <= 0) return;
+        const d = how === 'm' ? -1 : 1; if (hour == null) p.queries = Math.max(0, p.queries + d); else { p.hour = Math.max(0, (p.hour || 0) + d); p.queries = Math.max(0, p.queries + d); }
+        renderGive(); r = await api.post('qb.bump', { employee_id: id, delta: d, date: day, hour });
+      }
+      if (r && r.queries != null) { p.queries = r.queries; if (hour != null && r.hour != null) p.hour = r.hour; }
+      gqSync();
+    } catch (err) { p.queries = old.q; p.hour = old.h; showAlert(err.message, 'error'); loadGive(); }
+  }
+  $('qbGive').addEventListener('click', (e) => {
+    const h = e.target.closest('.gq-h'); if (h) { if (h.disabled) return; GQH = h.dataset.h === '' ? null : Number(h.dataset.h); loadGive(); return; }
+    const b = e.target.closest('button[data-a]'); if (b) gqDo(Number(b.dataset.id), b.dataset.a);
+  });
+  $('qbGive').addEventListener('change', (e) => { const i = e.target.closest('input[data-a="s"]'); if (i) gqDo(Number(i.dataset.id), 's', i.value); });
+
+  // ---------- 🛡 RUDRA: lost chats (queries that ended without an order) still missing a chat screenshot / a call recording ----------
+  let RD = null;
+  async function loadRd() {
+    if (!RD) $('p-rd').innerHTML = '<div class="card"><div class="empty">Checking the lost chats…</div></div>';
+    try { RD = await api.get('rudra.list'); } catch (e) { RD = { error: e.message }; }
+    await loadRem(); renderRd();
+  }
+  function renderRd() {
+    const box = $('p-rd'), D = RD; if (!box) return;
+    if (!D || D.error) { box.innerHTML = `<div class="card"><div class="card-head"><div><h2>🛡 Rudra</h2></div></div>${D && /unknown action/i.test(D.error || '') ? errHtml({ message: D.error }) : `<div class="empty">${esc(D ? D.error : 'No data')}</div>`}</div>`; return; }
+    const ppl = D.people || [], sm = D.sum || {}, pend = ppl.filter(p => p.pending > 0).length, nb = $('nRd'); if (nb) { nb.textContent = pend; nb.style.display = pend ? '' : 'none'; }
+    const cls = (p) => p.pending >= 4 ? 'r' : p.pending >= 1 ? 'a' : 'g';
+    const circ = ppl.map(p => `<button type="button" class="rd-c ${cls(p)}" onclick="openRd(${p.id})"><div class="ci">${p.pending > 0 ? p.pending : '✓'}${p.remark && !p.remark.seen ? '<em>💬</em>' : ''}</div><small>${esc(String(p.name).split(' ')[0])}</small></button>`).join('');
+    box.innerHTML = `<div class="card"><div class="card-head"><div><h2>🛡 Rudra panel</h2><div class="sub">Queries that did <b>not</b> become an order need a chat screenshot and a call recording. The number in each circle = lost chats still pending. Tap a circle to remind or write a remark.</div></div></div>
+      <div class="rd-sum"><div><b>${sm.noshot || 0}</b><small>Lost chats without screenshot</small></div><div><b>${sm.nocall || 0}</b><small>Without call recording</small></div><div><b>${sm.clear || 0}<span style="font-size:13px;color:var(--muted)"> / ${sm.total || 0}</span></b><small>People clear ✓</small></div></div>
+      ${circ ? '<div class="rd-grid">' + circ + '</div>' : '<div class="empty">No sales people found.</div>'}
+      <div class="qlg"><span><i class="r"></i>4+ pending</span><span><i class="a" style="background:#fde047"></i>1–3 pending</span><span><i class="g"></i>all clear</span><span>💬 remark not seen yet</span></div></div>`;
+  }
+  window.openRd = (id) => {
+    const p = ((RD && RD.people) || []).find(x => x.id === id); if (!p) return;
+    const first = String(p.name).split(' ')[0], bd = document.createElement('div'); bd.className = 'rd-bd';
+    bd.innerHTML = `<div class="rd-sh" role="dialog" aria-modal="true"><h3>${esc(p.name)}</h3><div class="sub">${p.queries} quer${p.queries === 1 ? 'y' : 'ies'} · ${p.orders} query order${p.orders === 1 ? '' : 's'} · <b>${p.lost}</b> lost chat${p.lost === 1 ? '' : 's'}</div>
+      <div class="rd-k"><div><b>${p.lost}</b><small>Lost chats</small></div><div class="${p.noshot ? 'r' : 'g'}"><b>${p.noshot}</b><small>No screenshot</small></div><div class="${p.nocall ? 'r' : 'g'}"><b>${p.nocall}</b><small>No recording</small></div></div>
+      ${p.remark ? (p.remark.seen ? `<div class="rm-st ok">💬 “${esc(p.remark.body)}” — ✅ <b>Seen by ${esc(first)}</b> ${esc(p.remark.seen)}</div>` : `<div class="rm-st wait">💬 “${esc(p.remark.body)}” — ⏳ <b>not seen yet</b> · sent ${esc(p.remark.at)}</div>`) : ''}
+      <div class="rd-act"><button type="button" class="btn" id="rdRemind" ${p.pending ? '' : 'disabled'}>🔔 Remind ${esc(first)}</button><button type="button" class="btn secondary" id="rdRemark">✍️ Send remark</button></div>
+      <div class="rd-act"><button type="button" class="btn secondary" id="rdClose">Close</button></div></div>`;
+    document.body.appendChild(bd);
+    bd.onclick = (e) => { if (e.target === bd) bd.remove(); }; bd.querySelector('#rdClose').onclick = () => bd.remove();
+    bd.querySelector('#rdRemark').onclick = () => askRemark(id, 'rudra');
+    bd.querySelector('#rdRemind').onclick = async (ev) => {
+      const b = ev.currentTarget; b.disabled = true;
+      const parts = []; if (p.noshot) parts.push(p.noshot + ' chat screenshot' + (p.noshot === 1 ? '' : 's')); if (p.nocall) parts.push(p.nocall + ' call recording' + (p.nocall === 1 ? '' : 's'));
+      try { await api.post('ct.remark_send', { employee_id: id, src: 'remind', text: `Please upload ${parts.join(' and ')} for your lost chats (queries that did not become an order). Open My Sales → Upload your lost chats. 🙏` }); bd.remove(); showAlert('Reminder sent to ' + first + '.'); afterRemark(); }
+      catch (err) { b.disabled = false; showAlert(err.message, 'error'); }
+    };
+  };
 
   // ---------- ALERTS ----------
   function alertRow(a) {
@@ -435,7 +555,7 @@
       sec('Recently resolved', done);
   }
   let resId = 0;
-  window.askResolve = (id) => { resMode = 'alert'; $('resTitle').textContent = 'Mark resolved'; resId = id; const a = (T.alerts || []).find(x => x.id === id) || {}; $('resSub').textContent = a.title || ''; $('resNote').value = ''; $('resErr').style.display = 'none'; $('resOk').disabled = true; $('resModal').classList.add('open'); setTimeout(() => $('resNote').focus(), 50); };
+  window.askResolve = (id) => { resId = id; const a = (T.alerts || []).find(x => x.id === id) || {}; openRes('alert', 'Mark resolved', a.title || ''); };
   $('resNote').oninput = () => { const ok = $('resNote').value.trim().length >= 3; $('resOk').disabled = !ok; if (ok) $('resErr').style.display = 'none'; };
   $('resNote').onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); $('resOk').click(); } };
   $('resCancel').onclick = () => $('resModal').classList.remove('open');
@@ -443,7 +563,8 @@
     const note = $('resNote').value.trim();
     if (note.length < 3) { $('resErr').style.display = 'block'; $('resNote').focus(); return; }
     try {
-      if (resMode === 'focus') { await api.post('ct.focus_done', { employee_id: resEmp, note }); $('resModal').classList.remove('open'); showAlert('Saved.'); loadFocus(); }
+      if (resMode === 'remark') { await api.post('ct.remark_send', { employee_id: resEmp, text: note, src: resSrc }); $('resModal').classList.remove('open'); showAlert('Remark sent — it shows on ' + pName(resEmp).split(' ')[0] + "'s My Sales until she taps Got it."); afterRemark(); }
+      else if (resMode === 'focus') { await api.post('ct.focus_done', { employee_id: resEmp, note }); $('resModal').classList.remove('open'); showAlert('Saved.'); loadFocus(); }
       else { await api.post('ct.resolve', { id: resId, note }); $('resModal').classList.remove('open'); showAlert('Marked resolved.'); loadTower(false); }
     }
     catch (err) { showAlert(err.message, 'error'); }
@@ -600,8 +721,8 @@
   }
 
   $('btnRefresh').onclick = () => { loadTower(true); if (MD) loadMd(true); if (BM) loadBench(); };
-  $('datePick').onchange = () => loadTower(false);
-  loadTower(false); loadFocus();
+  $('datePick').onchange = () => { loadTower(false); if (tab === 'qb') loadGive(); };
+  loadTower(false); loadFocus(); loadRd();
   loadMd(false);
   setInterval(() => { if (!document.hidden && $('datePick').value === (T && T.today)) loadTower(false); }, 120000);
 </script>
