@@ -113,6 +113,10 @@
   .gq-r{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 2px; border-top:1px solid var(--line);} .gq-r:first-of-type{border-top:0;} .gq-r .nm b{font-weight:800; font-size:13.5px;} .gq-r .nm small{display:block; font-size:11px; color:var(--muted); font-weight:700;}
   .gq-st{display:flex; align-items:center; gap:6px;} .gq-st button{width:38px; min-height:0; height:38px; border-radius:50%; border:1px solid var(--line); background:#fff; font-size:20px; font-weight:900; line-height:1; cursor:pointer; padding:0; color:var(--ink);} .gq-st button.pl{background:#16a34a; color:#fff; border-color:#16a34a;} .gq-st button:disabled{opacity:.35; cursor:default;}
   .gq-st input{width:58px; height:38px; text-align:center; font-size:17px; font-weight:900; border:1px solid var(--line); border-radius:10px; padding:0; background:#fff; -moz-appearance:textfield;} .gq-st input::-webkit-outer-spin-button,.gq-st input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .gq-sg{display:inline-block; margin-top:4px; border:0; min-height:0; border-radius:99px; padding:3px 10px; font:inherit; font-size:11.5px; font-weight:900; cursor:pointer; line-height:1.3; text-align:left; max-width:100%;}
+  .gq-sg.g{background:#dcfce7; color:#166534;} .gq-sg.a{background:#fef3c7; color:#92400e;} .gq-sg.r{background:#fee2e2; color:#991b1b; cursor:default;} .gq-sg.b{background:#e0e7ff; color:#3730a3;} .gq-sg.d{background:#f1f5f9; color:#475569;}
+  .gq-sg small{display:inline; font-size:inherit; color:inherit; opacity:.8; font-weight:700;} .gq-r .nm .gq-why{display:block; font-size:11px; color:var(--muted); font-weight:700;}
+  .gq-pl{background:#f0fdf4; border:1px solid #bbf7d0; color:#14532d; border-radius:12px; padding:7px 11px; font-size:12px; font-weight:700; line-height:1.5; margin:2px 0 6px;} .gq-pl b{font-weight:900;}
   .gq-tot{display:flex; justify-content:space-between; gap:8px; font-size:12px; font-weight:800; color:var(--muted); padding:8px 2px 2px; border-top:2px solid var(--line); margin-top:4px;}
   .gq-bh{display:grid; grid-template-columns:62px 1fr; gap:8px; padding:7px 2px; border-top:1px solid var(--line); font-size:12.5px; align-items:start;} .gq-bh:first-of-type{border-top:0;} .gq-bh b{font-weight:900;} .gq-bh .who{color:#4b5563; line-height:1.5;} .gq-bh .who i{font-style:normal; display:inline-block; background:#f1f5f9; border-radius:99px; padding:0 8px; margin:0 4px 3px 0; font-weight:700;}
   /* Rudra */
@@ -620,13 +624,17 @@
   }
 
   // ---------- 📋 GIVE QUERIES (inside Query Boost): ONE count per person — shower-gel and normal queries are the same thing, no house, no campaign ----------
-  let GQ = null, GQH = null, GQT = 0;
+  let GQ = null, GQH = null, GQT = 0, GQINIT = false;
   const hLab = (h) => h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h - 12) + 'p';
   const hFull = (h) => (h % 12 === 0 ? 12 : h % 12) + ' ' + (h < 12 ? 'AM' : 'PM');
   async function loadGive() {
     if (!GQ) $('qbGive').innerHTML = '<div class="card"><div class="empty">Loading…</div></div>';
     const day = $('datePick').value;
-    try { GQ = await api.get('qb.list', Object.assign({}, day ? { date: day } : {}, GQH != null ? { hour: GQH } : {})); } catch (e) { GQ = { error: e.message }; }
+    try {
+      GQ = await api.get('qb.list', Object.assign({}, day ? { date: day } : {}, GQH != null ? { hour: GQH } : {}));
+      if (!GQINIT && GQ.plan && GQH == null) { GQINIT = true; GQH = GQ.plan.hour; GQ = await api.get('qb.list', Object.assign({}, day ? { date: day } : {}, { hour: GQH })); }       // open on the hour running now, where the suggestions are
+      GQINIT = true;
+    } catch (e) { GQ = { error: e.message }; }
     renderGive();
   }
   function renderGive() {
@@ -635,13 +643,29 @@
     const hrs = (D.hours || []).map(h => `<button type="button" class="gq-h${GQH === h.hour ? ' on' : ''}${h.now ? ' now' : ''}${h.future ? ' fut' : ''}${h.n > 0 ? ' has' : ''}" data-h="${h.hour}"${h.future ? ' disabled' : ''}><b>${hLab(h.hour)}</b><small>${h.n > 0 ? h.n : '·'}</small></button>`).join('');
     const ppl = D.people || [];
     const val = (p) => GQH == null ? p.queries : (p.hour || 0);
-    const rows = ppl.map(p => `<div class="gq-r"><div class="nm"><b>${esc(p.name)}</b><small>${GQH == null ? `${p.orders} query order${p.orders === 1 ? '' : 's'} · ${p.queries} quer${p.queries === 1 ? 'y' : 'ies'}` : `${hFull(GQH)} · day total ${p.queries}`}</small></div>
+    // 🧭 planner: a suggestion on the same line as − / number / + for the hour running now; people come top-first (the order changes every hour)
+    const PL = D.plan && GQH != null && GQH === D.plan.hour ? D.plan : null, PR = {};
+    if (PL) PL.rows.forEach(r => { PR[r.id] = r; });
+    const TAGL = { top: 'Top', hot: 'Ordering now', ok: '', due: 'Due an order', new: 'Basic', weak: 'Low ratio', hold: 'Hold' };
+    const sgChip = (p) => {
+      const r = PR[p.id]; if (!r) return '';
+      const g = val(p), n = r.sug, tl = TAGL[r.tag] ? ' · ' + TAGL[r.tag] : '';
+      if (r.tag === 'hold') return `<span class="gq-sg r">⛔ Hold · coach first</span>`;
+      const cls = g >= n ? 'd' : (r.tag === 'due' ? 'a' : (r.tag === 'new' ? 'b' : 'g'));
+      const txt = g >= n ? `✅ ${g} / ${n} done${g > n ? ' (+' + (g - n) + ')' : ''}` : `💡 Suggest ${n}${r.carry ? ' <small>(+' + r.carry + ' carried)</small>' : ''}${tl} <small>· ${g} / ${n}</small>`;
+      return g >= n ? `<span class="gq-sg ${cls}">${txt}</span>` : `<button type="button" class="gq-sg ${cls}" data-a="f" data-id="${p.id}" data-v="${n}" aria-label="Fill ${n} for ${esc(p.name)}">${txt}</button>`;
+    };
+    const medal = (p) => { const r = PR[p.id]; return r && r.rank <= 3 && r.tag !== 'hold' && r.tag !== 'weak' ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''; };
+    const list = PL ? ppl.slice().sort((a, b) => ((PR[a.id] || {}).rank || 999) - ((PR[b.id] || {}).rank || 999)) : ppl;
+    const rows = list.map(p => `<div class="gq-r"><div class="nm"><b>${medal(p)}${esc(p.name)}</b><small>${GQH == null ? `${p.orders} query order${p.orders === 1 ? '' : 's'} · ${p.queries} quer${p.queries === 1 ? 'y' : 'ies'}` : `${hFull(GQH)} · day total ${p.queries}`}</small>${PR[p.id] ? `<span class="gq-why">${esc(PR[p.id].why)}</span>${sgChip(p)}` : ''}</div>
       <div class="gq-st"><button type="button" data-a="m" data-id="${p.id}" ${val(p) <= 0 ? 'disabled' : ''} aria-label="One less">−</button><input type="number" inputmode="numeric" min="0" max="9999" value="${val(p)}" data-a="s" data-id="${p.id}" aria-label="Queries for ${esc(p.name)}"><button type="button" class="pl" data-a="p" data-id="${p.id}" aria-label="One more">+</button></div></div>`).join('');
+    const plLine = PL ? `<div class="gq-pl">🧭 <b>${hFull(PL.hour)}: suggest ${PL.total}</b> · given ${PL.given}${PL.carried ? ' · carried +' + PL.carried : ''} · expect ~${PL.pred_hour} order${PL.pred_hour === 1 ? '' : 's'}${PL.pred_day != null ? ' · day ≈ ' + PL.pred_day + ' orders' : ''}${PL.flow != null ? ' · flow ' + (PL.flow > 0 ? '+' : '') + PL.flow + '% vs usual' + (PL.adjusted ? ' → suggestions ' + (PL.adjusted > 0 ? '+' : '') + PL.adjusted + '%' : '') : ''}</div>`
+      : (D.plan && GQH !== D.plan.hour ? `<div class="gq-pl">🧭 Tap <b>${hFull(D.plan.hour)}</b> above to see how many queries to give each person this hour.</div>` : '');
     const byHour = (D.hours || []).filter(h => h.n > 0).map(h => `<div class="gq-bh"><b>${hFull(h.hour)}</b><div class="who"><b>${h.n} quer${h.n === 1 ? 'y' : 'ies'}</b><br>${((D.by_emp || {})[String(h.hour)] || []).map(x => `<i>${esc(x.name.split(' ')[0])} ${x.n}</i>`).join('')}</div></div>`).join('')
       + (D.earlier > 0 ? `<div class="gq-bh"><b>Earlier</b><div class="who"><b>${D.earlier} quer${D.earlier === 1 ? 'y' : 'ies'}</b><br><span class="sub">given before the hour log existed — no time saved</span></div></div>` : '');
     box.innerHTML = `<div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>📋 Give queries</h2><div class="sub">One count per person — <b>shower gel and normal queries are the same</b>. Pick an hour to give for that hour, or <b>Whole day</b>. ${D.date !== D.biz_today ? '<b style="color:#b45309;">Editing ' + esc(D.date) + '</b>' : ''}</div></div></div>
       <div class="gq-hrs"><button type="button" class="gq-h${GQH == null ? ' on' : ''}" data-h=""><b>Whole day</b><small>${D.total}</small></button>${hrs}</div>
-      ${rows || '<div class="empty">No sales people found.</div>'}
+      ${plLine}${rows || '<div class="empty">No sales people found.</div>'}
       <div class="gq-tot"><span>Total queries given${GQH != null ? ' in ' + hFull(GQH) : ''}</span><b>${GQH == null ? D.total : ppl.reduce((x, p) => x + (p.hour || 0), 0)}</b></div></div>
       <div class="card" style="margin-bottom:14px;"><div class="card-head"><div><h2>🕐 By hour — queries given</h2><div class="sub">Queries only · tap an hour above to give for it</div></div></div>${byHour || '<div class="empty">Nothing given yet today.</div>'}</div>`;
   }
@@ -652,7 +676,8 @@
     const old = { q: p.queries, h: p.hour };
     try {
       let r;
-      if (how === 's') { const n = Math.max(0, Math.min(9999, parseInt(v, 10) || 0)); r = await api.post('qb.set', { employee_id: id, value: n, date: day, hour }); }
+      if (how === 'f') { const n = Math.max(0, Math.min(9999, parseInt(v, 10) || 0)), cur = hour == null ? p.queries : (p.hour || 0); if (n > cur) { if (hour == null) p.queries = n; else { p.queries += n - cur; p.hour = n; } renderGive(); } r = await api.post('qb.set', { employee_id: id, value: n, date: day, hour }); }
+      else if (how === 's') { const n = Math.max(0, Math.min(9999, parseInt(v, 10) || 0)); r = await api.post('qb.set', { employee_id: id, value: n, date: day, hour }); }
       else {
         const cur = hour == null ? p.queries : (p.hour || 0); if (how === 'm' && cur <= 0) return;
         const d = how === 'm' ? -1 : 1; if (hour == null) p.queries = Math.max(0, p.queries + d); else { p.hour = Math.max(0, (p.hour || 0) + d); p.queries = Math.max(0, p.queries + d); }
@@ -664,7 +689,7 @@
   }
   $('qbGive').addEventListener('click', (e) => {
     const h = e.target.closest('.gq-h'); if (h) { if (h.disabled) return; GQH = h.dataset.h === '' ? null : Number(h.dataset.h); loadGive(); return; }
-    const b = e.target.closest('button[data-a]'); if (b) gqDo(Number(b.dataset.id), b.dataset.a);
+    const b = e.target.closest('button[data-a]'); if (b) gqDo(Number(b.dataset.id), b.dataset.a, b.dataset.v);
   });
   $('qbGive').addEventListener('change', (e) => { const i = e.target.closest('input[data-a="s"]'); if (i) gqDo(Number(i.dataset.id), 's', i.value); });
 
